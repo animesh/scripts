@@ -1,0 +1,25 @@
+pdf("solexa-read-plot.pdf");
+t=read.table('sr2csp',sep='\t')
+plot(density(abs(t$V7)),col="blue",xlab="Distance in bp",main="Solexa read mapping",ylab="Density of Pairs",xlim=range(0,1000))
+t2=read.table('sr2nsp',sep='\t')
+lines(density(abs(t2$V7)),col="red")
+legend(x="topright", legend=c("Celera","Newbler"),text.col=c("blue","red"))
+dens=(density(abs(t$V7)))
+peak=dens$x[which(dens$y==max(dens$y))]  
+abline(v=peak,lty=6,col=gray(0.4))
+text(peak,0,labels=round(peak),cex=.6,adj = c(0,0))
+dens=(density(abs(t2$V7)))
+peak=dens$x[which(dens$y==max(dens$y))]  
+abline(v=peak,lty=6,col=gray(0.4))
+text(peak,0,labels=round(peak),cex=.6,adj = c(1,1))
+summary(t$V7)
+median(t$V7)
+sd(t$V7)
+mean(t$V7)
+summary(t2$V7)
+median(t2$V7)
+mean(t2$V7)
+sd(t2$V7)
+hist(t$V7,breaks=100000,xlim=range(0,1000))
+hist(t2$V7,breaks=100000,xlim=range(0,1000))
+

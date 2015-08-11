@@ -1,0 +1,45 @@
+```{r data}
+#data <- read.table("L://Elite/kamila/BT/datamwithoutsingletons.txt", header = T)
+data <- read.table("L://Elite/kamila/BT/datam.txt", header = T)
+```
+
+```{r plot}
+plot(data)
+#install.packages('ggplot2')
+#library('ggplot2')
+g = ggplot(data,aes(hgb,time))
+g+geom_point(aes(color=cd34))+geom_smooth(method="lm",se=FALSE,col="steel blue") +facet_grid(.~trans) +theme_bw(base_size=10) # ,base_family = "Courier") 
+
+g+geom_point(aes(color=cd34))+geom_smooth(method="lm",se=FALSE,col="steel blue") +facet_grid(.~ntrans) +theme_bw(base_size=10) # ,base_family = "Courier") 
+
+qplot(trans,hgb,data=data,color=time)
+qplot(time,hgb,data=data,color=cd34)
+x=table(data$diag)>1
+plot(data)
+```
+
+
+```{r relation}
+plot(data$cd34 ~ data$trans, pch=16, xlab="Transfusions - yes or no", ylab="CD34+ cell dose", col="blue")
+abline(lm(data$cd34 ~ data$time), col = "blue")
+anova(lm(data$trans ~ data$hgb))
+
+anova(lm(data$trans ~ data$hgb + data$time + data$cd34 + data$hgb*data$time + data$time * data$cd34 + data$hgb * data$cd34 + data$hgb * data$time * data$cd34))
+
+anova(lm(data$ntrans ~ data$hgb + data$time + data$cd34 + data$hgb*data$time + data$time * data$cd34 + data$hgb * data$cd34 + data$hgb * data$time * data$cd34))
+```
+
+
+```{r tree}
+install.packages('caret')
+library('caret')
+dta=data
+dta$ntrans=NULL
+modFit=train(trans~.,method="rpart",data=dta)
+print(modFit$finalModel)
+```
+```{r treeplot}
+install.packages('rattle')
+library(rattle)
+fancyRpartPlot(modFit$finalModel)
+```

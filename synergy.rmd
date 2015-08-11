@@ -1,0 +1,110 @@
+Synergy check
+========================================================
+
+```{r load file}
+#syn=read.csv('L:/Elite/kamila/FA-UDC-IM-M-6.csv')
+#syn=read.csv('L:/Elite/kamila/flufenamic acid for Animesh.csv')
+#syn=read.csv('L:/Elite/kamila/UDCIMrawLR5.csv')
+#syn=read.csv('L:/Elite/kamila/UDCIMraw.csv')
+#syn=read.csv('L:/Elite/kamila/FM.csv')
+syn=read.csv('L:/Elite/kamila/flufenamic acid.csv')
+```
+
+```{r ld50}
+sync=syn[syn[, "T"] == "LR5",]
+#sync=sync[1,]
+kalythos <- data.frame(x = c (0, 10, 40, 80), n = rep(1,6), y = c(t(sync$control),t(sync$flufenamic..10uM), t(sync$flufenamic..40uM),t(sync$Flufenamic.80uM))
+kalythos$Ymat <- cbind(kalythos$y, kalythos$n - kalythos$y)
+kalythos <- data.frame(x = c (1, 5, 10, 20, 40), n = rep(24,5), y = c(2,5, 12, 16, 20))
+kalythos <- data.frame(x = c (1, 5, 10, 20, 40,1, 5, 10, 20, 40), n = rep(24,10), y = c(2,5, 12, 16, 20,3,6, 13, 17, 19))
+kalythos$Ymat <- cbind(kalythos$y, kalythos$n - kalythos$y)
+fmp <- glm(Ymat ~ x, family = binomial(link=probit), data = kalythos)
+fml <- glm(Ymat ~ x, family = binomial, data = kalythos)
+ld50 <- function(b) -b[1]/b[2]
+ldp <- ld50(coef(fmp)); ldl <- ld50(coef(fml))
+c(ldp, ldl)
+plot(kalythos$x,1/kalythos$y)
+lo <- glm(1/kalythos$y~kalythos$x,family = binomial(link=probit))
+lines(predict(lo), col='red', lwd=2)
+#rm(kalythos)
+#source http://stats.stackexchange.com/questions/64555/providing-starting-values-for-a-generalized-linear-mixed-model-with-glmmpql
+```
+
+```{r dose-response-curve}
+#install.packages('drc')
+#library('drc')
+data(acidiq)
+#acidiq.free <- drm(rgr ~ dose, pct, data = acidiq, fct = LL.4(), pmodels = list(~factor(pct), ~1, ~1, ~factor(pct) - 1))
+acidiq.free <- drm(rgr ~ dose,fct = LL.4())
+modelFit(acidiq.free)
+sync=syn/syn$C
+plot(sync[-1,],sync[1,])
+cor(sync[-1,])
+#source http://www.tandfonline.com/doi/pdf/10.1080/10543400701199593
+```
+
+```{r check U}
+sync=syn[syn[, "T"] == "LR5",]
+#sync=syn[syn[, "T"] == "C8226",]
+sync=sync/sync$C
+sync$U=log2(sync$U/sync$C)
+sync$M=log2(sync$M/sync$C)
+sync$UM=log2(sync$UM/sync$C)
+ar=lm(sync$UM~sync$U+sync$M+sync$U*sync$M)
+anova(ar)
+```
+
+```{r check I}
+#sync=syn[syn[, "T"] == "LR5",]
+sync=syn[syn[, "T"] == "C8226",]
+sync=sync/sync$C
+sync$I=log2(sync$I/sync$C)
+sync$M=log2(sync$M/sync$C)
+sync$IM=log2(sync$IM/sync$C)
+ar=lm(sync$IM~sync$I+sync$M+sync$I*sync$M)
+anova(ar)
+```
+
+```{r check F}
+sync=syn[syn[, "T"] == "LR5",]
+#sync=syn[syn[, "T"] == "C8226",]
+#sync=sync/sync$C
+sync$F=log2(sync$F/sync$C)
+sync$M=log2(sync$M/sync$C)
+sync$FM=log2(sync$FM/sync$C)
+ar=lm(sync$FM~sync$F+sync$M+sync$F*sync$M)
+#ar=lm(sync$FM~sync$F+sync$T+sync$M+sync$F*sync$M*sync$T)
+anova(ar)
+```
+
+```{r plot}
+interaction.plot(sync$FA,sync$MFA,sync$FApM)
+```
+
+
+
+
+```{r check mixlow}
+#install.packages('mixlow')
+#library("mixlow")
+?mixlow
+data(trayData)
+mixlowData <- prepareData(trayData)
+trays <- getTrays(trayData)
+parameterDefaults <- getNlsParameterDefaults(trays[1:9])
+parameterDefaults["vin_tr1","param.lambda"] = .2
+parameterDefaults["vin_tr2","param.lambda"] = .2
+parameterDefaults["vin_tr3","param.lambda"] = .2
+nlsData = doNls(mixlowData, parameterDefaults) 
+nlmeData = doNlme(mixlowData, nlsData)
+loeweData = doLoewe(mixlowData, nlmeData)
+
+```
+
+```{r sources}
+http://www.stat.columbia.edu/~martin/W2024/R8.pdf
+
+http://cran.r-project.org/web/packages/mixlow/mixlow.pdf
+http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0008919
+http://bioinformatics.psb.ugent.be/webtools/Venn/
+```
