@@ -51,7 +51,30 @@ cu(~isfinite(cu))=1;
 
 
 %% fasta
-ff = fastaread('X:\FastaDB\uniprot-human-may-13.fasta');
+ff = fastaread('L:\FastaDB\uniprot-human-ref-jun2015.fasta');
+utr5=fastaread('L:\FastaDB\ORFs_5UTR.fasta')
+utr3=fastaread('L:\FastaDB\ORFs_3UTR.fasta')
+
+%% extract sequences
+utr5.Header
+utr5.Sequence
+utr5tab=struct2table(utr5)
+utr3tab=struct2table(utr3)
+fftab=struct2table(ff)
+
+%% amino acid distribution
+aacount(strjoin(utr5tab.Sequence),'chart','pie')
+aacount(strjoin(utr3tab.Sequence),'chart','pie')
+aacount(strjoin(fftab.Sequence),'chart','pie')
+
+%% insilico digests lengths
+lgt=[]
+for i=1:size(utr3)
+    [partsPK, sitesPK, lengthsPK] = cleave(utr3(i).Sequence, 'trypsin');
+    lgt=[lgt;lengthsPK];
+end
+histfit(lgt,50,'exp')
+
 
 %% compare
 aacount(ff(1).Sequence,'chart','bar')

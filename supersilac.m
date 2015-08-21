@@ -23,6 +23,19 @@ options.Display = 'iter';
 cubic = @(x) x^3+x^2+x
 cubic(10)+1
 
+%% hyperplane
+
+%f = @(x,y) exp(x.^2./y.^2)-exp(x.^2./y.^2)
+n=2
+f = @(x,y) abs(x^n.*y^n)
+ezsurfc(f,[-1,1])
+fx=@(x)f(x(1),x(2));  
+x0 = [100;100];
+options = optimoptions('fminunc','Algorithm','quasi-newton');
+options.Display = 'iter';
+[x, fval, exitflag, output] = fminunc(fx,x0)
+
+
 %% cluster
 clustergram(log2(protcl), 'Cluster','column', 'Colormap', redbluecmap,'ImputeFun','knnimpute')
 clustergram(log2(protcl), 'Colormap', redbluecmap,'ImputeFun','knnimpute')
