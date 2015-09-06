@@ -17,19 +17,25 @@ while (my $line = <F1>) {
 	if($lc==1){$vh{"header"}="$line";}
 	else{
 		$line =~ s/\'/-/g;
-		my @tmp=parse_line(',',0,$line);
-		my ($name)=$tmp[$gn] =~ m/(\[\w+_\w+\])/;
-		$nh{$name}++;
+		my @tmp=parse_line('\t',0,$line);
+		my ($name)=$tmp[$gn] =~ m/GN *= *([^,; ]*)/;
+		#print "$name\n";
+		$name=~s/\s+//g;
+		if($name ne ""){$nh{$name}++}
+		else{$name=$tmp[0];$nh{$name}++}
 		for($cnt=0;$cnt<=$#tmp;$cnt++) {
 			$tmp[$cnt] =~ s/^\s+|\s+$//;
-			if (looks_like_number($tmp[$cnt])){
-				if($vh{"$name-$cnt"}<$tmp[$cnt]){
+			if($tmp[$cnt] eq ""){next;}
+			elsif(looks_like_number($tmp[$cnt]) and $tmp[$cnt]==0){$vh{"$name-$cnt"}=0;}
+			elsif(looks_like_number($tmp[$cnt]) and $tmp[$cnt]==1){$vh{"$name-$cnt"}=1;}
+			elsif (looks_like_number($tmp[$cnt])){
+				if($vh{"$name-$cnt"}<abs($tmp[$cnt])){
 					$vh{"$name-$cnt"}=$tmp[$cnt];
 				}
 			}
 			else{
-				$tmp[$cnt]=~s/,/-/g;
-				$vh{"$name-$cnt"}.="$tmp[$cnt] ";
+				$tmp[$cnt]=~s/,/ /g;
+				$vh{"$name-$cnt"}.="$tmp[$cnt];";
 			}
 		}
 	}
@@ -39,15 +45,12 @@ close F1;
 $lc=0;
 foreach my $ncc (keys %nh){
 	$lc++;
-	my $name=$ncc;
-	$name=~s/\[|\]|\_[A-Za-z]+//g;
-	if($lc==1){print "Gene,FullID,",$vh{"header"},",Count,Number\n";}
-	print "$name,$ncc,";
+	if($lc==1){print "Gene\t",$vh{"header"},"\tCount\tNumber\n";}
+	print "$ncc\t";
 	for(my $c=0;$c<$cnt;$c++){
-		#my $name="$ncc-$ARGV[$c]";
-		print $vh{"$ncc-$c"},",";
+		print $vh{"$ncc-$c"},"\t";
 	}
-	print "$nh{$ncc},$lc\n";
+	print "$nh{$ncc}\t$lc\n";
 }
 
 __END__

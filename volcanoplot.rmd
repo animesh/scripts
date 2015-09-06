@@ -10,7 +10,30 @@
 data <- read.table('L:/Elite/LARS/2015/january/Ishita/uniprot-gomap-expression.txt', sep = '\t', header = T)
 data <- read.table('L:/Elite/Celine/Alex/resultdmsocombo/SSandLFQttestPB.txt', sep = '\t', header = T)
 "for i in  /cygdrive/f/promec/Elite/kamila/2015-08-08/*.txt ; do awk -F '|' '{print $2}' $i > $i.IDs.txt ; done"
+
 ```
+
+```{r Laccase}
+library('ggplot2')
+data <- read.table('F:/promec/Qexactive/LARS/2014/desember/Rami_Morteza/Results/LFQ-pellet-supernatant-RPKM-genome-plasmidPlot.txt', sep = '\t', header = T)
+summary(data)
+data[1,]
+Significance=abs(data$PelletLog2DiffMedian)>1&abs(data$SupernatantLog2DiffMedian)>1&abs(data$RPKMlog2Diff)>1
+sum(Significance)
+dsub <- subset(data, Significance==TRUE)
+plot(data$RPKMlog2Diff,data$SupernatantLog2DiffMedian)
+
+ggplot(data = dat_c, aes(games, variance.x)) + 
+     geom_point(aes(x = games, y = variance.x), legend=  TRUE,  xlab="X", ylab="Y", colour=alpha('red', 0.05)) + 
+     geom_point(aes(x = games, y = variance.y), legend = TRUE, colour=alpha('blue', 0.05) )
+
+
+g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') + geom_text(data=dsub,aes(RPKMlog2Diff,SupernatantLog2DiffMedian,label=func),hjust=0.5, vjust=-0.5, size=3) 
+gps<- g  + theme_bw(base_size=10)  + xlab("Transcriptome")  + ylab("Proteome")  + ggtitle("Log2 median ratio change [+/- Laccase Inhibitor]")  + scale_size_area()  #+ geom_text(data=dsub,aes(label=func),hjust=0.5, vjust=-0.5, size=3) 
+print(gps)
+
+```
+
 
 ```{r PCL}
 #library('ggplot2')
@@ -18,6 +41,8 @@ data <- read.table('L:/Elite/Celine/Alex/resultdmsocombo/SSandLFQttestPB.txt', s
 #install.packages('reshape2')
 #library('reshape2')
 #library('digest')
+data <- read.table('F:/promec/Qexactive/LARS/2014/desember/Rami_Morteza/Results/LFQ-pellet-supernatant-RPKM-genome-plasmidPlot.txt', sep = '\t', header = T)
+summary(data)
 dataname <- read.table('G:/felles/PROTEOMICS and XRAY/Articles in prep/sPCL/Data after imputation/Top10upNdn.txt', sep = '\t', header = T)
 dataname
 data <- read.table('G:/felles/PROTEOMICS and XRAY/Articles in prep/sPCL/Data after imputation/Copy of Copy of SSandLFQttestPB All the collected super-SILAC and LFQ after imputation .txt', sep = '\t', header = T)
