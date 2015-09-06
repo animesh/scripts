@@ -13,11 +13,11 @@ $slide=1;
 #number of iteration, maximum number of epochs
 $iter=100;
 #threshold, an limit on E 
-$threshold=0.00000000001;
+$threshold=0.1;
 #learning rate,  η
-$eta=0.1;
+$eta=0.4;
 #momentum,α 
-$alpha=0.9;
+$alpha=0.5;
 #hidden layer construct
 $hlayers=1;
 $hidnodez=$m;
