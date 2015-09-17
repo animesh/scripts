@@ -23,12 +23,8 @@ sum(Significance)
 dsub <- subset(data, Significance==TRUE)
 plot(data$RPKMlog2Diff,data$SupernatantLog2DiffMedian)
 
-ggplot(data = dat_c, aes(games, variance.x)) + 
-     geom_point(aes(x = games, y = variance.x), legend=  TRUE,  xlab="X", ylab="Y", colour=alpha('red', 0.05)) + 
-     geom_point(aes(x = games, y = variance.y), legend = TRUE, colour=alpha('blue', 0.05) )
-
-
-g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') + geom_text(data=dsub,aes(RPKMlog2Diff,SupernatantLog2DiffMedian,label=func),hjust=0.5, vjust=-0.5, size=3) 
+#g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') + geom_text(data=dsub,aes(RPKMlog2Diff,SupernatantLog2DiffMedian,label=func),hjust=0.5, vjust=-0.5, size=3) 
+g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') 
 gps<- g  + theme_bw(base_size=10)  + xlab("Transcriptome")  + ylab("Proteome")  + ggtitle("Log2 median ratio change [+/- Laccase Inhibitor]")  + scale_size_area()  #+ geom_text(data=dsub,aes(label=func),hjust=0.5, vjust=-0.5, size=3) 
 print(gps)
 
