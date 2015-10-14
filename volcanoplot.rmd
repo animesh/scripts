@@ -30,6 +30,26 @@ print(gps)
 
 ```
 
+```{r RT}
+#data <- read.delim2('F:/promec/Davi/Christina/Elite/allPeptides.txt',fill=TRUE, sep = '\t', header = T)
+summary(data)
+plot(data$Intensity,data$Raw.file)
+plot(data$Intensity)
+data1000=data[sample(nrow(data),size=1000,replace=FALSE),]
+hist(log2(as.numeric(as.character(data1000$Intensity))))
+typeof(data$Intensity)
+ggplot(data1000, aes(x=(data1000$Intensity), fill=data1000$Raw.file)) + geom_histogram(alpha=0.2, position="identity")
+data1000[1,1]
+install.packages('Lahman')
+install.packages('dplyr')
+library(Lahman)
+library(dplyr)
+
+players <- group_by(Batting, playerID)
+games <- summarise(players, total = sum(G))
+head(arrange(games, desc(total)), 5)
+
+```
 
 ```{r PCL}
 #library('ggplot2')
@@ -39,7 +59,7 @@ print(gps)
 #library('digest')
 data <- read.table('F:/promec/Qexactive/LARS/2014/desember/Rami_Morteza/Results/LFQ-pellet-supernatant-RPKM-genome-plasmidPlot.txt', sep = '\t', header = T)
 summary(data)
-dataname <- read.table('G:/felles/PROTEOMICS and XRAY/Articles in prep/sPCL/Data after imputation/Top10upNdn.txt', sep = '\t', header = T)
+dataname <- reade.table('G:/felles/PROTEOMICS and XRAY/Articles in prep/sPCL/Data after imputation/Top10upNdn.txt', sep = '\t', header = T)
 dataname
 data <- read.table('G:/felles/PROTEOMICS and XRAY/Articles in prep/sPCL/Data after imputation/Copy of Copy of SSandLFQttestPB All the collected super-SILAC and LFQ after imputation .txt', sep = '\t', header = T)
 data[1,]
