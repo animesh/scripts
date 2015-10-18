@@ -26,12 +26,13 @@ cubic(10)+1
 %% hyperplane
 
 %f = @(x,y) exp(x.^2./y.^2)-exp(x.^2./y.^2)
-n=2
-f = @(x,y) abs(x^n.*y^n)
-ezsurfc(f,[-1,1])
+n=3
+%f = @(x,y) -abs(x^n.*y^n)
+f = @(x,y) abs(x^n+y^n)+n^n
+ezsurfc(f,[-10,10])
 fx=@(x)f(x(1),x(2));  
-x0 = [100;100];
-options = optimoptions('fminunc','Algorithm','quasi-newton');
+x0 = [1;1];
+options = optimoptions('fminunc');
 options.Display = 'iter';
 [x, fval, exitflag, output] = fminunc(fx,x0)
 

@@ -6,7 +6,7 @@ opendir my $dir, $fpat or die "unable to open directory: $!";
 my @files = readdir $dir;
 closedir $dir;
 
-my $idn="Accession";
+my $idn="pegfam";
 my $idc=0;
 my $val=1;
 
@@ -31,7 +31,7 @@ foreach my $f1 (@files){
 		if($tmp[$idc]=~/^[a-zA-Z0-9+]/){
 			my $key="$fn.$tmp[$idc]";
 			#if($mrna{$key}<abs($tmp[$val])){$mrna{$key}=$tmp[$val]}
-			$mrna{$key}.="$tmp[$val] ";
+			$mrna{$key}+=$tmp[$val];
 			$nc{$tmp[$idc]}++;
 		}
 	    }
@@ -57,4 +57,6 @@ foreach my $g  (keys %nc){
 
 __END__
 
-perl /home/animeshs/misccb/filecombo.pl  directory 2>0 > output
+perl filecombo.pl /cygdrive/l/Davi/Christina/Elite/E.coli_Transcriptome_count\ data/Counts_newIDs/count/ 2>0 > sepsum.txt
+
+
