@@ -20,10 +20,12 @@ foreach my $seq (keys %seqh){
 	$seqm{$seqh{$seq}}.="$seq;";
 }
 
-print "Sequence\tNames\tLength\n";
+print "ID\tSequence\tNames\tLength\n";
+my $name;
 foreach my $seqs (keys %seqm){
+	if($seqm{$seqs}=~m/.*\|(.*)\|/){$name=$1;}
 	my $len=length($seqs);
-	print "$seqs\t$seqm{$seqs}\t$len\n";
+	print "$name\t$seqs\t$seqm{$seqs}\t$len\n";
 }
 
 

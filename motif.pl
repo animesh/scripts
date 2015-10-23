@@ -18,7 +18,8 @@ while (my $line = <F>) {
 			print "$1,$-[0]-$+[0];";
 			pos($se[1]) = $-[0] + 1;
 			$cnter++;
-			if($-[0]==$se[2]-1){$flag=1;}
+			$flag+=()=$1=~/K/g;
+			#if($-[0]==$se[2]-1){$flag=1;}
 		}
 	}
 	print "\t$flag\t$cnter\n";
@@ -27,4 +28,5 @@ while (my $line = <F>) {
 
 __END__
 
+perl fas2tablen.pl /cygdrive/f/promec/FastaDB/uniprot-human-feb15.fasta > /cygdrive/f/promec/Results/Ani/N-terminal-UNG/human.fasta.tab
 perl motif.pl /cygdrive/f/promec/Results/Ani/N-terminal-UNG/Acetylation.elm > /cygdrive/f/promec/Results/Ani/N-terminal-UNG/Acetylation.elm.pos.txt
