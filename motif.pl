@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 my $f=shift @ARGV;
-my @pip=qw/K.[MILV]..[FY][FY] QK.[MILV]..[FY][FY] Q..[MILV]..[FY][FY] [FY][FY]..[MILV].K [FY][FY]..[MILV].KQ [FY][FY]..[MILV]..Q/;
+my @pip=qw/QK.[ILVAG]..[FY][FY]/;
 open (F,$f);
 print $f;
 print "SeqName\tPosition(s)\tPTM\tMotif(s)\tFlag\tTotal\n";
