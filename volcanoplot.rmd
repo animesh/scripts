@@ -14,6 +14,22 @@ data <- read.table('L:/Elite/Celine/Alex/resultdmsocombo/SSandLFQttestPB.txt', s
 ```
 
 ```{r Laccase}
+source("http://bioconductor.org/biocLite.R")
+biocLite("XMLRPC")
+library("XMLRPC")
+server = "http://localhost:1234"
+xml.rpc(server,"PathVisio.importData", "/home/anwesha/combidata.txt","/home/anwesha/PathVisio-Data/gene-databases","/home/anwesha/")
+ xml.rpc(server, "PathVisio.createVisualization","/home/anwesha/combidata.txt.pgex","log2FC","blue,white,red","-2,0,2","pvalue","green","[pvalue]<0.05")
+xml.rpc(server,"PathVisio.visualizeDataByURI", "WP1","/home/anwesha/combidata.txt.pgex","/home/anwesha/PathVisio-Data/gene-databases","/home/bohler/PathVisio-Data/results")
+xml.rpc(server,"PathVisio.createPathway","Test Pathway","Test","Homo Sapiens",".")
+xml.rpc(server,"PathVisio.addDataNode", "Test Pathway.gpml", "Glucose","Metabolite"," HMDB00122","HMDB")
+
+xml.rpc(server,"PathVisio.addDataNode", "Test Pathway.gpml", "Glucose-6-P","Metabolite"," HMDB01401","HMDB")
+xml.rpc(server,"PathVisio.addInteraction", "Test Pathway.gpml","Glucose->Glucose-6-P","Glucose","Glucose-6-P","","mim-conversion")
+
+```
+
+```{r Laccase}
 library('ggplot2')
 data <- read.table('F:/promec/Qexactive/LARS/2014/desember/Rami_Morteza/Results/LFQ-pellet-supernatant-RPKM-genome-plasmidPlot.txt', sep = '\t', header = T)
 summary(data)
@@ -23,10 +39,32 @@ sum(Significance)
 dsub <- subset(data, Significance==TRUE)
 plot(data$RPKMlog2Diff,data$SupernatantLog2DiffMedian)
 
-#g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') + geom_text(data=dsub,aes(RPKMlog2Diff,SupernatantLog2DiffMedian,label=func),hjust=0.5, vjust=-0.5, size=3) 
-g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') 
+g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') + geom_text(data=dsub,aes(RPKMlog2Diff,SupernatantLog2DiffMedian,label=func),hjust=0.5, vjust=-0.5, size=3) 
+#g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') 
 gps<- g  + theme_bw(base_size=10)  + xlab("Transcriptome")  + ylab("Proteome")  + ggtitle("Log2 median ratio change [+/- Laccase Inhibitor]")  + scale_size_area()  #+ geom_text(data=dsub,aes(label=func),hjust=0.5, vjust=-0.5, size=3) 
 print(gps)
+
+```
+
+```{r RT}
+install.packages('brms')
+library(brms)
+install.packages('loo')
+library(loo)
+
+fit_e <- brm(count ~ log_Age_c + log_Base4_c * Trt_c + (1|patient) + (1|visit),
+data = epilepsy, family = "poisson",
+prior = c(set_prior("uniform(-100,100)", class = "b"),
+set_prior("cauchy(0,05)", class = "sd")))
+
+summary(fit_e)
+plot(fit_e)
+VarCorr(fit_e)
+ranef(fit_e)
+
+players <- group_by(Batting, playerID)
+games <- summarise(players, total = sum(G))
+head(arrange(games, desc(total)), 5)
 
 ```
 
@@ -50,7 +88,6 @@ games <- summarise(players, total = sum(G))
 head(arrange(games, desc(total)), 5)
 
 ```
-
 ```{r PCL}
 #library('ggplot2')
 #install.packages('digest')
