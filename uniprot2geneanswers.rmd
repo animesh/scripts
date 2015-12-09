@@ -1,5 +1,37 @@
-Protein Expression Analysis with Uniprot IDs
-========================================================
+```{r data}
+%halpdt=data.frame("F:/promec/Qexactive/Linda/raw/PD2/_LINDA_/130405_LINDA_gel-(05)_TargetProtein-HALPDTHighConfGNcompGO.txt")
+halpdt=read.delim("F:/promec/Qexactive/Linda/raw/PD2/_LINDA_/130405_LINDA_gel-(05)_TargetProtein-HALPDTHighConfGNcompGO.txt")
+summary(halpdt)
+gene=as.character(halpdt$T..T..T..FASTA.Title.Lines_)
+protein=as.character(halpdt$T..T..Uniprot)
+hist(log2(halpdt$T..AreaChkNew))
+```
+
+```{r map}
+#install.packages("installr")
+#library(installr)
+#updateR()
+#https://github.com/santhilalsubhash/geneSCF bash commandline tool
+#library(org.Hs.eg.db)
+#egmap <- revmap(org.Hs.egUNIPROT)[as.character(gene)]
+source("https://bioconductor.org/biocLite.R")
+#biocLite("BiocUpgrade")
+biocLite("UniProt.ws")
+library(UniProt.ws)
+up <- UniProt.ws(taxId=9606)
+egs = keys(up, "ENTREZ_GENE")
+setInternet2(TRUE)
+
+biocLite('mygene')
+biocLite('IRanges')
+library(mygene)
+glist <- c('UNG','xrcc1')
+glterm <- queryMany(glist, scopes='symbol', fields=c('entrezgene', 'go'), species='human')
+glterm[1, 'go.BP'][[1]]
+
+```
+
+
 ```{r install libraries and setup}
 #setwd('C:/Users/animeshs/SkyDrive')
 #source("http://bioconductor.org/biocLite.R")
@@ -15,7 +47,7 @@ Protein Expression Analysis with Uniprot IDs
 ```
 
 
-```{r pathview}
+```{r GSA}
 library("GSA")
 ?GSA
 ######### two class unpaired comparison
