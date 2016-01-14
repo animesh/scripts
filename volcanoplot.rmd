@@ -1,3 +1,18 @@
+```{r Laccase}
+library('ggplot2')
+data <- read.table('F:/promec/Qexactive/LARS/2014/desember/Rami_Morteza/Results/LFQ-pellet-supernatant-RPKM-genome-plasmidPlot.txt', sep = '\t', header = T)
+summary(data)
+data[1,]
+Significance=abs(data$PelletLog2DiffMedian)>1&abs(data$SupernatantLog2DiffMedian)>1&abs(data$RPKMlog2Diff)>1
+sum(Significance)
+dsub <- subset(data, Significance==TRUE)
+plot(data$RPKMlog2Diff,data$SupernatantLog2DiffMedian)
+g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') + geom_text(data=dsub,aes(RPKMlog2Diff,SupernatantLog2DiffMedian,label=func),hjust=0.5, vjust=-0.5, size=3) 
+#g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') 
+gps<- g  + theme_bw(base_size=10)  + xlab("Transcriptome")  + ylab("Proteome")  + ggtitle("Log2 median ratio change [+/- Laccase Inhibitor]")  + scale_size_area()  #+ geom_text(data=dsub,aes(label=func),hjust=0.5, vjust=-0.5, size=3) 
+print(gps)
+```
+
 ```{r data}
 #setwd('L:/Elite/LARS/2014/desember/christiano/serum/')
 #file='W2H.txt'
@@ -10,23 +25,93 @@
 data <- read.table('L:/Elite/LARS/2015/january/Ishita/uniprot-gomap-expression.txt', sep = '\t', header = T)
 data <- read.table('L:/Elite/Celine/Alex/resultdmsocombo/SSandLFQttestPB.txt', sep = '\t', header = T)
 "for i in  /cygdrive/f/promec/Elite/kamila/2015-08-08/*.txt ; do awk -F '|' '{print $2}' $i > $i.IDs.txt ; done"
+```
+
+```{r tute}
+attach(iris)
+table(iris$Specie)
+
+install.packages('gmodels')
+library(gmodels)
+tapply(iris$Sepal.Length,iris$Species,sum)
+
+CrossTable(mydata$myrowvar, mydata$myIolvar)
+
+} tapply(iriJ$Jepal.Length,iriJ$JpecieJ,mean)
+setosa versicolor virginica
+s.06 s.936 6.s88
+
+This text was recognized by the built-in Ocrad engine. A better transcription may be attained by right clicking on the selection and changing the OCR engine to "Tesseract" (under the "Language" menu). This message can be removed in the future by unchecking "OCR Disclaimer" (under the Options menu). More info: http://projectnaptha.com/ocrad
+
+
+Recognize and treat missing ualues and outliers
+
+} y <- c(4,S,6,NA)
+} iJ.na(y)
+[I] FALSE FALSE FALSE TRUE
+
+# and here is a quick ix or the Jame
+
+} y[is.na(y)] c- mean(y,na.rm=TRUE)
+} y[is.na(y)] c- mean(y,na.rm=TRUE)
+
+[ll 4 s 6 s
+
+This text was recognized by the built-in Ocrad engine. A better transcription may be attained by right clicking on the selection and changing the OCR engine to "Tesseract" (under the "Language" menu). This message can be removed in the future by unchecking "OCR Disclaimer" (under the Options menu). More info: http://projectnaptha.com/ocrad
+
+
+Merge l Join data sets
+
+# merge two data rames by ID
+total - merge(datarameA,data_rrame8,by="ID
+
+# merge two data rrameJ by ID and Country
+} total c - merge(data_rrameA,data_rrame8,by=c("ID","Country")
+} total <- rbind(data_rrameA, data_frameB
+
+This text was recognized by the built-in Ocrad engine. A better transcription may be attained by right clicking on the selection and changing the OCR engine to "Tesseract" (under the "Language" menu). This message can be removed in the future by unchecking "OCR Disclaimer" (under the Options menu). More info: http://projectnaptha.com/ocrad
+
 
 ```
 
-```{r Laccase}
-library('ggplot2')
-data <- read.table('F:/promec/Qexactive/LARS/2014/desember/Rami_Morteza/Results/LFQ-pellet-supernatant-RPKM-genome-plasmidPlot.txt', sep = '\t', header = T)
-summary(data)
-data[1,]
-Significance=abs(data$PelletLog2DiffMedian)>1&abs(data$SupernatantLog2DiffMedian)>1&abs(data$RPKMlog2Diff)>1
-sum(Significance)
-dsub <- subset(data, Significance==TRUE)
-plot(data$RPKMlog2Diff,data$SupernatantLog2DiffMedian)
 
-#g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') + geom_text(data=dsub,aes(RPKMlog2Diff,SupernatantLog2DiffMedian,label=func),hjust=0.5, vjust=-0.5, size=3) 
-g = ggplot(data=data)+geom_point(aes(RPKMlog2Diff,SupernatantLog2DiffMedian), colour='light green')  + geom_point(aes(RPKMlog2Diff,PelletLog2DiffMedian), colour='orange') 
-gps<- g  + theme_bw(base_size=10)  + xlab("Transcriptome")  + ylab("Proteome")  + ggtitle("Log2 median ratio change [+/- Laccase Inhibitor]")  + scale_size_area()  #+ geom_text(data=dsub,aes(label=func),hjust=0.5, vjust=-0.5, size=3) 
-print(gps)
+
+```{r Laccase}
+source("http://bioconductor.org/biocLite.R")
+biocLite("XMLRPC")
+library("XMLRPC")
+server = "http://localhost:1234"
+xml.rpc(server,"PathVisio.importData", "/home/anwesha/combidata.txt","/home/anwesha/PathVisio-Data/gene-databases","/home/anwesha/")
+ xml.rpc(server, "PathVisio.createVisualization","/home/anwesha/combidata.txt.pgex","log2FC","blue,white,red","-2,0,2","pvalue","green","[pvalue]<0.05")
+xml.rpc(server,"PathVisio.visualizeDataByURI", "WP1","/home/anwesha/combidata.txt.pgex","/home/anwesha/PathVisio-Data/gene-databases","/home/bohler/PathVisio-Data/results")
+xml.rpc(server,"PathVisio.createPathway","Test Pathway","Test","Homo Sapiens",".")
+xml.rpc(server,"PathVisio.addDataNode", "Test Pathway.gpml", "Glucose","Metabolite"," HMDB00122","HMDB")
+
+xml.rpc(server,"PathVisio.addDataNode", "Test Pathway.gpml", "Glucose-6-P","Metabolite"," HMDB01401","HMDB")
+xml.rpc(server,"PathVisio.addInteraction", "Test Pathway.gpml","Glucose->Glucose-6-P","Glucose","Glucose-6-P","","mim-conversion")
+
+```
+
+
+```{r RT}
+install.packages('brms')
+library(brms)
+install.packages('loo')
+library(loo)
+
+fit_e <- brm(count ~ log_Age_c + log_Base4_c * Trt_c + (1|patient) + (1|visit),
+data = epilepsy, family = "poisson",
+prior = c(set_prior("uniform(-100,100)", class = "b"),
+set_prior("cauchy(0,05)", class = "sd")))
+
+summary(fit_e)
+plot(fit_e)
+VarCorr(fit_e)
+ranef(fit_e)
+
+players <- group_by(Batting, playerID)
+games <- summarise(players, total = sum(G))
+head(arrange(games, desc(total)), 5)
 
 ```
 
@@ -50,7 +135,6 @@ games <- summarise(players, total = sum(G))
 head(arrange(games, desc(total)), 5)
 
 ```
-
 ```{r PCL}
 #library('ggplot2')
 #install.packages('digest')

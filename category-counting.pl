@@ -23,7 +23,7 @@ while (my $line = <F1>) {
 			my @tmpp=split(/\;/,$tmp[$cat]);
 			for($cntt=0;$cntt<=$#tmpp;$cntt++){
 					my ($name)=uc($tmpp[$cntt]);
-					#$name=substr($name,0,4);
+					$name=substr($name,0,20);
 					$nh{$name}++;
 					$vh{$name}.="$tmp[$id];";
 			}
@@ -32,7 +32,8 @@ while (my $line = <F1>) {
 }
 close F1;
 
-print "Categories\tcommonID(s)\tID1\tCount1\tID2\tCount2\tCommon\n";
+#print "Categories\tcommonID(s)\tID1\tCount1\tID2\tCount2\tCommon\n";
+print "Categories\tCount1\tCount2\tCommon\n";
 foreach my $k1 (keys %nh){
 	foreach my $k2 (keys %nh){
 		my @a1=split(/\;/,$vh{$k1});
@@ -40,7 +41,8 @@ foreach my $k1 (keys %nh){
 		my %h1 = map {$_=>1} @a1;
 		my @common = grep { $h1{$_} } @a2; 
 		my $c=$#common+1;
-		print "$k1-$k2\t@common\t$vh{$k1}\t$nh{$k1}\t$vh{$k2}\t$nh{$k2}\t$c\n";
+		#print "$k1-$k2\t@common\t$vh{$k1}\t$nh{$k1}\t$vh{$k2}\t$nh{$k2}\t$c\n";
+		if($c>10){print "$k1-$k2\t$nh{$k1}\t$nh{$k2}\t$c\n";}
 		}
 }
 

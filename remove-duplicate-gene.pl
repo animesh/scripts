@@ -4,7 +4,7 @@ use Scalar::Util qw(looks_like_number);
 my %vh;
 my %nh;
 my %ch;
-my $gn=1;
+my $gn=0;
 my $cnt;
 
 my $f1 = shift @ARGV;
