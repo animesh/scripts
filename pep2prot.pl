@@ -4,7 +4,8 @@ use Text::ParseWords;
 
 my %seqh;
 my %sfull;
-my $seqc;
+my $seqc=13;
+my $seqnm=4;
 my $f1=shift @ARGV;
 my $f2=shift @ARGV;
 my $col=0;
@@ -13,11 +14,15 @@ open(F1,$f1);
 while(my $l1=<F1>){
 	chomp $l1;
         $l1=~s/\r//g;
-        if($l1=~/^>/){my @comsplit=split(/;/,$l1);$seqc=$comsplit[0];}
-        else{my @comsplitseq=split(/;/,$l1);$comsplitseq[0]=~s/[0-9]|\s+//g;$seqh{$seqc}.=uc($comsplitseq[0]);}
+        #if($l1=~/^>/){my @comsplit=split(/;/,$l1);$seqc=$comsplit[0];}
+        #else{my @comsplitseq=split(/;/,$l1);$comsplitseq[0]=~s/[0-9]|\s+//g;$seqh{$seqc}.=uc($comsplitseq[0]);}
+		my @comsplitseq=parse_line('\t',0,$l1);
+		my @snm=split(/\s+/,$comsplitseq[$seqnm]);
+		$seqh{$snm[0]}.=uc($comsplitseq[$seqc]);
 }
 close F1;
 
+print "Sequence\tBnapusID\tCntMatch\n";
 open(F2,$f2);
 while(my $l2=<F2>){
 	if($l2!~m/^Sequence/){

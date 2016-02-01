@@ -1,0 +1,34 @@
+Data:
+
+```{r}
+otu <- read.csv("F:/promec/Results/Ani/Ayur/datanormalizationforotutable/Copy of OTU table.csv", stringsAsFactors=F)
+```
+
+Plots:
+
+```{r}
+otu[1,]
+plot(otu[,2])
+hist(log2(otu[,2]))
+```
+
+Tree:
+
+```{r, echo=FALSE}
+#install.packages('party')
+library(party)
+k2p <- cforest( Kapha ~ Pita , data= otu, control=cforest_unbiased(mtry=2,ntree=50)) # fit the random forest
+varimp(k2p) 
+
+```
+
+#Source <http://rmarkdown.rstudio.com>  **Knit** button for HTML:
+#https://peerj.com/preprints/1466.pdf
+#http://marianattestad.com/blog/
+#http://r-statistics.co/Variable-Selection-and-Importance-With-R.html
+---
+title: "Ayur"
+author: "Ani"
+date: "Friday, January 08, 2016"
+output: html_document
+---
