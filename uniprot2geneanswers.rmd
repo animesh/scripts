@@ -5,9 +5,18 @@ summary(halpdt)
 gene=as.character(halpdt$T..T..T..FASTA.Title.Lines_)
 protein=as.character(halpdt$T..T..Uniprot)
 hist(log2(halpdt$T..AreaChkNew))
+brapa=read.delim("F:/promec/Results/Ishita//Copy of Log2abs0.5 GO.txt",row.names=1)
+brapa=read.csv("F:/promec/Results/Ishita//chk.csv",row.names=1)
 ```
 
 ```{r map}
+d3heatmap(brapa, scale = "column")
+install.packages("d3heatmap")
+library("d3heatmap")
+d3heatmap(brapa, scale = "column")
+d3heatmap(brapa, scale = "column", dendrogram = "none", color = "Blues")
+d3heatmap(brapa, colors = "Blues", scale = "col",  dendrogram = "row", k_row = 3)
+d3heatmap(brapa, scale = "column", dendrogram = "none",   color = scales::col_quantile("Blues", NULL, 5))
 #install.packages("installr")
 #library(installr)
 #updateR()
