@@ -1,0 +1,32 @@
+```{r}
+data <- read.delim("F:/promec/Results/Ani/Mirta/data.txt",row.names=1,sep="\t",header = T)
+summary(data)
+cor(data)
+dataasmat<-as.matrix(data)
+hist(dataasmat)
+heatmap(na.omit(dataasmat))
+```
+
+```{r, echo=FALSE}
+#library(ggplot2)
+p <- ggplot(data)
+print(p)
+#heatmap2(data)
+```
+
+```{r, echo=FALSE}
+#install.packages("gplots")
+#library(gplots) 
+heatmap.2(na.omit(dataasmat), trace = "none", density.info = "none",     margins = c(8, 16), scale="column", tracecol="#202020",Rowv=FALSE, symm=TRUE, col=topo.colors(16), distfun=function(c) as.dist(1 - c)) 
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+---
+title: "batch-effect-analysis"
+author: "Ani"
+date: "Monday, Feb 15, 2016"
+output: html_document
+---
+<http://rmarkdown.rstudio.com>.
+

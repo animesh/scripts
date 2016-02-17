@@ -2,13 +2,18 @@ use strict;
 use Text::ParseWords;
 my %vh;
 my %nh;
+my %gh;
 my $cnt=0;
+my $idcnt=0;
 my $cntt;
 my $category;
 my $ID;
 my $f1 = shift @ARGV;
 my $id = shift @ARGV;
+my $idg = shift @ARGV;
 my $cat = shift @ARGV;
+my $valchk = shift @ARGV;
+my $thr = shift @ARGV;
 
 open(F1,$f1);
 while (my $line = <F1>) {
@@ -27,7 +32,7 @@ while (my $line = <F1>) {
 			$category=$tmp[$cat];
 			$ID=$tmp[$id];
 		}
-		else{
+		elsif(($thr<0&&$tmp[$valchk]<0)||($thr>0&&$tmp[$valchk]>0)||($thr eq "" && $tmp[$valchk] eq "")){$idcnt+=1;
 			if($tmp[$cat] eq ""){
 						$nh{"NA"}++;
 						$vh{"NA"}.="$idd;";
@@ -40,6 +45,7 @@ while (my $line = <F1>) {
 						my ($name)=uc($tmpp[$cntt]);
 						$nh{$name}++;
 						$vh{$name}.="$idd;";
+						$gh{$name}.=uc($tmp[$idg]),";";
 				}
 			}
 		}
@@ -49,14 +55,16 @@ while (my $line = <F1>) {
 $cnt--;
 close F1;
 
-print "$category\t$ID\tUnique\tCountAll\tCountUnique\tTotal\n";
+print "$category\t$ID\tUnique\tGene\tCountAll\tCountUnique\tSelect-Total\n";
 foreach my $k (keys %nh){
 	my @a=split(/\;/,$vh{$k});
 	my @au = do { my %seen; grep { !$seen{$_}++ } @a };
+	my @b=split(/\;/,$gh{$k});
+	my @bu = do { my %seen; grep { !$seen{$_}++ } @b };
 	my $c=$#au+1;
-	print "$k\t$vh{$k}\t@a\t$nh{$k}\t$c\t$cnt\n";
+	print "$k\t$vh{$k}\t@a\t@bu\t$nh{$k}\t$c\t$idcnt-$cnt\n";
 }
 
 __END__
 
-perl category-counting-with-ID.pl /cygdrive/l/Elite/LARS/2015/january/Bodil\ mus/Copy\ of\ CH12\ AID-YFP\ IP\ stim\ 2\ unstim-L2H\ corrigated\ Selected\ Score\ 5\ PV\ 05.txt 0 7 > /cygdrive/l/Elite/LARS/2015/january/Bodil\ mus/Score5PV05GOcountMolFunc.txt 
+perl category-counting-with-ID.pl /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/Copy\ of\ AIDintSILACbothwaysMusIP\ \(4\).txt 0 3 23 6 0.001 > /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/AIDintSILACbothwaysMusIP.txt.GOBPnHigh.txt
