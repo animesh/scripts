@@ -32,7 +32,7 @@ while (my $line = <F1>) {
 			$category=$tmp[$cat];
 			$ID=$tmp[$id];
 		}
-		elsif(($thr<0&&$tmp[$valchk]<0)||($thr>0&&$tmp[$valchk]>0)||($thr eq "" && $tmp[$valchk] eq "")){$idcnt+=1;
+		elsif(($thr<0&&$tmp[$valchk]<0)||($thr>0&&$tmp[$valchk]>0)||($thr eq "" && $tmp[$valchk] ne "")){$idcnt+=1;
 			if($tmp[$cat] eq ""){
 						$nh{"NA"}++;
 						$vh{"NA"}.="$idd;";

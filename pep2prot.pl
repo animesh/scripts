@@ -4,8 +4,8 @@ use Text::ParseWords;
 
 my %seqh;
 my %sfull;
-my $seqc=13;
-my $seqnm=4;
+my $seqc=1;
+my $seqnm=0;
 my $f1=shift @ARGV;
 my $f2=shift @ARGV;
 my $col=0;
@@ -22,7 +22,7 @@ while(my $l1=<F1>){
 }
 close F1;
 
-print "Sequence\tBnapusID\tCntMatch\n";
+print "$f2\t$f1\tCntMatch\n";
 open(F2,$f2);
 while(my $l2=<F2>){
 	if($l2!~m/^Sequence/){
@@ -32,6 +32,7 @@ while(my $l2=<F2>){
         print "$temp[$col]\t";
 		my $cntmat=0;
         foreach my $seq (keys %seqh){
+			$seqh{$seq}=~s/X/\./g;
         	if($seqh{$seq}=~/$temp[$col]/){
 				my $loccntmat=$seqh{$seq}=~s/$temp[$col]/$temp[$col]/g;
 				$seq=~s/^>//g;print "$seq;";
