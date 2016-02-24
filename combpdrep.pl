@@ -3,17 +3,16 @@ use Text::ParseWords;
 
 my $path = shift @ARGV;
 my $pat = shift @ARGV;
-my $i1 = shift @ARGV;
-my $i2 = shift @ARGV;
-my $i4 = shift @ARGV;
-my $i8 = shift @ARGV;
-
+my $i1 = shift @ARGV; #Accesion column -1 
+my $i0 = shift @ARGV; #Description
+my $i2 = shift @ARGV; #Sequest Score 
 
 my @files=<$path/*$pat>;
-my %mrna;
+my %protein;
+my %uniprot;
 my %nc;
 
-print "Description,Gene,";
+print "Accession\tGene\tDescription\t";
 foreach my $f1 (@files){
     my @tmp;
     my @name;
@@ -22,7 +21,7 @@ foreach my $f1 (@files){
     my $fn=$f1;
     $fn=~s/$path\///g;
     $fn=~s/\.csv$|\.txt$//g;
-    print "$fn-$i2;$i4;$i8,";
+    print "$fn-$i2\t";
     open (F1, $f1) || die "can't open \"$f1\": $!";
     while (my $line = <F1>) {
         $lcnt++;
@@ -36,12 +35,11 @@ foreach my $f1 (@files){
 				$_=~s/\[Master\ Protein\]//g;
 				$_=~s/^\s+//g;
                 my $key="$_;$f1";
-                #my $area=($tmp[$i2]+$tmp[$i4]+$tmp[$i8])/3;
-                #if($tmp[$i2]=~/[0-9]/ and $tmp[$i4]=~/[0-9]/ and $tmp[$i8]=~/[0-9]/){my $htl="$area";$mrna{$key}.="$htl ";}
-                if($tmp[$i2] or $tmp[$i4] or $tmp[$i8]){$mrna{$key}.="$tmp[$i2];$tmp[$i4];$tmp[$i8];";}
-                #elsif($tmp[$i2] eq ""){$mrna{$key}.="NA ";}
-                else{$mrna{$key}.="0;0;0;";}                
-                $nc{"$_"}++;
+                if($tmp[$i2]>$protein{$key}){$protein{$key}=$tmp[$i2]+0;}
+                elsif($tmp[$i2]<1&&$tmp[$i2]<$protein{$key}){$protein{$key}=$tmp[$i2]+0;}
+                else{$protein{$key}.="NaN";}                
+                $nc{"$_"}.="$tmp[$i0];";
+				
             }
         } 
     }
@@ -51,15 +49,15 @@ print "ExperimentsDetected\n";
 
 foreach my $g  (keys %nc){
     my $ocg;
-	my ($gname)= $g =~ m/GN *= *([^,; ]*)/;
-    print "$g,$gname,";
+	my ($gname)= $nc{$g} =~ m/GN *= *([^,; ]*)/;
+    print "$g\t$gname\t$nc{$g}\t";
     foreach  my $f (@files){
         my $key="$g;$f";
-        if($mrna{$key}){
-        	print "$mrna{$key},";
+        if($protein{$key}){
+        	print "$protein{$key}\t";
         	$ocg++;
         }
-        else{print " , ";}
+        else{print "\t";}
     }
     print "$ocg\n";
 }
