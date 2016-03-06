@@ -1,0 +1,41 @@
+```{r}
+data <- read.delim("F:/promec/Results/Ani/Mirta/data.txt",row.names=1,sep="\t",header = T)
+data <- read.delim("F:/promec/Results/Ani/Mirta/dataBER.txt",row.names=1,sep="\t",header = T)
+data <- read.delim("F:/promec/Results/Ani/Mirta/dataWTzsRowsBERs.txt",row.names=1,sep="\t",header = T)
+data <- read.csv("F:/promec/Results/Ani/Ayur/datanormalizationforotutable/Copy of OTU table.csv", stringsAsFactors=F)
+data <- read("SILAC total complex. 2 out of thre both ways kont removed.txt",sep="\t",header = T)
+data <- read.delim("C:/Users/animeshs/Google Drive/BH_corr.txt",sep="\t",header = T)
+summary(data)
+p.adjust(10^(-data$X.log10P),method = c("hochberg"), n = length(data$X.log10P))
+p.adjust(data$pv,method = c("hochberg"), n = length(data$pv))
+cor(data)
+dataasmat<-as.matrix((data))
+heatmap((na.omit(dataasmat)))
+heatmap(log2(na.omit(dataasmat+1)))
+hist(data)
+plot(data)
+```
+
+```{r, echo=FALSE}
+#library(ggplot2)
+p <- ggplot(data)
+print(p)
+#heatmap2(data)
+```
+
+```{r, echo=FALSE}
+#install.packages("gplots")
+#library(gplots) 
+heatmap.2(na.omit(dataasmat), trace = "none", density.info = "none",     margins = c(8, 16), scale="column", tracecol="#202020",Rowv=FALSE, symm=TRUE, col=topo.colors(16), distfun=function(c) as.dist(1 - c)) 
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+---
+title: "batch-effect-analysis"
+author: "Ani"
+date: "Monday, Feb 15, 2016"
+output: html_document
+---
+<http://rmarkdown.rstudio.com>.
+

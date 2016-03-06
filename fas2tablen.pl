@@ -23,7 +23,18 @@ foreach my $seq (keys %seqh){
 print "ID\tSequence\tNames\tLength\n";
 my $name;
 foreach my $seqs (keys %seqm){
-	if($seqm{$seqs}=~m/.*\|(.*)\|/){$name=$1;}
+	if($seqm{$seqs}=~m/.*\|(.*)$/){
+		$name=$1;
+		$name=~s/:|;/ /g;
+		my @tmpnm=split(/\s+/,$name);
+		#print "@tmpnm[0]-@tmpnm[1]-@tmpnm[2]-@tmpnm[3]";
+		if($name=~m/Forward/){
+			$name="Fwd"."_".$tmpnm[1]."_".$tmpnm[2];
+		}
+		else{
+			$name="Rev"."_".$tmpnm[2]."_".$tmpnm[1];
+		}
+	}
 	my $len=length($seqs);
 	print "$name\t$seqs\t$seqm{$seqs}\t$len\n";
 }
@@ -31,6 +42,8 @@ foreach my $seqs (keys %seqm){
 
 __END__
 
-perl fas2tablen.pl /cygdrive/l/Davi/Christina/Elite/E.coli_Transcriptome_count\ data/subset30_prots.faa > /cygdrive/l/Davi/Christina/Elite/E.coli_Transcriptome_count\ data/subset30_prots.txt 2>0
+perl fas2tablen.pl /cygdrive/f/promec/Qexactive/LARS/2014/desember/Rami_Morteza/Psychrobacter_sp_protxWX.fasta > /cygdrive/f/promec/Qexactive/LARS/2014/desember/Rami_Morteza/Psychrobacter_sp_protxWX.txt
+
+
 
 
