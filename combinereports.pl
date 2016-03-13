@@ -12,7 +12,7 @@ my %protein;
 my %uniprot;
 my %nc;
 
-print "Accession\tGene\tDescription\t";
+print "ID\tStem\tDescription\t";
 foreach my $f1 (@files){
     my @tmp;
     my @name;
@@ -24,6 +24,7 @@ foreach my $f1 (@files){
     print "$fn-$i2\t";
     open (F1, $f1) || die "can't open \"$f1\": $!";
     while (my $line = <F1>) {
+		chomp $line;
         $lcnt++;
         if($pat=~/csv/){@tmp=parse_line(',',0,$line);}
         if($pat=~/txt/){@tmp=parse_line('\t',0,$line);}
@@ -32,12 +33,12 @@ foreach my $f1 (@files){
             foreach (@name) {
 				$_=~s/\'/prime/g;
 				$_=~s/\,/comma/g;
-				$_=~s/\[Master\ Protein\]//g;
-				$_=~s/^\s+//g;
+				$_=~s/\(|\)/ /g;
+				#$_=~s/\[.*\]//g;
+				$_=~s/^\s+|\s+$//g;
+				$_=~s/\s+/_/g;
                 my $key="$_;$f1";
-                if($tmp[$i2]>$protein{$key}){$protein{$key}=$tmp[$i2]+0;}
-                elsif($tmp[$i2]<1&&$tmp[$i2]<$protein{$key}){$protein{$key}=$tmp[$i2]+0;}
-                else{$protein{$key}.="NaN";}                
+				$protein{$key}.="$tmp[$i2];";
                 $nc{"$_"}.="$tmp[$i0];";
 				
             }
@@ -49,12 +50,21 @@ print "ExperimentsDetected\n";
 
 foreach my $g  (keys %nc){
     my $ocg;
-	my ($gname)= $nc{$g} =~ m/GN *= *([^,; ]*)/;
-    print "$g\t$gname\t$nc{$g}\t";
+	my @gname= split(/\s+|\-|\_/,$g);
+    print "$g\t$gname[0]-$gname[-1]\t$nc{$g}\t";
     foreach  my $f (@files){
         my $key="$g;$f";
-        if($protein{$key}){
-        	print "$protein{$key}\t";
+        if($protein{$key} ne ""){
+			my @vtmp=split(/;/,$protein{$key});
+			my $maxv=0;
+			foreach (@vtmp){
+                if(abs($_)>abs($maxv)){
+					$maxv=$_+0;
+				}
+                #else{$protein{$key}.=";NaN";}
+			}
+        	print "$maxv\t";
+			#print "$protein{$key}\t";
         	$ocg++;
         }
         else{print "\t";}
@@ -64,7 +74,6 @@ foreach my $g  (keys %nc){
 
 __END__	
 
-perl combpdrep.pl /cygdrive/f/promec/Qexactive/Berit_Sissel/data/backup/berit/ _ProteinGroups.txt 10 5 7 9 > t6.csv
-
+ perl combinereports.pl . _ProteinGroups.txt 10 1 5 > testPG13.txt
 
 

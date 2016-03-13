@@ -1,6 +1,5 @@
-set MAXQUANTDIR=F:\promec\MaxQuant1412
-set THREADS=4
-set DATADIR=F:\promec\Elite\Celine\DMSO\test
+set MAXQUANTDIR=L:\MaxQuant_1.5.3.30\MaxQuant
+set DATADIR=L:\Qexactive\LARS\2016\Odrun\Rep3
 set PREFIXRAW=
 set PARAMFILE=mqpar.xml
 set SEARCHTEXT=TestFile
@@ -13,10 +12,10 @@ FOR /F "eol=  tokens=1,2 delims=." %%i in (%DATADIR%\tempfile.txt) do  (
 		if exist proc rmdir /S /Q proc
 		if exist %DATADIR%\combined rmdir /S /Q %DATADIR%\combined
 		if exist %DATADIR%\%%i rmdir /S /Q %DATADIR%\%%i
-		%MAXQUANTDIR%\bin\MaxQuantCmd.exe -mqpar=%DATADIR%\%%i.xml -ncores=%THREADS%
+		%MAXQUANTDIR%\bin\MaxQuantCmd.exe %DATADIR%\%%i.xml
 		if exist %DATADIR%\%%iREP rmdir /S /Q %DATADIR%\%%iREP
 		echo D| xcopy  /E /Y /Q %DATADIR%\combined\txt %DATADIR%\%%iREP
-		if exist %DATADIR%\%%iREP copy %DATADIR%\combined\andromeda\*.apl %DATADIR%\%%iREP
+		:: if exist %DATADIR%\%%iREP copy %DATADIR%\combined\andromeda\*.apl %DATADIR%\%%iREP
 		if exist %DATADIR%\%%i rmdir /S /Q %DATADIR%\%%i
 		if exist proc rmdir /S /Q proc
 		if exist %DATADIR%\combined rmdir /S /Q %DATADIR%\combined

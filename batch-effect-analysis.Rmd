@@ -1,19 +1,77 @@
-```{r}
-data <- read.delim("F:/promec/Results/Ani/Mirta/data.txt",row.names=1,sep="\t",header = T)
-data <- read.delim("F:/promec/Results/Ani/Mirta/dataBER.txt",row.names=1,sep="\t",header = T)
+```{r AIDome}
+data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Articles in prep/AID/ID/AIDberitPD21SequestScoreTtestRcomp.txt",sep="\t",row.names=1, header = T)
+dataasmat<-as.matrix(data[, grep("*stim*", colnames(data))])
+heatmap((na.omit(dataasmat)),col=scaleyellowred)
+```
+
+
+```{r BER}
+data <- read.delim("F:/promec/Results/Ani/Mirta/DataActinNormalizedHeatMapCtrlwPCNA.txt",row.names=19,sep="\t",header = T)
+dataasmat<-as.matrix(data)
+scaleyellowred <- colorRampPalette(c("steelblue", "coral"), space = "rgb")(255)
+scaleyellowred <- colorRampPalette(c(c(rgb(128,128,255, maxColorValue=255)),c(rgb(255,128,0, maxColorValue=255))), space = "rgb")(255)
+heatmap(dataasmat,col=scaleyellowred)
+list <- read.delim("F:/promec/Results/Ani/Mirta/BERlist.txt",row.names=1,sep="\t",header = T)
+data <- read.delim("F:/promec/Results/Ani/Mirta/dataWTzsRows.txt",row.names=1,sep="\t",header = T)
 data <- read.delim("F:/promec/Results/Ani/Mirta/dataWTzsRowsBERs.txt",row.names=1,sep="\t",header = T)
 data <- read.csv("F:/promec/Results/Ani/Ayur/datanormalizationforotutable/Copy of OTU table.csv", stringsAsFactors=F)
 data <- read("SILAC total complex. 2 out of thre both ways kont removed.txt",sep="\t",header = T)
-data <- read.delim("C:/Users/animeshs/Google Drive/BH_corr.txt",sep="\t",header = T)
-summary(data)
 p.adjust(10^(-data$X.log10P),method = c("hochberg"), n = length(data$X.log10P))
 p.adjust(data$pv,method = c("hochberg"), n = length(data$pv))
+scaleyellowred <- colorRampPalette(c("darkblue", "chocolate"), space = "rgb")(100)
 cor(data)
-dataasmat<-as.matrix((data))
+data=data[row.names(list),]
+summary(data)
+dataasmat<-as.matrix(log2(data+1))
+cr <- rainbow(nrow(dataasmat))
+cc <- rainbow(ncol(dataasmat))
+heatmap((na.omit(dataasmat)), RowSideColors = cr, ColSideColors = cc)
+library(RColorBrewer)
+dataasmat=t(scale(t(dataasmat)))
+dataasmat=scale(dataasmat)
+dissimilarityc <- 1 - cor(dataasmat,method = "s")
+distancec <- as.dist(dissimilarityc)
+dissimilarityr <- 1 - cor(t(dataasmat),method = "s")
+distancer <- as.dist(dissimilarityr)
+data.dist <- vegdist(data, method = "euclidean")
+row.clus <- hclust(distancer, "aver")
+datac.dist <- vegdist(t(data), method = "euclidean")
+col.clus <- hclust(distancec, "aver")
+heatmap((na.omit(dataasmat)),col = scaleyellowred,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5)
+heatmap.2((na.omit(dataasmat)),col = scaleyellowred,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5 )
+heatmap((na.omit(dataasmat)),col = cm.colors(256), RowSideColors = cr, ColSideColors = cc)
+heatmap.2((na.omit(dataasmat)),col=scaleyellowred)
+rgb2hsv(r=255,g=128,b=0)
+rn<-rownames(dataasmat)
+cn<-colnames(dataasmat)
+dataasmat<-normalize.quantiles(dataasmat)
+colnames(dataasmat)<-cn
+rownames(dataasmat)<-rn
+#dataasmatt<-normalize.quantiles((t(dataasmat)))
+mat <- matrix(c(5,2,3,4,4,1,4,2,3,4,6,8),ncol=3)
+quantile(mat,1)
+normalize.quantiles(mat)
+dataasmat<-t(dataasmatt)
 heatmap((na.omit(dataasmat)))
-heatmap(log2(na.omit(dataasmat+1)))
+heatmap(dataasmat,na.rm=T,dist("euclidean"),hclust(dataasmat,method = "complete"))
 hist(data)
 plot(data)
+
+install.packages('vegan')
+library(vegan)
+
+
+data.dist <- vegdist(data.prop, method = "bray")
+
+
+x <- impute(data, method = "mixed",randna = fData(naset)$randna,mar = "knn", mnar = "min")
+
+
+normalize.quantiles(dataasmat)
+source("http://bioconductor.org/biocLite.R")
+biocLite("preprocessCore")
+library('preprocessCore')
+
 ```
 
 ```{r, echo=FALSE}
