@@ -6,45 +6,46 @@ my %nh;
 my $cnt=0;
 
 my $f1 = shift @ARGV;
+my $idc=shift @ARGV;
+
 open (F1, $f1) || die "can't open \"$f1\": $!";
 my $lc;
 while (my $line = <F1>) {
 	$lc++;
 	$line =~ s/\r//g;
-	$line =~ s/\'/-/g;
+	$line=~s/\'/-prime-/g;
 	chomp $line;
 	my @tmp=parse_line('\t',0,$line);
-	if($lc==1){$cnt=$#tmp;$vh{"header"}="$line\tColNum$cnt";}
+	if($lc==1){$cnt=$#tmp;$vh{"header"}="$tmp[$idc]\t$line\tColNum$cnt";}
 	else{
-		my $name=$tmp[0];
-		$nh{$name}++;
-		for(my $c=1;$c<=$cnt;$c++) {
-			$tmp[$c] =~ s/^\s+|\s+$//;
-			if (looks_like_number($tmp[$c])){
-				if($vh{"$name-$c"}<abs($tmp[$c])){
-					$vh{"$name-$c"}=$tmp[$c];
+		my $name=uc($tmp[$idc]);
+		my @namez=split(/,/,$name);
+		foreach $name (@namez){
+			$name =~ s/\s+//g;
+			$name =~ s/\W//g;
+			$nh{$name}++;
+			for(my $c=0;$c<=$cnt;$c++) {
+				if ($c!=$idc and looks_like_number($tmp[$c])){
+					if(abs($vh{"$name-$c"})<abs($tmp[$c])){
+						$vh{"$name-$c"}=$tmp[$c];
+					}
 				}
-			}
-			else{
-				$tmp[$c]=~s/\s+//g;
-				$vh{"$name-$c"}.="$tmp[$c]; ";
+				elsif($tmp[$c] ne ""){
+					$vh{"$name-$c"}.="$tmp[$c];";
+				}
 			}
 		}
 	}
 }
 close F1;
 
-$lc=0;
+print $vh{"header"},"\n";
 foreach my $ncc (keys %nh){
-	$lc++;
-	if($lc==1){print $vh{"header"},"\n";}
-	elsif($ncc ne ""){
 		print "$ncc\t";
-		for(my $c=1;$c<=$cnt;$c++){
+		for(my $c=0;$c<=$cnt;$c++){
 			print $vh{"$ncc-$c"},"\t";
 		}
 		print "$nh{$ncc}\n";
-	}
 }
 
 __END__

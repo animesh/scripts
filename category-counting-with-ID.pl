@@ -62,7 +62,7 @@ foreach my $k (keys %nh){
 	my @b=split(/\;/,$gh{$k});
 	my @bu = do { my %seen; grep { !$seen{$_}++ } @b };
 	my $c=$#au+1;
-	print "$k\t$vh{$k}\t@a\t@bu\t$nh{$k}\t$c\t$idcnt-$cnt\n";
+	print "$k\t$vh{$k}\t@au\t@bu\t$nh{$k}\t$c\t$idcnt-$cnt\n";
 }
 
 __END__
