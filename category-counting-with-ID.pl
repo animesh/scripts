@@ -67,4 +67,7 @@ foreach my $k (keys %nh){
 
 __END__
 
-perl category-counting-with-ID.pl /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/Copy\ of\ AIDintSILACbothwaysMusIP\ \(4\).txt 0 3 23 6 0.001 > /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/AIDintSILACbothwaysMusIP.txt.GOBPnHigh.txt
+$ perl remove-duplicate-rows.pl /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/UPpv5pGO.tab > /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/UPpv5pGO.tab.rd.txt
+
+$ perl category-counting-with-ID.pl /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/UPpv5pGO.tab.rd.txt 0 2 9 > /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/UPpv5pGO.rd.BP.txt
+

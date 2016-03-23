@@ -13,7 +13,7 @@ my $lc;
 while (my $line = <F1>) {
 	$lc++;
 	$line =~ s/\r//g;
-	$line=~s/\'/-prime-/g;
+	$line=~s/\'/_p/g;
 	chomp $line;
 	my @tmp=parse_line('\t',0,$line);
 	if($lc==1){$cnt=$#tmp;$vh{"header"}="$tmp[$idc]\t$line\tColNum$cnt";}
@@ -50,5 +50,8 @@ foreach my $ncc (keys %nh){
 
 __END__
 
-perl remove-duplicate-rows.pl /cygdrive/l/Elite/Aida/MM20CL14.txt > /cygdrive/l/Elite/Aida/MM20CL14rd.txt
+$ perl remove-duplicate-rows.pl /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/UPpv5pGO.tab > /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/UPpv5pGO.tab.rd.txt
+
+$ perl category-counting-with-ID.pl /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/UPpv5pGO.tab.rd.txt 0 2 9 > /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/IP/UPpv5pGO.rd.BP.txt
+
 
