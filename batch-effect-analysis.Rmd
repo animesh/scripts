@@ -2,9 +2,12 @@
 data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Articles in prep/AID/ID/AIDberitPD21SequestScoreTtestRcomp.txt",sep="\t",row.names=1, header = T) #AIDome
 data <- read.delim("F:/promec/Results/Ani/Mirta/DataActinNormalizedHeatMapCtrlwPCNA.txt",row.names=19,sep="\t",header = T) #BER
 summary(data)
+plot(data)
 ```
 
 ```{r pkgs}
+install.packages('BEST') #http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3489534/
+library('BEST') #https://sourceforge.net/projects/mcmc-jags
 install.packages('mice') #http://www.helsinki.fi/~rosenstr/papers/ImputationNotes.pdf
 library('mice') #http://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
 install.packages('RColorBrewer')
@@ -13,8 +16,20 @@ source("http://bioconductor.org/biocLite.R")
 biocLite("preprocessCore")
 library('preprocessCore')
 #install.packages("gplots")
-#library(gplots) 
+# library(gplots) 
 #library(ggplot2)
+```
+
+```{r JAGS}
+y1 <- c(5.77, 5.33, 4.59, 4.33, 3.66, 4.48)
+y2 <- c(3.88, 3.55, 3.29, 2.59, 2.33, 3.59)
+priors <- list(muM = 6, muSD = 2)
+out <- BESTmcmc(y1, y2, priors=priors, parallel=FALSE) # where def prior sigmaMode = sd(y), sigmaSD = sd(y)*5, nuMean = 30, nuSD = 30), y = c(y1, y2).
+plot(out)
+plot(y1,y2)
+summary(t.test(y1,y2))
+hist(y2)
+hist(datasel)
 ```
 
 ```{r Cluster}

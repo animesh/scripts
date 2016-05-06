@@ -1,0 +1,24 @@
+```{r data}
+data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Results/Kristian/a-GEIR/Figurer/Bakgrunnsmateriale/Table 1 og figur 3/20160417_tabell fra Perseus. Slettet RPS10p5.txt")
+data <- read.delim("L:/Results//TObermann/data.txt")
+summary(data)
+```
+
+
+```{r ColumnSel}
+IP0h<-data[, grep("^X.IP..0.h.....IP..PBS.....$", colnames(data))]
+summary(IP0h)
+heatmap(na.omit(as.matrix(IP0h)))
+mapply(t.test,IP0h[,])
+```
+
+```{r model}
+library('nlm')
+plot(log(Fnorm) ~ log(Concentration), data=data)
+yp=(max(data$Fnorm)-data$Fnorm)/(max(data$Fnorm)-min(data$Fnorm))
+yq=1-yp
+glm.out = glm(cbind(yp,yq) ~ log(data$Concentration), family=binomial(logit))
+lines(log(data$Concentration), glm.out$fitted, type="l", col="red")
+summary(glm.out)
+
+```
