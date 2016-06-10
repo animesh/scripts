@@ -17,10 +17,11 @@ my $taxonid = $db->get_taxonid($tmp[0]);
 if (defined $taxonid) {
     my $node = $db->get_Taxonomy_Node(-taxonid => $taxonid);
     my $kingdom = $node;
-    for (my $lev=0;$lev<7;$lev++) {
+    for (my $lev=0;$lev<10;$lev++) {
         if(defined  $kingdom->parent_id){
 	$kingdom = $db->get_Taxonomy_Node(-taxonid => $kingdom->parent_id);
     	print $kingdom->scientific_name,"\t";}
+	else{print "\t";}
     }
 }
 print "\n";
