@@ -1,6 +1,7 @@
 ```{r data}
 data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Articles in prep/AID/ID/AIDberitPD21SequestScoreTtestRcomp.txt",sep="\t",row.names=1, header = T) #AIDome
 data <- read.delim("F:/promec/Results/Ani/Mirta/DataActinNormalizedHeatMapCtrlwPCNA.txt",row.names=19,sep="\t",header = T) #BER
+data <- read.delim("F:/promec/Davi/Mei/2016-05_PancreaticCancer/QE/lfq2pep/LFQvalues.txt",row.names=90,sep="\t",header = T)
 summary(data)
 plot(data)
 ```
@@ -38,8 +39,11 @@ heatmap(na.omit(as.matrix(data)),col=colscl)
 ```
 
 ```{r ColumnSel}
-datasel<-data[, grep("*stim*", colnames(data))]
+datasel<-data[, grep("^Tumor_*", colnames(data))]
 summary(datasel)
+t.test(datasel)
+datanonan=na.omit(as.matrix(datasel))
+summary(datanonan)
 heatmap(na.omit(as.matrix(datasel)),col=colscl)
 ```
 
@@ -69,6 +73,69 @@ heatmap(as.matrix(datascale),col=colscl)
 cr <- rainbow(nrow(dataasmat))
 cc <- rainbow(ncol(dataasmat))
 heatmap((na.omit(dataasmat)), RowSideColors = cr, ColSideColors = cc,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5 )
+```
+
+```{r face}
+#http://www.r-bloggers.com/analyze-face-emotions-with-r/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+RBloggers+%28R+bloggers%29
+
+library("httr")
+library("XML")
+library("stringr")
+library("ggplot2")
+
+img.url     = 'https://i.imgur.com/Njtw8tx.jpg'
+URL.emoface = 'https://api.projectoxford.ai/emotion/v1.0/recognize'
+emotionKEY = '25eac991d0c8474fb501d704c6454b05'
+mybody = list(url = img.url)
+faceEMO = POST(
+  url = URL.emoface,
+  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = emotionKEY)),
+  body = mybody,
+  encode = 'json'
+)
+faceEMO
+trump = httr::content(faceEMO)[[1]]
+trump
+o<-as.data.frame(as.matrix(trump$scores))
+o$V1 <- lapply(strsplit(as.character(o$V1 ), "e"), "[", 1)
+o$V1<-as.numeric(o$V1)
+colnames(o)[1] <- "Level"
+o$Emotion<- rownames(o)
+ggplot(data=o, aes(x=Emotion, y=Level)) +
+  geom_bar(stat="identity")
+
+img.url = 'https://www.whitehouse.gov/sites/whitehouse.gov/files/images/first-family/44_barack_trump[1].jpg'
+faceURL = "https://api.projectoxford.ai/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=true&returnFaceAttributes=age"
+mybody = list(url = img.url)
+faceKEY = '6b86f25e09e84291b2bcba8d61d6297e'
+faceResponse = POST(
+  url = faceURL, 
+  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = faceKEY)),
+  body = mybody,
+  encode = 'json'
+)
+
+# Show request results (if Status=200, request is okay)
+faceResponse
+
+# Reuqest results from face analysis
+trumpR = httr::content(faceResponse)[[1]]
+
+# Define results in data frame
+OR<-as.data.frame(as.matrix(trumpR$faceLandmarks))
+
+# Make some transformation to data frame
+OR$V2 <- lapply(strsplit(as.character(OR$V1), "\\="), "[", 2)
+OR$V2 <- lapply(strsplit(as.character(OR$V2), "\\,"), "[", 1)
+colnames(OR)[2] <- "X"
+OR$X<-as.numeric(OR$X)
+
+OR$V3 <- lapply(strsplit(as.character(OR$V1), "\\y = "), "[", 2)
+OR$V3 <- lapply(strsplit(as.character(OR$V3), "\\)"), "[", 1)
+colnames(OR)[3] <- "Y"
+OR$Y<-as.numeric(OR$Y)
+
+OR$V1<-NULL
 ```
 
 ```{r Quantile}

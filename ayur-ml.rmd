@@ -2,6 +2,27 @@ Data:
 
 ```{r}
 otu <- read.csv("F:/promec/Results/Ani/Ayur/datanormalizationforotutable/Copy of OTU table.csv", stringsAsFactors=F)
+species <- read.csv("C:/Users/animeshs/OneDrive - NTNU/ayurveda/species_div.csv",stringsAsFactors=T)
+species <- read.csv("C:/Users/animeshs/OneDrive - NTNU/ayurveda/species_div_zscore_med.csv",stringsAsFactors=T)
+summary(species$Species)
+species$Escherichia.coli.K12
+```
+
+```{r}
+library(rpart)
+fit <- rpart(formula= Species ~ Eubacterium.rectale.ATCC.33656  + Dorea.longicatena.DSM.13814  + Prevotella.maculosa.OT.289 + Helicobacter.pullorum.MIT.98.5489 ,method="class", data=species,  control = rpart.control(cp = 1e-04))
+fit <- rpart(Species ~ ., data=species, method="class", minsplit=2, minbucket=1)
+fit <- rpart(Species ~ Eubacterium.rectale.ATCC.33656  + Escherichia.coli.K12+ Prevotella.maculosa.OT.289 + Helicobacter.pullorum.MIT.98.5489, data=species, method="class", minsplit=2, minbucket=1)
+fit <- rpart(Species ~ Eubacterium.rectale.ATCC.33656  + Prevotella.maculosa.OT.289 , data=species, method="class", minsplit=2, minbucket=1)
+printcp(fit)
+plotcp(fit) 
+summary(fit)
+plot(fit)
+text(fit, use.n=TRUE, all=TRUE, cex=.6)
+jpeg(fit, file = "C:/Users/animeshs/OneDrive - NTNU/ayurveda/tree.jpg")
+pdf(fit, file = "C:/Users/animeshs/OneDrive - NTNU/ayurveda/tree.pdf")
+prp(fit)
+plot(1)
 ```
 
 Plots:
