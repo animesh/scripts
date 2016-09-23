@@ -21,6 +21,7 @@ foreach my $p (keys %{$d->{$par1}}) {
 			print "$sname\t";
 			my $seq=$d->{$par1}->{$p}->{$par2}->{$par3}->{$par5};
 			print "$seq\t";
+			$seq=~s/[^a-zA-Z0-9 _-]//g;
 			my ($max,$lgt)=FT($sname,uc($seq));
 			print "$max\t$maxrtr{$max}\t$lgt\t$len\n";
 		}
