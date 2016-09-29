@@ -19,19 +19,9 @@ print "$_\n";
 }
 }
 
-
-
 __END__
-http://www.ncbi.nlm.nih.gov/books/NBK25500/#chapter1.Downloading_Full_Records
-https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=34577062,24475906&rettype=fasta&retmode=text
-https://www.ncbi.nlm.nih.gov/nuccore/?term=Avicennia+marina+AND+cds
-https://www.ncbi.nlm.nih.gov/nuccore/?term=Avicennia+marina+NOT+cds
-http://rocaplab.ocean.washington.edu/cgi-bin/genbank_to_fasta.py
-#http://rocaplab.ocean.washington.edu/tools/genbank_to_fasta
-http://www.ebi.ac.uk/Tools/st/emboss_transeq/
-http://www.ebi.ac.uk/Tools/st/emboss_sixpack/
-
-
+perl /home/animeshs/scripts/transeq_unstar.pl ../../../Gygi/Homo_sapiens.GRCh37.61.pep.all.fa > ../../../Gygi/Homo_sapiens.GRCh37.61.pep.all.unstar.fasta
+sed 's/^$/X/' Homo_sapiens.GRCh37.61.pep.all.unstar.fasta > Homo_sapiens.GRCh37.61.pep.all.unstar.X.fasta
 
 
 
