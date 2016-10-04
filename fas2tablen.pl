@@ -23,7 +23,7 @@ foreach my $seq (keys %seqh){
 print "ID\tSequence\tNames\tLength\n";
 my $name;
 foreach my $seqs (keys %seqm){
-	if($seqm{$seqs}=~m/.*\|(.*)$/){
+	if($seqm{$seqs}=~m/\;/){
 		$name=$1;
 		$name=~s/:|;/ /g;
 		my @tmpnm=split(/\s+/,$name);
@@ -35,6 +35,8 @@ foreach my $seqs (keys %seqm){
 			$name="Rev"."_".$tmpnm[2]."_".$tmpnm[1];
 		}
 	}
+	$seqm{$seqs}=~m/\|([^;]+)\|/;
+	$name=$1;
 	my $len=length($seqs);
 	print "$name\t$seqs\t$seqm{$seqs}\t$len\n";
 }
