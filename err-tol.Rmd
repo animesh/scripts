@@ -1,0 +1,25 @@
+```{r data}
+data=read.delim("F:/promec/Gygi/ftp.pride.ebi.ac.uk/pride//data//archive//2015//06//PXD001468/b1906_293T_proteinID_01A_QE3_122212_et.txt", skip = 1, header=T)
+```
+
+```{r hist}
+hist(data$xcorr)
+dhist=hist((data$exp_neutral_mass-data$calc_neutral_mass)/data$charge,breaks=50000,freq=F )
+hist(log10(dhist$density))
+max(log10(dhist$density))
+plot(dhist$breaks[dhist$density>0.01])
+min(abs(dhist$breaks[dhist$density>0.01]))
+```
+
+```{r de-gauss}
+#https://cran.r-project.org/web/packages/mclust/vignettes/mclust.html
+#library(mclust)
+mod4 = densityMclust((data$exp_neutral_mass-data$calc_neutral_mass)/data$charge)
+summary(mod4)
+plot(mod4, what = "BIC")
+dmod4=(data$exp_neutral_mass-data$calc_neutral_mass)/data$charge
+plot(mod4, what = "density", data = dmod4, breaks = 50000)
+plot(mod4, what = "diagnostic", type = "cdf")
+```
+
+
