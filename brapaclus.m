@@ -1,4 +1,4 @@
-prot = tblread('L:\Results\Ishita\Copy of Log2abs0.5 GO Col Znorm.txt','\t');
+prot = tblread('L:\Elite\Camilla\2016\juni\log2LFQvalues.txt','\t');
 [data,id,idx]=xlsread('L:\Results\Ishita\Log2abs0.5.xlsx');
 data=dataset('XLSFile','L:\Results\Ishita\Log2abs0.5.xlsx');
 prot = tblread('L:\Results\Ishita\Copy of Log2abs0.5 GO.txt','\t');
