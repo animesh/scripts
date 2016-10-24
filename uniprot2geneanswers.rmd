@@ -1,281 +1,5 @@
-```{r data}
-%halpdt=data.frame("F:/promec/Qexactive/Linda/raw/PD2/_LINDA_/130405_LINDA_gel-(05)_TargetProtein-HALPDTHighConfGNcompGO.txt")
-halpdt=read.delim("F:/promec/Qexactive/Linda/raw/PD2/_LINDA_/130405_LINDA_gel-(05)_TargetProtein-HALPDTHighConfGNcompGO.txt")
-summary(halpdt)
-gene=as.character(halpdt$T..T..T..FASTA.Title.Lines_)
-protein=as.character(halpdt$T..T..Uniprot)
-hist(log2(halpdt$T..AreaChkNew))
-brapa=read.delim("F:/promec/Results/Ishita//Copy of Log2abs0.5 GO.txt",row.names=1)
-brapa=read.csv("F:/promec/Results/Ishita//chk.csv",row.names=1)
-```
-
-```{r DAPAR}
-source("https://bioconductor.org/biocLite.R")
-biocLite("DAPAR")
-??DAPAR
-#http://bioinformatics.oxfordjournals.org/content/early/2016/09/06/bioinformatics.btw580.short?rss=1
-```
-
-```{r MSstats}
-source("http://bioconductor.org/biocLite.R")
-biocLite("MSstats")
-library(MSstats)
-#http://msstats.org/msstatsqc/
-```
-
-```{r pep-xml}
-source("https://bioconductor.org/biocLite.R")
-biocLite("pepXMLTab")
-library(pepXMLTab)
-pepxml <- system.file("extdata/pepxml", "SEQUEST.pepXML", package="pepXMLTab")
-pepxml <- "F:/promec/Search/130904_SS+ANBL6_run1.pep.closed.xml"
-tttt <- pepXML2tab(pepxml)
-tttt[1:2,]
-passed <- PSMfilter(tttt, pepFDR=0.01, scorecolumn='xcorr', hitrank=1,minpeplen=6, decoyprefix='rev_')
-passed[1, ]
-hist(as.double(tttt[,16]))
-
-```
-
-```{r sign-test}
-x <- 10; y <- 10; g <- 10000
-set.seed(2016)
-dat <- matrix(rnorm((x + y) * g), ncol = x + y)
-results <- apply(dat, 1, function(dat) {
-  wilcox.test(x = dat[1:x], y = dat[(x + 1):(x + y)])$p.value})
-cbind(dat, pvals = results)
-hist(p.adjust(results,method="BH"))
-hist(p.adjust(results,method="BH"))
-hist(p.adjust(results,method="holm"))
-?p.adjust
-hist(results)
-min(results)
-data=read.delim("C:/Users//animeshs/Google Drive/wilcox_sgn_rnk_wiki.txt",row.names=1)
-wilcox.test(data$x2,data$x1,paired = TRUE, alternative = "less")
-wilcox.test(data$x2,data$x1,paired = TRUE, alternative = "greater")
-wilcox.test(data$x2,data$x1,paired = TRUE)
-wilcox.test(c(1,1,1,1,1))
-0.5^4
-wilcox.test((data$x2-data$x1))$pvalue
-binom.test(!is.(data$sgn>0),sum(data$sgn)))
-sum(data$sgn>0, na.rm=TRUE)
-binom.test(1,3)
-t.test(c(data$x1,data$x2),c(data$abs,data$abs))
-t.test(extra ~ group, data = sleep)
-wilcox.test(extra ~ group, data = sleep)
-
-lapply(matrix(rnorm(10000), 1000),matrix(rnorm(10000), 1000),t.test)$p.value
-matrix(rnorm(( + y) * g), ncol = x + y)
-
-x <- 10; y <- 10; g <- 100000
-mean(c(1,2,3))
-set.seed(1969)
-dat <- matrix(rnorm((x + y) * g), ncol = x + y)
-
-results <- apply(dat, 1, function(dat) {
-#  t.test(x = dat[1:x], y = dat[(x + 1):(x + y)])$p.value})
-  wilcox.test(x = dat[1:x], y = dat[(x + 1):(x + y)])$p.value})
-
-cbind(dat, pvals = results)
-hist(results,col="orange")
-hist(p.adjust(results,method="BH"))
-
-write.csv2("C:/Users//animeshs/Google Drive/wilcox_sgn_rnk_wiki_test.txt",results)
-
-```
-
-```{r graphite}
-source("https://bioconductor.org/biocLite.R")
-biocLite("graphite")
-### R code from vignette source 'graphite.Rnw'
-### Encoding: UTF-8
-
-###################################################
-### code chunk number 1: style
-###################################################
-BiocStyle::latex()
-
-
-###################################################
-### code chunk number 2: startup
-###################################################
-library(graph)
-library(graphite)
-
-
-###################################################
-### code chunk number 3: base1
-###################################################
-humanReactome <- pathways("hsapiens", "reactome")
-names(humanReactome)[1:10]
-p <- humanReactome[["ABC-family proteins mediated transport"]]
-p
-
-
-###################################################
-### code chunk number 4: base2
-###################################################
-p <- humanReactome[[21]]
-p@title
-
-
-###################################################
-### code chunk number 5: base3
-###################################################
-head(nodes(p))
-
-
-###################################################
-### code chunk number 6: base4
-###################################################
-head(edges(p))
-
-
-###################################################
-### code chunk number 7: base5
-###################################################
-pathwayDatabases()
-
-
-###################################################
-### code chunk number 8: graph1
-###################################################
-g <- pathwayGraph(p)
-g
-
-
-###################################################
-### code chunk number 9: graph2
-###################################################
-edgeData(g)[1]
-
-
-###################################################
-### code chunk number 10: ident1
-###################################################
-biocLite('org.Hs.eg.db')
-pSymbol <- convertIdentifiers(p, "SYMBOL")
-pSymbol
-head(nodes(pSymbol))
-
-
-###################################################
-### code chunk number 11: ident2
-###################################################
-reactomeSymbol <- convertIdentifiers(humanReactome[1:5], "SYMBOL")
-
-
-###################################################
-### code chunk number 12: spia1
-###################################################
-biocLite('SPIA')
-library('SPIA')
-data(colorectalcancer)
-
-biocLite('hgu133plus2.db')
-library(hgu133plus2.db)
-x <- hgu133plus2ENTREZID
-top$ENTREZ <- unlist(as.list(x[top$ID]))
-top <- top[!is.na(top$ENTREZ), ]
-top <- top[!duplicated(top$ENTREZ), ]
-tg1 <- top[top$adj.P.Val < 0.05, ]
-
-DE_Colorectal = tg1$logFC
-names(DE_Colorectal) <- as.vector(tg1$ENTREZ)
-ALL_Colorectal <- top$ENTREZ
-
-prepareSPIA(biocarta[1:2], "biocartaEx")
-res <- runSPIA(de=DE_Colorectal, all=ALL_Colorectal, "biocartaEx")
-res
-
-
-###################################################
-### code chunk number 13: dg1
-###################################################
-biocLite('DEGraph')
-library(DEGraph)
-data("Loi2008_DEGraphVignette")
-
-biocarta <- pathways("hsapiens", "biocarta")
-p <- convertIdentifiers(biocarta[["actions of nitric oxide in the heart"]], "ENTREZID")
-res <- runDEGraph(p, exprLoi2008, classLoi2008)
-res$`1`
-
-
-###################################################
-### code chunk number 14: tg1
-###################################################
-biocLite('topologyGSA')
-library(topologyGSA)
-data(examples)
-
-kegg <- pathways("hsapiens", "kegg")
-p <- convertIdentifiers(kegg[["Fc epsilon RI signaling pathway"]], "SYMBOL")
-runTopologyGSA(p, "var", y1, y2, 0.05)
-
-
-###################################################
-### code chunk number 15: tg2
-###################################################
-biocLite('clipper')
-library(clipper)
-biocLite('ALL')
-library(ALL)
-
-kegg <- pathways("hsapiens", "kegg")
-paths <-convertIdentifiers(kegg[1:5], "ENTREZID")
-genes <- unlist(lapply(paths, nodes))
-data(ALL)
-all <- as.matrix(exprs(ALL[1:length(genes),1:20]))
-classes <- c(rep(1,10), rep(2,10))
-rownames(all) <- genes
-clipped <- runClipper(paths, all, classes, "mean", pathThr=0.1)
-resClip <- do.call(rbind,clipped$results)
-resClip[,1:5]
-
-```
-
-install.packages(c("devtools"))
-source("http://www.bioconductor.org/biocLite.R")
-biocLite(c("Biobase","preprocessCore"))
-library(preprocessCore)
-mat <- matrix(c(5,2,3,4,4,1,4,2,3,4,6,8),ncol=3)
-normalize.quantiles(mat)
-
-
-
-```{r map}
-d3heatmap(brapa, scale = "column")
-install.packages("d3heatmap")
-library("d3heatmap")
-d3heatmap(brapa, scale = "column")
-d3heatmap(brapa, scale = "column", dendrogram = "none", color = "Blues")
-d3heatmap(brapa, colors = "Blues", scale = "col",  dendrogram = "row", k_row = 3)
-d3heatmap(brapa, scale = "column", dendrogram = "none",   color = scales::col_quantile("Blues", NULL, 5))
-#install.packages("installr")
-#library(installr)
-#updateR()
-#https://github.com/santhilalsubhash/geneSCF bash commandline tool
-#library(org.Hs.eg.db)
-#egmap <- revmap(org.Hs.egUNIPROT)[as.character(gene)]
-source("https://bioconductor.org/biocLite.R")
-#biocLite("BiocUpgrade")
-biocLite("UniProt.ws")
-library(UniProt.ws)
-up <- UniProt.ws(taxId=9606)
-egs = keys(up, "ENTREZ_GENE")
-setInternet2(TRUE)
-
-biocLite('mygene')
-biocLite('IRanges')
-library(mygene)
-glist <- c('UNG','xrcc1')
-glterm <- queryMany(glist, scopes='symbol', fields=c('entrezgene', 'go'), species='human')
-glterm[1, 'go.BP'][[1]]
-
-```
-
-
+Protein Expression Analysis with Uniprot IDs
+========================================================
 ```{r install libraries and setup}
 #setwd('C:/Users/animeshs/SkyDrive')
 #source("http://bioconductor.org/biocLite.R")
@@ -291,7 +15,7 @@ glterm[1, 'go.BP'][[1]]
 ```
 
 
-```{r GSA}
+```{r pathview}
 library("GSA")
 ?GSA
 ######### two class unpaired comparison
@@ -325,11 +49,10 @@ GSA.listsets(GSA.obj, geneset.names=geneset.names,FDRcut=.5)
 library(gage)
 library(pathview)
 # with MM20CL14 SS data over Hedgehog signaling pathway
-hda=readExpData("L:/Elite/LARS/2015/january/Ishita/TestPthviewFA.txt",row.names=1)
+hda=readExpData("L:/Elite/Aida/MM20MQv1p5XcompNewRD.txt",row.names=1)
 hda=as.matrix(hda)
 #cancer related hsa05200
-?pathview
-pathview(hda,pathway.id="ko00061 ",cpd.idtype="kegg",out.suffix="FA")
+pathview(hda,pathway.id="hsa05200",gene.idtype="UNIPROT",out.suffix="jak")
 # http://www.genome.jp/kegg/pathway/map/map00020.html
 pathview(hda,pathway.id="hsa00020",gene.idtype="UNIPROT",out.suffix="TCA")
 # http://www.genome.jp/kegg/pathway/map/map00030.html
@@ -366,6 +89,16 @@ pvrect(result, alpha=0.95)
 ```
 
 ```{r check pathview for base excision repair pathway}
+
+library(gage)
+library(pathview)
+hda=readExpData("L:/Elite/LARS/2015/january/Ishita/TestPthviewFAn.txt",row.names=1)
+hda=readExpData("L:/Elite/LARS/2015/january/Ishita/KEGGcuticle.txt",row.names=1)
+hda=readExpData("L:/Elite/LARS/2015/january/Ishita/KEGGfame.txt",row.names=1)
+hda=as.matrix(hda)
+#cancer related hsa05200
+?pathview
+pathview(cpd.data=hda,pathway.id = "00061", species = "ko",cpd.idtype="kegg",out.suffix="FA")
 
 # PDT over KEGG Apoptosis
 hda=readExpData("L:/Qexactive/Linda/TW283.txt",row.names=1)
