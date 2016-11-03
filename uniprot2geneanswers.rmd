@@ -138,16 +138,22 @@ head(pv.out$plot.data.gene)
 # test on http://www.nature.com/nri/journal/v5/n5/fig_tab/nri1604_F1.html 
 pathview(hda.d,pathway.id="hsa04630",gene.idtype="UNIPROT",out.suffix="jak")
 pathview(hda.d,pathway.id="hsa00020",gene.idtype="UNIPROT",out.suffix="joxphos")
-
+?pathview
 
 
 # Trasfection
 hda=readExpData("L:/Elite/LARS/2014/mai/transfection 3rd paralell/ListPV1in20FC2.txt",row.names=1)
 hda=as.matrix(hda)
 # herpes simplex
-pathview(hda,pathway.id="hsa03410",gene.idtype="UNIPROT")
+pathview(hda,pathway.id="hsa03410",gene.idtype="symbol")
 pathview(hda,pathway.id="hsa05168",gene.idtype="UNIPROT")
 
+# iPOND
+hda=readExpData("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/BERmedianFilteredvalsPath.txt",row.names=1)
+hda=readExpData("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/BERmedianValsPath.txt",row.names=1)
+hda=as.matrix(hda)
+pathview(hda,pathway.id="hsa03410",gene.idtype="symbol",low = list(gene = "yellow"), mid = list(gene = "orange"), high = list(gene = "brown"),bins = list(gene = 10),node.sum="max", both.dirs=list(gene=F),limit=list(gene=100))
+pathview(hda,pathway.id="hsa03410",gene.idtype="symbol",low = list(gene = "yellow"), mid = list(gene = "orange"), high = list(gene = "brown"),bins = list(gene = 10))
 
 library("org.Hs.eg.db")
 frame = toTable(org.Hs.egGO)
