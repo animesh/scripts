@@ -1,0 +1,77 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data, echo=FALSE}
+data=read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/STAMI/proteinGroups.txt",row.names = 1,header=T)[,190:213]
+label=t(read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/STAMI/cla.txt",row.names = 1,header=T))
+
+```
+
+```{r summary}
+colnames(data)
+colnames(data) <- sub("LFQ\\.intensity\\.", "", colnames(data))
+colnames(data)
+summary(log2(data))
+hist(as.matrix(log2(data)))
+table(label)
+```
+
+```{r tests}
+plot(as.matrix(log2(data)))
+cor(as.matrix(log2(data)),nan.rm=T)
+cor(data[,colSums(is.na(log2(data)))==0]) 
+aovt=aov(as.double(data[1,])~as.character(label[3,]))
+summary(aovt)
+TukeyHSD(aovt)
+```
+
+```{r siggenes}
+source("https://bioconductor.org/biocLite.R")
+biocLite("siggenes")
+library("siggenes")
+data("golub")
+sam.out <- sam(golub, golub.cl, rand = 123, gene.names = golub.gnames[,3])
+samwsrt.out <- sam(golub, golub.cl, method = wilc.stat, rand = 123, gene.names = golub.gnames[,3])
+summary(samwsrt.out)
+summary(sam.out)
+print(sam.out, seq(1.5, 2.4, 0.1))
+plot(sam.out, 3.3)
+identify(sam.out)
+sum.sam.out <- summary(sam.out, 3.3)
+sum.sam.out
+print(sum.sam.out, varNames = "Proteins")
+list.siggenes(sam.out, 3.3)
+findDelta(sam.out, fdr = 0.05)
+findDelta(sam.out, genes = 200)
+
+```
+
+
+```{r GF}
+biocLite("genefilter")
+library("genefilter")
+m=matrix(runif(80), 20)
+rowttests(m, factor(c("M", "M", "F", "F")))
+
+find.out <- find.a0(golub, golub.cl, rand = 123)
+print(find.out, 0.99)
+plot(find.out)
+ebam(find.out)
+ebam.out <- ebam(golub, golub.cl, a0 = 0, rand = 123)
+ebam.out <- ebam(golub, golub.cl, method = wilc.ebam, rand =123)
+summary(ebam.out, 0.99997)
+print(ebam.out, seq(0.91, 0.99, 0.01))
+plot(ebam.out, 0.95)
+
+plot(as.matrix(log2(data)))
+cor(as.matrix(log2(data)),nan.rm=T)
+cor(data[,colSums(is.na(log2(data)))==0]) 
+aovt=aov(as.double(data[1,])~as.character(label[3,]))
+summary(aovt)
+TukeyHSD(aovt)
+```
+
+
+
+

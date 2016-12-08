@@ -1,25 +1,51 @@
 ```{r data}
-data=read.delim("F:/promec/Gygi/ftp.pride.ebi.ac.uk/pride//data//archive//2015//06//PXD001468/b1906_293T_proteinID_01A_QE3_122212_et.txt", skip = 1, header=T)
+#data=read.delim("F:/promec/Gygi/ftp.pride.ebi.ac.uk/pride//data//archive//2015//06//PXD001468/b1906_293T_proteinID_01A_QE3_122212_et.txt", skip = 1, header=T)
+data=read.delim("L:/Elite/LARS/2015//desember/PD21/130814_frak5_monoQ_tod27/Set of 5 files_PSMsR.txt",header=T)
 ```
 
 ```{r hist}
-hist(data$xcorr)
-dhist=hist((data$exp_neutral_mass-data$calc_neutral_mass)/data$charge,breaks=50000,freq=F )
+#dhist=hist((data$exp_neutral_mass-data$calc_neutral_mass)/data$charge,breaks=50000,freq=F )
+#warnings()
+dhist=hist(data$Delta.mz.in.Da,breaks=100,freq=F)
 hist(log10(dhist$density))
 max(log10(dhist$density))
-plot(dhist$breaks[dhist$density>0.01])
-min(abs(dhist$breaks[dhist$density>0.01]))
+#min(abs(dhist$breaks[dhist$density>0.01]))
+#plot(dhist$breaks[dhist$density>0.01])
 ```
 
 ```{r de-gauss}
 #https://cran.r-project.org/web/packages/mclust/vignettes/mclust.html
-#library(mclust)
-mod4 = densityMclust((data$exp_neutral_mass-data$calc_neutral_mass)/data$charge)
+install.packages('mclust')
+library(mclust)
+?mclust
+#mod4 = densityMclust((data$exp_neutral_mass-data$calc_neutral_mass)/data$charge)
+dmod4=(data$exp_neutral_mass-data$calc_neutral_mass)/data$charge
+mod4 = densityMclust(data$Delta.mz.in.Da)
 summary(mod4)
 plot(mod4, what = "BIC")
-dmod4=(data$exp_neutral_mass-data$calc_neutral_mass)/data$charge
-plot(mod4, what = "density", data = dmod4, breaks = 50000)
-plot(mod4, what = "diagnostic", type = "cdf")
+dmod4=data$Delta.mz.in.Da
+plot(mod4, what = "density", data = dmod4, breaks = 100)
+plot(mod4, what = "diagnostic", type = "qq")
 ```
+
+```{r ir}
+i=0.9
+n=1
+y1<-0
+y2<-0
+
+for(x1 in seq(0.1, 10, 0.5)){
+  for(x2 in seq(0.1, 10, 0.5)){
+    y1<-c(((1-i)*n+x1)/((1-i)*n+x2),y1)
+    y2<-c(x1/x2,y2)
+  }
+}
+plot(log2(y1),log2(y2))
+plot((y1),(y2))
+
+```
+
+
+
 
 
