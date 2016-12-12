@@ -1,0 +1,28 @@
+KEGG map with Gene symbols using Pathview
+========================================================
+
+```{r install libraries and setup}
+#rm(list = ls())
+#detach("package:pathview", unload=TRUE)
+getwd()
+knitr::opts_knit$get("root.dir") 
+source("http://bioconductor.org/biocLite.R")
+biocLite('pathview')
+biocLite('gage')
+library(pathview)
+?pathview
+library(gage)
+```
+
+
+
+```{r BER}
+setwd('C:/Users/animeshs/Google Drive/scRatch/DMED5604')
+knitr::opts_knit$set(root.dir = 'C:/Users/animeshs/Google Drive/scRatch/DMED5604')
+hda=readExpData("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/BERmedianFilteredvalsPathExp.txt",row.names=1)
+#hda=readExpData("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/BERmedianValsPath.txt",row.names=1)
+hda=as.matrix(hda)
+pathview(hda,pathway.id="hsa03410",gene.idtype="symbol",low = list(gene = "yellow"), mid = list(gene = "white"), high = list(gene = "orange"),bins = list(gene = 10),node.sum="sum", both.dirs=list(gene=T),limit=list(gene=1),na.col="transparent")
+#pathview(hda,pathway.id="hsa03410",gene.idtype="symbol",low = list(gene = "yellow"), mid = list(gene = "orange"), high = list(gene = "brown"),bins = list(gene = 10))
+```
+
