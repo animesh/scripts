@@ -23,7 +23,7 @@ while (my $line = <F1>) {
 			my @tmpp=split(/\;/,$tmp[$cat]);
 			for($cntt=0;$cntt<=$#tmpp;$cntt++){
 					my ($name)=uc($tmpp[$cntt]);
-					$name=substr($name,0,20);
+					#$name=substr($name,0,20);
 					$nh{$name}++;
 					$vh{$name}.="$tmp[$id];";
 			}

@@ -27,6 +27,7 @@ while (my $line = <F1>) {
 		$tmp[$cat]=~s/^\s+//g;
 		$tmp[$cat]=~s/\s+$//g;
 		$tmp[$id]=~s/\s+//g;
+		#print "$f1\t$tmp[$id]\t$tmp[$idg]\t$tmp[$cat]\n";
 		my ($idd)=uc($tmp[$id]);
 		if($cnt<1){
 			$category=$tmp[$cat];

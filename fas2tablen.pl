@@ -15,12 +15,16 @@ while(my $l1=<F1>){
 	else{$seqh{$seqc}.=uc($l1);}
 }
 close F1;
-
+my $totseqlen=0;
 foreach my $seq (keys %seqh){
 	$seqm{$seqh{$seq}}.="$seq;";
+	$totseqlen+=length($seqh{$seq});
 }
+my $uniqseqn=keys %seqh;
+my $uniqseq=keys %seqm;
 
-print "ID\tSequence\tNames\tLength\n";
+print "ID\tSequences-$uniqseq\tNames-$uniqseqn\tLength-$totseqlen\n";
+
 my $name;
 foreach my $seqs (keys %seqm){
 	if($seqm{$seqs}=~m/\;/){
@@ -35,7 +39,8 @@ foreach my $seqs (keys %seqm){
 			$name="Rev"."_".$tmpnm[2]."_".$tmpnm[1];
 		}
 	}
-	$seqm{$seqs}=~m/\|([^;]+)\|/;
+	#$seqm{$seqs}=~m/\|([^;]+)\|/;
+	$seqm{$seqs}=~m/([^;]+)\W+/;
 	$name=$1;
 	my $len=length($seqs);
 	print "$name\t$seqs\t$seqm{$seqs}\t$len\n";

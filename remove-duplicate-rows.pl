@@ -19,7 +19,7 @@ while (my $line = <F1>) {
 	if($lc==1){$cnt=$#tmp;$vh{"header"}="$tmp[$idc]\t$line\tColNum$cnt";}
 	else{
 		my $name=uc($tmp[$idc]);
-		my @namez=split(/,/,$name);
+		my @namez=split(/;/,$name);
 		foreach $name (@namez){
 			$name =~ s/\s+//g;
 			$name =~ s/\W//g;

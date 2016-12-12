@@ -77,7 +77,9 @@ foreach my $g  (keys %nc){
 
 __END__	
 
- perl combinereports.pl . _Proteins.txt 7 8 33 > testProt4.txt
+$ ln -s /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/WCXlfq ../
+$ perl combinereports.pl ../WCXlfq _Proteins.txt 7 8 30 > /cygdrive/y/felles/PROTEOMICS\ and\ XRAY/Articles\ in\ prep/AID/WCXlfq/WCX_Proteins.txt               
+
  
 
 

@@ -1,10 +1,101 @@
 ```{r data}
-data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Articles in prep/AID/ID/AIDberitPD21SequestScoreTtestRcomp.txt",sep="\t",row.names=1, header = T) #AIDome
-data <- read.delim("F:/promec/Results/Ani/Mirta/DataActinNormalizedHeatMapCtrlwPCNA.txt",row.names=19,sep="\t",header = T) #BER
+#data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Articles in prep/AID/ID/AIDberitPD21SequestScoreTtestRcomp.txt",sep="\t",row.names=1, header = T) #AIDome
+#data <- read.delim("F:/promec/Results/Ani/Mirta/DataActinNormalizedHeatMapCtrlwPCNA.txt",row.names=19,sep="\t",header = T) #BER
 data <- read.delim("F:/promec/Davi/Mei/2016-05_PancreaticCancer/QE/lfq2pep/LFQvalues.txt",row.names=90,sep="\t",header = T)
 summary(data)
-plot(data)
+#plot(data)
 ```
+
+```{r prot}
+source("https://bioconductor.org/biocLite.R")
+biocLite("PGA")
+library("PGA")
+biocLite("XML")
+biocLite("colorspace")
+install.packages("Rcpp")
+library("PGA")
+dat_file <- system.file("extdata/input", "mascot.dat",package = "PGA")
+parserGear(file = dat_file, db = dbfile, decoyPrefix = "#REV#",xmx = 1,thread = 8,outdir = "parser_outdir_mascot")
+
+```
+
+```{r ir}
+i=0.9
+n=1
+y1<-0
+y2<-0
+
+for(x1 in seq(0.1, 10, 0.5)){
+  for(x2 in seq(0.1, 10, 0.5)){
+    y1<-c(((1-i)*n+x1)/((1-i)*n+x2),y1)
+    y2<-c(x1/x2,y2)
+  }
+}
+plot(log2(y1),log2(y2))
+plot((y1),(y2))
+
+```
+
+
+```{r MSstats}
+source("http://www.bioconductor.org/biocLite.R")
+biocLite('GOpro')
+library(GOpro)
+biocLite('GOSim')
+library(GOSim)
+genes=c("207","208","596","901","780","3169","9518","2852","26353","8614","7494")
+getGOInfo(genes)
+biocLite("RTopper")
+library(RTopper)
+biocLite("PGA")
+biocLite("rTANDEM")
+biocLite("BSgenome.Hsapiens.UCSC.hg19")
+vcffile <- system.file("extdata/input", "PGA.vcf",package="PGA")
+bedfile <- system.file("extdata/input", "junctions.bed",package="PGA")
+gtffile <- system.file("extdata/input", "transcripts.gtf",package="PGA")
+annotation <- system.file("extdata", "annotation",package="PGA")
+outfile_path<-"db/"
+outfile_name<-"test"
+library(BSgenome.Hsapiens.UCSC.hg19)
+dbfile <- dbCreator(gtfFile=gtffile,vcfFile=vcffile,bedFile=bedfile,
+                    annotation_path=annotation,outfile_name=outfile_name,
+                    genome=Hsapiens,outdir=outfile_path)
+Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jdk1.8.0_45\\jre\\')
+parserGear("F:/promec/Gygi/b1906_293T_proteinID_01A_QE3_122212.pep.xml", db = dbfile, decoyPrefix="#REV#",xmx = 1,thread = 8,outdir = "parser_outdir")
+```
+
+```{r MSstats}
+#https://bioconductor.org/packages/3.3/bioc/vignettes/MSstats/inst/doc/MSstats-manual.pdf
+library('MSstats')
+QuantData<-dataProcess(SRMRawData)
+head(QuantData$ProcessedData)
+## based on multiple comparisons (T1 vs T3; T1 vs T7; T1 vs T9)
+comparison1<-matrix(c(-1,0,1,0,0,0,0,0,0,0),nrow=1)
+comparison2<-matrix(c(-1,0,0,0,0,0,1,0,0,0),nrow=1)
+comparison3<-matrix(c(-1,0,0,0,0,0,0,0,1,0),nrow=1)
+comparison<-rbind(comparison1,comparison2, comparison3)
+row.names(comparison)<-c("T3-T1","T7-T1","T9-T1")
+testResultMultiComparisons<-groupComparison(contrast.matrix=comparison,data=QuantData)
+## Calculate sample size for future experiments:
+#(1) Minimal number of biological replicates per condition
+designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=TRUE,
+desiredFC=c(1.25,1.75),FDR=0.05,power=0.8)
+#(2) Power calculation
+designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=2,
+desiredFC=c(1.25,1.75),FDR=0.05,power=TRUE)```
+```
+
+```{r SAM}
+#https://github.com/MikeJSeo/SAM
+install.packages(c("samr", "matrixStats", "GSA", "shiny", "shinyFiles", "openxlsx"))
+source("http://bioconductor.org/biocLite.R")
+biocLite("impute")
+library(shiny)
+library(shinyFiles)
+runGitHub("SAM", "MikeJSeo")
+```
+
+
 
 ```{r pkgs}
 install.packages('BEST') #http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3489534/
