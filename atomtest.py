@@ -1,4 +1,4 @@
-print("tr")
+print("che")
 
 import tensorflow as tf
 hello = tf.constant('Hello, TensorFlow!')
@@ -7,11 +7,30 @@ a = tf.constant(12)
 b = tf.constant(32)
 print(sess.run(a+b))
 
+import sonnet as snt
+import tensorflow as tf
+snt.resampler(tf.constant([0.]), tf.constant([0.]))
+
+
+import findspark
+findspark.init()
+import pyspark
+conf = pyspark.SparkConf()
+conf.setAppName("pepXMLtoJSON")
+conf.set("spark.executor.memory", "8g").set("spark.executor.cores", "3").set("spark.cores.max", "12")
+conf.set("spark.jars.packages", "com.databricks:spark-xml_2.11:0.4.1")
+sc = pyspark.SparkContext(conf=conf)
+rdd=sc.parallelize(reversed([1,2,3,4]))
+rdd.map(lambda s: s**s).take(4)
+
 
 import pandas as pd
-table = pd.read_excel('/home/animeshs/promec/Animesh/Lymphoma/TrpofSuperSILACpTtestImp.xlsx')
+#table = pd.read_excel('/home/animeshs/promec/Animesh/Lymphoma/TrpofSuperSILACpTtestImp.xlsx')
+table = pd.read_excel('/home/animeshs/vals.xlsx')
 %matplotlib inline
-table.A0A024R7W5.plot.hist(alpha=0.5)
+table.s3.plot.hist(alpha=0.5)
+table.S2.plot.hist(alpha=0.4)
+table.S1.plot.hist(alpha=0.3)
 
 import sonnet as snt
 import tensorflow as tf
@@ -36,20 +55,16 @@ df = pd.DataFrame({
         'Y': [0, 4, 3, 6, 7, 10, 11, 9, 13],
         'Z': [0.2, 2, 3, 1, 2, 3, 1, 2, 3]
     })
+
+
+
 df
 
-x=12
-for i:range(1,x)
+for i in range(4):
     print(i)
 
-print(df)
-%matplotlib
-(df)
 
-%R
-%%R
-plot(1:100)
-```
+
 
 import numpy as np
 import tensorflow as tf
