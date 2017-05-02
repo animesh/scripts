@@ -2,27 +2,61 @@ KEGG map with Gene symbols using Pathview
 ========================================================
 
 ```{r install libraries and setup}
+getwd()
 #rm(list = ls())
 #detach("package:pathview", unload=TRUE)
-getwd()
-knitr::opts_knit$get("root.dir") 
+#setwd('C:/Users/animeshs/Google Drive/scRatch/DMED5604')
+#knitr::opts_knit$set(root.dir = 'C:/Users/animeshs/Google Drive/scRatch/DMED5604')
 source("http://bioconductor.org/biocLite.R")
 biocLite('pathview')
-biocLite('gage')
 library(pathview)
-?pathview
-library(gage)
+#?pathview
 ```
-
-
 
 ```{r BER}
-setwd('C:/Users/animeshs/Google Drive/scRatch/DMED5604')
-knitr::opts_knit$set(root.dir = 'C:/Users/animeshs/Google Drive/scRatch/DMED5604')
-hda=readExpData("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/BERmedianFilteredvalsPathExp.txt",row.names=1)
-#hda=readExpData("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/BERmedianValsPath.txt",row.names=1)
+hda=read.table("L:/Animesh/Myeloma/MyelomaProjectB1B2combineTTpermcorr.txt",row.names=1,header=T,sep='\t')
+library('readxl')
+#hda=read_xlsx("L:/Animesh/Myeloma/MyelomaProjectB1B2combineTTpermcorr.xlsx",col_types = c("text", rep("numeric",51)))
+hda=read_xlsx("L:/Animesh/Myeloma/MyelomaProjectB1B2combineTTpermcorr.xlsx",col_types = rep("numeric",39),range=cell_cols("N:AZ"))
+summary(hda)
 hda=as.matrix(hda)
 pathview(hda,pathway.id="hsa03410",gene.idtype="symbol",low = list(gene = "yellow"), mid = list(gene = "white"), high = list(gene = "orange"),bins = list(gene = 10),node.sum="sum", both.dirs=list(gene=T),limit=list(gene=1),na.col="transparent")
-#pathview(hda,pathway.id="hsa03410",gene.idtype="symbol",low = list(gene = "yellow"), mid = list(gene = "orange"), high = list(gene = "brown"),bins = list(gene = 10))
+#pathview(hda,pathway.id="hsa03410",gene.idtype="symbol")
 ```
 
+```{r GSA}
+rownames(hda)<-make.names(hda$HGNC, unique=TRUE)
+summary(hda)
+cm=read.table("L:/Animesh/GSA/cancer_modules_segal.gmt",row.names=1,header=T)
+install.packages('GSA')
+library('GSA')
+geneset.obj<- GSA.read.gmt("L:/Animesh/GSA/cancer_modules_segal.gmt")
+x<-matrix(rnorm(1000*20),ncol=20)
+dd<-sample(1:1000,size=100)
+u<-matrix(2*rnorm(100),ncol=10,nrow=100)
+x[dd,11:20]<-x[dd,11:20]+u
+y<-c(rep(1,10),rep(2,10))
+genenames=paste("g",1:1000,sep="")
+genesets=vector("list",50)
+for(i in 1:50){
+genesets[[i]]=paste("g",sample(1:1000,size=30),sep="")
+kern="gauss"
+FUNNEL.GSEA(hda[,14:52],c(rep(1,10),rep(2,29)),genesets)
+geneset.names=paste("set",as.character(1:50),sep="")
+GSA.obj<-GSA(x,y, genenames=genenames, genesets=geneset.obj$genesets, resp.type="Two class unpaired", nperms=100)
+
+```
+
+
+```{r funnel}
+library("FUNNEL")
+data("H3N2-Subj1")
+t1 <- system.time(results1 <- FUNNEL.GSEA(X, tt, genesets=genesets))
+install.packages('corrr')
+library(corrr)
+data <- mtcars[, c('mpg', 'cyl', 'disp', 'hp', 'carb')]
+data<-hda
+network_plot(correlate(scale(data)), min_cor=0.7)
+network_plot(correlate((data)), min_cor=0.7)
+hist((data))
+```

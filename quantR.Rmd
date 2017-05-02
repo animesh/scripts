@@ -1,0 +1,38 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#https://cran.r-project.org/web/packages/tidyquant/vignettes/TQ04-charting-with-tidyquant.html
+install.packages("tidyquant")
+library("tidyquant")
+``````
+
+
+```{r cars}
+c("YAR.OL", "GOOG", "TEL.OL") %>%
+YAR<-tq_get(x='YAR.OL',get = "stock.prices", from = "2016-01-01", to = "2017-01-01")
+    tq_get(get = "stock.prices", from = "2016-01-01", to = "2017-01-01")
+YAR  %>%
+ggplot(aes(x = date, y = close, open = open,
+               high = high, low = low, close = close)) +
+    geom_candlestick() +
+    geom_bbands(ma_fun = SMA, sd = 2, n = 20) +
+    labs(title = "AAPL Candlestick Chart", 
+         subtitle = "BBands with SMA Applied", 
+         y = "Closing Price", x = "") + 
+    coord_x_date(xlim = c(end - weeks(24), end),
+                 ylim = c(100, 120)) + 
+    theme_tq()
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
