@@ -1,10 +1,125 @@
+```{r interpolate}
+data<-read.table("c:/Users/animeshs/Downloads/Sunshine hours.txt",sep='\t',header=T)
+summary(data$SONNENSCHEINDAUER)
+dp=approx(data$SONNENSCHEINDAUER)
+summary(dp)
+plot(dp$SONNENSCHEINDAUER,data$SONNENSCHEINDAUER)
+install.packages('zoo')
+library('zoo')
+dp<-rollmean(data,1)
+dp<-na.approx(data)
+summary(dp)
+write.table(dp,"c:/Users/animeshs/Downloads/SunshineDP.txt",sep='\t')
+```
+
+```{r iPondData}
+iPond=read.delim("f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVA.txt",row.names = 48,header=T)
+#[,190:213]
+label=t(read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/Kristian/Groups.txt",row.names = 1,header=T))
+```
+
+```{r corr3ction}
+hist(iPond$M..Two.way.ANOVA.p.value.Interaction)
+hist(p.adjust(iPond$M..Two.way.ANOVA.p.value.Interaction,method = "BH"))
+hist((p.adjust(iPond$M..Two.way.ANOVA.p.value.Cond,method = "BH")))
+hist(log2(p.adjust(iPond$M..Two.way.ANOVA.p.value.Treatment,method = "BH")))
+write.table(p.adjust(iPond$M..Two.way.ANOVA.p.value.Interaction,method = "BH"), "f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVAbhInt.txt", sep="\t")
+write.table(p.adjust(iPond$M..Two.way.ANOVA.p.value.Treatment,method = "BH"), "f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVAbhTr.txt", sep="\t")
+write.table(p.adjust(iPond$M..Two.way.ANOVA.p.value.Cond,method = "BH"), "f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVAbhCond.txt", sep="\t")
+
+```
+
+
 ```{r data}
 #data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Articles in prep/AID/ID/AIDberitPD21SequestScoreTtestRcomp.txt",sep="\t",row.names=1, header = T) #AIDome
 #data <- read.delim("F:/promec/Results/Ani/Mirta/DataActinNormalizedHeatMapCtrlwPCNA.txt",row.names=19,sep="\t",header = T) #BER
-data <- read.delim("F:/promec/Davi/Mei/2016-05_PancreaticCancer/QE/lfq2pep/LFQvalues.txt",row.names=90,sep="\t",header = T)
+#data <- read.delim("F:/promec/Davi/Mei/2016-05_PancreaticCancer/QE/lfq2pep/LFQvalues.txt",row.names=90,sep="\t",header = T)
+#data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/batch1and2lfqaimpnovaTtest90C15P.txt",fill=T, row.names=86, sep = "\t",header = T)
+#df <- read.delim("https://gist.githubusercontent.com/anonymous/0bc36ec5f46757de7c2c/raw/517ef70ab6a68e600f57308e045c2b4669a7abfc/example.txt", header=TRUE, row.names=1, sep="\t")
+#df<-df[df$Potential.contaminant!='+',] 
+data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/batch1and2lfqaimpnovaTtest90C15Pr.txt",sep = "\t",header = T)
+
+
 summary(data)
-#plot(data)
+t.test(data[1,3:5],data[1,6:8],data[1,9:11])
+t.test(data[1,3:5],data[1,6:8])
+
 ```
+
+```{r lmfit}
+source("https://bioconductor.org/biocLite.R")
+biocLite("golubEsets")
+library(golubEsets)
+data()
+data(golubTrain)
+golubTrain
+golub<-data.frame(golubTrain@exprs)
+labelgb <- factor(c(rep("ALL",27),rep("AML",11)))
+names(golub) <- labelgb
+golub2<-log2(golub)
+plot(golub2)
+biocLite('limma')
+library('limma')
+fit3 = lmFit(golub2)
+e3 = eBayes(fit3)
+tab3<-topTable(e3, number=nrow(golub))
+head(tab3)
+fit3@.Data[[9]]
+fit4 = lmFit(golub2, design)
+```
+
+
+```{r shuffle}
+ecoli <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/Christina/Strainssamples.txt", header=TRUE, na.strings='', sep="\t")
+for  (cnt in 1:6){
+  cnt
+}
+  ecoli_shuffle <- ecoli_shuffle[sample(nrow(ecoli)),]
+write.csv(file="Y:/felles/PROTEOMICS and XRAY/Ani/Christina/Strainssamples_shuffled_rn.csv",x=ecoli_shuffle,row.names = F)
+```
+```{r rawread}
+library("MSnbase")
+```
+
+
+```{r prot}
+install.packages("PTXQC")
+library("PTXQC")
+help(package = "PTXQC")
+vignette("PTXQC-InputData", package = "PTXQC")
+txt_folder = "F:/promec/Elite/LARS/2016/desember/Lymphoma/Results"
+r = createReport(txt_folder)
+cat(paste0("\nReport generated as '", r$report_file, "'\n\n"))
+
+```
+
+```{r prot}
+require(PTXQC)
+
+## the next require() is needed to prevent a spurious error in certain R versions (mighyou be a bug in R or a package)
+## error message is:
+##    Error in Scales$new : could not find function "loadMethod"
+require(methods)
+
+## specify a path to a MaxQuant txt folder
+## Note: This folder needs to be complete (see 'vignette("PTXQC-InputData", package = "PTXQC")')
+if (1) {
+  ## we will use an example dataset from PRIDE (dataset 2 of the PTXQC publication)
+  local_zip = tempfile(fileext=".zip")
+  download.file("ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2015/11/PXD003133/txt_20min.zip", destfile = local_zip)
+  unzip(local_zip, exdir = tempdir()) ## extracts content
+  txt_folder = paste0(tempdir(),"/txt_20min")
+} else {
+  ## if you have local MaxQuant output, just use it
+  txt_folder = "c:/Proteomics/MouseLiver/combined/txt"
+}
+
+r = createReport(txt_folder)
+
+cat(paste0("\nReport generated as '", r$report_file, "'\n\n"))
+
+```
+
 
 ```{r prot}
 source("https://bioconductor.org/biocLite.R")

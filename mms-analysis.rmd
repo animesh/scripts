@@ -2,6 +2,20 @@
 data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Results/Kristian/a-GEIR/Figurer/Bakgrunnsmateriale/Table 1 og figur 3/20160417_tabell fra Perseus. Slettet RPS10p5.txt")
 data <- read.delim("L:/Results//TObermann/data.txt")
 summary(data)
+d1<-read.delim('Y:/felles/PROTEOMICS and XRAY/Ani/misccb/d1.txt')
+d2<-read.delim('Y:/felles/PROTEOMICS and XRAY/Ani/misccb/d2.txt')
+summary(d1)
+summary(d2)
+d<-merge(d1,d2,by="ID",all=T)
+summary(d)
+library(plyr)
+install.packages('plyr')
+d<-merge(d1,d2)
+d3<-d1
+summary(d)
+d<-merge(d1,d3,by="ID",all=T)
+install.packages("profvis")
+
 ```
 
 

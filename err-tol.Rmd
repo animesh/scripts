@@ -1,4 +1,11 @@
-<<<<<<< HEAD
+```{r data-xml}
+install.packages("xml2")
+library("xml2")
+tt <- read_xml("F:/promec/Gygi/b1947_293T_proteinID_11B_QE3_122212.pep.xml")
+xml_name(tt)
+xml_children(tt)
+```
+
 ```{r data-input}
 tt <- "F:/promec/Gygi/b1947_293T_proteinID_11B_QE3_122212.pep.xml"
 ```
@@ -21,35 +28,27 @@ warnings()
 hist(log10(dhist$density))
 max(log10(dhist$density))
 
-=======
-```{r data}
-#data=read.delim("F:/promec/Gygi/ftp.pride.ebi.ac.uk/pride//data//archive//2015//06//PXD001468/b1906_293T_proteinID_01A_QE3_122212_et.txt", skip = 1, header=T)
-data=read.delim("L:/Elite/LARS/2015//desember/PD21/130814_frak5_monoQ_tod27/Set of 5 files_PSMsR.txt",header=T)
-```
-
-```{r hist}
-#dhist=hist((data$exp_neutral_mass-data$calc_neutral_mass)/data$charge,breaks=50000,freq=F )
-#warnings()
-dhist=hist(data$Delta.mz.in.Da,breaks=100,freq=F)
-hist(log10(dhist$density))
-max(log10(dhist$density))
-#min(abs(dhist$breaks[dhist$density>0.01]))
-#plot(dhist$breaks[dhist$density>0.01])
->>>>>>> 5a47d3a967da86f33045855c65a09cad2a4104e5
 ```
 
 
 
 ```{r de-gauss}
 #https://cran.r-project.org/web/packages/mclust/vignettes/mclust.html
-<<<<<<< HEAD
-library(mclust)
+#library(mclust)
+for(jmp in seq(from=0, to=500, by=25)){print(jmp)
+jmp=480
+data <- read.delim("F:/promec/Qexactive/LARS/2016/Andrea/2016 desember/161219_IP ugi 1D gel alle band/errtolPD21/161222_ip_ugi_band 2/161222_ip_ugi_band_PSMs.txt",sep="\t",header=T)
+mdiff=data[data$Delta.mz.in.Da<(-jmp)|data$Delta.mz.in.Da>jmp,]$Delta.mz.in.Da
+summary(mdiff)
+hist(mdiff,breaks=1000)
 mod4 = densityMclust(mdiff)
 mod4$parameters$mean
 summary(mod4)
 plot(mod4, what = "BIC")
 plot(mod4, what = "density")
 plot(mod4, what = "diagnostic", type = "qq")
+}
+
 ```
 
 
@@ -57,39 +56,16 @@ plot(mod4, what = "diagnostic", type = "qq")
 ```{r write-output}
 wtf = paste0(tt,"mu.txt")
 write.table(mod4$parameters, wtf,sep = "\t")
-=======
-install.packages('mclust')
-library(mclust)
-?mclust
-#mod4 = densityMclust((data$exp_neutral_mass-data$calc_neutral_mass)/data$charge)
-dmod4=(data$exp_neutral_mass-data$calc_neutral_mass)/data$charge
-mod4 = densityMclust(data$Delta.mz.in.Da)
-summary(mod4)
-plot(mod4, what = "BIC")
-dmod4=data$Delta.mz.in.Da
-plot(mod4, what = "density", data = dmod4, breaks = 100)
-plot(mod4, what = "diagnostic", type = "qq")
->>>>>>> 5a47d3a967da86f33045855c65a09cad2a4104e5
 ```
 
-```{r ir}
-i=0.9
-n=1
-y1<-0
-y2<-0
+```{r pwr}
+install.packages("pwr")
+library(pwr)
+help(pwr)
+pwr.p.test(h=0.2,n=60,sig.level=0.05,alternative="two.sided")
+?pwr.t.test
+pwr.t.test(d=0.5,n=NULL,sig.level=0.05,alternative=c("two.sided"),type="two.sample",power=0.8)
 
-for(x1 in seq(0.1, 10, 0.5)){
-  for(x2 in seq(0.1, 10, 0.5)){
-    y1<-c(((1-i)*n+x1)/((1-i)*n+x2),y1)
-    y2<-c(x1/x2,y2)
-  }
-}
-plot(log2(y1),log2(y2))
-plot((y1),(y2))
 
 ```
-
-
-
-
 
