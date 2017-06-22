@@ -8,11 +8,17 @@ my $fpat = "proteinGroups.txt";
 
 
 my $idi = shift @ARGV;
+my $idn = shift @ARGV;
 my $i1 = shift @ARGV;
-if(!$i1){$i1=20;}
-if(!$idi){$idi=7;}
+my $thr = shift @ARGV;
 
-my @files=<$path/*$pat/$fpat>;
+if(!$i1){$i1=29;}
+if(!$idi){$idi=0;}
+if(!$idn){$idn=6;}
+if(!$thr){$thr=1000;}
+
+#my @files=<$path/*$pat/$fpat>;
+my @files=</cygdrive/l/HF/Lars/2017/JUNI/*/*/combined/txt/proteinGroups.txt>;
 #my @files=<*.txt>;
 my %mrna;
 my %nc;
@@ -33,14 +39,17 @@ foreach my $f1 (@files){
         $lcnt++;
     	@tmp=parse_line('\t',0,$line);
         if ($lcnt>1){
-            @name=split(/\;/,$tmp[$idi]);
+            #@name=split(/\;/,$tmp[$idi]);
+            @name=split(/\t/,$tmp[$idi]);
     	    foreach (@name) {
-                my @upid=split(/\|/,$_);
+            my @upid=split(/\|/,$_);
+			$upid[1]=$_;
         	my $key=$upid[1].$fn;
-                if($tmp[$i1]){$mrna{$key}.="$tmp[$i1] ";}
-        	elsif($tmp[$i1+4]==0 && $tmp[$i1+5]==0  ){$mrna{$key}.="Both0 ";}
-        	else{$mrna{$key}.="NA($tmp[$i1]-$tmp[$i1-1]) ";} 		
-        	$nc{$upid[1]}=$upid[2];
+            if($tmp[$i1]>$thr){$mrna{$key}.="$tmp[$i1] ";}
+        	elsif($tmp[$i1+2]>$thr){$mrna{$key}.="$tmp[$i1+2] ";}
+        	elsif($tmp[$i1+12]>$thr){$mrna{$key}.="$tmp[$i1+12] ";}
+        	else{$mrna{$key}.="NA";} 		
+        	$nc{$upid[1]}=$tmp[6];
     	    }
         }
         #if ($lcnt==1){print "$f1\t$fn\n";}
