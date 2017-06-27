@@ -69,3 +69,45 @@ pwr.t.test(d=0.5,n=NULL,sig.level=0.05,alternative=c("two.sided"),type="two.samp
 
 ```
 
+
+
+```{r data}
+data=read.delim("C:/cygwin64/home/PROMECuser/ftp.pride.ebi.ac.uk/pride/data/archive/2016/01/PXD001582/130319_LINDA_K18.txt", skip=1, header=T)
+
+
+```
+
+
+```{r MZ, echo=FALSE}
+plot(data$xcorr)
+hist(data$xcorr)
+
+```
+
+```{r gauss}
+s<-2
+r<-1000
+x<-seq(-r,r,s)
+y<-exp(-x^2/(2*s^2))/(s*sqrt(2*pi))
+hist(y)
+plot(x,y)
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r eda, echo=FALSE}
+class(data)
+attach(data)
+plot(LFQ.intensity.H.70511_Magnar_HC_Ipsi_OGG1_02 ~ LFQ.intensity.L.70511_Magnar_HC_Ipsi_OGG1_01)
+install.packages('mclust')
+library(mclust)
+densityMclust((LFQ.intensity.H.70511_Magnar_HC_Ipsi_OGG1_02))$parameters$mean
+```
+
+```
+
+
