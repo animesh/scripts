@@ -1,15 +1,23 @@
 ```{r data}
-inpF <-"/home/animeshs/jupyter/notebooks/proteinGroups.txt"
-data <- read.delim(file,row.names=1,sep="\t",header = T)
+inpF <-"F:/promec/Animesh/Caroline/proteinGroupsLog2LFQimp1p8dfM3pSD.txt"
+data <- read.delim(inpF,row.names=27,sep="\t",header = T)
 summary(data)
-dataNorm=log2(data[,grep("Ratio.H.L.normalized.", names(data))])
+dataNorm=log2(data[,grep("X", names(data))])
 dataUnNorm=log2(data[,grep("Ratio.H.L.[0-9]+", names(data))])
-#plot(dataNorm)
+plot(dataNorm)
+hist(dataNorm)
 boxplot(dataNorm)
 boxplot(dataUnNorm)
 dataUnNormZS=dataUnNorm-mean(dataUnNorm)
 class(dataUnNorm)
+biplot(princomp((dataNorm)))
 ```
+```{r comp}
+plot(prcomp(dataNorm))
+biplot(prcomp(dataNorm,scale = F))
+biplot(princomp(dataNorm))
+```
+
 ```{r condition}
 factors=strsplit(names(data)[grep("Ratio.H.L.normalized.", names(data))],"[._]")
 factorS=sapply(factors, '[[', 5) 
