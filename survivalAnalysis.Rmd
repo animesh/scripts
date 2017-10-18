@@ -4,12 +4,28 @@ dataG <- read.delim(inpF,row.names=1,sep="\t",header = T)
 #attach(data)
 summary(dataG)
 factorS=names(data)[grep("MMRF", names(data))]
-#plot(data)
+plot(sqrt(as.matrix(dataG)))
 devtools::install_github("rstudio/rstudioapi")
 library('rstudioapi')
 rstudioapi::getThemeInfo()
+library(devtools)
+install_github('jdrudolph/perseusr')
+BiocInstaller::biocLite("checkmate")
+library(WGCNA)
+allowWGCNAThreads()
 
 ```
+
+```{r condition}
+expRt <- rep(0:10, each=5)
+facR <- factor(expRt) 
+Subject <- rep(1:5,time=11)
+expR <- rnorm(55, mean=40, sd=5)
+df <- data.frame(Subject, expR, expRt)
+pairwise.t.test(expR, expRt,p.adj = "none")
+#https://stackoverflow.com/questions/27834627/how-to-produce-an-anova-matrix-with-r
+```
+
 
 ```{r condition}
 library(survival)

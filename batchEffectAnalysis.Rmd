@@ -1,10 +1,10 @@
 ```{r data}
-inpF <-"F:/promec/Animesh/Caroline/proteinGroupsLog2LFQimp1p8dfM3pSD.txt"
-data <- read.delim(inpF,row.names=27,sep="\t",header = T)
+inpF <-"F:/promec/Animesh/Jimita/txt48/proteinGroups.txt"
+data <- read.delim(inpF,row.names=1,sep="\t",header = T)
 summary(data)
-dataNorm=log2(data[,grep("X", names(data))])
+dataNorm=log2(data[,grep("LFQ*", names(data))])
 dataUnNorm=log2(data[,grep("Ratio.H.L.[0-9]+", names(data))])
-plot(dataNorm)
+plot(dataNorm[is.na(dataN)])
 hist(dataNorm)
 boxplot(dataNorm)
 boxplot(dataUnNorm)
@@ -12,11 +12,23 @@ dataUnNormZS=dataUnNorm-mean(dataUnNorm)
 class(dataUnNorm)
 biplot(princomp((dataNorm)))
 ```
+
 ```{r comp}
-plot(prcomp(dataNorm))
-biplot(prcomp(dataNorm,scale = F))
-biplot(princomp(dataNorm))
+install.packages('mice')
+library(mice)
+install.packages('randomForest')
+library(randomForest)
+dataNorm[dataNorm==-Inf]=NA
+dataNormImp=mice(dataNorm, method="rf")
+dataNormImpCom <- complete(dataNormImp,1)
+summary(dataNormImpCom)
+#barplot(dataNormImpCom)
+plot(dataNormImp$imp$LFQ.intensity.607_1_)
+plot(princomp(dataNormImpCom))
+biplot(prcomp(dataNormImpCom,scale = F))
+biplot(princomp(dataNormImpCom))
 ```
+
 
 ```{r condition}
 factors=strsplit(names(data)[grep("Ratio.H.L.normalized.", names(data))],"[._]")
