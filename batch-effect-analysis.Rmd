@@ -1,10 +1,47 @@
-<<<<<<< HEAD
 ```{r data}
-inpF <-"/home/animeshs/jupyter/notebooks/proteinGroups.txt"
-data <- read.delim(file,row.names=1,sep="\t",header = T)
+inpF <-"/home/animeshs/Documents/proteinGroups.txt"
+data <- read.delim(inpF,row.names=1,sep="\t",header = T)
 summary(data)
 #plot(data)
 ```
+
+```{r data}
+mice
+combat
+wgcna
+
+```
+
+```{r exploBATCH}
+#http://users.humboldt.edu/finneyb/gfortran-windows-20140629.exe
+install.packages('httr')
+install.packages('devtools')
+require(devtools)
+install_github("syspremed/exploBATCH",verbose=TRUE)
+library("exploBATCH")
+library("exp")
+install.packages(c('mclust', 'mvtnorm', 'sva', 'Rcpp', 'RcppArmadillo', 'rARPACK', 'parallel', 'foreach', 'doParallel', 'ggplot2', 'RColorBrewer', 'doMC', 'compiler'))
+install.packages("doMC", repos="http://R-Forge.R-project.org")
+expBATCH(D, batchCL, Conf, mindim, maxdim, method, scale, SDselect)
+?expBATCH
+install_github("gnyamundanda/exploBATCHbreast") # install_github requires devtools package
+require(exploBATCHbreast)
+data(Breast)
+data(batchBreast)
+source("https://bioconductor.org/biocLite.R")
+#sudo apt-get install libcurl4-gnutls-dev 
+biocLite("sva")
+library("sva")
+
+expBATCH(D=Breast,batchCL=batchBreast,Conf=NA,mindim=2,maxdim=9,method="ppcca",SDselect=2)
+
+y=expBATCH(D=Breast,batchCL=batchBreast,Conf=NA,mindim=2,maxdim=9,method="ppcca",SD
+          
+?expBATCH
+
+```
+
+
 ```{r condition}
 factors=strsplit(names(data)[grep("Ratio.H.L.normalized.", names(data))],"[._]")
 factorS=sapply(factors, '[[', 5) 
@@ -14,7 +51,7 @@ factorC=sapply(factors, '[[', 6)
 ```{r ANOVA}
 #https://stats.stackexchange.com/questions/89021/how-to-get-only-desirable-comparisons-from-post-hoc
 #plot(log2(data[,grep("Ratio.H.L.normalized.", names(data))]))
-#dataNorm=log2(data[,grep("Ratio.H.L.normalized.", names(data))])
+dataNorm=log2(data[,grep("Ratio.H.L.normalized.", names(data))])
 anova(lm(as.numeric(dataNorm[2,])~factorC*factorS))
 summary(dataNorm)
 #summary(anova(lm(as.numeric(dataNorm[2,])~factorC*factorS)))

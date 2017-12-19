@@ -17,6 +17,28 @@ factorC=rownames(data)[grep("MMRF", names(data))]
 #plot(data)
 ```
 
+```{r test}
+pairwise.t.test(c(rnorm(100),rnorm(100)))
+rank(chk)
+?pairwise.t.test
+chk=rep(chk,100)
+summary(chk)
+?reshape
+?rep
+dim(chk)
+plot(chk)
+
+n <- 1e5
+k <- 20
+d <- data.frame(y = rnorm(n*k), x = rnorm(n*k), set = rep(1:k, each = n))
+fit_lm <- function(data, set_id) {
+data=data[set_id]
+lm(y ~ x, data = .)
+}
+
+system.time(fit_lm(d, 1))
+```
+
 ```{r survival}
 dataNorm=log2(dataG[,grep("MMRF", names(dataG))]+1)
 dataNorm=dataG[,grep("MMRF", names(dataG))]
