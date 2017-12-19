@@ -35,14 +35,18 @@ max(log10(dhist$density))
 ```{r de-gauss}
 #https://cran.r-project.org/web/packages/mclust/vignettes/mclust.html
 #library(mclust)
-for(jmp in seq(from=0, to=500, by=25)){print(jmp)
-jmp=480
+for(jmp in seq(from=0, to=200, by=5)){
+jmp=20
+  print(jmp)
 data <- read.delim("F:/promec/Qexactive/LARS/2016/Andrea/2016 desember/161219_IP ugi 1D gel alle band/errtolPD21/161222_ip_ugi_band 2/161222_ip_ugi_band_PSMs.txt",sep="\t",header=T)
 mdiff=data[data$Delta.mz.in.Da<(-jmp)|data$Delta.mz.in.Da>jmp,]$Delta.mz.in.Da
 summary(mdiff)
 hist(mdiff,breaks=1000)
 mod4 = densityMclust(mdiff)
 mod4$parameters$mean
+wtf = paste0(jmp,"mu.txt")
+write.table(mod4$parameters, wtf,sep = "\t")
+
 summary(mod4)
 plot(mod4, what = "BIC")
 plot(mod4, what = "density")
@@ -68,46 +72,4 @@ pwr.t.test(d=0.5,n=NULL,sig.level=0.05,alternative=c("two.sided"),type="two.samp
 
 
 ```
-
-
-
-```{r data}
-data=read.delim("C:/cygwin64/home/PROMECuser/ftp.pride.ebi.ac.uk/pride/data/archive/2016/01/PXD001582/130319_LINDA_K18.txt", skip=1, header=T)
-
-
-```
-
-
-```{r MZ, echo=FALSE}
-plot(data$xcorr)
-hist(data$xcorr)
-
-```
-
-```{r gauss}
-s<-2
-r<-1000
-x<-seq(-r,r,s)
-y<-exp(-x^2/(2*s^2))/(s*sqrt(2*pi))
-hist(y)
-plot(x,y)
-```
-
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-
-```{r eda, echo=FALSE}
-class(data)
-attach(data)
-plot(LFQ.intensity.H.70511_Magnar_HC_Ipsi_OGG1_02 ~ LFQ.intensity.L.70511_Magnar_HC_Ipsi_OGG1_01)
-install.packages('mclust')
-library(mclust)
-densityMclust((LFQ.intensity.H.70511_Magnar_HC_Ipsi_OGG1_02))$parameters$mean
-```
-
-```
-
 
