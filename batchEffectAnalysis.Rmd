@@ -1,20 +1,35 @@
 ```{r data}
 inpF <-"~/promec/Animesh/mouseSILAC/dePepSS1LFQ1/proteinGroups.txt"
-data <- read.delim(inpF,row.names=1,sep="\t",header = T)
-summary(data)
-dataNorm=log2(data[,grep("LFQ.intensity.L.", names(data))])
-#dataUnNorm=log2(data[,grep("Ratio.H.L.[0-9]+", names(data))])
-#dataUnNormZS=dataUnNorm-mean(dataUnNorm)
-#class(dataUnNorm)
-#boxplot(dataUnNorm)
-#dataNorm=log2(data[,grep("Ratio.H.L.normalized.", names(data))])
-plot(dataNorm[!is.na(dataNorm)])
-hist(dataNorm[!is.na(dataNorm)])
-boxplot(dataNorm)
-#biplot(princomp((dataNorm[!is.na(dataNorm)])))
 ```
 
-```{r exploBATCH}
+```{r windows}
+inpF <-"L:/Animesh/mouseSILAC/dePepSS1LFQ1/proteinGroups.txt"
+```
+
+```{r summary}
+data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
+summary(data)
+#dataNorm = log2(data[, grep("LFQ.intensity.L.", names(data))])
+#dataUnNorm=log2(data[,grep("Ratio.H.L.[0-9]+", names(data))])
+dataNorm=log2(data[,grep("Ratio.H.L.normalized.", names(data))])
+plot(dataNorm[!is.na(dataNorm)])
+boxplot(dataNorm)
+hist(dataNorm[is.finite(as.matrix(dataNorm))])
+```
+
+```{r impute}
+#install.packages('mice')
+library(mice)
+#install.packages('randomForest')
+library(randomForest)
+dataNorm[dataNorm==-Inf]=NA
+dataNormImp=mice(dataNorm, method="rf")
+dataNormImpCom <- complete(dataNormImp,1)
+summary(dataNormImpCom)
+biplot(princomp(dataNormImpCom))
+```
+
+```{r remBatchEffect}
 #http://users.humboldt.edu/finneyb/gfortran-windows-20140629.exe # windows
 #install.packages("doMC", repos="http://R-Forge.R-project.org") # windows
 #sudo apt-get install libssl-dev libxml2-dev libcurl4-gnutls-dev # linux
@@ -24,31 +39,16 @@ boxplot(dataNorm)
 #require(devtools)
 #install_github("gnyamundanda/exploBATCHbreast") # install_github requires devtools package
 library("exploBATCH")
-library("exploBATCHbreast")
-data(Breast)
-data(batchBreast)
-summary(t(Breast))
-dtmpD=t(dataNorm)
-dtmp<-Breast
-str(dtmpD)
-dim(dtmp)
-class(dtmp)
-summary(batchBreast)
-#dataNormImpCom=t(dataNormImpCom)
-#class(dataNormImpCom)
-#require(exploBATCHbreast)
-expBATCH(D=Breast,batchCL=batchBreast,Conf=NA,mindim=2,maxdim=9,method="ppcca",SDselect=3)
-factors=strsplit(names(dataNorm)[grep("Ratio.H.L.normalized.", names(dataNorm))],"[._]")
 factors=strsplit(names(dataNorm)[grep("LFQ.intensity.L.", names(dataNorm))],"[._]")
 factorB=sapply(factors, '[[', 4)
 factorB<-as.numeric(t(factorB))
-#names(dtmpB)<-names(dataNormImpCom)
 dtmpB<-t(as.matrix(dataNormImpCom))
-write.table(dtmpB,"$HOME/scripts/exploBATCHresults/dtmpB.txt")
-write.table(factorB,"factorB.txt")
-dtmpB<-read.table("dtmpB.txt")
-factorB<-read.table("factorB.txt")
-expBATCH(D=dtmpB,batchCL=factorB,Conf=NA,mindim=2,maxdim=6,method="ppcca",SDselect=2)
+#write.table(dtmpB,"$HOME/scripts/exploBATCHresults/dtmpB.txt")
+#write.table(factorB,"factorB.txt")
+#dtmpB<-read.table("dtmpB.txt")
+#factorB<-read.table("factorB.txt")
+detach("package:randomForest", unload = TRUE)
+expBATCH(D=dtmpB,batchCL=factorB,Conf=NA,mindim=2,maxdim=6,method="ppcca",SDselect=1)
 dim(Breast)
 dim(batchBreast)
 dim((dtmpB))
@@ -56,9 +56,27 @@ rownames(dtmpB)
 rownames(Breast)
 colnames(dtmpB)
 colnames(Breast)
-#expBATCH(D=dtmp,batchCL=dtmpB,Conf=NA,mindim=2,maxdim=9,method="ppcca",SDselect=2)
-#dtmp[is.na(dtmp)]=0
 ```
+
+```{r exploBATCH-test}
+#http://users.humboldt.edu/finneyb/gfortran-windows-20140629.exe
+#install.packages("devtools")
+library(devtools)
+require(exploBATCHbreast)
+#nstall_github("syspremed/exploBATCH",verbose=TRUE)
+library("exploBATCH")
+#nstall.packages(c('mclust', 'mvtnorm', 'sva', 'Rcpp', 'RcppArmadillo', 'rARPACK', 'parallel', 'foreach', 'doParallel', 'ggplot2', 'RColorBrewer', 'doMC', 'compiler'))
+#nstall.packages("doMC", repos="http://R-Forge.R-project.org")
+install.packages("Rcpp")
+data(Breast)
+data(batchBreast)
+expBATCH(D, batchCL, Conf, mindim, maxdim, method, scale, SDselect)
+?expBATCH
+install_github("gnyamundanda/exploBATCHbreast") # install_github requires devtools package
+expBATCH(D = Breast, batchCL = batchBreast, Conf = NA, mindim = 2, maxdim = 9, method = "ppcca", SDselect = 2)
+```
+
+
 
 ```{r image}
 #sudo apt-get install libmagick++-dev 
@@ -455,16 +473,6 @@ print(p)
 ```
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
----
-title: "batch-effect-analysis"
-author: "Ani"
-date: "Monday, Feb 15, 2016"
-output: html_document
----
-<http://rmarkdown.rstudio.com>.
-
-=======
 ```{r interpolate}
 data<-read.table("c:/Users/animeshs/Downloads/Sunshine hours.txt",sep='\t',header=T)
 summary(data$SONNENSCHEINDAUER)
@@ -830,11 +838,3 @@ print(p)
 #heatmap2(data)
 ```
 
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
----
-title: "batch-effect-analysis"
-author: "Ani"
-date: "Monday, Feb 15, 2016"
-output: html_document
----
