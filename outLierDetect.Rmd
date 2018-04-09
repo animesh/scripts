@@ -1,0 +1,32 @@
+---
+runtime: shiny
+output: html_document
+---
+
+```{r data}
+inpF <-"L:/Animesh/Abba/redo/proteinGroups.txt"
+```
+
+```{r summary}
+data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
+dataNorm = data[, grep("LFQ.intensity.", names(data))]
+dataNorm = log2(dataNorm)
+```
+
+```{r custum, echo=FALSE}
+inputPanel(
+  sliderInput("bins", "#bins:", min = 1, max = 50, value = 30),
+  textInput("dens", "Density:", "auto",value = 0.6), 
+  selectInput("expression", label = "Sample:",choices = names(dataNorm), selected = names(dataNorm)[6]))
+renderText({paste("Inputs:", input$bins,input$dens,input$expression)})
+```
+
+```{r plot, echo = FALSE}
+#install.packages('shiny')
+#library(shiny)
+renderPlot({
+  hist(dataNorm[,as.numeric(which(names(dataNorm)==input$expression))],breaks = as.numeric(input$bins),probability = TRUE,col="orange")
+  lines(density(dataNorm[,as.numeric(which(names(dataNorm)==input$expression))], adjust = as.numeric(input$dens)),col="blue")
+  })
+```
+

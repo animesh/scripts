@@ -3,30 +3,114 @@ inpF <-"~/promec/Animesh/mouseSILAC/dePepSS1LFQ1/proteinGroups.txt"
 ```
 
 ```{r windows}
-inpF <-"L:/Animesh/mouseSILAC/dePepSS1LFQ1/proteinGroups.txt"
+#inpF <-"L:/Animesh/Abba/OutlierData.txt"
+inpF <-"L:/Animesh/Jimita/txt48/proteinGroups.txt"
 ```
+
 
 ```{r summary}
 data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
 summary(data)
+dataNorm = data[, grep("LFQ.intensity.", names(data))]
+dataNorm = log2(dataNorm+1)
+dataNorm[dataNorm == 0] <- NA
+dataNorm[dataNorm == 0] <- runif(length(dataNorm[dataNorm == 0]))
+length(dataNorm[dataNorm == 0])
 #dataNorm = log2(data[, grep("LFQ.intensity.L.", names(data))])
 #dataUnNorm=log2(data[,grep("Ratio.H.L.[0-9]+", names(data))])
-dataNorm=log2(data[,grep("Ratio.H.L.normalized.", names(data))])
+#dataNorm=log2(data[,grep("Ratio.H.L.normalized.", names(data))])
 plot(dataNorm[!is.na(dataNorm)])
 boxplot(dataNorm)
 hist(dataNorm[is.finite(as.matrix(dataNorm))])
+summary(dataNorm)
+```
+
+
+```{r distribution}
+#install.packages('softImpute')
+#require('softImpute')
+data=data[, grep("LFQ.intensity.", names(data))]
+dataNormComp = log2(data[complete.cases(log2(data)),])
+summary(dataNormComp)
+boxplot(dataNormComp)
+biplot(princomp(dataNormComp))
+#write.csv(dataNormImpCom,paste(inpF,".csv"))
+```
+
+
+```{r impute}
+install.packages('softImpute')
+require('softImpute')
+#install.packages('randomForest')
+?mice
+#dataNorm=data[,grep("^X", names(data))]
+#dataNormImp = mice(dataNorm, method = "norm.predict")
+dataNormImp = mice(dataNorm, method = "pmm", seed=10, post=0.5)
+#library(randomForest)
+#dataNorm[dataNorm==-Inf]=NA
+#dataNormImp = mice(dataNorm, method = "rf")
+#dataNormImp = mice(dataNorm, method = "norm.nob")
+dataNormImpCom <- complete(dataNormImp,1)
+summary(dataNormImpCom)
+boxplot(dataNormImpCom)
+biplot(princomp(dataNormImpCom))
+write.csv(dataNormImpCom,paste(inpF,".csv"))
 ```
 
 ```{r impute}
 #install.packages('mice')
 library(mice)
 #install.packages('randomForest')
-library(randomForest)
-dataNorm[dataNorm==-Inf]=NA
-dataNormImp=mice(dataNorm, method="rf")
+?mice
+#dataNorm=data[,grep("^X", names(data))]
+#dataNormImp = mice(dataNorm, method = "norm.predict")
+dataNormImp = mice(dataNorm, method = "pmm", seed=10, post=0.5)
+#library(randomForest)
+#dataNorm[dataNorm==-Inf]=NA
+#dataNormImp = mice(dataNorm, method = "rf")
+#dataNormImp = mice(dataNorm, method = "norm.nob")
 dataNormImpCom <- complete(dataNormImp,1)
 summary(dataNormImpCom)
+boxplot(dataNormImpCom)
 biplot(princomp(dataNormImpCom))
+write.csv(dataNormImpCom,paste(inpF,".csv"))
+```
+
+```{r enrichR}
+install.packages("devtools")
+library(devtools)
+install_github("wjawaid/enrichR")
+library(enrichR)
+dbs <- listEnrichrDbs()
+summary(dbs)
+dbs <- c("GO_Cellular_Component_2017", "KEGG_2016")
+enriched <- enrichr(c("NFYA", "SET", "PDS5A", "DDX23", "CWC15", "SUPT6H", "SNRNP27", "NUP153", "PANK4", "THOC5", "TRMT112"), dbs)
+write.csv(enriched,"t.csv")
+```
+
+
+```{r remBatchEffect}
+
+install.packages("DataExplorer")
+library(DataExplorer)
+create_report()
+plot_missing()
+
+source("https://bioconductor.org/biocLite.R")
+biocLite("clusterSeq")
+browseVignettes("clusterSeq")
+```
+
+```{r iRF}
+
+install.packages("iRF")
+library(DataExplorer)
+create_report()
+plot_missing()
+
+source("https://bioconductor.org/biocLite.R")
+biocLite("clusterSeq")
+browseVignettes("clusterSeq")
 ```
 
 ```{r remBatchEffect}
@@ -39,8 +123,12 @@ biplot(princomp(dataNormImpCom))
 #require(devtools)
 #install_github("gnyamundanda/exploBATCHbreast") # install_github requires devtools package
 library("exploBATCH")
-factors=strsplit(names(dataNorm)[grep("LFQ.intensity.L.", names(dataNorm))],"[._]")
-factorB=sapply(factors, '[[', 4)
+#factors = strsplit(names(dataNorm)[grep("LFQ.intensity.L.", names(dataNorm))], "[._]")
+#factors = strsplit(names(dataNormImpCom)[grep("Ratio.H.L.normalized", names(dataNorm))], "[._]")
+dataNormImpCom=dataNorm
+factors = strsplit(names(dataNormImpCom),"[._]")
+#factorB = sapply(factors, '[[', 4)
+factorB = sapply(factors, '[[', 3)
 factorB<-as.numeric(t(factorB))
 dtmpB<-t(as.matrix(dataNormImpCom))
 #write.table(dtmpB,"$HOME/scripts/exploBATCHresults/dtmpB.txt")
@@ -48,7 +136,9 @@ dtmpB<-t(as.matrix(dataNormImpCom))
 #dtmpB<-read.table("dtmpB.txt")
 #factorB<-read.table("factorB.txt")
 detach("package:randomForest", unload = TRUE)
-expBATCH(D=dtmpB,batchCL=factorB,Conf=NA,mindim=2,maxdim=6,method="ppcca",SDselect=1)
+?expBATCH
+#expBATCH(D = dtmpB, batchCL = factorB, Conf = NA, mindim = 2, maxdim = 6, method = "ppcca", SDselect = 1)
+expBATCH(dtmpB,factorB,SDselect = 9)
 dim(Breast)
 dim(batchBreast)
 dim((dtmpB))

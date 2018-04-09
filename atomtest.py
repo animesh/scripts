@@ -51,7 +51,7 @@ dat /= abs(dat).max()
 print(x)
 y = x.map_overlap(skimage.filters.gaussian, depth=9, sigma=3, boundary='none')
 import pandas as pd
-pd.scatter_matrix(x)
+plt.hist(np.random(100))
 with Profiler() as prof, ResourceProfiler(dt=0.1) as rprof:
     y.compute(optimize_graph=False)
 
@@ -121,8 +121,9 @@ selectedData.saveAsTextFile(
 
 
 import pandas as pd
-#table = pd.read_excel('promec/Animesh/Lymphoma/TrpofSuperSILACpTtestImp.xlsx')
-table = pd.read_excel('/home/animeshs/scripts/vals.xlsx')
+table = pd.read_excel('L://promec/Animesh/Lymphoma/TrpofSuperSILACpTtestImp.xlsx')
+#table = pd.read_excel('/home/animeshs/scripts/vals.xlsx')
+
 %matplotlib inline
 table.s3.plot.hist(alpha=0.6)
 table.S2.plot.hist(alpha=0.4)
@@ -199,8 +200,7 @@ from pomegranate import *
 import numpy as np
 import pylab as plt
 
-data = np.concatenate((np.random.randn(250, 1) * 2.75 +
-                       1.25, np.random.randn(500, 1) * 1.2 + 7.85))
+data = np.concatenate((np.random.randn(250, 1) * 2.75 + 1.25, np.random.randn(500, 1) * 1.2 + 7.85))
 np.random.shuffle(data)
 data = table['Monoisotopic mass'].values
 plt.hist(data, edgecolor='c', color='c', bins=100)
