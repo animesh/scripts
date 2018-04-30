@@ -24,8 +24,9 @@ my %codon =
 );
 
 
-sub printTranslate
+sub translate
 {
+  my $seqn = shift;
   my $seq = shift;
   my $start = shift;
   my $end = shift;
@@ -34,10 +35,10 @@ sub printTranslate
 
   $start = 1 if !defined $start;
   $end = length($seq) if !defined $end;
-
+ 
 
   $start--;
-
+  my $nona=$seq=~s/[^A-Z]//g;
   my $s = substr($seq, $start, $end-$start);
   my $l = length ($s);
 
@@ -50,11 +51,7 @@ sub printTranslate
   }
 
   my $aalen = length($aaseq);
-
-  for (my $i = 0; $i < $aalen; $i += 60)
-  {
-    print substr($aaseq, $i, 60), "\n";
-  }
+  print "$seqn|$start-$end|proteinLength-$aalen|hanging-",$l%3,"|UTR-$nona|\n$aaseq\n";
 }
 
 
@@ -67,17 +64,20 @@ open FASTA, "< $file" or die "Can't open $file for reading ($!)\n";
 
 
 my $seq;
-while (<FASTA>)
-{
-  if (/\>/) { printTranslate($seq, $start, $end); print $_; }
-  else
-  {
-    chomp;
+my $seqn;
+while (<FASTA>){
+  chomp;
+  if (/^>/){ 
+        $seqn=$_; 
+	translate($seqn,$seq, $start, $end);
+	$seq="";
+  }  
+  else{
     $seq .= $_;
   }
 }
 
-printTranslate($seq, $start, $end);
+translate($seqn,$seq, $start, $end);
 
 
 
