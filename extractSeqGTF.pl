@@ -16,28 +16,38 @@ close F1;
 
 my $f2=shift @ARGV;
 open(F2,$f2);
+my $gn=shift @ARGV;
+my $utr=shift @ARGV;
+my $min=1e9999;
+my $max=-$min;
+my $chr;
 while(my $l2=<F2>){
-	chomp $l2;
-	$l2=~s/\r//g;
-	my @tmpnm=split(/\t/,$l2);
-	print ">",join('|',@tmpnm),"\n";
-	if($tmpnm[6] eq "-"){
-		my $revseq=reverse(substr($seqh{$tmpnm[0]},$tmpnm[3]-1,$tmpnm[4]-$tmpnm[3]+1));
-		$revseq=~tr/ATCG/TAGC/d;
-		print $revseq,"\n";
-	}
-	elsif($tmpnm[6] eq "+"){
-		print substr($seqh{$tmpnm[0]},$tmpnm[3]-1,$tmpnm[4]-$tmpnm[3]+1),"\n";
-	}
-	else{
-		print "Unknown Frame\n";
+	if($l2=~m/\b$gn\b/){
+		chomp $l2;
+		$l2=~s/\r//g;
+		my @tmpnm=split(/\t/,$l2);
+		if($min>$tmpnm[3]){$min=$tmpnm[3]}
+		if($max<$tmpnm[4]){$max=$tmpnm[4]}
+		$chr=$tmpnm[0];
+		print ">",join('|',@tmpnm),"\n";
+		if($tmpnm[6] eq "-"){
+			my $revseq=reverse(substr($seqh{$tmpnm[0]},$tmpnm[3]-1,$tmpnm[4]-$tmpnm[3]+1));
+			$revseq=~tr/ATCG/TAGC/;
+			print $revseq,"\n";
+		}
+		elsif($tmpnm[6] eq "+"){print substr($seqh{$tmpnm[0]},$tmpnm[3]-1,$tmpnm[4]-$tmpnm[3]+1),"\n";}
+		else{print "Unknown Frame\n";}
 	}
 }
 close F2;
 
-__END__
+if($utr){
+	print ">utr|$gn|$chr|$min|-$utr","\n",substr($seqh{$chr},$min-$utr-1,$utr),"\n";
+	print ">utr|$gn|$chr|$max|+$utr","\n",substr($seqh{$chr},$max,$utr),"\n";
+}
 
-perl fastaFile GTFfile
+__END__
+perl fastaFile GTFfile Gene lengthUTR
 
 
 
