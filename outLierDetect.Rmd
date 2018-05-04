@@ -4,13 +4,20 @@ output: html_document
 ---
 
 ```{r data}
-inpF <-"L:/Animesh/Abba/redo/proteinGroups.txt"
+inpF <-"L:/Animesh/Abba/dePep/proteinGroups.txt"
 ```
 
+```{r mapped}
+inpF <-"L:/Animesh/Abba/dePep/msmsScans.txt"
+data <- read.delim(inpF, sep = "\t", header = T)
+dataID = data[, grep("Identified", names(data))]
+summary(dataID)
+```
 ```{r summary}
 data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
 dataNorm = data[, grep("LFQ.intensity.", names(data))]
-dataNorm = log2(dataNorm)
+dataNorm = log2(dataNorm+1)
+summary(dataNorm)
 ```
 
 ```{r custum, echo=FALSE}

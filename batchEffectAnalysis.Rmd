@@ -26,6 +26,86 @@ hist(dataNorm[is.finite(as.matrix(dataNorm))])
 summary(dataNorm)
 ```
 
+```{r miss}
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("missRows")
+library("missRows")
+?missRows
+```
+
+```{r power}
+#biocLite("PowerExplorer")
+library("PowerExplorer")
+?PowerExplorerStorage
+```
+
+```{r wikiP}
+biocLite("rWikiPathways")
+library("rWikiPathways")
+?rWikiPathways
+```
+
+```{r diff}
+biocLite("SDAMS")
+library("SDAMS")
+?SDAMS
+```
+
+```{r sig}
+biocLite("signet")
+library("signet")
+?signet
+browseVignettes("signet")
+```
+
+```{r monokate}
+biocLite("singscore")
+library("singscore")
+?singscore
+```
+
+```{r monokate}
+biocLite("singscore")
+library("singscore")
+?singscore
+```
+
+```{r patientGroup}
+biocLite("drawProteins")
+library("drawProteins")
+?drawProteins
+```
+
+```{r patientGroup}
+biocLite("DEComplexDisease")
+library("DEComplexDisease")
+?DEComplexDisease
+```
+
+```{r SNProtein}
+biocLite("DominoEffect")
+library("DominoEffect")
+?DominoEffect
+```
+
+```{r enrichplot}
+biocLite("enrichplot")
+library("enrichplot")
+?enrichplot
+```
+
+```{r proteoGenome}
+library("BiocInstaller")
+biocLite("PGA")
+?PGA
+```
+
+```{r trend}
+biocLite("Trendy")
+library("Trendy")
+?Trendy
+```
+
 
 ```{r distribution}
 #install.packages('softImpute')

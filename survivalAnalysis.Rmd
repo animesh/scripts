@@ -16,6 +16,14 @@ allowWGCNAThreads()
 memory.limit(size = 256000000)
 ```
 
+```{r clust}
+biocLite("multiClust")
+biocLite("dendextend")
+library("dendextend")
+library("multiClust")
+?multiClust
+```
+
 ```{r coxph}
 inpF <-"L:/Animesh/Zahoor/CoMMpass_IA8b.txt"
 dataG <- read.delim(inpF,row.names=1,sep="\t",header = T)

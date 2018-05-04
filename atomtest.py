@@ -4,11 +4,19 @@ x = np.arange(1000)
 y = da.from_array(x, chunks=(100))
 y.mean().compute()
 
+x = da.random.random((100000, 2000), chunks=(10000, 2000))
+t0 = time.time()
+q, r = da.linalg.qr(x)
+test = da.all(da.isclose(x, q.dot(r)))
+assert(test.compute()) # compute(get=dask.threaded.get) by default
+print(time.time() - t0)
+# python -m TBB intelCompilerTest.py
+
 %matplotlib inline
 import pandas as pd
 import matplotlib.pyplot as plt
 plt.hist(np.random.random_sample(1000))
-
+plt.hist(x)
 
 import tensorflow as tf
 hello = tf.constant('Hello, TensorFlow!')
