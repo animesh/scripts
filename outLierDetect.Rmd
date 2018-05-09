@@ -13,6 +13,27 @@ data <- read.delim(inpF, sep = "\t", header = T)
 dataID = data[, grep("Identified", names(data))]
 summary(dataID)
 ```
+```{r mapped}
+inpF <-"L:/Animesh/bug/ANOVA.txt"
+data <- read.delim(inpF, sep = "\t", header = T, row.names = 24)
+dataID = data[, grep("Column", names(data))]
+summary(dataID)
+```
+
+
+```{r ANOVA}
+factorC=c(rep("Group1",5),rep("Group2",5),rep("Group3",5),rep("Group4",5))
+?TukeyHSD(aov((as.numeric(dataID[160,])~factorC)),"factorC", ordered = TRUE)
+tc=apply(dataID,1,function(x){
+#tc=apply(dataNorm, 1, function(x) 
+#  tryCatch(TukeyHSD(aov(x~factorC,"factorC", ordered = TRUE)),error=function(x){return(rep(1,20))})})
+  tryCatch(TukeyHSD(aov(x~factorC,"factorC")),error=function(x){return(rep(1,20))})})
+outF = paste0(inpF,"anovaTukey.csv")
+class(tc)
+names(tc)
+write.csv(tc, file=outF)
+```
+
 ```{r summary}
 data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
 dataNorm = data[, grep("LFQ.intensity.", names(data))]
