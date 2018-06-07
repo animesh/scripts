@@ -1,60 +1,110 @@
 ---
+output: 
+  html_notebook: 
+    fig_caption: yes
+    toc: yes
 runtime: shiny
-output: html_document
 ---
-
-```{r data}
-inpF <-"L:/Animesh/Abba/dePep/proteinGroups.txt"
+```{r msms}
+#inpF <- "L:/Animesh/IdaJ/Bafh1resMQ/msmsScans.txt"
+#data <- read.delim(inpF, sep = "\t", header = T)
+#dataID = data[, grep("Identified", names(data))]
+#summary(dataID)
 ```
 
-```{r mapped}
-inpF <-"L:/Animesh/Abba/dePep/msmsScans.txt"
-data <- read.delim(inpF, sep = "\t", header = T)
-dataID = data[, grep("Identified", names(data))]
-summary(dataID)
-```
-```{r mapped}
-inpF <-"L:/Animesh/bug/ANOVA.txt"
-data <- read.delim(inpF, sep = "\t", header = T, row.names = 24)
-dataID = data[, grep("Column", names(data))]
-summary(dataID)
+```{r protein}
+inpF <- "L:/Animesh/IdaJ/Bafh1resMQ/proteinGroups.txt"
 ```
 
-
-```{r ANOVA}
-factorC=c(rep("Group1",5),rep("Group2",5),rep("Group3",5),rep("Group4",5))
-?TukeyHSD(aov((as.numeric(dataID[160,])~factorC)),"factorC", ordered = TRUE)
-tc=apply(dataID,1,function(x){
-#tc=apply(dataNorm, 1, function(x) 
-#  tryCatch(TukeyHSD(aov(x~factorC,"factorC", ordered = TRUE)),error=function(x){return(rep(1,20))})})
-  tryCatch(TukeyHSD(aov(x~factorC,"factorC")),error=function(x){return(rep(1,20))})})
-outF = paste0(inpF,"anovaTukey.csv")
-class(tc)
-names(tc)
-write.csv(tc, file=outF)
-```
-
-```{r summary}
+```{r LFQ}
 data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
-dataNorm = data[, grep("LFQ.intensity.", names(data))]
-dataNorm = log2(dataNorm+1)
+colName = "LFQ.intensity."
+dataNorm = data[, grep(colName, names(data))]
+#dataNorm = log2(dataNorm+1)
+dataNorm = log2(dataNorm)
+names(dataNorm) = gsub(pattern = colName, replacement = "", x = names(dataNorm))
 summary(dataNorm)
 ```
 
-```{r custum, echo=FALSE}
+```{r LIMMA}
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("limma")
+library("limma")
+#boxplot(dataNorm[dataNorm!=0,])
+dataNorm[dataNorm == -Inf] <- NaN
+boxplot(dataNorm)
+plotDensities(dataNorm)
+colSums(dataNorm, na.rm = TRUE)
+plotMDS(dataNorm)
+norm_dN <- mean(colSums(dataNorm,na.rm = TRUE)) / colSums(dataNorm,na.rm = TRUE)
+dataN_sl <- sweep(dataNorm, 2, norm_dN, FUN = "*")
+plotDensities(dataN_sl)
+boxplot(dataN_sl)
+```
+
+```{r edgeR}
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("edgeR")
+library("edgeR")
+summary(is.na(dataNorm))
+dataN_s2 <- dataNorm
+dataN_s2[is.na(dataN_s2)] <- 0
+dataN_s2 <- sweep(dataN_s2, 2, calcNormFactors(dataN_s2), FUN = "/") 
+summary(is.na(dataN_s2))
+colSums(dataN_s2)
+boxplot(dataN_s2)
+plotMDS(dataN_s2)
+pairs(dataN_s2)
+```
+
+
+```{r test}
+#factorC=c(rep(c("Baf","Ctr"),each=4))
+factorC <- c(rep(c("Baf","Ctr"),4))
+dDGE <- DGEList(counts = dataN_s2, group = factorC)
+dDGE <- calcNormFactors(dDGE)
+dDGE <- estimateDisp(dDGE)
+dDGE$samples
+plotBCV(dDGE)
+dTest <- exactTest(dDGE)#, pair = c("Baf","Ctr"))
+summary(decideTestsDGE(dTest)) # this counts up, down, and unchanged genes (here it is proteins)
+dTestFDR <- topTags(dTest, n = 10000, sort.by = "none")
+summary(dTestFDR) # this counts up, down, and unchanged genes (here it is proteins)
+#?TukeyHSD(aov((as.numeric(dataID[160,])~factorC)),"factorC", ordered = TRUE)
+#tc=apply(dataID,1,function(x){
+#tc=apply(dataNorm, 1, function(x)   tryCatch(TukeyHSD(aov(x~factorC,"factorC", ordered = TRUE)),error=function(x){return(rep(1,20))})}) tryCatch(TukeyHSD(aov(x~factorC,"factorC")),error=function(x){return(rep(1,20))})})
+tc = t.test(dataNorm[3,])$p.value
+outF = paste0(inpF,"test.csv")
+class(tc)
+names(tc)
+write.csv(tc, file = outF)
+pairwise.t.test(dataNorm[3,],(factorC))
+```
+```{r shiny, echo = FALSE}
+#https://rmarkdown.rstudio.com/authoring_shiny.html
+#install.packages('shiny')
+library(shiny)
+dN_shiny <- dataNorm
+dN_shiny[is.na(dN_shiny)] <- 0
+summary(is.na(dN_shiny))
+#ctrl-shift-K
+#rmarkdown::run
+#shiny::renderUI
+```
+
+```{r slider, echo=FALSE}
 inputPanel(
-  sliderInput("bins", "#bins:", min = 1, max = 50, value = 30),
+  sliderInput("bins", "#bins:", min = 1, max = 100, value = 30),
   textInput("dens", "Density:", "auto",value = 0.6), 
-  selectInput("expression", label = "Sample:",choices = names(dataNorm), selected = names(dataNorm)[6]))
+  selectInput("expression", label = "Sample:",choices = names(dN_shiny), selected = names(dN_shiny)[1]))
 renderText({paste("Inputs:", input$bins,input$dens,input$expression)})
 ```
 
 ```{r plot, echo = FALSE}
-#install.packages('shiny')
-#library(shiny)
 renderPlot({
-  hist(dataNorm[,as.numeric(which(names(dataNorm)==input$expression))],breaks = as.numeric(input$bins),probability = TRUE,col="orange")
-  lines(density(dataNorm[,as.numeric(which(names(dataNorm)==input$expression))], adjust = as.numeric(input$dens)),col="blue")
+  hist(dN_shiny[,as.numeric(which(names(dN_shiny) == input$expression))],breaks = as.numeric(input$bins),probability = TRUE,col="orange")
+  lines(density(dN_shiny[,as.numeric(which(names(dN_shiny) == input$expression))], adjust = as.numeric(input$dens)),col="blue")
   })
+  
 ```
 

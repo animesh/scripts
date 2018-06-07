@@ -1,10 +1,11 @@
 import numpy as np
 import dask.array as da
-x = np.arange(1000)
+x = da.random.random((100000, 2000), chunks=(10000, 2000))
 y = da.from_array(x, chunks=(100))
 y.mean().compute()
 
-x = da.random.random((100000, 2000), chunks=(10000, 2000))
+import time
+
 t0 = time.time()
 q, r = da.linalg.qr(x)
 test = da.all(da.isclose(x, q.dot(r)))
@@ -15,8 +16,7 @@ print(time.time() - t0)
 %matplotlib inline
 import pandas as pd
 import matplotlib.pyplot as plt
-plt.hist(np.random.random_sample(1000))
-plt.hist(x)
+plt.hist(np.random.random_sample(10000))
 
 import tensorflow as tf
 hello = tf.constant('Hello, TensorFlow!')
@@ -71,9 +71,7 @@ import matplotlib.pyplot as plt
 plt.plot(x,np.sin(x))
 x=2*x
 plt.show()
-table.A0A024QZX5.plot.hist(alpha=x)
-table.S2.plot.hist(alpha=0.4)
-table.S1.plot.hist(alpha=0.3)
+table.A0A024QZX5.plot.hist(alpha=0.5)
 
 import sonnet as snt
 import tensorflow as tf
