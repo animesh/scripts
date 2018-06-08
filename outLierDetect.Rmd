@@ -60,16 +60,18 @@ pairs(dataN_s2)
 
 ```{r test}
 #factorC=c(rep(c("Baf","Ctr"),each=4))
-factorC <- c(rep(c("Baf","Ctr"),4))
+factorC <- c("Baf","Ctr","Baf","Ctr","Ctr","Baf","Baf","Ctr")
+t(names(dataNorm))
 dDGE <- DGEList(counts = dataN_s2, group = factorC)
 dDGE <- calcNormFactors(dDGE)
 dDGE <- estimateDisp(dDGE)
 dDGE$samples
 plotBCV(dDGE)
 dTest <- exactTest(dDGE)#, pair = c("Baf","Ctr"))
-summary(decideTestsDGE(dTest)) # this counts up, down, and unchanged genes (here it is proteins)
-dTestFDR <- topTags(dTest, n = 10000, sort.by = "none")
-summary(dTestFDR) # this counts up, down, and unchanged genes (here it is proteins)
+dTest$table
+summary(decideTestsDGE(dTest))
+dTestFDR <- topTags(dTest, n = 1000, sort.by = "none")
+summary(dTestFDR)
 #?TukeyHSD(aov((as.numeric(dataID[160,])~factorC)),"factorC", ordered = TRUE)
 #tc=apply(dataID,1,function(x){
 #tc=apply(dataNorm, 1, function(x)   tryCatch(TukeyHSD(aov(x~factorC,"factorC", ordered = TRUE)),error=function(x){return(rep(1,20))})}) tryCatch(TukeyHSD(aov(x~factorC,"factorC")),error=function(x){return(rep(1,20))})})
