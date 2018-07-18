@@ -1,86 +1,22 @@
-map[peptide:testTryModsIPAVAR massdiff:-0.004938 hit_rank:1 protein:nxp:NX_Q8TF62-1 num_matched_ions:1 num_tol_term:2 num_missed_cleavages
-:1 peptide_next_aa:T calc_neutral_pep_mass:824.523222 tot_num_ions:14 num_tot_proteins:1 num_matched_peptides:402
-modification_info:map[
-    modified_peptide:GGNSFIT[181]S[167]S[167]M[147]K
-    mod_aminoacid_mass:[
-    map[position:4 mass:160.030649 static:57.021464]
-    map[position:5 mass:160.030649 static:57.021464]
-    map[position:6 mass:160.030649 static:57.021464]
-    map[position:7 mass:196.121178 variable:68.026215 source:peffid:MOD:01892]
-    map[position:8 mass:147.035385 variable:15.994900 source:param]
-    map[position:7 mass:181.014010 variable:79.966331 source:peff id:MOD:00047]
-    map[position:8 mass:166.998359 variable:79.966331 source:peff id:MOD:00046]
-    map[position:9 mass:166.998359 variable:79.966331 source:peff id:MOD:00046]
-    map[position:10 mass:147.035385 variable:15.994900 source:param]]
-    aminoacid_substitution:[map[position:0 orig_aa:Q prevAA:1]   map[position:1 orig_aa:K]]]
-search_score:[
-    map[value:0.141 name:xcorr]
-    map[name:deltacn value:0.000]
-    map[name:deltacnstarvalue:0.000]
-    map[name:spscore value:1.9]
-    map[name:sprank value:3]
-    map[name:expect value:2.55E+02]]
-peptide_prev_aa:R]
-
-print("che")
-
 import numpy as np
 import dask.array as da
-x = np.arange(1000)
+x = da.random.random((100000, 2000), chunks=(10000, 2000))
 y = da.from_array(x, chunks=(100))
 y.mean().compute()
 
-from altair import Chart, load_dataset
+import time
 
-# load built-in dataset as a pandas DataFrame
-cars = load_dataset('cars')
+t0 = time.time()
+q, r = da.linalg.qr(x)
+test = da.all(da.isclose(x, q.dot(r)))
+assert(test.compute()) # compute(get=dask.threaded.get) by default
+print(time.time() - t0)
+# python -m TBB intelCompilerTest.py
 
-Chart(cars).mark_circle().encode(
-    x='Horsepower',
-    y='Miles_per_Gallon',
-    color='Origin',
-)
-
-import skimage.filters
-from dask.diagnostics import Profiler, ResourceProfiler, visualize
-dat=np.random.randint(0, 100,(50, 1104, 1104))
-dat /= abs(dat).max()
-
-
-#x = da.from_array(x, chunks=(50, x.shape[1] // 2, x.shape[2] // 2), name=False)
-print(x)
-y = x.map_overlap(skimage.filters.gaussian, depth=9, sigma=3, boundary='none')
+%matplotlib inline
 import pandas as pd
-pd.scatter_matrix(x)
-with Profiler() as prof, ResourceProfiler(dt=0.1) as rprof:
-    y.compute(optimize_graph=False)
-
-from distributed import Client
-from time import sleep
-import random
-
-def inc(x):
-    sleep(random.random() / 10)
-    return x + 1
-
-def dec(x):
-    sleep(random.random() / 10)
-    return x - 1
-
-def add(x, y):
-    sleep(random.random() / 10)
-    return x + y
-
-
-client = Client('127.0.0.1:8786')
-
-incs = client.map(inc, range(100))
-decs = client.map(dec, range(100))
-adds = client.map(add, incs, decs)
-total = client.submit(sum, adds)
-
-del incs, decs, adds
-total.result()
+import matplotlib.pyplot as plt
+plt.hist(np.random.random_sample(10000))
 
 import tensorflow as tf
 hello = tf.constant('Hello, TensorFlow!')
@@ -119,14 +55,23 @@ selectedData = selectedData.toJSON
 selectedData.saveAsTextFile(
     "jupyter/b1928_293T_proteinID_08A_QE3_122212.pep.json")
 
+```python
+inpF <-"L://Animesh/mouseSILAC/dePepSS1LFQ1/proteinGroups.txt"
+data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
+summary(data)
+```
 
 import pandas as pd
-#table = pd.read_excel('promec/Animesh/Lymphoma/TrpofSuperSILACpTtestImp.xlsx')
-table = pd.read_excel('/home/animeshs/scripts/vals.xlsx')
+table = pd.read_excel('L://Animesh/Lymphoma/TrpofSuperSILACpTtestImp.xlsx')
+#table = pd.read_excel('/home/animeshs/scripts/vals.xlsx')
 %matplotlib inline
-table.s3.plot.hist(alpha=0.6)
-table.S2.plot.hist(alpha=0.4)
-table.S1.plot.hist(alpha=0.3)
+import numpy as np
+x=np.linspace(0.0, 100.0, num=500)
+import matplotlib.pyplot as plt
+plt.plot(x,np.sin(x))
+x=2*x
+plt.show()
+table.A0A024QZX5.plot.hist(alpha=0.5)
 
 import sonnet as snt
 import tensorflow as tf
@@ -199,8 +144,7 @@ from pomegranate import *
 import numpy as np
 import pylab as plt
 
-data = np.concatenate((np.random.randn(250, 1) * 2.75 +
-                       1.25, np.random.randn(500, 1) * 1.2 + 7.85))
+data = np.concatenate((np.random.randn(250, 1) * 2.75 + 1.25, np.random.randn(500, 1) * 1.2 + 7.85))
 np.random.shuffle(data)
 data = table['Monoisotopic mass'].values
 plt.hist(data, edgecolor='c', color='c', bins=100)

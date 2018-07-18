@@ -1,5 +1,5 @@
 ```{r data}
-inpF <-"F:/promec/Animesh/Zahoor/CoMMpass_IA8b.txt"
+inpF <-"L:/Animesh/Zahoor/CoMMpass_IA8b.txt"
 dataG <- read.delim(inpF,row.names=1,sep="\t",header = T)
 #attach(data)
 summary(dataG)
@@ -13,7 +13,33 @@ install_github('jdrudolph/perseusr')
 BiocInstaller::biocLite("checkmate")
 library(WGCNA)
 allowWGCNAThreads()
+memory.limit(size = 256000000)
+```
 
+```{r clust}
+biocLite("multiClust")
+biocLite("dendextend")
+library("dendextend")
+library("multiClust")
+?multiClust
+```
+
+```{r coxph}
+inpF <-"L:/Animesh/Zahoor/CoMMpass_IA8b.txt"
+dataG <- read.delim(inpF,row.names=1,sep="\t",header = T)
+summary(dataG)
+factorS = names(data)[grep("MMRF", names(data))]
+library(survival)
+?coxph
+inpC <- "L:/Animesh/Zahoor/Compass_Survival.txt"
+dataC <- read.delim(inpC, row.names = 1, sep = "\t", header = T)
+dataNorm = log2(dataG[, grep("MMRF", names(dataG))] + 1)
+summary(dataNorm$MMRF_1021)
+hist(dataNorm$MMRF_1021)
+factor(dataC$censpfs)
+summary(factor(dataC$censpfs))
+factorC = rownames(data)[grep("MMRF", names(data))]
+resEfsByDis <- coxph(Surv(dataC$ttcpfs, dataC$censpfs) ~ ., data.frame(t(dataNorm)))
 ```
 
 ```{r condition}
@@ -30,13 +56,13 @@ pairwise.t.test(expR, expRt,p.adj = "none")
 ```{r condition}
 library(survival)
 #library(cmprsk)
-inpC <-"F:/promec/Animesh/Zahoor/Compass_Survival.txt"
+inpC <-"L:/Animesh/Zahoor/Compass_Survival.txt"
 dataC <- read.delim(inpC,row.names=1,sep="\t",header = T)
 factor(dataC$censpfs)
 summary(factor(dataC$censpfs))
 factorC=rownames(data)[grep("MMRF", names(data))]
 #plot(data)
-  resEfsByDis <- coxph(Surv(dataC$ttcpfs, dataC$censpfs) ~ . , data.frame(t(dataNorm)))
+resEfsByDis <- coxph(Surv(dataC$ttcpfs, dataC$censpfs) ~ . , data.frame(t(dataNorm)))
                        type      = "kaplan-meier",
                        error     = "greenwood",
                        conf.type = "log-log")
@@ -45,9 +71,7 @@ library(rms)
 rms::survplot(resEfsByDis)
 summary(resEfsByDis)
 #https://rpubs.com/kaz_yos/cmprsk2
-resEfsCoxByDis <- coxph(formula = Surv(dataC$ttcpfs, dataC$censpfs != 1) ~ data$,
-                        data    =dataC,
-                        ties    = c("efron","breslow","exact")[1])
+resEfsCoxByDis <- coxph(formula = Surv(dataC$ttcpfs, dataC$censpfs != 1) ~ data=dataC,ties    = c("efron","breslow","exact")[1])
 summary(resEfsCoxByDis)
 ```
 

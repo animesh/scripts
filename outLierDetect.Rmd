@@ -1,0 +1,112 @@
+---
+output: 
+  html_notebook: 
+    fig_caption: yes
+    toc: yes
+runtime: shiny
+---
+```{r msms}
+#inpF <- "L:/Animesh/IdaJ/Bafh1resMQ/msmsScans.txt"
+#data <- read.delim(inpF, sep = "\t", header = T)
+#dataID = data[, grep("Identified", names(data))]
+#summary(dataID)
+```
+
+```{r protein}
+inpF <- "L:/Animesh/IdaJ/Bafh1resMQ/proteinGroups.txt"
+```
+
+```{r LFQ}
+data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
+colName = "LFQ.intensity."
+dataNorm = data[, grep(colName, names(data))]
+#dataNorm = log2(dataNorm+1)
+dataNorm = log2(dataNorm)
+names(dataNorm) = gsub(pattern = colName, replacement = "", x = names(dataNorm))
+summary(dataNorm)
+```
+
+```{r LIMMA}
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("limma")
+library("limma")
+#boxplot(dataNorm[dataNorm!=0,])
+dataNorm[dataNorm == -Inf] <- NaN
+boxplot(dataNorm)
+plotDensities(dataNorm)
+colSums(dataNorm, na.rm = TRUE)
+plotMDS(dataNorm)
+norm_dN <- mean(colSums(dataNorm,na.rm = TRUE)) / colSums(dataNorm,na.rm = TRUE)
+dataN_sl <- sweep(dataNorm, 2, norm_dN, FUN = "*")
+plotDensities(dataN_sl)
+boxplot(dataN_sl)
+```
+
+```{r edgeR}
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("edgeR")
+library("edgeR")
+summary(is.na(dataNorm))
+dataN_s2 <- dataNorm
+dataN_s2[is.na(dataN_s2)] <- 0
+dataN_s2 <- sweep(dataN_s2, 2, calcNormFactors(dataN_s2), FUN = "/") 
+summary(is.na(dataN_s2))
+colSums(dataN_s2)
+boxplot(dataN_s2)
+plotMDS(dataN_s2)
+pairs(dataN_s2)
+```
+
+
+```{r test}
+#factorC=c(rep(c("Baf","Ctr"),each=4))
+factorC <- c("Baf","Ctr","Baf","Ctr","Ctr","Baf","Baf","Ctr")
+t(names(dataNorm))
+dDGE <- DGEList(counts = dataN_s2, group = factorC)
+dDGE <- calcNormFactors(dDGE)
+dDGE <- estimateDisp(dDGE)
+dDGE$samples
+plotBCV(dDGE)
+dTest <- exactTest(dDGE)#, pair = c("Baf","Ctr"))
+dTest$table
+summary(decideTestsDGE(dTest))
+dTestFDR <- topTags(dTest, n = 1000, sort.by = "none")
+summary(dTestFDR)
+#?TukeyHSD(aov((as.numeric(dataID[160,])~factorC)),"factorC", ordered = TRUE)
+#tc=apply(dataID,1,function(x){
+#tc=apply(dataNorm, 1, function(x)   tryCatch(TukeyHSD(aov(x~factorC,"factorC", ordered = TRUE)),error=function(x){return(rep(1,20))})}) tryCatch(TukeyHSD(aov(x~factorC,"factorC")),error=function(x){return(rep(1,20))})})
+tc = t.test(dataNorm[3,])$p.value
+outF = paste0(inpF,"test.csv")
+class(tc)
+names(tc)
+write.csv(tc, file = outF)
+pairwise.t.test(dataNorm[3,],(factorC))
+```
+```{r shiny, echo = FALSE}
+#https://rmarkdown.rstudio.com/authoring_shiny.html
+#install.packages('shiny')
+library(shiny)
+dN_shiny <- dataNorm
+dN_shiny[is.na(dN_shiny)] <- 0
+summary(is.na(dN_shiny))
+#ctrl-shift-K
+#rmarkdown::run
+#shiny::renderUI
+```
+
+```{r slider, echo=FALSE}
+inputPanel(
+  sliderInput("bins", "#bins:", min = 1, max = 100, value = 30),
+  textInput("dens", "Density:", "auto",value = 0.6), 
+  selectInput("expression", label = "Sample:",choices = names(dN_shiny), selected = names(dN_shiny)[1]))
+renderText({paste("Inputs:", input$bins,input$dens,input$expression)})
+```
+
+```{r plot, echo = FALSE}
+renderPlot({
+  hist(dN_shiny[,as.numeric(which(names(dN_shiny) == input$expression))],breaks = as.numeric(input$bins),probability = TRUE,col="orange")
+  lines(density(dN_shiny[,as.numeric(which(names(dN_shiny) == input$expression))], adjust = as.numeric(input$dens)),col="blue")
+  })
+  
+```
+
