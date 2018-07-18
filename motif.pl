@@ -2,27 +2,33 @@
 use strict;
 use warnings;
 my $f=shift @ARGV;
-my @pip=qw/QK.[ILVAG]..[FY][FY]/;
 open (F,$f);
-print $f;
-print "SeqName\tPosition(s)\tPTM\tMotif(s)\tFlag\tTotal\n";
+#my @motifs=qw/QK.[ILVAG]..[FY][FY]/;
+#my @motifs=qw/[LN]...[QVS]..[RKSE]I[QE][REK][NK][KR]..AL.[RL][RL]..[KR]/;
+my @motifs=qw/[RKSE]I[QE][REK][NK][KR]..AL.[RL][RL]..[KR]/;
+my $seqcolpos=9;
+my $linum;
 while (my $line = <F>) {
+	$linum++;
 	chomp ($line);
 	$line=~s/\r//g;
+	if($linum==1){print "$f-$line\tMotif,Position;\tLysine\tMotifs\n";}
+	else{
 	my @se=split(/\t/,$line);
-	print "$se[0]\t$se[2]\t$se[3]\t";
+	print "$line\t";#$se[2]\t$se[3]\t";
 	my $cnter=0;
 	my $flag=0;
-	for(my $pipc=0;$pipc<=$#pip;$pipc++){
-		while($se[1] =~ /($pip[$pipc])/gi){
+	for(my $motifsc=0;$motifsc<=$#motifs;$motifsc++){
+		while($se[$seqcolpos] =~ /($motifs[$motifsc])/gi){
 			print "$1,$-[0]-$+[0];";
-			pos($se[1]) = $-[0] + 1;
+			pos($se[$seqcolpos]) = $-[0] + 1;
 			$cnter++;
 			$flag+=()=$1=~/K/g;
 			#if($-[0]==$se[2]-1){$flag=1;}
 		}
 	}
 	print "\t$flag\t$cnter\n";
+	}
 }
 
 
