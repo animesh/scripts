@@ -3,10 +3,13 @@ use strict;
 use warnings;
 my $f=shift @ARGV;
 open (F,$f);
+my @motifs=shift;#qw/QK.[ILVAG]..[FY][FY]/;
 #my @motifs=qw/QK.[ILVAG]..[FY][FY]/;
+#my @motifs=qw/[RKSE]I[QE][REK][NK][KR]..AL.[RL][RL]..[KR]/;
 #my @motifs=qw/[LN]...[QVS]..[RKSE]I[QE][REK][NK][KR]..AL.[RL][RL]..[KR]/;
-my @motifs=qw/[RKSE]I[QE][REK][NK][KR]..AL.[RL][RL]..[KR]/;
-my $seqcolpos=9;
+#my @motifs=qw/[ILMN]...[QVS]..[RKSE][ILM][QE].[NK][KR]..A[IL].[RLI][RLI]..[KR]/;#https://febs.onlinelibrary.wiley.com/doi/full/10.1111/febs.12867 
+#my $seqcolpos=1;
+my $seqcolpos=shift;
 my $linum;
 while (my $line = <F>) {
 	$linum++;
@@ -35,4 +38,6 @@ while (my $line = <F>) {
 __END__
 
 perl fas2tablen.pl /cygdrive/f/promec/FastaDB/uniprot-human-feb15.fasta > /cygdrive/f/promec/Results/Ani/N-terminal-UNG/human.fasta.tab
-perl motif.pl /cygdrive/f/promec/Results/Ani/N-terminal-UNG/Acetylation.elm > /cygdrive/f/promec/Results/Ani/N-terminal-UNG/Acetylation.elm.pos.txt
+
+perl motif.pl /home/animeshs/promec/Animesh/uniprot-gene-ung.tab "[ILMN]...[QVS]..[RKSE][ILM][QE].[NK][KR]..A[IL].[RLI][RLI]..[KR]" 9 
+
