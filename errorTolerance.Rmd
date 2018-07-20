@@ -1,4 +1,21 @@
-Code for plotting the gist
+```{r data}
+tt <- "F:/promec/Animesh/RawRead/MSMS.tab"
+vals<-read.table(tt,comment.char = "#",sep="\t")
+```
+
+```{r plot}
+plot(vals$V8,vals$V5)
+hist(log2(vals$V8))
+```
+
+```{r dist}
+n=1000
+valSam=sample(vals$V8,n)
+hist(log2(valSam))
+valsdist=dist(valSam,valSam,method =  "euclidean")
+valH=hist(abs(valsdist[(valsdist>10)&(valsdist<1000)]),breaks=n)
+valH$breaks[valH$counts>n*2]
+```
 
 ```{r data-xml}
 install.packages("xml2")
