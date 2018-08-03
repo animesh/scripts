@@ -6,6 +6,7 @@ imgs[2]
 
 import cv2
 import matplotlib.pylab as plt
+%matplotlib inline
 cvimg = cv2.imread(imgs[1000],1)
 plt.imshow(cvimg)
 
@@ -17,7 +18,8 @@ import pandas as pd
 validation = pd.read_table(dataP+'labels/val_list.txt.sel', sep=' ', header=None, index_col=0)
 train = pd.read_table(dataP+"labels/train_list.txt.sel", sep=' ',index_col=0,header=None)
 test = pd.read_table(dataP+"labels/test_list.txt.sel", sep=' ',index_col=0,header=None)
-print(validation, train, test)
+topl=5
+print(validation.head(topl), train.head(topl), test.head(topl))
 
 #https://stanfordmlgroup.github.io/projects/chexnet/
 pathology_list = ['Atelectasis','Cardiomegaly','Effusion','Infiltration','Mass','Nodule','Pneumonia','Pneumothorax','Consolidation','Edema','Emphysema','Fibrosis','Pleural_Thickening','Hernia']
@@ -26,7 +28,6 @@ sample_labels=validation.append([train, test],ignore_index=True)
 sample_labels.columns=pathology_list
 print(sample_labels.shape)
 
-
 import tensorflow as tf
 learning = 0.01
 epochs = 100
@@ -34,7 +35,7 @@ hidden_1 = 256
 hidden_2 = 256
 input = 256*256
 classes = 14
-print(learning,epochs,batch,step,hidden_1,hidden_2,input,classes)
+print(learning,epochs,hidden_1,hidden_2,input,classes)
 
 X = tf.placeholder("float", [None, input])
 Y = tf.placeholder("float", [None, classes])
@@ -61,7 +62,7 @@ logits = mlp(X)
 # Define loss and optimizer
 loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
     logits=logits, labels=Y))
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+optimizer = tf.train.AdamOptimizer(learning_rate=learning)
 train_op = optimizer.minimize(loss_op)
 init = tf.global_variables_initializer()
 
