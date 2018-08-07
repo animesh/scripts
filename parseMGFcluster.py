@@ -11,69 +11,144 @@ def parseMGF(mgfData):
     charges = []
     out = {}
     cnt = 0
-    fname = None
     pep_mass = 0
     pep_intensity = 0
+    out = {}
     for line in data:
         if not reading_spectrum:
-            if line.strip() == 'BEGIN IONS':
-                reading_spectrum = True
+            if line.strip() == 'BEGIN IONS': reading_spectrum = True
         else:
-            if not line.strip() or any(
-                    line.startswith(c) for c in _comments):
-                pass
+            if not line.strip() or any(line.startswith(c) for c in _comments): pass
             elif line.strip() == 'END IONS':
                 reading_spectrum = False
-                if fname is None:
-                    title = params['title'].split()[0]
-                    fname = title.split('.')[0]
-                    out[fname] = {}
+                title = params['title'].split()[0]
                 if 'pepmass' in params:
                     try:
                         pl = params['pepmass'].split()
                         if len(pl) > 1:
                             pep_mass = float(pl[0])
-                            pep_intensity = float(pl[1])
-                        elif len(pl) == 1:
-                            pep_mass = float(pl[0])
-                    except ValueError:
-                        print("Error in parsing pepmass value")
-                out[fname][cnt] = {'pep_mass': pep_mass,
-                                   'pep_intensity': pep_intensity,
-                                   'rtinseconds': params['rtinseconds'],
-                                   'title': params['title'],
-                                   'charge': params['charge'],
-                                   'mz_array': np.array(masses),
-                                   'intensity_array': np.array(intensities)}
-                pep_mass = 0
-                pep_intensity = 0
-                params = {}
-                masses = []
-                intensities = []
-                charges = []
+                            pep_intensity = float(pl[2])
+                        elif len(pl) == 1: pep_mass = float(pl[0])
+                    except ValueError: print("Error in parsing pepmass value")
+                out[cnt] = {'pep_mass': pep_mass,'pep_intensity': pep_intensity,'rtinseconds': params['rtinseconds'],'title': params['title'],'charge': params['charge'],'mz_array': np.array(masses),'intensity_array': np.array(intensities)}
                 cnt += 1
             else:
                 l = line.split('=', 1)
-                if len(l) > 1:  # spectrum-specific parameters!
-                    params[l[0].lower()] = l[1].strip()
-                elif len(l) == 1:  # this must be a peak list
+                if len(l) > 1: params[l[0].lower()] = l[1].strip()
+                elif len(l) == 1:  # looks like a peak list ;)
                     l = line.split()
                     if len(l) >= 2:
                         try:
-                            masses.append(float(l[0]))  # this may cause
-                            intensities.append(float(l[1]))  # exceptions...
-                            # charges.append(aux._parse_charge(l[2]) if len(l) > 2 else 0)
+                            masses.append(float(l[0]))
+                            intensities.append(float(l[1]))
                         except ValueError:
                             print("Error in parsing line "+line)
     return out
 
-
 file = pathlib.Path.cwd().parent.rglob('*.MGF')
-print(next(file))
 file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
 print(file.read_text().split(' '))
 out=parseMGF(file)
-print((out.keys()))
+X=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ in out.items()]
+X=np.array(X).reshape(-1, 1)
+print(X.shape)
+
+#https://github.com/rasbt/python-machine-learning-book/blob/master/code/ch11/ch11.ipynb
+from sklearn.datasets import make_blobs
+X, y = make_blobs(n_samples=150,
+                  n_features=2,
+                  centers=3,
+                  cluster_std=0.5,
+                  shuffle=True,
+                  random_state=0)
+
+from sklearn.cluster import KMeans
+km = KMeans(n_clusters=3,
+            init='random',
+            n_init=10,
+            max_iter=300,
+            tol=1e-04,
+            random_state=0)
+y_km = km.fit_predict(X)
+print(y_km)
+
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+import numpy as np
+from matplotlib import cm
+from sklearn.metrics import silhouette_samples
+
+cluster_labels = np.unique(y_km)
+n_clusters = cluster_labels.shape[0]
+silhouette_vals = silhouette_samples(X, y_km, metric='euclidean')
+y_ax_lower, y_ax_upper = 0, 0
+yticks = []
+for i, c in enumerate(cluster_labels):
+    c_silhouette_vals = silhouette_vals[y_km == c]
+    c_silhouette_vals.sort()
+    y_ax_upper += len(c_silhouette_vals)
+    color = cm.jet(float(i) / n_clusters)
+    plt.barh(range(y_ax_lower, y_ax_upper), c_silhouette_vals, height=1.0,
+             edgecolor='none', color=color)
+
+    yticks.append((y_ax_lower + y_ax_upper) / 2.)
+    y_ax_lower += len(c_silhouette_vals)
+
+silhouette_avg = np.mean(silhouette_vals)
+plt.axvline(silhouette_avg, color="red", linestyle="--")
+
+plt.yticks(yticks, cluster_labels + 1)
+plt.ylabel('Cluster')
+plt.xlabel('Silhouette coefficient')
+
+plt.tight_layout()
+# plt.savefig('./figures/silhouette.png', dpi=300)
+plt.show()
+
+
+distortions = []
+for i in range(1, 11):
+    km = KMeans(n_clusters=i,
+                init='k-means++',
+                n_init=10,
+                max_iter=300,
+                random_state=0)
+    km.fit(X)
+    distortions.append(km.inertia_)
+plt.plot(range(1, 11), distortions, marker='o')
+plt.xlabel('Number of clusters')
+plt.ylabel('Distortion')
+plt.tight_layout()
+#plt.savefig('./figures/elbow.png', dpi=300)
+plt.show()
+
+from sklearn.cluster import AgglomerativeClustering
+ac = AgglomerativeClustering(n_clusters=4,
+                             affinity='euclidean',
+                             linkage='complete')
+y_ac = ac.fit_predict(X)
+plt.scatter(X,y_ac)
+
+km = KMeans(n_clusters=4, random_state=0)
+y_km = km.fit_predict(X)
+plt.scatter(X,y_km)
+
+from sklearn.cluster import DBSCAN
+db = DBSCAN(eps=0.2, min_samples=5, metric='euclidean')
+y_db = db.fit_predict(X)
+plt.scatter(X,y_db)
+
+from scipy.cluster.hierarchy import linkage
+from scipy.spatial.distance import pdist
+import pandas as pd
+df=X
+row_clusters = linkage(pdist(df, metric='euclidean'), method='complete')
+pd.DataFrame(row_clusters,
+             columns=['row label 1', 'row label 2',
+                      'distance', 'no. of items in clust.'],
+             index=['cluster %d' % (i + 1)
+                    for i in range(row_clusters.shape[0])])
 
 
 import cv2
