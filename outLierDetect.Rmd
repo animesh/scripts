@@ -13,11 +13,13 @@ runtime: shiny
 ```
 
 ```{r protein}
-inpF <- "L:/Animesh/IdaJ/Bafh1resMQ/proteinGroups.txt"
+#inpF <- '../../combined/txt/proteinGroups.txt'
+inpF <- 'C:/Users/animeshs/OneDrive - NTNU/combined/txt/proteinGroups.txt'
 ```
 
 ```{r LFQ}
 data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
+#data <- read.delim(inpF)
 colName = "LFQ.intensity."
 dataNorm = data[, grep(colName, names(data))]
 #dataNorm = log2(dataNorm+1)

@@ -1,14 +1,21 @@
-import os
-from glob import glob
-dataP="L://Animesh/ChestX-ray14/"
-imgs = glob(os.path.join(dataP+'images', "*.png")) #https://nihcc.app.box.com/v/ChestXray-NIHCC/file/221185642661
-imgs[2]
+import pathlib
+file = pathlib.Path.cwd().parent.parent/'PAVES Challenge'
+file=file.rglob('')
+for i in file: print(i)
+imgs = [i for i in file]
+print(i)
+
+import pydicom
+from pydicom.data import get_testdata_files
+from pydicom.filereader import read_dicomdir
+dicom_dir = read_dicomdir(file.absolute())
+#ds = pydicom.dcmread("C:\Users\animeshs\OneDrive - NTNU\PAVES Challenge\Case 9")
 
 import cv2
 import matplotlib.pylab as plt
 %matplotlib inline
-cvimg = cv2.imread(imgs[1000],1)
-plt.imshow(cvimg)
+cvimg = cv2.imread(i,1)
+plt.imshow(i)
 
 import numpy as np
 Xrays256 = np.array([cv2.resize(cv2.imread(img,0), (256, 256), interpolation = cv2.INTER_AREA)/255 for img in imgs[:]])
