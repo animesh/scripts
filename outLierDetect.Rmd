@@ -1,6 +1,6 @@
 ---
-output: 
-  html_notebook: 
+output:
+  html_notebook:
     fig_caption: yes
     toc: yes
 runtime: shiny
@@ -51,7 +51,7 @@ library("edgeR")
 summary(is.na(dataNorm))
 dataN_s2 <- dataNorm
 dataN_s2[is.na(dataN_s2)] <- 0
-dataN_s2 <- sweep(dataN_s2, 2, calcNormFactors(dataN_s2), FUN = "/") 
+dataN_s2 <- sweep(dataN_s2, 2, calcNormFactors(dataN_s2), FUN = "/")
 summary(is.na(dataN_s2))
 colSums(dataN_s2)
 boxplot(dataN_s2)
@@ -99,7 +99,7 @@ summary(is.na(dN_shiny))
 ```{r slider, echo=FALSE}
 inputPanel(
   sliderInput("bins", "#bins:", min = 1, max = 100, value = 30),
-  textInput("dens", "Density:", "auto",value = 0.6), 
+  textInput("dens", "Density:", "auto",value = 0.6),
   selectInput("expression", label = "Sample:",choices = names(dN_shiny), selected = names(dN_shiny)[1]))
 renderText({paste("Inputs:", input$bins,input$dens,input$expression)})
 ```
@@ -109,6 +109,5 @@ renderPlot({
   hist(dN_shiny[,as.numeric(which(names(dN_shiny) == input$expression))],breaks = as.numeric(input$bins),probability = TRUE,col="orange")
   lines(density(dN_shiny[,as.numeric(which(names(dN_shiny) == input$expression))], adjust = as.numeric(input$dens)),col="blue")
   })
-  
-```
 
+```

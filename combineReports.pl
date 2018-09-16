@@ -11,7 +11,7 @@ my $cstr = shift @ARGV; #num or str
 if($cstr){print "$path-$pat-$i1-$i0-$i2-$cstr\tVals\t";}
 else{die("use: perl combineReports.pl ID-col# description-col# value-col# str/num")}
 
-my @files=<$path/*/*/$pat>;
+my @files=<$path/*$pat>;
 my %protein;
 my %uniprot;
 my %nc;
@@ -36,7 +36,7 @@ foreach my $f1 (@files){
         $lcnt++;
         if($pat=~/csv/){@tmp=parse_line(',',0,$line);}
 	else{@tmp=parse_line('\t',0,$line);}
-        if ($lcnt>1){
+        if ($lcnt>0){
             @name=split(/\;/,$tmp[$i1]);
             foreach (@name) {
                 my $key="$_;$f1";
@@ -78,7 +78,8 @@ foreach my $g  (keys %nc){
 }
 
 __END__	
-$ perl combineReports.pl $PWD 0.Profile.bacteria.tsv 0 1 1 num > BactMap                
+
+perl $HOME/1d/scripts/combineReports.pl $PWD trp.txt 0 1 1 num > ayucombine.trp.txt
 
  
 
