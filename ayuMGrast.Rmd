@@ -1,5 +1,44 @@
-http://api.metagenomics.anl.gov/m5nr/taxonomy?filter=Bacteroidetes&filter_level=phylum&min_level=genus
 
+
+```{r data}
+inpF<-"Z:\\USERS\\ayurveda\\mgm4804295.3.csv"
+data<-read.table(inpF,comment="D",header=T,sep="\t")
+plot(log(data$percentage.identity),log(data$e.value),col=factor(data$number.of.mismatches))
+```
+
+```{r install}
+install.packages('matR')
+library(matR)
+```
+
+```{r check}
+??auth
+auth.MGRAST('MgRastWebKeyGoesHereKEJ88')
+biom_phylum <- biomRequest(metadata("mgp80869")$mgp80869, request="organism", hit_type="all", source="RDP", group_level="phylum", evalue=15,  wait=TRUE)
+phylum_matrix <- as.matrix(biom_phylum)
+#biomRequest(file="Z:\\USERS\\ayurveda\\mgm4804295.3.csv",group_level="level2",evalue=1,)
+```
+```{r matR}
+#https://github.com/MG-RAST/matR/blob/master/demo/simple.R
+zz0 <- transform (zz, t_Log)
+columns (zz0, "host_common_name|samp_store_temp|material")
+princomp (zz0, map=c(col="host_common_name", pch="samp_store_temp"), labels="$$pubmed_id", cex=2)
+distx (zz0, groups="$$host_common_name")
+pp <- (rowstats (zz0, groups="$$material") $ p.value < 0.05)
+pp[is.na(pp)] <- FALSE
+pp
+
+####  that information can be used to make an informative heatmap.
+
+image (zz0 [pp,], margins=c(5,10), cexRow=0.3)
+
+####  for comparison, here is the same heatmap, but including all annotations.
+
+image (zz0, margins=c(5,10), cexRow=0.3)
+```
+
+```{r data}
+http://api.metagenomics.anl.gov/m5nr/taxonomy?filter=Bacteroidetes&filter_level=phylum&min_level=genus
 
 #install.packages('jsonlite')
 library(jsonlite)
@@ -59,3 +98,7 @@ system("echo 'R_LIBS_USER=\"~/R/library\"' >  $HOME/.Renviron")
 
 install.packages('devtools',lib.loc="/home/notebook/R/library")
 install.packages('devtools')
+
+```
+
+

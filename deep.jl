@@ -1,5 +1,5 @@
 using Gadfly
-Gadfly.plot([sin, cos,tan], 0, 25)
+Gadfly.plot([sin, cos,tan], -20*pi, 20*pi)
 Pkg.add("Mocha")
 Pkg.test("Mocha")
 
@@ -48,3 +48,10 @@ solve(solver, net)
 destroy(net)
 destroy(test_net)
 shutdown(backend)
+
+
+Pkg.add("DataFrames")
+using DataFrames
+data = readtable("Z:\\USERS\\Lymphoma\\dataLarsImpTtestBHcorr.txt",separator = '\t')
+plot(data[:x1_19913],data[:x1_19913])
+head(data,10)
