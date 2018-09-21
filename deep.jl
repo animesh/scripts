@@ -49,9 +49,21 @@ destroy(net)
 destroy(test_net)
 shutdown(backend)
 
-
 Pkg.add("DataFrames")
 using DataFrames
 data = readtable("Z:\\USERS\\Lymphoma\\dataLarsImpTtestBHcorr.txt",separator = '\t')
 plot(data[:x1_19913],data[:x1_19913])
 head(data,10)
+describe(data[:x1_19913])
+describe(data[:x10_29288])
+showcols(data)
+
+ Pkg.add("ScikitLearn")
+ using ScikitLearn
+@sk_import preprocessing: LabelEncoder
+labelencoder = LabelEncoder()
+categories = [2 3 4 5 6 12 13]
+
+for col in categories
+    train[col] = fit_transform!(labelencoder, train[col])
+end
