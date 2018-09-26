@@ -2,6 +2,7 @@ use strict;
 use warnings;
 my $f=shift @ARGV;
 unless(-e $f){die "USAGE:perl fastqUniq.pl <fastq file>";}
+die "$f.uniq.fasta exists, bailing out for $f!\n" if -e "$f.uniq.fasta";
 
 my $seqn="";
 my %seq;
@@ -25,6 +26,7 @@ while (my $line = <F>) {
 }
 close F;
 
+print "processing $f and writing non redundant fasta sequence to $f.uniq.fasta\n";
 open(FO,">$f.uniq.fasta");
 foreach $seqn (keys %seq){
 	if($seq{$seqn}){
@@ -40,8 +42,14 @@ foreach $seqn (keys %seq){
 }
 close FO;
 
+
+
+
 __END__
 find . -name "*.fastq" | parallel --jobs 24 "perl $HOME/scripts/fastqUniq.pl {}"
 
 #can work with fasta if you change the ">" to "@"
 sed 's/>/@/' fastafile > file.fastq
+
+#windows cmd 
+for %i in (*.fastq) do perl fastqUniq.pl %i
