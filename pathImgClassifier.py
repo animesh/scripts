@@ -1,3 +1,54 @@
+from pathlib import Path
+pathmura = Path('C:/Users/animeshs/OneDrive - NTNU/MURA-v1.1/MURA-v1.1')
+trainlist=list(pathmura.glob('train/*/*/*/*.png'))
+import numpy as np
+import cv2
+from matplotlib import pyplot as plt
+img = cv2.imread(str(trainlist[-1]),0)
+plt.imshow(img, cmap = 'gray', interpolation = 'bicubic')
+plt.show()
+
+matching = [s for s in (tinlist) if 'negative' in s...]
+trainlist[2].parts[-2]
+
+import random
+import torch
+N=5
+scale=10
+D_in, H, D_out = N*scale*scale, N*scale*scale, N*scale
+
+class DynamicNet(torch.nn.Module):
+    def __init__(self, D_in, H, D_out):
+        super(DynamicNet, self).__init__()
+        self.input_linear = torch.nn.Linear(D_in, H)
+        self.middle_linear = torch.nn.Linear(H, H)
+        self.output_linear = torch.nn.Linear(H, D_out)
+    def forward(self, x):
+        h_relu = self.input_linear(x).clamp(min=0)
+        for _ in range(random.randint(0, int(N/scale))):
+            h_relu = self.middle_linear(h_relu).clamp(min=0)
+        y_pred = self.output_linear(h_relu)
+        return y_pred
+
+x = torch.randn(N, D_in)
+y = torch.randn(N, D_out)
+
+model = DynamicNet(D_in, H, D_out)
+
+criterion = torch.nn.MSELoss(reduction='sum')
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
+for t in range(H):
+    y_pred = model(x)
+    loss = criterion(y_pred, y)
+    print(t, loss.item())
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+
+import pandas as pd
+pd.read_csv((pathmura /'train_image_paths.csv'))
+
 #check with https://github.com/animesh/ann/blob/master/ann/Program.cs
 #Iteration = 1   Error = 0.298371108760003       Outputs = 0.751365069552316     0.772928465321463
 #Iteration = 2   Error = 0.291027773693599       Outputs = 0.742088111190782     0.775284968294459
@@ -28,7 +79,9 @@ h=1/(1+np.exp(-(x.dot(w1)+b[0])))
 y_pred=1/(1+np.exp(-(h.dot(w2)+b[1])))
 0.5*np.square(y_pred - y).sum()
 
-w3=w2-lr*(y_pred - y)*(1-y_pred)*y_pred*h
+w3=w2-(lr*(y_pred - y)*(1-y_pred)*y_pred*h)
+w2-lr*(y_pred[1] - y[1])*(1-y_pred[1])*y_pred[1]*h[1]
+w2-lr*(y_pred[0] - y[0])*(1-y_pred[0])*y_pred[0]*h[0]
 w4=w1-lr*sum((y_pred - y)*(1-y_pred)*y_pred*w2)*h*(1-h)*x
 
 h1=1/(1+np.exp(-(x.dot(w4)+b[0])))
@@ -44,7 +97,7 @@ y_pred_h1=1/(1+np.exp(-(h1.dot(w3)+b[1])))
 
 import random
 import torch
-N=32
+N=22
 scale=10
 D_in, H, D_out = N*scale*scale, N*scale*scale, N*scale
 
