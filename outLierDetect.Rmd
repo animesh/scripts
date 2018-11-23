@@ -1,6 +1,6 @@
 ---
-output:
-  html_notebook:
+output: 
+  html_notebook: 
     fig_caption: yes
     toc: yes
 runtime: shiny
@@ -14,18 +14,41 @@ runtime: shiny
 
 ```{r protein}
 #inpF <- '../../combined/txt/proteinGroups.txt'
-inpF <- 'C:/Users/animeshs/OneDrive - NTNU/combined/txt/proteinGroups.txt'
+inpF <- 'L:/promec/Animesh/Kathleen/181006_HCT_totx_JC_FirstIsoformMap.txt'
+#inpF <- 'L:/promec/HF/Lars/2018/november/Barbara/181101_BARBARA_/181101_BARBARA_NUC_1_16926_20181107014533.xlsx'
 ```
 
 ```{r LFQ}
-data <- read.delim(inpF, row.names = 1, sep = "\t", header = T)
+#data <- read.delim(inpF, row.names = 4, sep = "\t", header = T)
+data <- read.delim(inpF, sep = "\t", header = T)
+install.packages("openxlsx")
+install.packages("readxl") 
+library("openxlsx")
+library("readxl") 
+inpF='L:/promec/Animesh/Kathleen/181108_HCT_totPHOS__R1-(1).xlsx'
+data <- read_excel(inpF)
+data <- read_xlsx(inpF)
+dataprot<-data$Checked#=="FALSE"
+head(dataprot,2)
+summary(data)
+plot(data[,23:26])
 #data <- read.delim(inpF)
 colName = "LFQ.intensity."
 dataNorm = data[, grep(colName, names(data))]
 #dataNorm = log2(dataNorm+1)
 dataNorm = log2(dataNorm)
 names(dataNorm) = gsub(pattern = colName, replacement = "", x = names(dataNorm))
-summary(dataNorm)
+summary(as.matrix(data[,23]))
+data[is.na(data)]<-0
+dNo0=data[data$`Protein FDR Confidence: Combined`!="0",]
+summary(as.matrix(dNo0[,23]))
+outF='L:/promec/Animesh/Kathleen/181108_HCT_totPHOS__R1-(1)NAto0.xlsx'
+write.xlsx(dNo0,outF)
+```
+
+```{r Summary}
+summary(log2(data))
+plot(log2(data))
 ```
 
 ```{r LIMMA}
@@ -51,7 +74,7 @@ library("edgeR")
 summary(is.na(dataNorm))
 dataN_s2 <- dataNorm
 dataN_s2[is.na(dataN_s2)] <- 0
-dataN_s2 <- sweep(dataN_s2, 2, calcNormFactors(dataN_s2), FUN = "/")
+dataN_s2 <- sweep(dataN_s2, 2, calcNormFactors(dataN_s2), FUN = "/") 
 summary(is.na(dataN_s2))
 colSums(dataN_s2)
 boxplot(dataN_s2)
@@ -99,7 +122,7 @@ summary(is.na(dN_shiny))
 ```{r slider, echo=FALSE}
 inputPanel(
   sliderInput("bins", "#bins:", min = 1, max = 100, value = 30),
-  textInput("dens", "Density:", "auto",value = 0.6),
+  textInput("dens", "Density:", "auto",value = 0.6), 
   selectInput("expression", label = "Sample:",choices = names(dN_shiny), selected = names(dN_shiny)[1]))
 renderText({paste("Inputs:", input$bins,input$dens,input$expression)})
 ```
@@ -109,5 +132,6 @@ renderPlot({
   hist(dN_shiny[,as.numeric(which(names(dN_shiny) == input$expression))],breaks = as.numeric(input$bins),probability = TRUE,col="orange")
   lines(density(dN_shiny[,as.numeric(which(names(dN_shiny) == input$expression))], adjust = as.numeric(input$dens)),col="blue")
   })
-
+  
 ```
+
