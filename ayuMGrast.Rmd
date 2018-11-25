@@ -1,10 +1,48 @@
 
 
 ```{r data}
-inpF<-"Z:\\USERS\\ayurveda\\mgm4804295.3.csv"
+inpF<-"~/Documents/new/Total Phylum.txt"
 data<-read.table(inpF,comment="D",header=T,sep="\t")
-plot(log(data$percentage.identity),log(data$e.value),col=factor(data$number.of.mismatches))
+#plot(log(data$percentage.identity),log(data$e.value),col=factor(data$number.of.mismatches))
+summary(data)
 ```
+```{r label}
+inpL<-"~/Documents/new/class.txt"
+label<-read.table(inpL,comment="D",header=T,sep="\t")
+summary(label)
+```
+
+```{r install}
+install.packages('gplots')
+library(gplots) 
+install.packages('MCMCglmm')
+library(MCMCglmm)
+install.packages('quantable')
+library(quantable)
+heatmap.2(as.matrix(log2(data[,3:10])))
+log2data=data
+log2data[is.na(log2data)]<-0
+log2data<-(data[,3:21])
+log2data<-log2(data[,3:21]+1)
+rtnorm(n = 1, mean = mean(log2(data[!is.na(data),3:21])), sd = 1, lower = -Inf, upper = Inf)
+data[is.na(data)]
+plot(log2data)
+names(data)  
+#sub("(\\.*"([Ss][0-9]+)(\\.*)","\\2",names(data)) 
+names(log2data)=sub("X\\.","",names(log2data))
+names(log2data)=sub("\\..*","",names(log2data))
+heatmap.2(as.matrix(log2data))
+heatmap.2(as.matrix((log2data)),scale="row",col=redgreen, trace="none", tracecol="grey")
+y=as.matrix((log2data))
+y[is.na(y)]<-0
+y=robustscale(y)
+y=y$data
+hr <- hclust(as.dist(1-cor(t(y), method="spearman")), method="complete") 
+hc <- hclust(as.dist(1-cor(y, method="spearman")), method="complete")
+heatmap(y, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc)) 
+heatmap.2(y, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc),scale="row",col=redgreen, trace="none", tracecol="grey")
+```
+
 
 ```{r install}
 install.packages('matR')
