@@ -1,20 +1,31 @@
 from pathlib import Path
-pathFiles = Path('L:/promec/Animesh/Tobias/HeLaIpAndrea')
+pathFiles = Path('L:/promec/Elite/KWS/Raw/140801 RBP B3/')
 fileName='allPeptides.txt'
+pepCnt=2
+proteinOfInterest='P42704'
+
 trainList=list(pathFiles.rglob(fileName))
 
 import pandas as pd
-df=pd.read_table(trainList[3])
+df=pd.read_table(trainList[0])
 df_indi = (pd.read_table(f, low_memory=False) for f in trainList)
 concatenated_df   = pd.concat(df_indi, ignore_index=True)
 
 concatenated_df.columns.values
-P13051=concatenated_df[concatenated_df['DP Proteins'].str.contains("P13051")==True]
+dPc=concatenated_df.loc[:, concatenated_df.columns.str.startswith('DP')]
+dPc=dPc[dPc['DP Proteins'].notna()].rename(columns = lambda x : str(x)[3:])
 
-P13051['DP Mass Difference'].hist()
-P13051['DP Modification'].plot.pie()
-P13051['DP Modification'].value_counts().plot(kind='bar').figure.savefig('foo.png',dpi=100,bbox_inches = "tight")
+dPc=concatenated_df['DP Modification'].value_counts()
+dPc[dPc>=pepCnt].plot(kind='barh').figure.savefig(fileName+str(pepCnt)+'DP.png',dpi=300,bbox_inches = "tight")
+dPc.to_csv(fileName+str(pepCnt)+'DP.csv')
 
-P13051DP=P13051.loc[:, P13051.columns.str.startswith('DP')]
-P13051DP.rename(columns = lambda x : str(x)[3:])
-P13051DP.to_csv('P13051DP.csv')
+proteinOfInterestDP=concatenated_df[concatenated_df['DP Proteins'].str.contains(proteinOfInterest)==True]
+
+#proteinOfInterestDP['DP Mass Difference'].hist(bins=dPc.shape[0]).figure.savefig(proteinOfInterest+'massdiff.png',dpi=300,bbox_inches = "tight")
+
+proteinOfInterestDP['DP Modification']
+proteinOfInterestDP['DP Modification'].value_counts().plot(kind='barh').figure.savefig(proteinOfInterest+'DP.png',dpi=300,bbox_inches = "tight")
+
+proteinOfInterestDP=proteinOfInterestDP.loc[:, proteinOfInterestDP.columns.str.startswith('DP')]
+proteinOfInterestDP.rename(columns = lambda x : str(x)[3:])
+proteinOfInterestDP.to_csv(proteinOfInterest+'DP.csv')
