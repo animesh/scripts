@@ -1,7 +1,7 @@
 
 
 ```{r data}
-inpF<-"~/Documents/new/Total Phylum.txt"
+inpF<-"L:/promec/Animesh/HeLa/ayu/new/Total Phylum.txt"
 data<-read.table(inpF,comment="D",header=T,sep="\t")
 #plot(log(data$percentage.identity),log(data$e.value),col=factor(data$number.of.mismatches))
 summary(data)
@@ -43,6 +43,12 @@ heatmap(y, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc))
 heatmap.2(y, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc),scale="row",col=redgreen, trace="none", tracecol="grey")
 ```
 
+
+```{r pHeat}
+install.packages('pheatmap')
+library(pheatmap) 
+pheatmap(y,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+```
 
 ```{r install}
 install.packages('matR')
