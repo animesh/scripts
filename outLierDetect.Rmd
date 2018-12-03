@@ -78,14 +78,27 @@ pheatmap(as.matrix(data))
 ```
 
 ```{r test}
+cor.test(as.matrix(data[1,]),as.matrix(data[3,]))
+pv=acf(as.matrix(data[1,]),as.matrix(data[3,]))
+t.test(c(as.matrix(data[,1]),as.matrix(data[,2]),as.matrix(data[,3])),(c(2,2,2,1,1,1,3,3,3)),paired = TRUE)
+summary(aov(c(as.matrix(data[,1]),as.matrix(data[,2]),as.matrix(data[,3]))~(c(2,2,2,1,1,1,3,3,3))))
+summary(aov((c(scale(data[,1]),scale(data[,2]),scale(data[,3])))~(c('c2','c2','c2','c1','c1','c1','c3','c3','c3'))))
+TukeyHSD(aov((c(scale(data[,1]),scale(data[,2]),scale(data[,3])))~(c('c2','c2','c2','c1','c1','c1','c3','c3','c3'))))
+TukeyHSD(aov(log2(c(as.matrix(data[,1]),as.matrix(data[,2]),as.matrix(data[,3])))~(c('c2','c2','c2','c1','c1','c1','c3','c3','c3'))))
+TukeyHSD(aov(c(as.matrix(data[,1]),as.matrix(data[,2]),as.matrix(data[,3]))~(c('c2','c2','c2','c1','c1','c1','c3','c3','c3'))))
+t.test(as.matrix(data[1,]),as.matrix(data[2,]),paired = TRUE)
 install.packages("lmtest") 
 library(lmtest)
 lmtest::grangertest(data[1,],data[2,],1)
-plot(data)
+plot(t(data))
+cor(as.matrix(t(data)),method="spearman")
 dANOVA=c(data[,1],data[,2],data[,3])
 anova(dANOVA,factor(c(1,1,1,2,2,2,3,3,3)))
+cor.test(c(2.1,0.1,2.1),c(2.5,1.1,2.1))
 plot(dANOVA)
 tZscore(data[,1])
+cor.test(as.numeric(data[1,]),as.numeric(data[3,]))#,method="spearman")
+plot(scale(log2(data[,1])),scale(log2(data[,3])))
 
 ```
 
