@@ -3,13 +3,13 @@ use Text::ParseWords;
 
 my $path = shift @ARGV;
 my $pat = shift @ARGV;
-my $i1 = shift @ARGV; #ID 
-my $i0 = shift @ARGV; #Description
-my $i2 = shift @ARGV; #Value 
-my $cstr = shift @ARGV; #num or str 
+my $i3 = shift @ARGV; #ID
+my $i4 = shift @ARGV; #Description
+my $i5 = shift @ARGV; #Value
+my $cstr = shift @ARGV; #num or str
 
-if($cstr){print "$path-$pat-$i1-$i0-$i2-$cstr\tVals\t";}
-else{die("use: perl combineReports.pl ID-col# description-col# value-col# str/num")}
+if($cstr){print "$path;$pat;$i3;$i4;$i5;$cstr\tDescription\t";}
+else{die("use: perl combineReports.pl folder-name file-name-ending-pattern (file should have header which start with following column names) ID-column description-column Value-column string/number(combine string while absolute maximum)")}
 
 my @files=<$path/*$pat>;
 my %protein;
@@ -22,40 +22,51 @@ foreach my $f1 (@files){
     my %pg;
     my $lcnt;
     my $fn=$f1;
+    my $i1;
+    my $i0;
+    my $i2;
     $fn=~s/$pat//g;
     $fn=~s/$path//g;
-    print "$fn-$i2\t";
     open (F1, $f1) || die "can't open \"$f1\": $!";
     while (my $line = <F1>) {
-		chomp $line;
+		    chomp $line;
 				$line=~s/\'/prime/g;
-				$line=~s/\,/comma/g;
-				$line=~s/\(|\)/ /g;
+        $line=~s/\,/comma/g;
+#        $line=~s/\"/quote/g;
+        $line=~s/\(|\)//g;
+        $line=~s/\[|\]//g;
+        $line=~s/\r//g;
 				$line=~s/^\s+|\s+$//g;
-				#$line=~s/\s+/_/g;
+        $line=~s/\>//g;
         $lcnt++;
-        if($pat=~/csv/){@tmp=parse_line(',',0,$line);}
-	else{@tmp=parse_line('\t',0,$line);}
-        if ($lcnt>0){
+	      @tmp=parse_line('\t',0,$line);
+        if ($lcnt==1){
+          for(my $id=0;$id<=$#tmp;$id++){
+            if($tmp[$id]=~/^$i3/){$i1 = $id;}
+            if($tmp[$id]=~/^$i4/){$i0 = $id;}
+            if($tmp[$id]=~/^$i5/){$i2 = $id;}
+          }
+        }
+        else{
             @name=split(/\;/,$tmp[$i1]);
             foreach (@name) {
-                my $key="$_;$f1";
-		$protein{$key}.="$tmp[$i2];";
-                $nc{"$_"}.="$tmp[$i0];";
-				
+                  my $key="$_;$f1";
+		              $protein{$key}.="$tmp[$i2];";
+                  $nc{"$_"}.="$tmp[$i0];";
+
             }
-        } 
+        }
     }
+    print "$fn;$i2\t";
     close F1;
 }
 print "ExperimentsDetected\n";
 
 foreach my $g  (keys %nc){
-    my $ocg;
-	my @gname= split(/\s+|\-|\_|\./,$g);
-	my @ncgt=split(/;/,$nc{$g});
+  my $ocg;
+	my @ncgt=split(/;|\s+/,$nc{$g});
 	my @uniq = do { my %seen; grep { !$seen{$_}++ } @ncgt };
-    print "$g\t$gname[1] @uniq\t";
+    print "$g\t@uniq\t";
     foreach  my $f (@files){
         my $key="$g;$f";
         if($cstr eq "str" and $protein{$key} ne ""){print "$protein{$key}\t";$ocg++;}
@@ -77,10 +88,6 @@ foreach my $g  (keys %nc){
     print "$ocg\n";
 }
 
-__END__	
+__END__
 
-perl $HOME/1d/scripts/combineReports.pl $PWD trp.txt 0 1 1 num > ayucombine.trp.txt
-
- 
-
-
+perl combineReports.pl november Proteins.txt "Accession" "Description" "Score Sequest HT: Sequest HT" num > combinedReport.txt
