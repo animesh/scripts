@@ -1,0 +1,44 @@
+```{r data}
+inpF<-"L:/promec/Animesh/Tomas/Copy of for z-score conversion (003).txt"
+data<-read.table(inpF,header=T,sep="\t",row.names = 5)
+summary(data)
+```
+
+```{r heatmap}
+install.packages('pheatmap')
+library(pheatmap)
+y<-as.matrix(data[5:25])
+summary(y)
+pheatmap(y,scale="row")
+y[is.na(y)]<-0
+pheatmap(y,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+```
+
+```{r label}
+inpL<-"L:/promec/Animesh/Tomas/class.txt"
+label<-read.table(inpL,header=T,row.names=1,sep="\t")
+colnames(label)=sub("\\-[0-9]+","",colnames(label))
+colnames(label)
+summary(label)
+```
+
+```{r scale}
+install.packages('quantable')
+library(quantable)
+y<-data[5:25]
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+pheatmap(y$data,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)
+```
+
+
+```{r write}
+install.packages('dplyr')
+library(dplyr)
+colnames(y$data)
+yy<-rbind(y$data,label)
+yy<-t(yy)
+write.csv(y$data,"L:/promec/Animesh/Tomas/Copy of for z-score conversion (003).csv")
+```
+

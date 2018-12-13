@@ -1,5 +1,3 @@
-
-
 ```{r data}
 #inpF<-"L:/promec/Animesh/HeLa/ayu/new/Total Phylum.txt"
 inpF<-"L:/promec/Animesh/HeLa/ayu/new/combined biological function.txt"
@@ -11,15 +9,15 @@ summary(data)
 #install.packages('pheatmap')
 library(pheatmap)
 y<-data[1:19]
-y[is.na(y)]<-0
+summary(y)
 pheatmap(y,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+y[is.na(y)]<-0
 pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
 ```
 
 ```{r label}
 inpL<-"L:/promec/Animesh/HeLa/ayu/new/class.txt"
 label<-read.table(inpL,header=T,row.names=1,sep="\t")
-colnames(label)=sub("\\-[0-9]+","",colnames(label))
 colnames(label)
 summary(label)
 ```
@@ -37,13 +35,24 @@ pheatmap(y$data,scale="row",annotation_col = label, clustering_distance_rows = "
 ```
 
 
-```{r install}
+```{r write}
 #install.packages('dplyr')
 library(dplyr)
 colnames(y$data)
-yy<-rbind(y$data,label)
+labelT=t(label)
+colnames(labelT)=sub("\\-[0-9]+","",colnames(labelT))
+yy<-rbind(y$data,labelT)
 yy<-t(yy)
 write.csv(yy,"L:/promec/Animesh/HeLa/ayu/new/combined biological function.csv")
+#write.csv(yy,"L:/promec/Animesh/HeLa/ayu/new/Total Phylum.csv")
+```
+
+```{r median}
+yyy=read.csv("L:/promec/Animesh/HeLa/ayu/new/combined biological function.csv")
+yyy=aggregate(. ~ Ayur, yyy,median)
+row.names(yyy)=yyy[,1]
+pheatmap(yyy[,3:30],scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+write.csv(yyy,"L:/promec/Animesh/HeLa/ayu/new/combined biological function median.csv")
 #write.csv(yy,"L:/promec/Animesh/HeLa/ayu/new/Total Phylum.csv")
 ```
 
