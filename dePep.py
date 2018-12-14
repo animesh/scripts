@@ -14,7 +14,6 @@ dfDP['Mass Difference'].hist()
 writeDPpng=pathFiles/(fileName+"DP.png")
 dfDP['Modification'].value_counts().plot(kind='bar')
 dfDPcnt=dfDP['Modification'].value_counts()
-
 dfDPcnt[dfDPcnt>1].plot(kind='bar').figure.savefig(writeDPpng,dpi=100,bbox_inches = "tight")
 
 writeDPcsv=pathFiles/(fileName+"DP.csv")

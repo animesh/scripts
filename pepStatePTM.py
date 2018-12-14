@@ -12,7 +12,7 @@ dfDP=dfDP[dfDP['DP Proteins'].notnull()]
 dfDP=dfDP.rename(columns = lambda x : str(x)[3:])
 dfDP['Mass Difference'].hist()
 dfDPcnt=dfDP['Modification'].value_counts()
-dfDPcnt[(dfDPcnt>2)&(dfDPcnt<800)].plot(kind='pie')
+dfDPcnt[(dfDPcnt>20)&(dfDPcnt<800)].plot(kind='pie')
 
 fileName='Phospho (STY)Sites.txt'
 trainList=list(pathFiles.rglob(fileName))

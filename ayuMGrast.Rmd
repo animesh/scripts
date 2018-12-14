@@ -1,6 +1,6 @@
 ```{r data}
 #inpF<-"L:/promec/Animesh/HeLa/ayu/new/Total Phylum.txt"
-inpF<-"L:/promec/Animesh/HeLa/ayu/new/combined biological function.txt"
+inpF<-"L:/promec/Animesh/HeLa/ayu/new/ayucombine species.txt"
 data<-read.table(inpF,header=T,sep="\t",row.names = 1)
 summary(data)
 ```
@@ -28,10 +28,24 @@ library(quantable)
 y<-data[1:19]
 y=robustscale(y)
 y$data[is.na(y$data)]<-0
-pheatmap(y$data,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+#pheatmap(y$data,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
 names(y$data)=sub("X\\.","",names(y$data))
 names(y$data)=sub("\\..*","",names(y$data))
-pheatmap(y$data,scale="row",annotation_col = label, clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+pheatmap(y$data,scale="row",annotation_col = label, clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=2)
+```
+
+```{r scale}
+#install.packages('quantable')
+library(quantable)
+yrs<-data[1:19]
+#yrs<-yrs[rowSums(!is.na(yrs))>9,]
+#yrs<-yrs[rowSums(!is.na(yrs))>14,]
+yrs<-yrs[rowSums(!is.na(yrs))>18,]
+yrs=robustscale(yrs)
+yrs$data[is.na(yrs$data)]<-0
+names(yrs$data)=sub("X\\.","",names(yrs$data))
+names(yrs$data)=sub("\\..*","",names(yrs$data))
+pheatmap(yrs$data,scale="row",annotation_col = label, clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=2)
 ```
 
 
@@ -43,8 +57,8 @@ labelT=t(label)
 colnames(labelT)=sub("\\-[0-9]+","",colnames(labelT))
 yy<-rbind(y$data,labelT)
 yy<-t(yy)
-write.csv(yy,"L:/promec/Animesh/HeLa/ayu/new/combined biological function.csv")
-#write.csv(yy,"L:/promec/Animesh/HeLa/ayu/new/Total Phylum.csv")
+write.csv(yy,"L:/promec/Animesh/HeLa/ayu/new/ayucombine species.csv")
+write.tab(t(yy),"L:/promec/Animesh/HeLa/ayu/new/ayucombine species.csv.txt")
 ```
 
 ```{r median}
