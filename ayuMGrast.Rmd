@@ -44,7 +44,12 @@ yrs<-yrs[rowSums(!is.na(yrs))>18,]
 yrs=robustscale(yrs)
 yrs$data[is.na(yrs$data)]<-0
 names(yrs$data)=sub("X\\.","",names(yrs$data))
-names(yrs$data)=sub("\\..*","",names(yrs$data))
+names(yrs$data)=sub("\\..*","",names(yr
+                                     
+                                     
+                                     
+                                     
+                                     s$data))
 pheatmap(yrs$data,scale="row",annotation_col = label, clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=2)
 ```
 

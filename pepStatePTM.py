@@ -13,7 +13,7 @@ dfDP=dfDP.rename(columns = lambda x : str(x)[3:])
 dfDP['Mass Difference'].hist()
 dfDPcnt=dfDP['Modification'].value_counts()
 dfDPcnt[(dfDPcnt>20)&(dfDPcnt<800)].plot(kind='pie')
-
+cd sc
 fileName='Phospho (STY)Sites.txt'
 trainList=list(pathFiles.rglob(fileName))
 dfPTM=pd.read_table(trainList[0], low_memory=False)
