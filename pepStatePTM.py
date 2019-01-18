@@ -5,7 +5,7 @@ fileName='allPeptides.txt'
 trainList=list(pathFiles.rglob(fileName))
 
 import pandas as pd
-df=pd.read_table(trainList[0])#, low_memory=False)
+df=pd.read_table(trainList[0], low_memory=False)
 df.columns.get_loc("DP Proteins")
 #awk -F '\t' '{print $47}' promec/promec/USERS/MarianneNymark/181009/Charlotte/HF/combined/txt/allPeptides.txt | sort | uniq -c
 dfDP=df.loc[:, df.columns.str.startswith('DP')]
@@ -13,7 +13,7 @@ dfDP=dfDP[dfDP['DP Proteins'].notnull()]
 dfDP=dfDP.rename(columns = lambda x : str(x)[3:])
 dfDP['Mass Difference'].hist()
 dfDPcnt=dfDP['Modification'].value_counts()
-dfDPcnt[(dfDPcnt>20)&(dfDPcnt<800)].plot(kind='pie')
+dfDPcnt[(dfDPcnt>200)&(dfDPcnt<8000000)].plot(kind='pie')
 
 fileName='Phospho (STY)Sites.txt'
 trainList=list(pathFiles.rglob(fileName))
