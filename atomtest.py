@@ -1,3 +1,87 @@
+#playing with output of https://github.com/animesh/RawRead
+import pandas as pd
+#df=pd.read_table('/home/animeshs/Documents/RawRead/20150512_BSA_The-PEG-envelope.raw.intensity0.charge0.FFT.txt')#, low_memory=False)
+df=pd.read_table('/home/animeshs/Documents/RawRead/20150512_BSA_The-PEG-envelope.raw.profile.intensity0.charge0.MS.txt')
+df.describe()
+df.hist()
+import numpy as np
+log2df=np.log2(df)#['intensity'])
+log2df.hist()
+
+#check with https://github.com/animesh/ann/blob/master/ann/Program.cs
+#Iteration = 1   Error = 0.298371108760003       Outputs = 0.751365069552316     0.772928465321463
+#Iteration = 2   Error = 0.291027773693599       Outputs = 0.742088111190782     0.775284968294459
+inp=[0.05,0.10]
+inpw=[[0.15,0.20],[0.25,0.3]]
+hidden=2
+hidw=[[0.4,0.45],[0.5,0.55]]
+outputc=2
+outputr=[0.01,0.99]
+bias=[0.35,0.6]
+cons=[1,1]
+lr=0.5
+error=1
+itr=1000
+
+#https://github.com/jcjohnson/pytorch-examples/blob/master/README.md  numpy
+import numpy as np
+x=np.asarray(inp)
+y=np.asarray(outputr)
+b=np.asarray(bias)
+w1=np.asarray(inpw)
+w1=w1.T
+w2=np.asarray(hidw)
+w2=w2.T
+print(x,y,b,w1,w2)
+
+h=1/(1+np.exp(-(x.dot(w1)+bias[0])))
+y_pred=1/(1+np.exp(-(h.dot(w2)+bias[1])))
+0.5*np.square(y_pred - y).sum()
+
+w3=w2-lr*np.outer((y_pred - y)*(1-y_pred)*y_pred,h).T
+w2-lr*(y_pred[1] - y[1])*(1-y_pred[1])*y_pred[1]*h[1]
+w2-lr*(y_pred[0] - y[0])*(1-y_pred[0])*y_pred[0]*h[0]
+w4=w1-lr*sum((y_pred - y)*(1-y_pred)*y_pred*w2)*h*(1-h)*x
+
+h1=1/(1+np.exp(-(x.dot(w4)+b[0])))
+y_pred_h1=1/(1+np.exp(-(h1.dot(w3)+b[1])))
+0.5*np.square(y_pred_h1 - y).sum()
+
+w3-=lr*(y_pred - y)*(1-y_pred)*y_pred*h
+w4=w4-lr*sum(((y_pred - y)*(1-y_pred)*y_pred*w2)*h*(1-h)*x
+h1=1/(1+np.exp(-(x.dot(w4)+b[0])))
+y_pred_h1=1/(1+np.exp(-(h1.dot(w3)+b[1])))
+0.5*np.square(y_pred_h1 - y).sum()
+
+
+import random
+import torch
+N=22
+scale=10
+D_in, H, D_out = N*scale*scale, N*scale*scale, N*scale
+
+class DynamicNet(torch.nn.Module):
+    def __init__(self, D_in, H, D_out):
+        super(DynamicNet, self).__init__()
+        self.input_linear = torch.nn.Linear(D_in, H)
+        self.middle_linear = torch.nn.Linear(H, H)
+        self.output_linear = torch.nn.Linear(H, D_out)
+    def forward(self, x):
+        h_relu = self.input_linear(x).clamp(min=0)
+        for _ in range(random.randint(0, int(N/scale))):
+            h_relu = self.middle_linear(h_relu).clamp(min=0)
+        y_pred = self.output_linear(h_relu)
+        return y_pred
+
+x = torch.randn(N, D_in)
+y = torch.randn(N, D_out)
+
+model = DynamicNet(D_in, H, D_out)
+
+criterion = torch.nn.MSELoss(reduction='sum')
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
+
+
 import numpy as np
 import dask.array as da
 x = da.random.random((100000, 2000), chunks=(10000, 2000))

@@ -1,78 +1,13 @@
 ```{r data}
-#inpF<-"L:/promec/Animesh/HeLa/ayu/new/Total Phylum.txt"
-inpF<-"L:/promec/Animesh/HeLa/ayu/new/ayucombine species.txt"
-data<-read.table(inpF,header=T,sep="\t",row.names = 1)
+inpF<-"~/Documents/new/Total Phylum.txt"
+data<-read.table(inpF,comment="D",header=T,sep="\t")
+#plot(log(data$percentage.identity),log(data$e.value),col=factor(data$number.of.mismatches))
 summary(data)
 ```
-
-```{r heatmap}
-#install.packages('pheatmap')
-library(pheatmap)
-y<-data[1:19]
-summary(y)
-pheatmap(y,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
-y[is.na(y)]<-0
-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
-```
-
 ```{r label}
-inpL<-"L:/promec/Animesh/HeLa/ayu/new/class.txt"
-label<-read.table(inpL,header=T,row.names=1,sep="\t")
-colnames(label)
+inpL<-"~/Documents/new/class.txt"
+label<-read.table(inpL,comment="D",header=T,sep="\t")
 summary(label)
-```
-
-```{r scale}
-#install.packages('quantable')
-library(quantable)
-y<-data[1:19]
-y=robustscale(y)
-y$data[is.na(y$data)]<-0
-#pheatmap(y$data,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
-names(y$data)=sub("X\\.","",names(y$data))
-names(y$data)=sub("\\..*","",names(y$data))
-pheatmap(y$data,scale="row",annotation_col = label, clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=2)
-```
-
-```{r scale}
-#install.packages('quantable')
-library(quantable)
-yrs<-data[1:19]
-#yrs<-yrs[rowSums(!is.na(yrs))>9,]
-#yrs<-yrs[rowSums(!is.na(yrs))>14,]
-yrs<-yrs[rowSums(!is.na(yrs))>18,]
-yrs=robustscale(yrs)
-yrs$data[is.na(yrs$data)]<-0
-names(yrs$data)=sub("X\\.","",names(yrs$data))
-names(yrs$data)=sub("\\..*","",names(yr
-                                     
-                                     
-                                     
-                                     
-                                     s$data))
-pheatmap(yrs$data,scale="row",annotation_col = label, clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=2)
-```
-
-
-```{r write}
-#install.packages('dplyr')
-library(dplyr)
-colnames(y$data)
-labelT=t(label)
-colnames(labelT)=sub("\\-[0-9]+","",colnames(labelT))
-yy<-rbind(y$data,labelT)
-yy<-t(yy)
-write.csv(yy,"L:/promec/Animesh/HeLa/ayu/new/ayucombine species.csv")
-write.tab(t(yy),"L:/promec/Animesh/HeLa/ayu/new/ayucombine species.csv.txt")
-```
-
-```{r median}
-yyy=read.csv("L:/promec/Animesh/HeLa/ayu/new/combined biological function.csv")
-yyy=aggregate(. ~ Ayur, yyy,median)
-row.names(yyy)=yyy[,1]
-pheatmap(yyy[,3:30],scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
-write.csv(yyy,"L:/promec/Animesh/HeLa/ayu/new/combined biological function median.csv")
-#write.csv(yy,"L:/promec/Animesh/HeLa/ayu/new/Total Phylum.csv")
 ```
 
 ```{r install}
@@ -107,6 +42,10 @@ heatmap.2(y, Rowv=as.dendrogram(hr), Colv=as.dendrogram(hc),scale="row",col=redg
 ```
 
 
+```{r install}
+install.packages('matR')
+library(matR)
+```
 
 ```{r check}
 ??auth
