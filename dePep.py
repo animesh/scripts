@@ -1,10 +1,9 @@
 import sys
-if len(sys.argv)!=2:
-    sys.exit("USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s)>")
+if len(sys.argv)!=2:    sys.exit("USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s)>")
 
 from pathlib import Path
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("L:/promec/HF/Lars/2019/Camilla MIB/combined/txt")
+pathFiles = Path("L:/promec/HF/Lars/2019/Camilla MIB/combined/txt")
 fileName='allPeptides.txt'
 trainList=list(pathFiles.rglob(fileName))
 
@@ -21,7 +20,7 @@ dfDP=dfDP[dfDP['DP Proteins'].notnull()]
 dfDP=dfDP.rename(columns = lambda x : str(x)[3:])
 #dfDP['Mass Difference'].hist()
 #dfDP['Base Raw File'].hist()
-print(dfDP['Base Raw File'].value_counts())
+#print(dfDP['Base Raw File'].value_counts())
 writeDPpng=pathFiles/(fileName+"DP.png")
 #dfDP['Modification'].value_counts().plot(kind='bar')
 dfDPcnt=dfDP['Modification'].value_counts()

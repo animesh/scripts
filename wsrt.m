@@ -1,13 +1,14 @@
-fo='Y:\felles\PROTEOMICS and XRAY\Ani\Camilla\For Animesh_25102016.xlsx'
+fo='L:\promec\Animesh\Camilla\Wilcoxon_forAnimesh.xlsx'
 testtype=' WSRT'
 [data,id,~]=xlsread(fo)
-IDX=1;
-idoff=6;
-idx=1;
-edx=9;
+IDX=2;
+idoff=5;
+idx=2;
+edx=10;
 jmp=3;
 idnm=id(:,IDX)
 data(:,all(isnan(data), 1)) = []
+data(data == 0) = NaN
 id=id(1,~cellfun('isempty',id(1,:)))
 pv=zeros(size(data,1),(edx-idx+1)/jmp)
 ln=zeros(size(data,1),1)
