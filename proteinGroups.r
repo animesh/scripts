@@ -17,13 +17,25 @@ log2ratioHLnorm<-log2(as.matrix(data[96:109]))
 dim(log2ratioHLnorm)
 summary(log2ratioHLnorm)
 hist(log2ratioHLnorm)
+plot(log2ratioHLnorm)
 
-pdf(paste(inpF,".ratiohist.pdf", sep=""))
-log2rH <- hist(log2ratioHL,breaks=30)
-log2rnH <- hist(log2ratioHLnorm,breaks=30)
-plot( log2rnH, col=rgb(0,0,1,1/5), xlim=c(-10,10))
-plot( log2rH, col=rgb(1,0,0,1/5), xlim=c(-10,10), add=T)  # second
+pdf(paste(inpF,".ratioHistTechRepAll.pdf", sep=""))
+for(i in 1:dim(log2ratioHL)[2]){
+  #hist(log2ratioHLnorm[,i],xlab=colnames(log2ratioHLnorm)[i])
+  log2rH <- hist(log2ratioHL[,i],xlab=colnames(log2ratioHL)[i],breaks=30)
+  log2rnH <- hist(log2ratioHLnorm[,i],xlab=colnames(log2ratioHLnorm)[i],breaks=30)
+  plot( log2rnH, col=rgb(0,0,1,0.8), xlim=c(-10,10),xlab=colnames(log2ratioHLnorm)[i])
+  plot( log2rH, col=rgb(1,0,0,0.8), xlim=c(-10,10), xlab=colnames(log2ratioHL)[i],add=T)  # second
+}
 dev.off()
+
+namesCL=c("SUDHL5","JURKAT")
+for(nameCL in namesCL){
+log2rH <- hist(log2ratioHL[, grep(nameCL, colnames(log2ratioHL))],breaks=30)
+log2rnH <- hist(log2ratioHLnorm[, grep(nameCL, colnames(log2ratioHLnorm))],breaks=30)
+plot( log2rnH, col=rgb(0,0,1,0.8), xlim=c(-10,10),xlab=nameCL)
+plot( log2rH, col=rgb(1,0,0,0.8), xlim=c(-10,10), add=T)  # second
+}
 
 row.names(y)<-row.names.data.frame(data)
 y[is.na(y)]<-0
