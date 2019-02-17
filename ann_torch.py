@@ -10,90 +10,59 @@ bias=[0.35,0.6]
 lr=0.5
 
 import torch
-#torch.cuda.set_device(0)
-x=torch.tensor(inp, dtype=torch.float64)
-y=torch.tensor([outputr], dtype=torch.float64)
-b=torch.tensor(bias, dtype=torch.float64)
-w1=torch.tensor(inpw, dtype=torch.float64)
-w2=torch.tensor(hidw, dtype=torch.float64)
-print(x,y,b,w1,w2)
-#print(torch.tensor(inpw).transpose(0,1),torch.tensor(hidw).transpose(0,1))
-#x.matmul(y.transpose(0,1))
-x.reshape(-1, 1) - y
-
+Device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(device)
+x=torch.tensor(inp, dtype=torch.double, device=Device)
+y=torch.tensor(outputr, dtype=torch.double, device=Device)
+b=torch.tensor(bias, dtype=torch.double, device=Device)
+w1=torch.tensor(inpw, dtype=torch.double, device=Device)
+w2=torch.tensor(hidw, dtype=torch.double, device=Device)
+print(x.size(),y,b,w1.size(),w2)
 iter=0
-while iter<2:
+while iter<1:
     iter+=1
     h = torch.sigmoid(x.matmul(w1.transpose(0,1))+b[0])
     y_pred = torch.sigmoid(h.matmul(w2.transpose(0,1))+b[1])
     print("iteration:",iter,"MSE: ",0.5*(((y_pred - y).pow(2)).sum()))
-    grad=(y_pred - y)*(1-y_pred)*y_pred # numerically unstable?
-    w1-=lr*w2.matmul(grad.reshape(-1, 1))*h*(1-h).reshape(-1, 1).matmul(x) # though it seems like descent is faster if first layer done in end? #FILO
     print(w1)
-    #w2-=lr*np.outer(grad,h)
     print(w2)
 
-
-def init_weights(m):
-    if type(m) == torch.nn.Linear:
-        torch.nn.init.xavier_uniform_(m.weight)
-        m.bias.data.fill_(0.01)
-
-net = torch.nn.Sequential(torch.nn.Linear(2, 2), torch.nn.Linear(2, 2))
-net.apply(init_weights)
-
-class Net(torch.nn.Module):
-    def __init__(self, n_feature, n_hidden, n_output):
-        super(Net, self).__init__()
-        self.hidden = torch.nn.Linear(n_feature, n_hidden)
-        self.predict = torch.nn.Linear(n_hidden, n_output)
+#https://medium.com/dair-ai/a-simple-neural-network-from-scratch-with-pytorch-and-google-colab-c7f3830618e0
+class Neural_Network(torch.nn.Module):
+    def __init__(self, ):
+        super(Neural_Network, self).__init__()
+        self.W1 = w1.transpose(0,1) # 3 x 2 tensor
+        self.W2 = w2.transpose(0,1)
     def forward(self, x):
-        x = torch.sigmoid(self.hidden(x))
-        x = self.predict(x)
-        return x
+        self.z = torch.matmul(x, self.W1) # 3 x 3 ".dot" does not broadcast in PyTorch
+        self.z2 = self.sigmoid(self.z) # activation function
+        self.z3 = torch.matmul(self.z2, self.W2)
+        o = self.sigmoid(self.z3) # final activation function
+        return o
+    def sigmoid(self, s):
+        return 1 / (1 + torch.exp(-s))
+    def sigmoidPrime(self, s):
+        return s * (1 - s)
+    def backward(self, x, y, o):
+        self.o_error = y - o # error in output
+        self.o_delta = self.o_error * self.sigmoidPrime(o) # derivative of sig to error
+        self.z2_error = torch.matmul(self.o_delta, torch.t(self.W2))
+        self.z2_delta = self.z2_error * self.sigmoidPrime(self.z2)
+        self.W1 += torch.matmul(x, self.z2_delta.transpose(0,1)) #torch.sigmoid(x.matmul(w1.transpose(0,1))+b[0])
+        self.W2 += torch.matmul(self.z2, self.o_delta)
+    def train(self, x, y):
+        o = self.forward(x)
+        self.backward(x, y, o)
+    def saveWeights(self, model):
+        torch.save(model, "NN")
+    def predict(self):
+        print ("Predicted weights: ")
+        print ("Input (scaled): \n" + str(xPredicted))
+        print ("Output: \n" + str(self.forward(xPredicted)))
 
-#print(x.view)
-#net = Net(n_feature=1, n_hidden=10, n_output=1)
-net=Net(outputc,outputc,outputc)
-print(net)  # net architecture
-
-optimizer = torch.optim.SGD(net.parameters(), lr)
-loss_func = torch.nn.MSELoss()
-
-prediction = net(x)
-loss = loss_func(prediction, y)
-optimizer.zero_grad()
-loss.backward()
-optimizer.step()
-print(x.data.numpy(), y.data.numpy())
-print(x.data.numpy(), prediction.data.numpy())
-print(loss.data.numpy())
-
-w3p=[[0.35891647971788465, 0.5113012702387375],
-       [0.4086661860762334, 0.5613701211079891]]
-print(w3p-w3)
-
-N=22
-scale=10
-D_in, H, D_out = N*scale*scale, N*scale*scale, N*scale
-
-class DynamicNet(torch.nn.Module):
-    def __init__(self, D_in, H, D_out):
-        super(DynamicNet, self).__init__()
-        self.input_linear = torch.nn.Linear(D_in, H)
-        self.middle_linear = torch.nn.Linear(H, H)
-        self.output_linear = torch.nn.Linear(H, D_out)
-    def forward(self, x):
-        h_relu = self.input_linear(x).clamp(min=0)
-        for _ in range(random.randint(0, int(N/scale))):
-            h_relu = self.middle_linear(h_relu).clamp(min=0)
-        y_pred = self.output_linear(h_relu)
-        return y_pred
-
-x = torch.randn(N, D_in)
-y = torch.randn(N, D_out)
-
-model = DynamicNet(D_in, H, D_out)
-
-criterion = torch.nn.MSELoss(reduction='sum')
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-4, momentum=0.9)
+NN = Neural_Network()
+for i in range(1000):  # trains the NN 1,000 times
+    print ("#" + str(i) + " Loss: " + str(torch.mean((y - NN(x))**2).detach().item()))  # mean sum squared loss
+    NN.train(x, y)
+NN.saveWeights(NN)
+NN.predict()
