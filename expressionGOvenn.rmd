@@ -1,0 +1,61 @@
+---
+title: "Expression GO"
+output: html_document
+runtime: shiny
+---
+
+
+```{r data,echo=F}
+#install.packages('readxl')
+library('readxl')
+pathD<-"F:/promec/Animesh/Camilla"
+inpF<-file.path(pathD,"Wilcoxon_forAnimesh.xlsx WSRTun.xls")
+data <- read_excel(inpF)
+dataNorm <- data[,3:5]
+```
+
+```{r euler,echo=F}
+#install.packages('eulerr')
+library(eulerr)
+#euler(dataNorm<.5)$original.values
+```
+
+```{r clusterProfiler, echo = FALSE}
+#https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html
+#source("https://bioconductor.org/biocLite.R")
+## biocLite("BiocUpgrade") ## you may need this
+#biocLite("clusterProfiler")
+#biocLite("org.Hs.eg.db")
+library("org.Hs.eg.db")
+#install.packages("colorspace")
+#devtools::install_github('cran/colorspace')
+library("clusterProfiler")
+#Uniprot=data[data$`NB4 Biol Rep 22 WSRT`<0.5,1]
+Uniprot<-sapply(strsplit(data$`T: Majority protein IDs`,";"), `[`, 1)
+enrichGO(gene=Uniprot,OrgDb=org.Hs.eg.db,keyType= 'UNIPROT',ont= "CC",pAdjustMethod = "BH",pvalueCutoff  = 0.01,qvalueCutoff  = 0.05)
+```
+
+```{r shiny, echo = FALSE}
+#https://rmarkdown.rstudio.com/authoring_shiny.html
+#install.packages('shiny')
+#ctrl-shift-K
+#rmarkdown::run
+#shiny::renderUI
+library(shiny)
+dN_shiny <- dataNorm
+```
+
+```{r slider, echo=FALSE}
+inputPanel(
+  sliderInput("pv", "#value:", min = 0, max = 1, value = 0.5),
+  selectInput("expression", label = "Sample:",choices = colnames(dN_shiny), selected = colnames(dN_shiny)[1]))
+  renderText({paste("Inputs:", input$pv,"\n",input$expression,"\n",euler(dataNorm<input$pv)$original.values[input$expression])})
+```
+
+```{r plot, echo = FALSE}
+renderPlot({
+  plot(euler(dN_shiny<input$pv),quantities=TRUE)
+  })
+```
+
+
