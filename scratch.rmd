@@ -31,6 +31,103 @@ renderPlot({
   
 ```
 
+```{r UWOT, echo = FALSE}
+#devtools::load_all()
+#install.packages('devtools')
+#library('devtools')
+#install_github("jlmelville/uwot")
+library()
+iris_umap <- umap(iris, n_neighbors = 50, learning_rate = 0.5, init = "random")
+
+# Load mnist from somewhere, e.g.
+# devtools::install_github("jlmelville/snedata")
+# mnist <- snedata::download_mnist()
+mnist_umap <- umap(mnist, n_neighbors = 15, min_dist = 0.001, verbose = TRUE)
+
+# Use a specific number of threads
+mnist_umap <- umap(mnist, n_neighbors = 15, min_dist = 0.001, verbose = TRUE, n_threads = 8)
+
+# Use a different metric
+mnist_umap_cosine <- umap(mnist ,n_neighbors = 15, metric = "cosine", min_dist = 0.001, verbose = TRUE, n_threads = 8)
+
+# Supervised dimension reduction
+mnist_umap_s <- umap(mnist, n_neighbors = 15, min_dist = 0.001, verbose = TRUE, n_threads = 8, 
+                     y = mnist$Label, target_weight = 0.5)
+                    
+# Add new points to an existing embedding
+mnist_train <- head(mnist, 60000)
+mnist_test <- tail(mnist, 10000)
+
+# You must set ret_model = TRUE to return extra data we need
+# coordinates are in mnist_train_umap$embedding
+mnist_train_umap <- umap(mnist_train, verbose = TRUE, ret_model = TRUE)
+mnist_test_umap <- umap_transform(mnist_test, mnist_train_umap, verbose = TRUE)
+
+# Save the nearest neighbor data
+mnist_nn <- umap(mnist, ret_nn = TRUE)
+# coordinates are now in mnist_nn$embedding
+
+# Re-use the nearest neighor data and save a lot of time
+mnist_nn_spca <- umap(mnist, nn_method = mnist_nn$nn, init = spca)
+
+# No problem to have ret_nn = TRUE and ret_model = TRUE at the same time
+
+# Calculate Petal and Sepal neighbors separately (uses intersection of the resulting sets):
+iris_umap <- umap(iris, metric = list("euclidean" = c("Sepal.Length", "Sepal.Width"),
+                                      "euclidean" = c("Petal.Length", "Petal.Width")))
+# Can also use individual factor columns
+iris_umap <- umap(iris, metric = list("euclidean" = c("Sepal.Length", "Sepal.Width"),
+                                      "euclidean" = c("Petal.Length", "Petal.Width"),
+                                      "categorical" = "Species"))
+                                      
+# MNIST with PCA reduction to 50 dimensions can speed up calculation without
+# affecting results much
+mnist_umap <- umap(mnist, pca = 50)
+
+```
+
+
+```{r clusterProfiler, echo = FALSE}
+#BiocManager::install("STRINGdb")
+library(STRINGdb)
+string_db <- STRINGdb$new( version="11", species=9606,score_threshold=0, input_directory="" )
+UniprotStrings<-as.data.frame(Uniprot)
+example1_mapped <- string_db$map( UniprotStrings, "Uniprot", removeUnmappedRows = TRUE )
+hits<-example1_mapped$STRING_id
+enrichmentGO <- string_db$get_enrichment( hits, category = "Process", methodMT = "fdr", iea = TRUE )
+enrichmentKEGG <- string_db$get_enrichment( hits, category = "KEGG", methodMT = "fdr", iea = TRUE )
+head(enrichmentGO, n=7)
+head(enrichmentKEGG, n=7)
+```
+
+
+
+```{r clusterProfiler, echo = FALSE}
+install.packages('BiocManager')
+BiocManager::install('goseq')
+library(goseq)
+supportedOrganisms() 
+#https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html
+#source("https://bioconductor.org/biocLite.R")
+## biocLite("BiocUpgrade") ## you may need this
+#biocLite("clusterProfiler")
+#biocLite("org.Hs.eg.db")
+library("org.Hs.eg.db")
+#install.packages("colorspace")
+#devtools::install_github('cran/colorspace')
+library("clusterProfiler")
+Uniprot=data[data$`MCCAR Biol Rep 25 WSRT``NB4 Biol Rep 22 WSRT`<0.5,1]
+dataSub=subset(data,`NB4 Biol Rep 22 WSRT`<0.3 & `MCCAR Biol Rep 25 WSRT`<0.3)
+Uniprot<-sapply(strsplit(dataSub$`T: Majority protein IDs`,";"), `[`, 1)
+enrichGO(gene=Uniprot,OrgDb=org.Hs.eg.db,keyType= 'UNIPROT',ont= "CC",pAdjustMethod = "BH",pvalueCutoff  = 0.01,qvalueCutoff  = 0.05)
+UniprotEG<-bitr(Uniprot, fromType="UNIPROT", toType="ENTREZID", OrgDb="org.Hs.eg.db")
+UniprotKEGG<-bitr(Uniprot, fromType="UNIPROT", toType="KEGG", OrgDb="org.Hs.eg.db")
+UniprotKEGG<-bitr_kegg(Uniprot, fromType='uniprot', toType='kegg', organism='hsa')
+kk <- enrichKEGG(gene=UniprotEG$ENTREZID)
+kk@result[["Description"]]
+browseKEGG(kk,kk@result[["ID"]][1])
+```
+
 
 ```{r installs}
 install.packages(c("matrixStats", "Hmisc", "splines", "foreach", "doParallel", "fastcluster", "dynamicTreeCut", "survival"))
