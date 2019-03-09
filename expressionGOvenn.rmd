@@ -1,5 +1,5 @@
 ---
-title: "Expression GO"
+#title: "Expression GO"
 output: html_document
 runtime: shiny
 ---
@@ -7,8 +7,8 @@ runtime: shiny
 ```{r data,echo=F}
 #install.packages('readxl')
 library('readxl')
-pathD<-"F:/promec/Animesh/Camilla"
-inpF<-file.path(pathD,"Wilcoxon_forAnimesh.xlsx WSRTun.xls")
+pathD<-"L:/promec/Animesh/Camilla"
+inpF<-file.path(pathD,"Combo.xlsx WSRTun.xls")
 data <- read_excel(inpF)
 ```
 
@@ -18,7 +18,11 @@ library(eulerr)
 #euler(dataNorm<.5)$original.values
 ```
 
-
+```{r ggdark,echo=F}
+#install.packages("ggdark")
+#library(ggdark)
+#dark_theme_minimal()
+```
 
 
 ```{r clusterProfiler, echo = FALSE}
@@ -28,21 +32,25 @@ library(eulerr)
 ##biocLite("BiocUpgrade") ## you may need this
 ##biocLite("clusterProfiler")
 #biocLite("org.Hs.eg.db")
-library("org.Hs.eg.db")
+#install.packages('BiocManager')
+#library('BiocManager')
+#BiocManager::install("clusterProfiler")
 #install.packages("colorspace")
 #devtools::install_github('cran/colorspace')
-library("clusterProfiler")
+#library("clusterProfiler")
+#BiocManager::install("org.Hs.eg.db")
+#library("org.Hs.eg.db")
 #data$`Donor38 WSRT`
 thresh=0.25
-dataSub=subset(data,`NB4 Biol Rep 22 WSRT`<=thresh & `MCCAR Biol Rep 25 WSRT`<=thresh & `Donor38 WSRT`<=thresh)[,1]
+#dataSub=subset(data,`NB4 Biol Rep 22 WSRT`<=thresh & `MCCAR Biol Rep 25 WSRT`<=thresh & `Donor38 WSRT`<=thresh)[,1]
 #Uniprot<-sapply(strsplit(subset(data,`NB4 Biol Rep 22 WSRT`<=thresh & `MCCAR Biol Rep 25 WSRT`<=thresh & `Donor38 WSRT`<=thresh)[,1],";"))
-Uniprot<-sapply(strsplit(dataSub$`T: Majority protein IDs`,";"), `[`, 1)
+#Uniprot<-sapply(strsplit(dataSub$`T: Majority protein IDs`,";"), `[`, 1)
 #enrichGO(gene=Uniprot,OrgDb=org.Hs.eg.db,keyType= 'UNIPROT',ont= "CC",pAdjustMethod = "BH",pvalueCutoff  = 0.01,qvalueCutoff  = 0.05)
-UniprotEG<-bitr(Uniprot, fromType="UNIPROT", toType="ENTREZID", OrgDb="org.Hs.eg.db")
-writeClipboard(UniprotEG$UNIPROT)
+#UniprotEG<-bitr(Uniprot, fromType="UNIPROT", toType="ENTREZID", OrgDb="org.Hs.eg.db")
+#writeClipboard(UniprotEG$UNIPROT)
 #UniprotKEGG<-bitr_kegg(Uniprot, fromType='uniprot', toType='kegg', organism='hsa')
-kk <- enrichKEGG(gene=UniprotEG$ENTREZID)
-head(kk@result[["Description"]])
+#kk <- enrichKEGG(gene=UniprotEG$ENTREZID)
+#head(kk@result[["Description"]])
 #browseKEGG(kk,kk@result[["ID"]][1])
 ```
 
@@ -65,7 +73,7 @@ inputPanel(
 
 ```{r plot, echo = FALSE}
 renderPlot({
-  plot(euler(dN_shiny<input$pv),quantities=TRUE)
+  plot(euler(dN_shiny<=input$pv,shape="ellipse"),quantities=TRUE)
   })
 ```
 

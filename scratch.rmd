@@ -1,8 +1,12 @@
 Scratch for R
-========================================================
 **check**
+========================================================
+```{r tmp, echo = FALSE}
 frac $\frac{1}{n}$ 
-
+memory.size(TRUE)
+memory.limit()
+rm(list=ls())
+```
 
 ```{r shiny, echo = FALSE}
 #https://rmarkdown.rstudio.com/authoring_shiny.html

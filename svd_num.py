@@ -1,5 +1,7 @@
 #https://nbviewer.jupyter.org/github/fastai/numerical-linear-algebra-v2/blob/master/nbs/02-Background-Removal-with-SVD.ipynb
+import numpy as np
 M = np.random.uniform(-40,40,[10,15])
+import matplotlib.pyplot as plt
 plt.imshow(M, cmap='gray');
 U, s, V = np.linalg.svd(M, full_matrices=False)
 np.save("U.npy", U)
