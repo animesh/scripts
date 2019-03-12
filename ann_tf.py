@@ -18,8 +18,8 @@ w2 = tf.Variable(hidw, name="W2")
 x = tf.constant(inp)
 y = tf.constant(outputr)
 
-layer_1 = tf.nn.tanh(tf.add(tf.matmul([x], w1), b1[0]))
-layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, w2), b1[1]))
+layer_1 = tf.nn.tanh(tf.add(tf.matmul([x], w1), bias[0]))
+layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, w2), bias[1]))
 
 @tf.custom_gradient
 def log1pexp(x):
@@ -33,18 +33,11 @@ def grad_log1pexp(x):
     value = log1pexp(x)
   return tape.gradient(value, x)
 
-
 grad_log1pexp(tf.constant(100.))#.numpy()
 
 regularization = tf.nn.l2_loss(w1) + tf.nn.l2_loss(w2)
 loss = tf.reduce_mean(tf.square(layer_2 - y))
 learning_rate = lr
-
-
-with tf.Session() as session:
-    session.run(init)
-    for i in range(5000):
-        session.run(train_op)
 
 model = tf.keras.models.Sequential([
   tf.keras.layers.Flatten(input_shape=(2,1)),
@@ -56,8 +49,9 @@ model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-model.fit([x], y, epochs=1,steps_per_epoch=1)
-model.evaluate(x, y)
+#model.fit(x.reshape(2,1), y, epochs=1,steps_per_epoch=1)
+#model.fit([[2,1],[1,2],[1,1]], y, epochs=1,steps_per_epoch=1)
+#model.evaluate(x, y)
 
 
 #https://www.tensorflow.org/alpha/guide/autograph
@@ -128,13 +122,116 @@ train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
 test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
 train_summary_writer = tf.summary.create_file_writer(train_log_dir)
 test_summary_writer = tf.summary.create_file_writer(test_log_dir)
-tf.summary
-python -m tensorflow.tensorboard
-%tensorboard --logdir logs/gradient_tape
-  train_loss.reset_states()
-  test_loss.reset_states()
-  train_accuracy.reset_states()
-  test_accuracy.reset_states()
-
+tf.summary.summary_scope
+#train_loss.reset_states()
+#test_loss.reset_states()
+#train_accuracy.reset_states()
+#test_accuracy.reset_states()
 
 #!python3 -m tensorflow.tensorboard  --logdir logs/gradient_tape
+#python -m tensorflow.tensorboard
+#%tensorboard --logdir logs/gradient_tape
+
+import pandas as pd
+data = pd.read_csv('F:/OneDrive - NTNU/UTR/data2.csv')
+data.head()
+data.describe()
+
+import matplotlib.pyplot as plt
+import numpy as np
+data['RFPlog']=np.log2(data['Fluorescence'])
+data['RFPlog'].hist()
+
+data['ReadsLog']=np.log2(data['#Reads Col'])
+data['ReadsLog'].hist()
+plt.scatter(data['RFPlog'],data['ReadsLog'])
+plt.scatter(data['RFPlog'],data['ReadsLog'])
+
+from functools import reduce
+DNAortho = ('A','1000') , ('T','0100') ,  ('G','0010'), ('C','0001')
+data['DNASeqOrtho']=reduce(lambda a, kv: a.str.replace(*kv), DNAortho, data['Sequence'])
+print(data['DNASeqOrtho'])
+
+
+df = data.dropna(axis=1, how='all')
+df = df.dropna(axis=0, how='all')
+
+input=df['DNASeqOrtho'].apply(lambda x: pd.Series(list(x)))
+input = input.dropna(axis=1, how='all')
+input = input.dropna(axis=0, how='all')
+input.describe()
+
+output=data['RFPlog']
+output.describe()
+
+import seaborn as sns
+corr=input.corr()
+sns.heatmap(corr)
+#sns.pairplot(input)
+#https://colab.research.google.com/github/kweinmeister/notebooks/blob/master/tensorflow-shap-college-debt.ipynb#scrollTo=NSmjv4K4sl8C
+def build_model(df):
+  model = keras.Sequential([
+    layers.Dense(16, activation=tf.nn.relu, input_shape=[len(df.keys())]),
+    layers.Dense(16, activation=tf.nn.relu),
+    layers.Dense(1)
+  ])
+
+  # TF 2.0: optimizer = tf.keras.optimizers.RMSprop()
+  optimizer = tf.keras.optimizers.RMSprop()
+  # optimizer = tf.train.RMSPropOptimizer(learning_rate=0.001)
+
+  model.compile(loss='mse',
+                optimizer=optimizer,
+                metrics=['mae'])
+  return model
+
+model = build_model(df_train_normed)
+model.summary()
+
+class PrintDot(keras.callbacks.Callback):
+  def on_epoch_end(self, epoch, logs):
+    if epoch % 100 == 0: print('')
+    print('.', end='')
+
+EPOCHS = 1000
+early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
+
+history = model.fit(
+  df_train_normed, train_labels,
+  epochs=EPOCHS, validation_split = 0.2, verbose=0,
+  callbacks=[early_stop, PrintDot()])
+ hist = pd.DataFrame(history.history)
+hist['epoch'] = history.epoch
+
+def plot_history(history):
+  plt.figure()
+  plt.xlabel('Epoch')
+  plt.ylabel('Mean Absolute Error')
+  plt.plot(hist['epoch'], hist['mean_absolute_error'],
+           label='Train Error')
+  plt.plot(hist['epoch'], hist['val_mean_absolute_error'],
+           label = 'Val Error')
+  plt.legend()
+plot_history(history)
+
+
+import shap
+shap.initjs()
+df_train_normed_summary = shap.kmeans(df_train_normed.values, 25)
+explainer = shap.KernelExplainer(model.predict, df_train_normed_summary)
+shap_values = explainer.shap_values(df_train_normed.values)
+shap.summary_plot(shap_values[0], df_train)
+INSTANCE_NUM = 0
+shap.force_plot(explainer.expected_value[0], shap_values[0][INSTANCE_NUM], df_train.iloc[INSTANCE_NUM,:])
+NUM_ROWS = 10
+shap.force_plot(explainer.expected_value[0], shap_values[0][0:NUM_ROWS], df_train.iloc[0:NUM_ROWS])
+shap.dependence_plot('FIRST_GEN', shap_values[0], df_train, interaction_index='PPTUG_EF')
+explainer = shap.DeepExplainer(model, df_train_normed)
+shap_values = explainer.shap_values(df_train_normed.values)
+shap.summary_plot(shap_values[0], df_train)
+
+
+import autokeras as ak
+clf = ak.ImageClassifier()
+clf.fit(input, output)
+results = clf.predict(input)
