@@ -8,6 +8,13 @@ memory.limit()
 rm(list=ls())
 ```
 
+```{r tmp, echo = FALSE}
+a=c(c(1,2) c(2,1))
+dim(a)<-c(2,2)
+(a)*t(a)
+cov(a)
+```
+
 ```{r shiny, echo = FALSE}
 #https://rmarkdown.rstudio.com/authoring_shiny.html
 #install.packages('shiny')

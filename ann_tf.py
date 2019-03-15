@@ -1,25 +1,27 @@
 #https://matrices.io/deep-neural-network-from-scratch/ using https://www.tensorflow.org/alpha/guide/eager
-#!sudo pip3 install tf-nightly-2.0-preview
+#!sudo pip3 install tf-nightly-2.0-preview #guide https://threader.app/thread/1105139360226140160 
 import tensorflow as tf
 print(tf.__version__)
 #tf.enable_eager_execution()
 tf.executing_eagerly()
 tf.test.is_gpu_available()#:with tf.device("/gpu:0"):
 tf.keras.backend.clear_session()
+
 inp=[0.05,0.10]
-inpw=[[0.15,0.20],[0.25,0.3]]
-hidw=[[0.4,0.45],[0.5,0.55]]
+inpw=[[0.15,0.25],[0.20,0.3]]
+hidw=[[0.4,0.5],[0.45,0.55]]
 outputr=[0.01,0.99]
 bias=[0.35,0.6]
 lr=0.5
 
-w1 = tf.Variable(inpw, name="W1")
-w2 = tf.Variable(hidw, name="W2")
+w1 = tf.Variable(inpw)
+w2 = tf.Variable(hidw)
 x = tf.constant(inp)
 y = tf.constant(outputr)
 
-layer_1 = tf.nn.tanh(tf.add(tf.matmul([x], w1), bias[0]))
-layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, w2), bias[1]))
+layer_1 = 1/(1+tf.exp(-(tf.add(tf.matmul([x], w1), bias[0]))))
+layer_2 = 1/(1+tf.exp(-(tf.add(tf.matmul(layer_1, w2), bias[1]))))
+print(layer_2)
 
 @tf.custom_gradient
 def log1pexp(x):
@@ -27,6 +29,8 @@ def log1pexp(x):
   def grad(dy):
     return dy * (1 - 1 / (1 + e))
   return tf.math.log(1 + e), grad
+
+
 def grad_log1pexp(x):
   with tf.GradientTape() as tape:
     tape.watch(x)
@@ -235,3 +239,132 @@ import autokeras as ak
 clf = ak.ImageClassifier()
 clf.fit(input, output)
 results = clf.predict(input)
+
+
+
+import tensorflow as tf
+mnist = tf.keras.datasets.mnist
+
+(x_train, y_train),(x_test, y_test) = mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
+
+model = tf.keras.models.Sequential([
+  tf.keras.layers.Flatten(input_shape=(28, 28)),
+  tf.keras.layers.Dense(512, activation=tf.nn.relu),
+  tf.keras.layers.Dropout(0.2),
+  tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+])
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(x_train, y_train, epochs=5)
+model.evaluate(x_test, y_test)
+
+
+
+
+def variable_summaries(var):
+  """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
+  with tf.name_scope('summaries'):
+    mean = tf.reduce_mean(var)
+    tf.summary.scalar('mean', mean)
+    with tf.name_scope('stddev'):
+      stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+    tf.summary.scalar('stddev', stddev)
+    tf.summary.scalar('max', tf.reduce_max(var))
+    tf.summary.scalar('min', tf.reduce_min(var))
+    tf.summary.histogram('histogram', var)
+
+def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.relu):
+  """Reusable code for making a simple neural net layer.
+
+  It does a matrix multiply, bias add, and then uses relu to nonlinearize.
+  It also sets up name scoping so that the resultant graph is easy to read,
+  and adds a number of summary ops.
+  """
+  # Adding a name scope ensures logical grouping of the layers in the graph.
+  with tf.name_scope(layer_name):
+    # This Variable will hold the state of the weights for the layer
+    with tf.name_scope('weights'):
+      weights = weight_variable([input_dim, output_dim])
+      variable_summaries(weights)
+    with tf.name_scope('biases'):
+      biases = bias_variable([output_dim])
+      variable_summaries(biases)
+    with tf.name_scope('Wx_plus_b'):
+      preactivate = tf.matmul(input_tensor, weights) + biases
+      tf.summary.histogram('pre_activations', preactivate)
+    activations = act(preactivate, name='activation')
+    tf.summary.histogram('activations', activations)
+    return activations
+
+#hidden1 = nn_layer(x_train, 784, 500, 'layer1')
+
+with tf.name_scope('dropout'):
+  keep_prob = tf.placeholder(tf.float32)
+  tf.summary.scalar('dropout_keep_probability', keep_prob)
+  dropped = tf.nn.dropout(hidden1, keep_prob)
+
+# Do not apply softmax activation yet, see below.
+y = nn_layer(dropped, 500, 10, 'layer2', act=tf.identity)
+
+with tf.name_scope('cross_entropy'):
+  # The raw formulation of cross-entropy,
+  #
+  # tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.softmax(y)),
+  #                               reduction_indices=[1]))
+  #
+  # can be numerically unstable.
+  #
+  # So here we use tf.losses.sparse_softmax_cross_entropy on the
+  # raw logit outputs of the nn_layer above.
+  with tf.name_scope('total'):
+    cross_entropy = tf.losses.sparse_softmax_cross_entropy(labels=y_, logits=y)
+tf.summary.scalar('cross_entropy', cross_entropy)
+
+with tf.name_scope('train'):
+  train_step = tf.train.AdamOptimizer(FLAGS.learning_rate).minimize(
+      cross_entropy)
+
+with tf.name_scope('accuracy'):
+  with tf.name_scope('correct_prediction'):
+    correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+  with tf.name_scope('accuracy'):
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+tf.summary.scalar('accuracy', accuracy)
+
+# Merge all the summaries and write them out to /tmp/mnist_logs (by default)
+merged = tf.summary.merge_all()
+train_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/train',
+                                      sess.graph)
+test_writer = tf.summary.FileWriter(FLAGS.summaries_dir + '/test')
+tf.global_variables_initializer().run()
+
+
+
+# Train the model, and also write summaries.
+# Every 10th step, measure test-set accuracy, and write test summaries
+# All other steps, run train_step on training data, & add training summaries
+
+def feed_dict(train):
+  """Make a TensorFlow feed_dict: maps data onto Tensor placeholders."""
+  if train or FLAGS.fake_data:
+    xs, ys = mnist.train.next_batch(100, fake_data=FLAGS.fake_data)
+    k = FLAGS.dropout
+  else:
+    xs, ys = mnist.test.images, mnist.test.labels
+    k = 1.0
+  return {x: xs, y_: ys, keep_prob: k}
+
+for i in range(FLAGS.max_steps):
+  if i % 10 == 0:  # Record summaries and test-set accuracy
+    summary, acc = sess.run([merged, accuracy], feed_dict=feed_dict(False))
+    test_writer.add_summary(summary, i)
+    print('Accuracy at step %s: %s' % (i, acc))
+  else:  # Record train set summaries, and train
+    summary, _ = sess.run([merged, train_step], feed_dict=feed_dict(True))
+    train_writer.add_summary(summary, i)
+
+
+tensorboard --logdir=path/to/log-directory
