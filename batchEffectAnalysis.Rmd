@@ -1,147 +1,95 @@
-```{r data}
-inpF <-"/home/animeshs/Documents/proteinGroups.txt"
-data <- read.delim(inpF,row.names=1,sep="\t",header = T)
+```{r data, echo = FALSE}
+scriptD <- 'C:\\Users\\animeshs\\Desktop\\scripts\\'
+inpD <-"L:\\promec\\Animesh\\HUNT\\txt106dpMBR\\"
+data <- read.delim(paste0(inpD,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
 summary(data)
-#plot(data)
+decoyPrefix="REV"
+contaminantPrefix="CON"
+dataC="LFQ.intensity."
 ```
 
-```{r pkgList}
-mice
-combat
-wgcna
-
-biocLite("sva")
-library("sva")
-
+```{r d3, echo = FALSE}
+#install.packages('devtools')
+#devtools::install_github("rstudio/r2d3")
+library(r2d3)
+r2d3(data=data$Intensity, script = paste0(scriptD,"barChart.js"))
 ```
 
-```{r exploBATCHinstall}
-#http://users.humboldt.edu/finneyb/gfortran-windows-20140629.exe
-install.packages('httr')
-install.packages('devtools')
-require(devtools)
-install_github("syspremed/exploBATCH",verbose=TRUE)
-```
-
-```{r exploBATCHuseCase}
-library("exploBATCH")
-?expBATCH
-require(exploBATCHbreast)
-data(Breast)
-data(batchBreast)
-expBATCH(D=Breast,batchCL=batchBreast,Conf=NA,mindim=2,maxdim=9,method="ppcca",SDselect=2)
-```
-
-
-```{r condition}
-factors=strsplit(names(data)[grep("Ratio.H.L.normalized.", names(data))],"[._]")
-factorS=sapply(factors, '[[', 5) 
-factorC=sapply(factors, '[[', 6) 
-```
-
-```{r scratch}
-factorial(365)/factorial(365-22)
-
-
-```
-
-```{r ANOVA}
-#https://stats.stackexchange.com/questions/89021/how-to-get-only-desirable-comparisons-from-post-hoc
-#plot(log2(data[,grep("Ratio.H.L.normalized.", names(data))]))
-dataNorm=log2(data[,grep("Ratio.H.L.normalized.", names(data))])
-anova(lm(as.numeric(dataNorm[2,])~factorC*factorS))
+```{r dataNorm, echo = FALSE}
+dataNorm=log2(data[,grep(dataC, names(data))])
+#set.seed(1)
+#dataNorm[dataNorm==0]<-NaN#rnorm(1,mean=mean(dataNorm),sd=sd(dataNorm))
+dataNorm[dataNorm==-Inf]=NA
 summary(dataNorm)
-#summary(anova(lm(as.numeric(dataNorm[2,])~factorC*factorS)))
-aov((as.numeric(dataNorm[2,])~factorC*factorS))
-TukeyHSD(aov((as.numeric(dataNorm[2,])~factorC*factorS)))
-tcold=tc
-tc=apply(dataNorm,1,function(x){
-#tc=apply(dataNorm, 1, function(x) 
-  tryCatch(TukeyHSD(aov(x~factorC*factorS),"factorC:factorS", ordered = TRUE),error=function(x){return(rep(1,15))})})
-wval=t(sapply(names(tc),function(x){tryCatch(tc[[x]]$`factorC:factorS`[46:60],error=function(x){return(rep(1,15))})}))
-write.table(wval,outF,sep="\t")
-tc$`F7A0B0;P04370-9;F6ZIA4;P04370-7`
-dataNorm[grep("F7A",row.names(data)),]
-#try(TukeyHSD(aov((x~factorC*factorS)))))
-tcold$`A0A087WNP6;Q4VAA2-2;Q4VAA2;A0A087WRM0;F8WGL9;A0A087WS49`
-plot(tc$`A0A087WNP6;Q4VAA2-2;Q4VAA2;A0A087WRM0;F8WGL9;A0A087WS49`)
 ```
 
-```{r write-output}
-tc
-write.table(t(tc),sep = "\t")
-outF = paste0(inpF,"anovaTukey.txt")
-class(tc)
-names(tc)
-do.call(rbind, lapply(names(tc), function(x) data.frame(c(ID=x, tc$x$`factorC:factorS`))))
-lapply(names(tc), function(x) write.table(t(t(tcold[[x]]$`factorC:factorS`)[4,]),outF,sep = "\t"))
-write.table(t(sapply(tc, 
-                     function(x){tryCatch(x$`factorC:factorS`)})),sep="\t")
-#function(x){tryCatch(x$`factorC:factorS`,error=function(x){return(NULL)})})),outF,sep="\t")
-write.table(t(t(tc$x$`factorC:factorS`)[4,]),sep = "\t")
-write.table(t(t(tc$`A0A087WNP6;Q4VAA2-2;Q4VAA2;A0A087WRM0;F8WGL9;A0A087WS49`$`factorC:factorS`)[4,]),sep = "\t")
-dump(tc, file=outF)
-```
-
-```{r prot}
-source("https://bioconductor.org/biocLite.R")
-biocLite("PGA")
-library("PGA")
-biocLite("XML")
-biocLite("colorspace")
-install.packages("Rcpp")
-library("PGA")
-dat_file <- system.file("extdata/input", "mascot.dat",package = "PGA")
-parserGear(file = dat_file, db = dbfile, decoyPrefix = "#REV#",xmx = 1,thread = 8,outdir = "parser_outdir_mascot")
-
-```
-
-```{r ir}
-i=0.9
-n=1
-y1<-0
-y2<-0
-
-for(x1 in seq(0.1, 10, 0.5)){
-  for(x2 in seq(0.1, 10, 0.5)){
-    y1<-c(((1-i)*n+x1)/((1-i)*n+x2),y1)
-    y2<-c(x1/x2,y2)
-  }
-}
-plot(log2(y1),log2(y2))
-plot((y1),(y2))
-
+```{r write-output, echo = FALSE}
+write.table(dataNorm,file=paste0(inpD,"dataNorm.txt"), sep = "\t")
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
 ```
 
 
-```{r MSstats}
-source("http://www.bioconductor.org/biocLite.R")
-biocLite('GOpro')
-library(GOpro)
-biocLite('GOSim')
-library(GOSim)
-genes=c("207","208","596","901","780","3169","9518","2852","26353","8614","7494")
-getGOInfo(genes)
-biocLite("RTopper")
-library(RTopper)
-biocLite("PGA")
-biocLite("rTANDEM")
-biocLite("BSgenome.Hsapiens.UCSC.hg19")
-vcffile <- system.file("extdata/input", "PGA.vcf",package="PGA")
-bedfile <- system.file("extdata/input", "junctions.bed",package="PGA")
-gtffile <- system.file("extdata/input", "transcripts.gtf",package="PGA")
-annotation <- system.file("extdata", "annotation",package="PGA")
-outfile_path<-"db/"
-outfile_name<-"test"
-library(BSgenome.Hsapiens.UCSC.hg19)
-dbfile <- dbCreator(gtfFile=gtffile,vcfFile=vcffile,bedFile=bedfile,
-                    annotation_path=annotation,outfile_name=outfile_name,
-                    genome=Hsapiens,outdir=outfile_path)
-Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jdk1.8.0_45\\jre\\')
-parserGear("F:/promec/Gygi/b1906_293T_proteinID_01A_QE3_122212.pep.xml", db = dbfile, decoyPrefix="#REV#",xmx = 1,thread = 8,outdir = "parser_outdir")
+```{r condition, echo = FALSE}
+factors=as.factor(sapply(strsplit(names(data)[grep(dataC, names(data))],"[0-9]+"),'[[', 2))
+factors=as.integer(factors)
+#factors=as.character(sapply(strsplit(names(data)[grep(dataC, names(data))],"[0-9]+"),'[[', 2))
 ```
 
-```{r MSstats}
+```{r impute, echo = FALSE}
+#install.packages('mice')
+library(mice)
+#install.packages('randomForest')
+library(randomForest)
+dataNormImp=mice(dataNorm, method="rf")
+dataNormImpCom <- complete(dataNormImp,1)
+row.names(dataNormImpCom)<-row.names(dataNorm)
+summary(dataNormImpCom)
+```
+
+```{r write-output, echo = FALSE}
+#write.csv(dataNormImpCom,file=paste0(inpD,"dataNormImpCom.csv"))
+#write.csv(factors,file=paste0(inpD,"dataNormImpComFactor.csv"))
+dataNormImpCom <- read.csv(paste0(inpD,"dataNormImpCom.csv"),row.names=1,header = T)
+#factors<-read.csv(paste0(inpD,"dataNormImpComFactor.csv"))
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+```{r PCA, echo = FALSE}
+plot(princomp(dataNormImpCom))
+biplot(prcomp(dataNormImpCom,scale = F))
+biplot(princomp(dataNormImpCom))
+```
+
+
+
+```{r exploBatch, echo = FALSE}
+#install.packages('devtools')
+#devtools::install_github("syspremed/exploBATCH",verbose=TRUE)
+#require(exploBATCHbreast)
+library("exploBATCH")
+#?expBATCH
+#data(Breast)
+#data(batchBreast)
+expBATCH(D=Breast,batchCL=batchBreast,Conf=NA,mindim=5,maxdim=7,method="ppcca")#,SDselect=2)
+#expBATCH(Breast,batchBreast)
+expBATCH(t(dataNormImpCom),factors)
+```
+
+
+```{r ROTS, echo = FALSE}
+#install.packages("BiocManager")
+#BiocManager::install("ROTS", version = "3.8")
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 100 , K = 500 , seed = 1234)
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "volcano")
+#plot(results, fdr = 0.05, type = "heatmap")
+```
+
+
+
+```{r MSstats, echo = FALSE}
 #https://bioconductor.org/packages/3.3/bioc/vignettes/MSstats/inst/doc/MSstats-manual.pdf
 library('MSstats')
 QuantData<-dataProcess(SRMRawData)
@@ -162,7 +110,7 @@ designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=2,
 desiredFC=c(1.25,1.75),FDR=0.05,power=TRUE)```
 ```
 
-```{r SAM}
+```{r SAM, echo = FALSE}
 #https://github.com/MikeJSeo/SAM
 install.packages(c("samr", "matrixStats", "GSA", "shiny", "shinyFiles", "openxlsx"))
 source("http://bioconductor.org/biocLite.R")
@@ -174,46 +122,6 @@ runGitHub("SAM", "MikeJSeo")
 
 
 
-```{r pkgs}
-install.packages('BEST') #http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3489534/
-library('BEST') #https://sourceforge.net/projects/mcmc-jags
-install.packages('mice') #http://www.helsinki.fi/~rosenstr/papers/ImputationNotes.pdf
-library('mice') #http://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
-install.packages('RColorBrewer')
-library(RColorBrewer)
-source("http://bioconductor.org/biocLite.R")
-biocLite("preprocessCore")
-library('preprocessCore')
-#install.packages("gplots")
-# library(gplots) 
-#library(ggplot2)
-```
-
-```{r JAGS}
-y1 <- c(5.77, 5.33, 4.59, 4.33, 3.66, 4.48)
-y2 <- c(3.88, 3.55, 3.29, 2.59, 2.33, 3.59)
-priors <- list(muM = 6, muSD = 2)
-out <- BESTmcmc(y1, y2, priors=priors, parallel=FALSE) # where def prior sigmaMode = sd(y), sigmaSD = sd(y)*5, nuMean = 30, nuSD = 30), y = c(y1, y2).
-plot(out)
-plot(y1,y2)
-summary(t.test(y1,y2))
-hist(y2)
-hist(datasel)
-```
-
-```{r Cluster}
-colscl <- colorRampPalette(c("darkblue", "chocolate"), space = "rgb")(100)
-heatmap(na.omit(as.matrix(data)),col=colscl)
-```
-
-```{r ColumnSel}
-datasel<-data[, grep("^Tumor_*", colnames(data))]
-summary(datasel)
-t.test(datasel)
-datanonan=na.omit(as.matrix(datasel))
-summary(datanonan)
-heatmap(na.omit(as.matrix(datasel)),col=colscl)
-```
 
 ```{r NA}
 #impute(data, method = "mixed",randna = fData(naset)$randna,mar = "knn", mnar = "min")
@@ -243,68 +151,6 @@ cc <- rainbow(ncol(dataasmat))
 heatmap((na.omit(dataasmat)), RowSideColors = cr, ColSideColors = cc,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5 )
 ```
 
-```{r face}
-#http://www.r-bloggers.com/analyze-face-emotions-with-r/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+RBloggers+%28R+bloggers%29
-
-library("httr")
-library("XML")
-library("stringr")
-library("ggplot2")
-
-img.url     = 'https://i.imgur.com/Njtw8tx.jpg'
-URL.emoface = 'https://api.projectoxford.ai/emotion/v1.0/recognize'
-emotionKEY = '25eac991d0c8474fb501d704c6454b05'
-mybody = list(url = img.url)
-faceEMO = POST(
-  url = URL.emoface,
-  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = emotionKEY)),
-  body = mybody,
-  encode = 'json'
-)
-faceEMO
-trump = httr::content(faceEMO)[[1]]
-trump
-o<-as.data.frame(as.matrix(trump$scores))
-o$V1 <- lapply(strsplit(as.character(o$V1 ), "e"), "[", 1)
-o$V1<-as.numeric(o$V1)
-colnames(o)[1] <- "Level"
-o$Emotion<- rownames(o)
-ggplot(data=o, aes(x=Emotion, y=Level)) +
-  geom_bar(stat="identity")
-
-img.url = 'https://www.whitehouse.gov/sites/whitehouse.gov/files/images/first-family/44_barack_trump[1].jpg'
-faceURL = "https://api.projectoxford.ai/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=true&returnFaceAttributes=age"
-mybody = list(url = img.url)
-faceKEY = '6b86f25e09e84291b2bcba8d61d6297e'
-faceResponse = POST(
-  url = faceURL, 
-  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = faceKEY)),
-  body = mybody,
-  encode = 'json'
-)
-
-# Show request results (if Status=200, request is okay)
-faceResponse
-
-# Reuqest results from face analysis
-trumpR = httr::content(faceResponse)[[1]]
-
-# Define results in data frame
-OR<-as.data.frame(as.matrix(trumpR$faceLandmarks))
-
-# Make some transformation to data frame
-OR$V2 <- lapply(strsplit(as.character(OR$V1), "\\="), "[", 2)
-OR$V2 <- lapply(strsplit(as.character(OR$V2), "\\,"), "[", 1)
-colnames(OR)[2] <- "X"
-OR$X<-as.numeric(OR$X)
-
-OR$V3 <- lapply(strsplit(as.character(OR$V1), "\\y = "), "[", 2)
-OR$V3 <- lapply(strsplit(as.character(OR$V3), "\\)"), "[", 1)
-colnames(OR)[3] <- "Y"
-OR$Y<-as.numeric(OR$Y)
-
-OR$V1<-NULL
-```
 
 ```{r Quantile}
 dataasmat<-normalize.quantiles(dataasmat)
@@ -319,23 +165,6 @@ p.adjust(10^(-data$X.log10P),method = c("hochberg"), n = length(data$X.log10P))
 p.adjust(data$pv,method = c("hochberg"), n = length(data$pv))
 ```
 
-```{r, echo=FALSE}
-p <- ggplot(data)
-print(p)
-#heatmap2(data)
-```
-
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
----
-title: "batch-effect-analysis"
-author: "Ani"
-date: "Monday, Feb 15, 2016"
-output: html_document
----
-<http://rmarkdown.rstudio.com>.
-
-=======
 ```{r interpolate}
 data<-read.table("c:/Users/animeshs/Downloads/Sunshine hours.txt",sep='\t',header=T)
 summary(data$SONNENSCHEINDAUER)
@@ -350,39 +179,7 @@ summary(dp)
 write.table(dp,"c:/Users/animeshs/Downloads/SunshineDP.txt",sep='\t')
 ```
 
-```{r iPondData}
-iPond=read.delim("f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVA.txt",row.names = 48,header=T)
-#[,190:213]
-label=t(read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/Kristian/Groups.txt",row.names = 1,header=T))
-```
 
-```{r corr3ction}
-hist(iPond$M..Two.way.ANOVA.p.value.Interaction)
-hist(p.adjust(iPond$M..Two.way.ANOVA.p.value.Interaction,method = "BH"))
-hist((p.adjust(iPond$M..Two.way.ANOVA.p.value.Cond,method = "BH")))
-hist(log2(p.adjust(iPond$M..Two.way.ANOVA.p.value.Treatment,method = "BH")))
-write.table(p.adjust(iPond$M..Two.way.ANOVA.p.value.Interaction,method = "BH"), "f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVAbhInt.txt", sep="\t")
-write.table(p.adjust(iPond$M..Two.way.ANOVA.p.value.Treatment,method = "BH"), "f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVAbhTr.txt", sep="\t")
-write.table(p.adjust(iPond$M..Two.way.ANOVA.p.value.Cond,method = "BH"), "f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVAbhCond.txt", sep="\t")
-
-```
-
-
-```{r data}
-#data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Articles in prep/AID/ID/AIDberitPD21SequestScoreTtestRcomp.txt",sep="\t",row.names=1, header = T) #AIDome
-#data <- read.delim("F:/promec/Results/Ani/Mirta/DataActinNormalizedHeatMapCtrlwPCNA.txt",row.names=19,sep="\t",header = T) #BER
-#data <- read.delim("F:/promec/Davi/Mei/2016-05_PancreaticCancer/QE/lfq2pep/LFQvalues.txt",row.names=90,sep="\t",header = T)
-#data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/batch1and2lfqaimpnovaTtest90C15P.txt",fill=T, row.names=86, sep = "\t",header = T)
-#df <- read.delim("https://gist.githubusercontent.com/anonymous/0bc36ec5f46757de7c2c/raw/517ef70ab6a68e600f57308e045c2b4669a7abfc/example.txt", header=TRUE, row.names=1, sep="\t")
-#df<-df[df$Potential.contaminant!='+',] 
-data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/batch1and2lfqaimpnovaTtest90C15Pr.txt",sep = "\t",header = T)
-
-
-summary(data)
-t.test(data[1,3:5],data[1,6:8],data[1,9:11])
-t.test(data[1,3:5],data[1,6:8])
-
-```
 
 ```{r lmfit}
 source("https://bioconductor.org/biocLite.R")
@@ -415,9 +212,6 @@ for  (cnt in 1:6){
   ecoli_shuffle <- ecoli_shuffle[sample(nrow(ecoli)),]
 write.csv(file="Y:/felles/PROTEOMICS and XRAY/Ani/Christina/Strainssamples_shuffled_rn.csv",x=ecoli_shuffle,row.names = F)
 ```
-```{r rawread}
-library("MSnbase")
-```
 
 
 ```{r prot}
@@ -431,325 +225,14 @@ cat(paste0("\nReport generated as '", r$report_file, "'\n\n"))
 
 ```
 
-```{r prot}
-require(PTXQC)
-
-## the next require() is needed to prevent a spurious error in certain R versions (mighyou be a bug in R or a package)
-## error message is:
-##    Error in Scales$new : could not find function "loadMethod"
-require(methods)
-
-## specify a path to a MaxQuant txt folder
-## Note: This folder needs to be complete (see 'vignette("PTXQC-InputData", package = "PTXQC")')
-if (1) {
-  ## we will use an example dataset from PRIDE (dataset 2 of the PTXQC publication)
-  local_zip = tempfile(fileext=".zip")
-  download.file("ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2015/11/PXD003133/txt_20min.zip", destfile = local_zip)
-  unzip(local_zip, exdir = tempdir()) ## extracts content
-  txt_folder = paste0(tempdir(),"/txt_20min")
-} else {
-  ## if you have local MaxQuant output, just use it
-  txt_folder = "c:/Proteomics/MouseLiver/combined/txt"
-}
-
-r = createReport(txt_folder)
-
-cat(paste0("\nReport generated as '", r$report_file, "'\n\n"))
-
-```
-
-
-```{r prot}
-source("https://bioconductor.org/biocLite.R")
-biocLite("PGA")
-library("PGA")
-biocLite("XML")
-biocLite("colorspace")
-install.packages("Rcpp")
-library("PGA")
-dat_file <- system.file("extdata/input", "mascot.dat",package = "PGA")
-parserGear(file = dat_file, db = dbfile, decoyPrefix = "#REV#",xmx = 1,thread = 8,outdir = "parser_outdir_mascot")
-
-```
-
-```{r ir}
-i=0.9
-n=1
-y1<-0
-y2<-0
-
-for(x1 in seq(0.1, 10, 0.5)){
-  for(x2 in seq(0.1, 10, 0.5)){
-    y1<-c(((1-i)*n+x1)/((1-i)*n+x2),y1)
-    y2<-c(x1/x2,y2)
-  }
-}
-plot(log2(y1),log2(y2))
-plot((y1),(y2))
-
-```
-
-
-```{r MSstats}
-source("http://www.bioconductor.org/biocLite.R")
-biocLite('GOpro')
-library(GOpro)
-biocLite('GOSim')
-library(GOSim)
-genes=c("207","208","596","901","780","3169","9518","2852","26353","8614","7494")
-getGOInfo(genes)
-biocLite("RTopper")
-library(RTopper)
-biocLite("PGA")
-biocLite("rTANDEM")
-biocLite("BSgenome.Hsapiens.UCSC.hg19")
-vcffile <- system.file("extdata/input", "PGA.vcf",package="PGA")
-bedfile <- system.file("extdata/input", "junctions.bed",package="PGA")
-gtffile <- system.file("extdata/input", "transcripts.gtf",package="PGA")
-annotation <- system.file("extdata", "annotation",package="PGA")
-outfile_path<-"db/"
-outfile_name<-"test"
-library(BSgenome.Hsapiens.UCSC.hg19)
-dbfile <- dbCreator(gtfFile=gtffile,vcfFile=vcffile,bedFile=bedfile,
-                    annotation_path=annotation,outfile_name=outfile_name,
-                    genome=Hsapiens,outdir=outfile_path)
-Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jdk1.8.0_45\\jre\\')
-parserGear("F:/promec/Gygi/b1906_293T_proteinID_01A_QE3_122212.pep.xml", db = dbfile, decoyPrefix="#REV#",xmx = 1,thread = 8,outdir = "parser_outdir")
-```
-
-```{r MSstats}
-#https://bioconductor.org/packages/3.3/bioc/vignettes/MSstats/inst/doc/MSstats-manual.pdf
-library('MSstats')
-QuantData<-dataProcess(SRMRawData)
-head(QuantData$ProcessedData)
-## based on multiple comparisons (T1 vs T3; T1 vs T7; T1 vs T9)
-comparison1<-matrix(c(-1,0,1,0,0,0,0,0,0,0),nrow=1)
-comparison2<-matrix(c(-1,0,0,0,0,0,1,0,0,0),nrow=1)
-comparison3<-matrix(c(-1,0,0,0,0,0,0,0,1,0),nrow=1)
-comparison<-rbind(comparison1,comparison2, comparison3)
-row.names(comparison)<-c("T3-T1","T7-T1","T9-T1")
-testResultMultiComparisons<-groupComparison(contrast.matrix=comparison,data=QuantData)
-## Calculate sample size for future experiments:
-#(1) Minimal number of biological replicates per condition
-designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=TRUE,
-desiredFC=c(1.25,1.75),FDR=0.05,power=0.8)
-#(2) Power calculation
-designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=2,
-desiredFC=c(1.25,1.75),FDR=0.05,power=TRUE)```
-```
-
-```{r SAM}
-#https://github.com/MikeJSeo/SAM
-install.packages(c("samr", "matrixStats", "GSA", "shiny", "shinyFiles", "openxlsx"))
-source("http://bioconductor.org/biocLite.R")
-biocLite("impute")
-library(shiny)
-library(shinyFiles)
-runGitHub("SAM", "MikeJSeo")
-```
-
-
-
-```{r pkgs}
-install.packages('BEST') #http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3489534/
-library('BEST') #https://sourceforge.net/projects/mcmc-jags
-install.packages('mice') #http://www.helsinki.fi/~rosenstr/papers/ImputationNotes.pdf
-library('mice') #http://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
-install.packages('RColorBrewer')
-library(RColorBrewer)
-source("http://bioconductor.org/biocLite.R")
-biocLite("preprocessCore")
-library('preprocessCore')
-#install.packages("gplots")
-# library(gplots) 
-#library(ggplot2)
-```
-
-```{r JAGS}
-y1 <- c(5.77, 5.33, 4.59, 4.33, 3.66, 4.48)
-y2 <- c(3.88, 3.55, 3.29, 2.59, 2.33, 3.59)
-priors <- list(muM = 6, muSD = 2)
-out <- BESTmcmc(y1, y2, priors=priors, parallel=FALSE) # where def prior sigmaMode = sd(y), sigmaSD = sd(y)*5, nuMean = 30, nuSD = 30), y = c(y1, y2).
-plot(out)
-plot(y1,y2)
-summary(t.test(y1,y2))
-hist(y2)
-hist(datasel)
-```
 
 ```{r Cluster}
 colscl <- colorRampPalette(c("darkblue", "chocolate"), space = "rgb")(100)
 heatmap(na.omit(as.matrix(data)),col=colscl)
 ```
 
-```{r ColumnSel}
-datasel<-data[, grep("^Tumor_*", colnames(data))]
-summary(datasel)
-t.test(datasel)
-datanonan=na.omit(as.matrix(datasel))
-summary(datanonan)
-heatmap(na.omit(as.matrix(datasel)),col=colscl)
-```
-
-```{r NA}
-#impute(data, method = "mixed",randna = fData(naset)$randna,mar = "knn", mnar = "min")
-md.pattern(datasel)
-dataimp <- mice(datasel,m=length(colnames(datasel))/2,maxit=length(colnames(datasel)),meth='pmm',seed=1)
-dataimp <- complete(dataimp,length(colnames(datasel))/2)
-heatmap(as.matrix(dataimp),col=colscl)
-```
-
-```{r Scale}
-datascale=t(scale(t(dataimp))) # takes away the polynomial in YFP data
-heatmap(as.matrix(datascale),col=colscl)
-```
-
-```{r DistCor}
-dataasmat<-data.matrix(datascale)
-cor(data)
-dissimilarityc <- 1 - cor(dataasmat,method = "s")
-distancec <- as.dist(dissimilarityc)
-col.clus <- hclust(distancec, "aver")
-dissimilarityr <- 1 - cor(t(dataasmat),method = "s")
-distancer <- as.dist(dissimilarityr)
-row.clus <- hclust(distancer, "aver")
-heatmap(as.matrix(datascale),col=colscl)
-cr <- rainbow(nrow(dataasmat))
-cc <- rainbow(ncol(dataasmat))
-heatmap((na.omit(dataasmat)), RowSideColors = cr, ColSideColors = cc,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5 )
-```
-
-```{r face}
-#http://www.r-bloggers.com/analyze-face-emotions-with-r/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+RBloggers+%28R+bloggers%29
-
-library("httr")
-library("XML")
-library("stringr")
-library("ggplot2")
-
-img.url     = 'https://i.imgur.com/Njtw8tx.jpg'
-URL.emoface = 'https://api.projectoxford.ai/emotion/v1.0/recognize'
-emotionKEY = '25eac991d0c8474fb501d704c6454b05'
-mybody = list(url = img.url)
-faceEMO = POST(
-  url = URL.emoface,
-  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = emotionKEY)),
-  body = mybody,
-  encode = 'json'
-)
-faceEMO
-trump = httr::content(faceEMO)[[1]]
-trump
-o<-as.data.frame(as.matrix(trump$scores))
-o$V1 <- lapply(strsplit(as.character(o$V1 ), "e"), "[", 1)
-o$V1<-as.numeric(o$V1)
-colnames(o)[1] <- "Level"
-o$Emotion<- rownames(o)
-ggplot(data=o, aes(x=Emotion, y=Level)) +
-  geom_bar(stat="identity")
-
-img.url = 'https://www.whitehouse.gov/sites/whitehouse.gov/files/images/first-family/44_barack_trump[1].jpg'
-faceURL = "https://api.projectoxford.ai/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=true&returnFaceAttributes=age"
-mybody = list(url = img.url)
-faceKEY = '6b86f25e09e84291b2bcba8d61d6297e'
-faceResponse = POST(
-  url = faceURL, 
-  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = faceKEY)),
-  body = mybody,
-  encode = 'json'
-)
-
-# Show request results (if Status=200, request is okay)
-faceResponse
-
-# Reuqest results from face analysis
-trumpR = httr::content(faceResponse)[[1]]
-
-# Define results in data frame
-OR<-as.data.frame(as.matrix(trumpR$faceLandmarks))
-
-# Make some transformation to data frame
-OR$V2 <- lapply(strsplit(as.character(OR$V1), "\\="), "[", 2)
-OR$V2 <- lapply(strsplit(as.character(OR$V2), "\\,"), "[", 1)
-colnames(OR)[2] <- "X"
-OR$X<-as.numeric(OR$X)
-
-OR$V3 <- lapply(strsplit(as.character(OR$V1), "\\y = "), "[", 2)
-OR$V3 <- lapply(strsplit(as.character(OR$V3), "\\)"), "[", 1)
-colnames(OR)[3] <- "Y"
-OR$Y<-as.numeric(OR$Y)
-
-OR$V1<-NULL
-```
-
-```{r Quantile}
-dataasmat<-normalize.quantiles(dataasmat)
-rn<-rownames(dataasmat)
-cn<-colnames(dataasmat)
-colnames(dataasmat)<-cn
-rownames(dataasmat)<-rn
-```
-
-```{r AdjPval}
-p.adjust(10^(-data$X.log10P),method = c("hochberg"), n = length(data$X.log10P))
-p.adjust(data$pv,method = c("hochberg"), n = length(data$pv))
-```
-
-```{r, echo=FALSE}
-p <- ggplot(data)
-print(p)
-#heatmap2(data)
-```
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
----
-title: "batch-effect-analysis"
-author: "Ani"
-date: "Monday, Feb 15, 2016"
-output: html_document
----
-<http://rmarkdown.rstudio.com>.
-
->>>>>>> ebfc112f27001e13d78ab738e1c0e1a49f30d70e
-=======
-```{r data}
-inpF <-"F:/promec/Animesh/Jimita/txt48/proteinGroups.txt"
-data <- read.delim(inpF,row.names=1,sep="\t",header = T)
-summary(data)
-dataNorm=log2(data[,grep("LFQ*", names(data))])
-dataUnNorm=log2(data[,grep("Ratio.H.L.[0-9]+", names(data))])
-plot(dataNorm[is.na(dataN)])
-hist(dataNorm)
-boxplot(dataNorm)
-boxplot(dataUnNorm)
-dataUnNormZS=dataUnNorm-mean(dataUnNorm)
-class(dataUnNorm)
-biplot(princomp((dataNorm)))
-```
-
-```{r comp}
-install.packages('mice')
-library(mice)
-install.packages('randomForest')
-library(randomForest)
-dataNorm[dataNorm==-Inf]=NA
-dataNormImp=mice(dataNorm, method="rf")
-dataNormImpCom <- complete(dataNormImp,1)
-summary(dataNormImpCom)
-#barplot(dataNormImpCom)
-plot(dataNormImp$imp$LFQ.intensity.607_1_)
-plot(princomp(dataNormImpCom))
-biplot(prcomp(dataNormImpCom,scale = F))
-biplot(princomp(dataNormImpCom))
-```
-
-
-```{r condition}
-factors=strsplit(names(data)[grep("Ratio.H.L.normalized.", names(data))],"[._]")
-factorS=sapply(factors, '[[', 5) 
-factorC=sapply(factors, '[[', 6) 
-```
 
 ```{r SVA}
 #https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btu375
@@ -817,674 +300,9 @@ plot(pcs[,1],pcs[,2],col=as.numeric(pop),
 legend(0,0.15,legend=levels(pop),pch=19,col=1:2)
 ```
 
-
-
-
-```{r ANOVA}
-#https://stats.stackexchange.com/questions/89021/how-to-get-only-desirable-comparisons-from-post-hoc
-#plot(log2(data[,grep("Ratio.H.L.normalized.", names(data))]))
-#dataNorm=log2(data[,grep("Ratio.H.L.normalized.", names(data))])
-anova(lm(as.numeric(dataNorm[2,])~factorC*factorS))
-summary(dataNorm)
-#summary(anova(lm(as.numeric(dataNorm[2,])~factorC*factorS)))
-aov((as.numeric(dataNorm[2,])~factorC*factorS))
-TukeyHSD(aov((as.numeric(dataNorm[2,])~factorC*factorS)))
-tcold=tc
-tc=apply(dataNorm,1,function(x){
-#tc=apply(dataNorm, 1, function(x) 
-  tryCatch(TukeyHSD(aov(x~factorC*factorS),"factorC:factorS", ordered = TRUE),error=function(x){return(rep(1,15))})})
-wval=t(sapply(names(tc),function(x){tryCatch(tc[[x]]$`factorC:factorS`[46:60],error=function(x){return(rep(1,15))})}))
-write.table(wval,outF,sep="\t")
-tc$`F7A0B0;P04370-9;F6ZIA4;P04370-7`
-dataNorm[grep("F7A",row.names(data)),]
-#try(TukeyHSD(aov((x~factorC*factorS)))))
-tcold$`A0A087WNP6;Q4VAA2-2;Q4VAA2;A0A087WRM0;F8WGL9;A0A087WS49`
-plot(tc$`A0A087WNP6;Q4VAA2-2;Q4VAA2;A0A087WRM0;F8WGL9;A0A087WS49`)
-```
-
-```{r write-output}
-tc
-write.table(t(tc),sep = "\t")
-outF = paste0(inpF,"anovaTukey.txt")
-class(tc)
-names(tc)
-do.call(rbind, lapply(names(tc), function(x) data.frame(c(ID=x, tc$x$`factorC:factorS`))))
-lapply(names(tc), function(x) write.table(t(t(tcold[[x]]$`factorC:factorS`)[4,]),outF,sep = "\t"))
-write.table(t(sapply(tc, 
-                     function(x){tryCatch(x$`factorC:factorS`)})),sep="\t")
-#function(x){tryCatch(x$`factorC:factorS`,error=function(x){return(NULL)})})),outF,sep="\t")
-write.table(t(t(tc$x$`factorC:factorS`)[4,]),sep = "\t")
-write.table(t(t(tc$`A0A087WNP6;Q4VAA2-2;Q4VAA2;A0A087WRM0;F8WGL9;A0A087WS49`$`factorC:factorS`)[4,]),sep = "\t")
-dump(tc, file=outF)
-```
-
-```{r prot}
-source("https://bioconductor.org/biocLite.R")
-biocLite("PGA")
-library("PGA")
-biocLite("XML")
-biocLite("colorspace")
-install.packages("Rcpp")
-library("PGA")
-dat_file <- system.file("extdata/input", "mascot.dat",package = "PGA")
-parserGear(file = dat_file, db = dbfile, decoyPrefix = "#REV#",xmx = 1,thread = 8,outdir = "parser_outdir_mascot")
-
-```
-
-```{r ir}
-i=0.9
-n=1
-y1<-0
-y2<-0
-
-for(x1 in seq(0.1, 10, 0.5)){
-  for(x2 in seq(0.1, 10, 0.5)){
-    y1<-c(((1-i)*n+x1)/((1-i)*n+x2),y1)
-    y2<-c(x1/x2,y2)
-  }
-}
-plot(log2(y1),log2(y2))
-plot((y1),(y2))
-
-```
-
-
-```{r MSstats}
-source("http://www.bioconductor.org/biocLite.R")
-biocLite('GOpro')
-library(GOpro)
-biocLite('GOSim')
-library(GOSim)
-genes=c("207","208","596","901","780","3169","9518","2852","26353","8614","7494")
-getGOInfo(genes)
-biocLite("RTopper")
-library(RTopper)
-biocLite("PGA")
-biocLite("rTANDEM")
-biocLite("BSgenome.Hsapiens.UCSC.hg19")
-vcffile <- system.file("extdata/input", "PGA.vcf",package="PGA")
-bedfile <- system.file("extdata/input", "junctions.bed",package="PGA")
-gtffile <- system.file("extdata/input", "transcripts.gtf",package="PGA")
-annotation <- system.file("extdata", "annotation",package="PGA")
-outfile_path<-"db/"
-outfile_name<-"test"
-library(BSgenome.Hsapiens.UCSC.hg19)
-dbfile <- dbCreator(gtfFile=gtffile,vcfFile=vcffile,bedFile=bedfile,
-                    annotation_path=annotation,outfile_name=outfile_name,
-                    genome=Hsapiens,outdir=outfile_path)
-Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jdk1.8.0_45\\jre\\')
-parserGear("F:/promec/Gygi/b1906_293T_proteinID_01A_QE3_122212.pep.xml", db = dbfile, decoyPrefix="#REV#",xmx = 1,thread = 8,outdir = "parser_outdir")
-```
-
-```{r MSstats}
-#https://bioconductor.org/packages/3.3/bioc/vignettes/MSstats/inst/doc/MSstats-manual.pdf
-library('MSstats')
-QuantData<-dataProcess(SRMRawData)
-head(QuantData$ProcessedData)
-## based on multiple comparisons (T1 vs T3; T1 vs T7; T1 vs T9)
-comparison1<-matrix(c(-1,0,1,0,0,0,0,0,0,0),nrow=1)
-comparison2<-matrix(c(-1,0,0,0,0,0,1,0,0,0),nrow=1)
-comparison3<-matrix(c(-1,0,0,0,0,0,0,0,1,0),nrow=1)
-comparison<-rbind(comparison1,comparison2, comparison3)
-row.names(comparison)<-c("T3-T1","T7-T1","T9-T1")
-testResultMultiComparisons<-groupComparison(contrast.matrix=comparison,data=QuantData)
-## Calculate sample size for future experiments:
-#(1) Minimal number of biological replicates per condition
-designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=TRUE,
-desiredFC=c(1.25,1.75),FDR=0.05,power=0.8)
-#(2) Power calculation
-designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=2,
-desiredFC=c(1.25,1.75),FDR=0.05,power=TRUE)```
-```
-
-```{r SAM}
-#https://github.com/MikeJSeo/SAM
-install.packages(c("samr", "matrixStats", "GSA", "shiny", "shinyFiles", "openxlsx"))
-source("http://bioconductor.org/biocLite.R")
-biocLite("impute")
-library(shiny)
-library(shinyFiles)
-runGitHub("SAM", "MikeJSeo")
-```
-
-
-
-```{r pkgs}
-install.packages('BEST') #http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3489534/
-library('BEST') #https://sourceforge.net/projects/mcmc-jags
-install.packages('mice') #http://www.helsinki.fi/~rosenstr/papers/ImputationNotes.pdf
-library('mice') #http://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
-install.packages('RColorBrewer')
-library(RColorBrewer)
-source("http://bioconductor.org/biocLite.R")
-biocLite("preprocessCore")
-library('preprocessCore')
-#install.packages("gplots")
-# library(gplots) 
-#library(ggplot2)
-```
-
-```{r JAGS}
-y1 <- c(5.77, 5.33, 4.59, 4.33, 3.66, 4.48)
-y2 <- c(3.88, 3.55, 3.29, 2.59, 2.33, 3.59)
-priors <- list(muM = 6, muSD = 2)
-out <- BESTmcmc(y1, y2, priors=priors, parallel=FALSE) # where def prior sigmaMode = sd(y), sigmaSD = sd(y)*5, nuMean = 30, nuSD = 30), y = c(y1, y2).
-plot(out)
-plot(y1,y2)
-summary(t.test(y1,y2))
-hist(y2)
-hist(datasel)
-```
-
-```{r Cluster}
-colscl <- colorRampPalette(c("darkblue", "chocolate"), space = "rgb")(100)
-heatmap(na.omit(as.matrix(data)),col=colscl)
-```
-
-```{r ColumnSel}
-datasel<-data[, grep("^Tumor_*", colnames(data))]
-summary(datasel)
-t.test(datasel)
-datanonan=na.omit(as.matrix(datasel))
-summary(datanonan)
-heatmap(na.omit(as.matrix(datasel)),col=colscl)
-```
-
-```{r NA}
-#impute(data, method = "mixed",randna = fData(naset)$randna,mar = "knn", mnar = "min")
-md.pattern(datasel)
-dataimp <- mice(datasel,m=length(colnames(datasel))/2,maxit=length(colnames(datasel)),meth='pmm',seed=1)
-dataimp <- complete(dataimp,length(colnames(datasel))/2)
-heatmap(as.matrix(dataimp),col=colscl)
-```
-
-```{r Scale}
-datascale=t(scale(t(dataimp))) # takes away the polynomial in YFP data
-heatmap(as.matrix(datascale),col=colscl)
-```
-
-```{r DistCor}
-dataasmat<-data.matrix(datascale)
-cor(data)
-dissimilarityc <- 1 - cor(dataasmat,method = "s")
-distancec <- as.dist(dissimilarityc)
-col.clus <- hclust(distancec, "aver")
-dissimilarityr <- 1 - cor(t(dataasmat),method = "s")
-distancer <- as.dist(dissimilarityr)
-row.clus <- hclust(distancer, "aver")
-heatmap(as.matrix(datascale),col=colscl)
-cr <- rainbow(nrow(dataasmat))
-cc <- rainbow(ncol(dataasmat))
-heatmap((na.omit(dataasmat)), RowSideColors = cr, ColSideColors = cc,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5 )
-```
-
-```{r face}
-#http://www.r-bloggers.com/analyze-face-emotions-with-r/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+RBloggers+%28R+bloggers%29
-
-library("httr")
-library("XML")
-library("stringr")
-library("ggplot2")
-
-img.url     = 'https://i.imgur.com/Njtw8tx.jpg'
-URL.emoface = 'https://api.projectoxford.ai/emotion/v1.0/recognize'
-emotionKEY = '25eac991d0c8474fb501d704c6454b05'
-mybody = list(url = img.url)
-faceEMO = POST(
-  url = URL.emoface,
-  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = emotionKEY)),
-  body = mybody,
-  encode = 'json'
-)
-faceEMO
-trump = httr::content(faceEMO)[[1]]
-trump
-o<-as.data.frame(as.matrix(trump$scores))
-o$V1 <- lapply(strsplit(as.character(o$V1 ), "e"), "[", 1)
-o$V1<-as.numeric(o$V1)
-colnames(o)[1] <- "Level"
-o$Emotion<- rownames(o)
-ggplot(data=o, aes(x=Emotion, y=Level)) +
-  geom_bar(stat="identity")
-
-img.url = 'https://www.whitehouse.gov/sites/whitehouse.gov/files/images/first-family/44_barack_trump[1].jpg'
-faceURL = "https://api.projectoxford.ai/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=true&returnFaceAttributes=age"
-mybody = list(url = img.url)
-faceKEY = '6b86f25e09e84291b2bcba8d61d6297e'
-faceResponse = POST(
-  url = faceURL, 
-  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = faceKEY)),
-  body = mybody,
-  encode = 'json'
-)
-
-# Show request results (if Status=200, request is okay)
-faceResponse
-
-# Reuqest results from face analysis
-trumpR = httr::content(faceResponse)[[1]]
-
-# Define results in data frame
-OR<-as.data.frame(as.matrix(trumpR$faceLandmarks))
-
-# Make some transformation to data frame
-OR$V2 <- lapply(strsplit(as.character(OR$V1), "\\="), "[", 2)
-OR$V2 <- lapply(strsplit(as.character(OR$V2), "\\,"), "[", 1)
-colnames(OR)[2] <- "X"
-OR$X<-as.numeric(OR$X)
-
-OR$V3 <- lapply(strsplit(as.character(OR$V1), "\\y = "), "[", 2)
-OR$V3 <- lapply(strsplit(as.character(OR$V3), "\\)"), "[", 1)
-colnames(OR)[3] <- "Y"
-OR$Y<-as.numeric(OR$Y)
-
-OR$V1<-NULL
-```
-
-```{r Quantile}
-dataasmat<-normalize.quantiles(dataasmat)
-rn<-rownames(dataasmat)
-cn<-colnames(dataasmat)
-colnames(dataasmat)<-cn
-rownames(dataasmat)<-rn
-```
-
-```{r AdjPval}
-p.adjust(10^(-data$X.log10P),method = c("hochberg"), n = length(data$X.log10P))
-p.adjust(data$pv,method = c("hochberg"), n = length(data$pv))
-```
-
-```{r, echo=FALSE}
-p <- ggplot(data)
-print(p)
-#heatmap2(data)
-```
-
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 ---
 title: "batch-effect-analysis"
 author: "Ani"
 date: "Monday, Feb 15, 2016"
 output: html_document
 ---
-<http://rmarkdown.rstudio.com>.
-
-=======
-```{r interpolate}
-data<-read.table("c:/Users/animeshs/Downloads/Sunshine hours.txt",sep='\t',header=T)
-summary(data$SONNENSCHEINDAUER)
-dp=approx(data$SONNENSCHEINDAUER)
-summary(dp)
-plot(dp$SONNENSCHEINDAUER,data$SONNENSCHEINDAUER)
-install.packages('zoo')
-library('zoo')
-dp<-rollmean(data,1)
-dp<-na.approx(data)
-summary(dp)
-write.table(dp,"c:/Users/animeshs/Downloads/SunshineDP.txt",sep='\t')
-```
-
-```{r iPondData}
-iPond=read.delim("f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVA.txt",row.names = 48,header=T)
-#[,190:213]
-label=t(read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/Kristian/Groups.txt",row.names = 1,header=T))
-```
-
-```{r corr3ction}
-hist(iPond$M..Two.way.ANOVA.p.value.Interaction)
-hist(p.adjust(iPond$M..Two.way.ANOVA.p.value.Interaction,method = "BH"))
-hist((p.adjust(iPond$M..Two.way.ANOVA.p.value.Cond,method = "BH")))
-hist(log2(p.adjust(iPond$M..Two.way.ANOVA.p.value.Treatment,method = "BH")))
-write.table(p.adjust(iPond$M..Two.way.ANOVA.p.value.Interaction,method = "BH"), "f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVAbhInt.txt", sep="\t")
-write.table(p.adjust(iPond$M..Two.way.ANOVA.p.value.Treatment,method = "BH"), "f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVAbhTr.txt", sep="\t")
-write.table(p.adjust(iPond$M..Two.way.ANOVA.p.value.Cond,method = "BH"), "f:/promec/Elite/Karine/170216_IP/dePep/Log2LFQproteinGroupsBHtTests2wayANOVAbhCond.txt", sep="\t")
-
-```
-
-
-```{r data}
-#data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Articles in prep/AID/ID/AIDberitPD21SequestScoreTtestRcomp.txt",sep="\t",row.names=1, header = T) #AIDome
-#data <- read.delim("F:/promec/Results/Ani/Mirta/DataActinNormalizedHeatMapCtrlwPCNA.txt",row.names=19,sep="\t",header = T) #BER
-#data <- read.delim("F:/promec/Davi/Mei/2016-05_PancreaticCancer/QE/lfq2pep/LFQvalues.txt",row.names=90,sep="\t",header = T)
-#data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/batch1and2lfqaimpnovaTtest90C15P.txt",fill=T, row.names=86, sep = "\t",header = T)
-#df <- read.delim("https://gist.githubusercontent.com/anonymous/0bc36ec5f46757de7c2c/raw/517ef70ab6a68e600f57308e045c2b4669a7abfc/example.txt", header=TRUE, row.names=1, sep="\t")
-#df<-df[df$Potential.contaminant!='+',] 
-data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/iPOND/batch1and2lfqaimpnovaTtest90C15Pr.txt",sep = "\t",header = T)
-
-
-summary(data)
-t.test(data[1,3:5],data[1,6:8],data[1,9:11])
-t.test(data[1,3:5],data[1,6:8])
-
-```
-
-```{r lmfit}
-source("https://bioconductor.org/biocLite.R")
-biocLite("golubEsets")
-library(golubEsets)
-data()
-data(golubTrain)
-golubTrain
-golub<-data.frame(golubTrain@exprs)
-labelgb <- factor(c(rep("ALL",27),rep("AML",11)))
-names(golub) <- labelgb
-golub2<-log2(golub)
-plot(golub2)
-biocLite('limma')
-library('limma')
-fit3 = lmFit(golub2)
-e3 = eBayes(fit3)
-tab3<-topTable(e3, number=nrow(golub))
-head(tab3)
-fit3@.Data[[9]]
-fit4 = lmFit(golub2, design)
-```
-
-
-```{r shuffle}
-ecoli <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/Christina/Strainssamples.txt", header=TRUE, na.strings='', sep="\t")
-for  (cnt in 1:6){
-  cnt
-}
-  ecoli_shuffle <- ecoli_shuffle[sample(nrow(ecoli)),]
-write.csv(file="Y:/felles/PROTEOMICS and XRAY/Ani/Christina/Strainssamples_shuffled_rn.csv",x=ecoli_shuffle,row.names = F)
-```
-```{r rawread}
-library("MSnbase")
-```
-
-
-```{r prot}
-install.packages("PTXQC")
-library("PTXQC")
-help(package = "PTXQC")
-vignette("PTXQC-InputData", package = "PTXQC")
-txt_folder = "F:/promec/Elite/LARS/2016/desember/Lymphoma/Results"
-r = createReport(txt_folder)
-cat(paste0("\nReport generated as '", r$report_file, "'\n\n"))
-
-```
-
-```{r prot}
-require(PTXQC)
-
-## the next require() is needed to prevent a spurious error in certain R versions (mighyou be a bug in R or a package)
-## error message is:
-##    Error in Scales$new : could not find function "loadMethod"
-require(methods)
-
-## specify a path to a MaxQuant txt folder
-## Note: This folder needs to be complete (see 'vignette("PTXQC-InputData", package = "PTXQC")')
-if (1) {
-  ## we will use an example dataset from PRIDE (dataset 2 of the PTXQC publication)
-  local_zip = tempfile(fileext=".zip")
-  download.file("ftp://ftp.pride.ebi.ac.uk/pride/data/archive/2015/11/PXD003133/txt_20min.zip", destfile = local_zip)
-  unzip(local_zip, exdir = tempdir()) ## extracts content
-  txt_folder = paste0(tempdir(),"/txt_20min")
-} else {
-  ## if you have local MaxQuant output, just use it
-  txt_folder = "c:/Proteomics/MouseLiver/combined/txt"
-}
-
-r = createReport(txt_folder)
-
-cat(paste0("\nReport generated as '", r$report_file, "'\n\n"))
-
-```
-
-
-```{r prot}
-source("https://bioconductor.org/biocLite.R")
-biocLite("PGA")
-library("PGA")
-biocLite("XML")
-biocLite("colorspace")
-install.packages("Rcpp")
-library("PGA")
-dat_file <- system.file("extdata/input", "mascot.dat",package = "PGA")
-parserGear(file = dat_file, db = dbfile, decoyPrefix = "#REV#",xmx = 1,thread = 8,outdir = "parser_outdir_mascot")
-
-```
-
-```{r ir}
-i=0.9
-n=1
-y1<-0
-y2<-0
-
-for(x1 in seq(0.1, 10, 0.5)){
-  for(x2 in seq(0.1, 10, 0.5)){
-    y1<-c(((1-i)*n+x1)/((1-i)*n+x2),y1)
-    y2<-c(x1/x2,y2)
-  }
-}
-plot(log2(y1),log2(y2))
-plot((y1),(y2))
-
-```
-
-
-```{r MSstats}
-source("http://www.bioconductor.org/biocLite.R")
-biocLite('GOpro')
-library(GOpro)
-biocLite('GOSim')
-library(GOSim)
-genes=c("207","208","596","901","780","3169","9518","2852","26353","8614","7494")
-getGOInfo(genes)
-biocLite("RTopper")
-library(RTopper)
-biocLite("PGA")
-biocLite("rTANDEM")
-biocLite("BSgenome.Hsapiens.UCSC.hg19")
-vcffile <- system.file("extdata/input", "PGA.vcf",package="PGA")
-bedfile <- system.file("extdata/input", "junctions.bed",package="PGA")
-gtffile <- system.file("extdata/input", "transcripts.gtf",package="PGA")
-annotation <- system.file("extdata", "annotation",package="PGA")
-outfile_path<-"db/"
-outfile_name<-"test"
-library(BSgenome.Hsapiens.UCSC.hg19)
-dbfile <- dbCreator(gtfFile=gtffile,vcfFile=vcffile,bedFile=bedfile,
-                    annotation_path=annotation,outfile_name=outfile_name,
-                    genome=Hsapiens,outdir=outfile_path)
-Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jdk1.8.0_45\\jre\\')
-parserGear("F:/promec/Gygi/b1906_293T_proteinID_01A_QE3_122212.pep.xml", db = dbfile, decoyPrefix="#REV#",xmx = 1,thread = 8,outdir = "parser_outdir")
-```
-
-```{r MSstats}
-#https://bioconductor.org/packages/3.3/bioc/vignettes/MSstats/inst/doc/MSstats-manual.pdf
-library('MSstats')
-QuantData<-dataProcess(SRMRawData)
-head(QuantData$ProcessedData)
-## based on multiple comparisons (T1 vs T3; T1 vs T7; T1 vs T9)
-comparison1<-matrix(c(-1,0,1,0,0,0,0,0,0,0),nrow=1)
-comparison2<-matrix(c(-1,0,0,0,0,0,1,0,0,0),nrow=1)
-comparison3<-matrix(c(-1,0,0,0,0,0,0,0,1,0),nrow=1)
-comparison<-rbind(comparison1,comparison2, comparison3)
-row.names(comparison)<-c("T3-T1","T7-T1","T9-T1")
-testResultMultiComparisons<-groupComparison(contrast.matrix=comparison,data=QuantData)
-## Calculate sample size for future experiments:
-#(1) Minimal number of biological replicates per condition
-designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=TRUE,
-desiredFC=c(1.25,1.75),FDR=0.05,power=0.8)
-#(2) Power calculation
-designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=2,
-desiredFC=c(1.25,1.75),FDR=0.05,power=TRUE)```
-```
-
-```{r SAM}
-#https://github.com/MikeJSeo/SAM
-install.packages(c("samr", "matrixStats", "GSA", "shiny", "shinyFiles", "openxlsx"))
-source("http://bioconductor.org/biocLite.R")
-biocLite("impute")
-library(shiny)
-library(shinyFiles)
-runGitHub("SAM", "MikeJSeo")
-```
-
-
-
-```{r pkgs}
-install.packages('BEST') #http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3489534/
-library('BEST') #https://sourceforge.net/projects/mcmc-jags
-install.packages('mice') #http://www.helsinki.fi/~rosenstr/papers/ImputationNotes.pdf
-library('mice') #http://www.r-bloggers.com/imputing-missing-data-with-r-mice-package/
-install.packages('RColorBrewer')
-library(RColorBrewer)
-source("http://bioconductor.org/biocLite.R")
-biocLite("preprocessCore")
-library('preprocessCore')
-#install.packages("gplots")
-# library(gplots) 
-#library(ggplot2)
-```
-
-```{r JAGS}
-y1 <- c(5.77, 5.33, 4.59, 4.33, 3.66, 4.48)
-y2 <- c(3.88, 3.55, 3.29, 2.59, 2.33, 3.59)
-priors <- list(muM = 6, muSD = 2)
-out <- BESTmcmc(y1, y2, priors=priors, parallel=FALSE) # where def prior sigmaMode = sd(y), sigmaSD = sd(y)*5, nuMean = 30, nuSD = 30), y = c(y1, y2).
-plot(out)
-plot(y1,y2)
-summary(t.test(y1,y2))
-hist(y2)
-hist(datasel)
-```
-
-```{r Cluster}
-colscl <- colorRampPalette(c("darkblue", "chocolate"), space = "rgb")(100)
-heatmap(na.omit(as.matrix(data)),col=colscl)
-```
-
-```{r ColumnSel}
-datasel<-data[, grep("^Tumor_*", colnames(data))]
-summary(datasel)
-t.test(datasel)
-datanonan=na.omit(as.matrix(datasel))
-summary(datanonan)
-heatmap(na.omit(as.matrix(datasel)),col=colscl)
-```
-
-```{r NA}
-#impute(data, method = "mixed",randna = fData(naset)$randna,mar = "knn", mnar = "min")
-md.pattern(datasel)
-dataimp <- mice(datasel,m=length(colnames(datasel))/2,maxit=length(colnames(datasel)),meth='pmm',seed=1)
-dataimp <- complete(dataimp,length(colnames(datasel))/2)
-heatmap(as.matrix(dataimp),col=colscl)
-```
-
-```{r Scale}
-datascale=t(scale(t(dataimp))) # takes away the polynomial in YFP data
-heatmap(as.matrix(datascale),col=colscl)
-```
-
-```{r DistCor}
-dataasmat<-data.matrix(datascale)
-cor(data)
-dissimilarityc <- 1 - cor(dataasmat,method = "s")
-distancec <- as.dist(dissimilarityc)
-col.clus <- hclust(distancec, "aver")
-dissimilarityr <- 1 - cor(t(dataasmat),method = "s")
-distancer <- as.dist(dissimilarityr)
-row.clus <- hclust(distancer, "aver")
-heatmap(as.matrix(datascale),col=colscl)
-cr <- rainbow(nrow(dataasmat))
-cc <- rainbow(ncol(dataasmat))
-heatmap((na.omit(dataasmat)), RowSideColors = cr, ColSideColors = cc,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5 )
-```
-
-```{r face}
-#http://www.r-bloggers.com/analyze-face-emotions-with-r/?utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+RBloggers+%28R+bloggers%29
-
-library("httr")
-library("XML")
-library("stringr")
-library("ggplot2")
-
-img.url     = 'https://i.imgur.com/Njtw8tx.jpg'
-URL.emoface = 'https://api.projectoxford.ai/emotion/v1.0/recognize'
-emotionKEY = '25eac991d0c8474fb501d704c6454b05'
-mybody = list(url = img.url)
-faceEMO = POST(
-  url = URL.emoface,
-  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = emotionKEY)),
-  body = mybody,
-  encode = 'json'
-)
-faceEMO
-trump = httr::content(faceEMO)[[1]]
-trump
-o<-as.data.frame(as.matrix(trump$scores))
-o$V1 <- lapply(strsplit(as.character(o$V1 ), "e"), "[", 1)
-o$V1<-as.numeric(o$V1)
-colnames(o)[1] <- "Level"
-o$Emotion<- rownames(o)
-ggplot(data=o, aes(x=Emotion, y=Level)) +
-  geom_bar(stat="identity")
-
-img.url = 'https://www.whitehouse.gov/sites/whitehouse.gov/files/images/first-family/44_barack_trump[1].jpg'
-faceURL = "https://api.projectoxford.ai/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=true&returnFaceAttributes=age"
-mybody = list(url = img.url)
-faceKEY = '6b86f25e09e84291b2bcba8d61d6297e'
-faceResponse = POST(
-  url = faceURL, 
-  content_type('application/json'), add_headers(.headers = c('Ocp-Apim-Subscription-Key' = faceKEY)),
-  body = mybody,
-  encode = 'json'
-)
-
-# Show request results (if Status=200, request is okay)
-faceResponse
-
-# Reuqest results from face analysis
-trumpR = httr::content(faceResponse)[[1]]
-
-# Define results in data frame
-OR<-as.data.frame(as.matrix(trumpR$faceLandmarks))
-
-# Make some transformation to data frame
-OR$V2 <- lapply(strsplit(as.character(OR$V1), "\\="), "[", 2)
-OR$V2 <- lapply(strsplit(as.character(OR$V2), "\\,"), "[", 1)
-colnames(OR)[2] <- "X"
-OR$X<-as.numeric(OR$X)
-
-OR$V3 <- lapply(strsplit(as.character(OR$V1), "\\y = "), "[", 2)
-OR$V3 <- lapply(strsplit(as.character(OR$V3), "\\)"), "[", 1)
-colnames(OR)[3] <- "Y"
-OR$Y<-as.numeric(OR$Y)
-
-OR$V1<-NULL
-```
-
-```{r Quantile}
-dataasmat<-normalize.quantiles(dataasmat)
-rn<-rownames(dataasmat)
-cn<-colnames(dataasmat)
-colnames(dataasmat)<-cn
-rownames(dataasmat)<-rn
-```
-
-```{r AdjPval}
-p.adjust(10^(-data$X.log10P),method = c("hochberg"), n = length(data$X.log10P))
-p.adjust(data$pv,method = c("hochberg"), n = length(data$pv))
-```
-
-```{r, echo=FALSE}
-p <- ggplot(data)
-print(p)
-#heatmap2(data)
-```
-
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
----
-title: "batch-effect-analysis"
-author: "Ani"
-date: "Monday, Feb 15, 2016"
-output: html_document
----
-<http://rmarkdown.rstudio.com>.
-
->>>>>>> ebfc112f27001e13d78ab738e1c0e1a49f30d70e
->>>>>>> 7c553c78a017dea6dd835926cd41c986ed3c51c2:batchEffectAnalysis.Rmd
