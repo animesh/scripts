@@ -21,16 +21,24 @@ open (F1, $file1) || die "can't open \"$file1\": $!";
 open (F2, $file2) || die "can't open \"$file2\": $!";
 open (F3, ">$f3") || die "can't open \"$f3\": $!";
 while ($line = <F1>) {
-		chomp $line;
-		push(@seqo,$line);	
+		chomp $line;@t=split(/\s+/,$line);
+		for($c=0;$c<=$#t;$c++){
+		$l1=@t[$c]+0;
+		$l2.=$l1;
+		}
+			push(@seqo,$l2);
+			$l2="";
 }
-push(@seqo,$seq);
 close F1;
 while ($line = <F2>) {
-			chomp $line;
-			push(@seqn,$line);
+		chomp $line;@t=split(/\s+/,$line);
+		for($c=0;$c<=$#t;$c++){
+		$l1=@t[$c]+0;
+		$l2.=$l1;
+		}
+			push(@seqn,$l2);
+			$l2="";
 }
-push(@seqn,$seq);
 close F2;
 
 for($c1=0;$c1<=$#seqo;$c1++){
@@ -45,4 +53,4 @@ for($c1=0;$c1<=$#seqo;$c1++){
 		}
 	}
 }
-#perl fileser1.pl dub_4200_train.txt  mixdub_4200_train.txt
+#perl fileser3.pl dub_4200_train.txt  mixdub_4200_train.txt

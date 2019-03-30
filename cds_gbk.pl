@@ -13,10 +13,10 @@
 #
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
-$f=shift@ARGV;
-open F,$f;$f1=$f."fs.ffn";$f2=$f."rs.ffn";
+$f=shift@ARGV;$ff=shift@ARGV;
+open F,$f;open FF,$ff;
+$f1=$ff."fsf.ffn";
 open F1,">$f1";
-open F2,">$f2";
 while($l=<F>){
 if($l=~/^ORIGIN/)
         {        while($ll=<F>)
@@ -27,9 +27,13 @@ if($l=~/^ORIGIN/)
         }
 }
 close F;
-$line=uc($line);
-$len=length($line);
-print F1">Complete Gen Seq of $f\tLength-$len\tFS\n$line\n";
-print F2">Complete Gen Seq of $f\tLength-$len\tRS\n$line\n";
-
+$line=uc($line);$rline=reverse($line);
+$rline =~ tr/ATCG/TAGC/d;$lgo=length($rline);
+while($ll=<FF>){
+	chomp $ll;
+	@t=split(/\s+/,$ll);
+	$min=$lgo-@t[2]+1;$tmax=$lgo-@t[5]+1;
+	$seq = substr($rline,($min-1),($tmax-$min+1));$len=length($seq);
+	print F1"$ll\t$len\n$seq\n";
+}
  

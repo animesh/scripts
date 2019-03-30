@@ -15,17 +15,52 @@
 
 #!/usr/bin/perl
 $file=shift @ARGV;
+$file2=shift @ARGV;
+$pk=shift @ARGV;
+$choose= shift @ARGV;
 open(F,$file)||die "can't open";
+open(F2,$file2)||die "can't open";
 while ($line = <F>) {
         chomp ($line);
         @n=split(/\t/,$line);@n[4]=~s/\s+//g;
 #	foreach $w (@n){print "$c=>$w\n";$c++}$c=0;
-	if(@n[4] <= 1){
+	if($choose eq "l" and @n[4] <= $pk){
 	$lto{@n[2]}=@n[4];}	
-	elsif(@n[4] >= 9){
-	$mtn{@n[2]}=@n[4];}
+	elsif($choose eq "m" and @n[4] >= $pk){
+	$lto{@n[2]}=@n[4];}
 	
 }
-#foreach $w (sort {$a <=> $b} keys %m){print "$w\t$m{$w}\n";}
-foreach $w (keys %mtn){print "$w\t$mtn{$w}\n";}
-#foreach $w (keys %lto){print "$w\t$mtn{$w}\n";}
+close F;
+while ($l=<F2>){	
+	if($l=~/^ORIGIN/){
+		while($ll=<F2>)
+                {
+                $ll=~s/[0-9]//g;$ll=~s/\s+//g;chomp $ll;$line.=$ll;
+                }
+        }
+}
+close F2;
+$line=($line);$line=~s/\///g;1/1;$seql=length($line);
+foreach $w (keys %lto){
+#print "$w\t$lto{$w}\n";
+$seqname=$w;
+@t1=split(/\s+|\[|\]|\_|\-|\,|\:|\n|\t/,$seqname);
+#$t1[0]=~s/\>|\s+//g;
+$c2=0;#foreach $w (@t1){print "$c2 \t $w\n";$c2++;}
+$st=@t1[1]+0;$sp=@t1[2]+0;$length=$sp-$st+1;
+$str = uc(substr($line,($st-1),($length)));
+$t11=@t1[0];$t11=~s/\>|\s+//g;
+if($t11 eq "cIntergenic"){
+#$st=@t1[2]-@t1[9]+1-3;$sp=@t1[2]-@t1[6]+1;$length=$sp-$st+1;$str = uc(substr($line,($st-1),($length)));
+$str = reverse ($str);
+$str =~ tr/ATCG/TAGC/d;
+if($str=~/^(TTG|GTG|ATG)/ and $str=~/(TAA|TAG|TGA)$/){
+print "@t1[0]\[$st-$sp]\t$t1[4]\t$length\t$file\n$str\n";
+}
+}
+else{
+if($str=~/^(TTG|GTG|ATG)/ and $str=~/(TAA|TAG|TGA)$/){
+print "@t1[0]\[$st-$sp]\t$t1[4]\t$length\t$file\n$str\n";
+}
+}
+}

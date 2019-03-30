@@ -10,7 +10,7 @@ while ($line = <F>) {
 }
 	%seen=();
 	@combos = grep{ !$seen{$_} ++} @list;
-foreach $t3 (@list)
+foreach $t3 (@combos)
 	{
 	print "$t3\n"
 	}

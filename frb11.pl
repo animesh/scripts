@@ -15,33 +15,28 @@
 
 #!/usr/bin/perl
 if((@ARGV)!=3){die "USAGE: progname training_file test_file feature\n";}
-
-MAINPROC();
-
-sub MAINPROC{
-	$choose="cen";
-	#$choose="memval";
-	$f=shift @ARGV;
-	$ft=$f;
-	$ftt=shift @ARGV;
-	$ftr=shift @ARGV;
-	$m=2;
-	$iter=100;
-	$minval=0.0001;
-	#$minval=shift @ARGV;
-	$sbcont=1000;
-	$clusd=2;
-	$eta=0.05;
-	$etan=0.3;
-	$etas=0.3;
-	$thresh=0.0001;
-	$misclasst=1;
-	READDATA($f);
-	CLUSTERING($f);
-	TRAINING($f);
-	TEST($ftt);
-}
-
+$choose="cen";
+#$choose="memval";
+$f=shift @ARGV;
+$ft=$f;
+$ftt=shift @ARGV;
+$ftr=shift @ARGV;
+$m=2;
+$iter=10;
+$minval=0.0001;
+#$minval=shift @ARGV;
+$sbcont=1000;
+$clusd=2;
+$eta=0.05;
+$etan=0.3;
+$etas=0.3;
+$thresh=0.0001;
+$misclasst=1;
+READDATA($f);
+CLUSTERING($f);
+TRAINING($f);
+TEST($ftt);
+#LEARN();
 sub TRAINING{
 	$ft=shift;
 	if($ftr != "") {$rowt=0;
@@ -91,37 +86,33 @@ sub LEARN{$avgerr=$rowt*$ftr;$literval=0;$misnas=$rowt;$ft=shift;$iter=shift;
 		$maxerrold=$maxerr;$maxerr=0;$misnasold=$misnas;$misnas=0;
 		$ftres=$ft.".test.out";
 		open(FTR,">$ftres");
-		$ftnull=$ft.".null.out";
-		open(FTRN,">$ftnull");
 		print FTR"Data\#\tRealClass-SubClus\tMisClass-Subclus\n";
 		for($a0=0;$a0<$rowt;$a0++){
 			$maxa=0;$maxna=0;$maxacol=0;$maxnacol=0;
 			for($a1=0;$a1<=$#lab;$a1++){
 				for($a2=0;$a2<$clusd;$a2++){
 					$firingst=1;
-					print FTRN"$a0\t$a1\t$a2\t";
+					if(($exist{"$a1-$a2"}!=1) and ($exist{"$a1-$a2"}!=0)){
 						for($a3=0;$a3<$ftr;$a3++){
-							if($trainvalstd[$a1][$a2][$a3]!=""){
 								$firingst*=(1/exp((($mattrain[$a0][$a3]-$trainvalcen[$a1][$a2][$a3])**2)/($trainvalstd[$a1][$a2][$a3]**2)));
-							}
-							else{print FTRN"$trainvalstd[$a1][$a2][$a3]\t";}
+						}
 					}
-					print FTRN"\n";
-					if($train{$a0}==$a1 and $firingst>=$maxa and $firingst!=1){
+					if($train{$a0}==$a1 and $firingst>=$maxa){
 						$maxa=$firingst;$maxacol="$a1-$a2";
 					}
-					elsif($train{$a0}!=$a1 and $firingst>=$maxna and $firingst!=1){
+					elsif($train{$a0}!=$a1 and $firingst>=$maxna){
 						$maxna=$firingst;$maxnacol="$a1-$a2";
 					}
-					#else{print "$a1\t$a2\t$maxa\t$maxna\t$firingst\n";}
+					else{#print "I Dunno\n";
+					}
 				}
 				for($a2=0;$a2<$clusd;$a2++){
 					for($a3=0;$a3<$ftr;$a3++){
-						if(($train{$a0}==$a1) and  $trainvalstd[$a1][$a2][$a3]){
+						if(($train{$a0}==$a1) and (($exist{"$a1-$a2"}!=1) and ($exist{"$a1-$a2"}!=0))){
 							$trainvalcen[$a1][$a2][$a3]+=$etan*(1-$maxa+$maxna)*($maxa/($trainvalstd[$a1][$a2][$a3]**2))*($mattrain[$a0][$a3]-$trainvalcen[$a1][$a2][$a3]);
 							$trainvalstd[$a1][$a2][$a3]+=$etas*(1-$maxa+$maxna)*($maxa/($trainvalstd[$a1][$a2][$a3]**3))*(($mattrain[$a0][$a3]-$trainvalcen[$a1][$a2][$a3])**2);
 						}
-						elsif($trainvalstd[$a1][$a2][$a3]){
+						elsif(($exist{"$a1-$a2"}!=1) and ($exist{"$a1-$a2"}!=0)){
 							$trainvalcen[$a1][$a2][$a3]-=$etan*(1-$maxa+$maxna)*($maxna/($trainvalstd[$a1][$a2][$a3]**2))*($mattrain[$a0][$a3]-$trainvalcen[$a1][$a2][$a3]);
 							$trainvalstd[$a1][$a2][$a3]-=$etas*(1-$maxa+$maxna)*($maxna/($trainvalstd[$a1][$a2][$a3]**3))*(($mattrain[$a0][$a3]-$trainvalcen[$a1][$a2][$a3])**2);
 						}
@@ -191,9 +182,6 @@ sub CLUSTERING{
 	$f=shift;
 	$foc=$f.".clust.txt";
 	open(FCC,">$foc");
-	$foco=$f.".clustnull.txt";
-	open(FCCNULL,">$foco");
-
 	for($a1=0;$a1<=$#lab;$a1++){
 		$elem=$clsno{@lab[$a1]};
 		for($c1=0;$c1<$elem;$c1++){
@@ -228,9 +216,7 @@ sub CLUSTERING{
 					}
 				$meanval{$s2}=$meanval/$N;
 				$meanval=0;$N=0;
-				}$exists="";
-				print FCC"$a1\t$_\t";
-				print FCCNULL"$a1\t$_\t";
+				}$exists=1;
 				for($s2=0;$s2<$ftr;$s2++){
 					for($s1=0;$s1<$c1;$s1++){
 						if($_ ==$maxcolsam{$s1}){
@@ -238,22 +224,19 @@ sub CLUSTERING{
 							$stddevvalsb+=($mat[$s1][$s2]-$otprnm[$s2][$_])**2;
 						}
 					}
-					#$stddevval{$s2}=sqrt($stddevval)/$N;
+					$stddevval{$s2}=sqrt($stddevval)/$N;
 					$stddevvalsb{$s2}=sqrt($stddevvalsb)/$N;
+					$stddevval=0;$N=0;$stddevvalsb=0;
 					#print "$meanval{$s2}\t";#$otprnm[$s2][$_]\t$stddevval{$s2}\t$stddevvalsb{$s2}\t";#$stddevval{$s2}\t
 					$trainvalmean[$a1][$_][$s2]=$meanval{$s2};
-					$trainvalstd[$a1][$_][$s2]=sqrt($stddevval)/$N;
+					$trainvalstd[$a1][$_][$s2]=$stddevval{$s2};
 					$trainvalcen[$a1][$_][$s2]=$otprnm[$s2][$_];
 					$trainvalstdcen[$a1][$_][$s2]=$stddevvalsb{$s2};
-					$exists+=$trainvalstd[$a1][$_][$s2];
-					$stddevval=0;$N=0;$stddevvalsb=0;
-					if($trainvalstd[$a1][$_][$s2]!=""){print FCC"$trainvalstd[$a1][$_][$s2]\t";}
-					else{print FCCNULL"$trainvalstd[$a1][$_][$s2]\t";}
+					$exists*=$trainvalstd[$a1][$_][$s2];
+					print FCC"$trainvalcen[$a1][$_][$s2]\t";
 				}
-				print FCC"\n";
-				print FCCNULL"\n";
 				$exist{"$a1-$_"}=$exists;
-				#print FCC"$a1\t$_\t$maxcolhash{$_}\t$exist{\"$a1-$_\"}\n";
+				print FCC"$a1\t$_\t$maxcolhash{$_}\t$exist{\"$a1-$_\"}\n";
 				print "$a1\t$_\t$maxcolhash{$_}\t$exist{\"$a1-$_\"}\n";
 			}
 			undef %maxcolhash;undef %maxcolsam;
@@ -410,5 +393,59 @@ sub INITIALIZE{
 		$val5=$val4/(($s1)*$s3);
 		close FP;
 		return $val5;
+	}
+
+	sub PREDI{
+		$f1=$foo;
+		$f2=$fp;
+		open(F1,$f1);
+		open(F2,$f2);
+		undef @cmp1;undef @cmp2;$c1=0;$c2=0;$c3=0;
+		while($l1=<F1>){chomp $l1;
+		@t1=split(/\s+/,$l1);
+				for($c1=0;$c1<=$#t1;$c1++){
+					$h1{@t1[$c1]}=($c1+1);
+					if(@t1[$c1]>$m1){
+						$m1=@t1[$c1];
+						}
+				}
+				push(@cmp1,$h1{$m1});$m1=0;undef %h1;
+		}
+		close F1;
+		while($l2=<F2>){chomp $l2;
+		@t2=split(/\s+/,$l2);
+				for($c2=0;$c2<=$#t2;$c2++){
+					$h2{@t2[$c2]}=($c2+1);
+					if(@t2[$c2]>$m2){
+						$m2=@t2[$c2];
+						}
+				}
+				push(@cmp2,$h2{$m2});$m2=0;undef %h2;
+		}
+		close F2;		
+		print "Sample#\tActual\tObtained\n";
+		for($c2=0;$c2<=$#cmp2;$c2++){$c5=$c2+1;
+			$mct{@cmp1[$c2]}++;
+			if(@cmp1[$c2]!=@cmp2[$c2]){
+				$mc{@cmp1[$c2]}++;
+				print "$c5\t@cmp1[$c2]\t@cmp2[$c2]\n";
+				$c3++;
+			}
+		}
+
+		print "\nCLASS\tMISCLASSIFICATION: TOTAL MEMBERS\tPERCENT\n";
+
+		for($c10=1;$c10<=$c1;$c10++){
+			if($mct{$c10}==0 or $mc{$c10}==0){
+				$per=0;
+				print "$c10\t0\t\t : $mct{$c10}\t\t\t$per\n";
+			}
+			else{
+			$per=$mc{$c10}/$mct{$c10}*100;
+			print "$c10\t$mc{$c10}\t\t : $mct{$c10}\t\t\t$per\n";
+			}
+		}
+		$tper=($c3/$c5)*100;
+		print "\nTotal Misclassification\t-> $c3 : $c5\t\t$tper\n";
 	}
 

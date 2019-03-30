@@ -2,7 +2,7 @@
 #programme for motif generation FASTER ALGO;
 @base=qw/a t c g/;
 #print "\nenter the multiple seq. containing fasta file name\t:";
-$file="237UAS1000NEW.TXT";
+$file="ys.txt";
 #$file=<>;
 #chomp $file;
 open(F,$file)||die "can't open";
@@ -19,7 +19,7 @@ open (FO,">$out");
 #print "\nenter the length of motif\t:";
 #$colo=<>;
 #chomp $colo;
-$colo=9;
+$colo=4;
 $seq = "";
 while ($line = <F>) {
         chomp ($line);
@@ -38,6 +38,8 @@ while ($line = <F>) {
 push(@seq,$seq);$tots2=@seqname;
 $plan[0][0]=0;
 $dist[0][0]=0;
+
+while($colo<10){
 for($x11=0;$x11<$tots2;$x11++){$sname=@seqname[$x11];
 chomp $sname;
 $sname =~ s/\>//g;
@@ -114,4 +116,6 @@ if($plan[$d3][0] eq $uu) {print FD"$dist[$d3][$d2]\t";print "calc dist matrix$d3
 }if($plan[$d3][0] eq $uu) {print FD"$thresh{$uu}\n";}
 }
 #print "$uu : $thresh{$uu}\n";
+}
+$colo++
 }

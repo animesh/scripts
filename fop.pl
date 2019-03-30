@@ -18,7 +18,7 @@ $f=shift @ARGV;
 $fea=shift@ARGV;
 $opv=shift@ARGV;
 $file1=$f."_featv.dat";
-$file2=$f."_featv.out";
+$file2=$f."_op.out";
 open(F,$f);
 open(F1,">$file1");
 open(F2,">$file2");

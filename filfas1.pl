@@ -18,7 +18,7 @@ open(F,"fas.txt");
 while($l=<F>){
 	$c++;
 	@temp=split(/\t/,$l);
-	if(@temp[1] eq "A" and @temp[4] eq "A"){
+	if((@temp[1] eq "A" or @temp[4] eq "G") and (@temp[4] eq "A" or @temp[4] eq "G")){
 		print $l;
 	}
 }

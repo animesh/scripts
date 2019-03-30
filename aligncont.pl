@@ -44,8 +44,10 @@ push(@seq,$seq);
 close F;
 
 $sn1=shift @ARGV;chomp $sn1;
-$sn2=shift @ARGV;chomp $sn2;
 
+$sn2=shift @ARGV;chomp $sn2;
+$sn3=shift @ARGV;chomp $sn3;
+$sn4=shift @ARGV;chomp $sn4;
 
 @seq2=@seq;
 @seq2n=@seqname;
@@ -55,22 +57,26 @@ undef @seq;undef @seqname;
 #print "\n\n>SEQ1.$seq1n[1]\n$seq1[1]\n>SEQ2.$seq2n[1]\n$seq2[1]\n\nSCORE-$cont\n\n";
 
 for($c=0;$c<$#seq1;$c++){
+	if($c==$sn1-1){
 	for($cc=0;$cc<=$#seq2;$cc++){
 #		if($c < $cc){
 			#$cont=affine(@seq[$c],@seq[$cc]);
+			if($cc==$sn2-1 ||  $cc==$sn3-1 ||  $cc==$sn4-1){
+				$conseq.="@seq2[$cc]NNNNNNNNNNNNNNNN";
+				$conseqname.="@seq2n[$cc]\t";
+				$ccn.="$ccN";	
+			}
+	}
 			open(F1,">file1.txt");
 			open(F2,">file2.txt");
 			print F1">@seq1n[$c]\n@seq1[$c]\n";
-			print F2">@seq2n[$cc]\n@seq2[$cc]\n";
+			print F2">$conseqname\n$conseq\n";
+			print "$c and $ccn\t@seq1n[$c] and $conseqname\n";
 #			system("bl2seq -i file1.txt -j file2.txt -p blastn -o $c.$cc.txt");
-			if($c==$sn1-1 && $cc==$sn2-1){
-			system("stretcher file1.txt file2.txt -gapopen=10 -gapext=1 -outfile=$c.$cc.txt");
-			print "$c\t$cc\t@seq1n[$c]\t@seq2n[$cc]\t$cont\n";
+			system("stretcher file1.txt file2.txt -gapopen=10 -gapext=1 -outfile=$c.$ccn.txt");
 			close F1;
 			close F2;
 			}
-#		}
-	}
 }
 
 sub affine {

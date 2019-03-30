@@ -71,13 +71,14 @@ for($c1=0;$c1<=$#seq;$c1++){
 				$max=$s25;$l5=$c5;
 			}
 		}
-		$tmax=$max+3;
-		$length=$tmax-$min+1;
-		if($l1>$l5){$c1=$l1+1;}
-		else{$c1=$l5+1;}
-		print ">$file\tCDS\t$min [$l1] - $tmax [$l5] \t$length\n";
-		$min=0;$max=0;
+		$max=$max+3;$length=$max-$min+1;
+		print ">$file\tCDS\t$min-$max\t$length\n";
+		$c1=$l5+1;$min=0;$max=0;
 
 	}
 	
 }
+#$c=0;
+#foreach $w (sort {$b <=> $a} keys %m){$c+=$m{$w};print "$w\t$m{$w}\t$c\n";}
+#$ts=$fooo-$c10;
+#print "\n$fooo\n$c10\n$ts\n";

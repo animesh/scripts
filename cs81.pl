@@ -14,24 +14,70 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-if( @ARGV ne 1){die "\nUSAGE\t\"ProgName MultSeqFile\t\n\n\n";}
-$file = shift @ARGV;
-open (F, $file) || die "can't open \"$file\": $!";
-$seq="";
-while ($line = <F>) {
-		chomp $line;
-		push(@seqname,$line);	
-}
-close F;
+$foo=shift @ARGV;
+$f1=$foo.".dna.out";
+$f2=$foo.".error.out";
+$f3=$foo.".tath.out";
+$f4=$foo.".tghi.out";
 
-$fp=$file.".cs.txt";
-open (FP,">$fp");
+system("backtranseq -sequence $foo $f1 -cfile EMt.cut");
+system("backtranseq -sequence $foo $f3 -cfile Table.ghi.txt");
+system("backtranseq -sequence $foo $f4 -cfile Table.ath.txt");
 
-for($c1=0;$c1<=$#seqname;$c1++)
-	{
-		$fftseq=(@seqname[$c1]);@N=split(/\s+/,$fftseq);$NN=(@N);
-		if($NN==40){
-		print FP"$fftseq\n";
+open(FO,">$f2");
+
+openfile($f1);
+openfile($f3);
+openfile($f4);
+
+sub openfile{
+	$foobar=shift;
+	open(F,$foobar);
+	while($l=<F>){
+		chomp $l;
+		if($l=~/^>/){
+			$seqname=$l;
 		}
-		#print "$NN\n";
+		else{
+			$seq.=uc($l);
+		}
 	}
+	$seq=~s/\*//g;
+
+	($riscnt,$rpolIItcnt,$pascnt,$atcnt)=checkrule($seq);
+	#($riscnt,$rpolIItcnt,$pascnt,$atcnt)=checkrule("GCTACCGCTCACCACTGCAAGTCCCTCCAATTGCTATACGCTACCGCTCACCACTGCAAGTCC");
+	print FO"FILE: $foobar\nRNA instability sequences-\t$riscnt\nRNA Pol II Termination signals-\t$rpolIItcnt\nPolyadenylation signal-\t$pascnt\nMore then 4 A or T-\t$atcnt\n"; 
+}
+
+sub checkrule {
+	my $str=shift;
+	my $riscnt = checkris($str);
+	my $rpolIItcnt = checkrpolII($str);
+	my $pascnt = checkpas($str);
+	my $atcnt = checkat($str);
+	return($riscnt,$rpolIItcnt,$pascnt,$atcnt);
+}
+
+sub checkris{
+	my $str = shift;
+	my $riscnt=$str=~s/ATTTA|AATAAA|TTCTT//g;
+	return $riscnt;
+}
+
+sub checkrpolII{
+	my $str = shift;
+	my $rpolIItcnt=$str=~s/CA.{7-9}AGT..A//g;
+	return $rpolIItcnt;
+}
+
+sub checkpas{
+	my $str = shift;
+	my $pascnt=$str=~s/ATAAAA|ATATAA|ATACAT|ATACTA|ATTAAA|ATTAAT|ATTCTC|AAGCAT|AACCAA|AATAAA|AATAAT|AATACA|AATCAA|AATTAA|AGTAAA|CATAAA|AAAATA//g;
+	return $pascnt;
+}
+
+sub checkat{
+	my $str = shift;
+	my $atcnt=$str=~s/[A|T][A|T][A|T][A|T][A|T]//g;
+	return $atcnt;
+}

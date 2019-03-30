@@ -11,7 +11,7 @@ lr=0.5
 
 import torch
 Device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print(Device)
+print(device)
 x=torch.tensor(inp, dtype=torch.double, device=Device)
 y=torch.tensor(outputr, dtype=torch.double, device=Device)
 b=torch.tensor(bias, dtype=torch.double, device=Device)

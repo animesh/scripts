@@ -29,7 +29,8 @@ $foo=$sname."ft"."\.out";
 open FO,">$foo";
 $N=length($seq);
 $R=$N%3;
-if($R ne 0){$N=$N-$R;}
+print "$N\t";
+if($R ne 0){$N=$N-$R;print "R+ $N\t";}
 FT(1,$N);
 	sub FT {
 	$st=shift;
@@ -41,8 +42,10 @@ FT(1,$N);
 	open(SFO,">$sfo");
 	@subssplit=split(//,$subs);
 		for($k=1;$k<=($sp/2);$k++)
-		 {for($c6=0;$c6<=$#base;$c6++)
 		 {
+                if ($le/$k == 3)
+			{for($c6=0;$c6<=$#base;$c6++)
+		 	{
 			$bvar=@base[$c6];
   			for($c7=0;$c7<=$#subssplit;$c7++)
 			{$wsvar=@subssplit[$c7];
@@ -63,10 +66,15 @@ FT(1,$N);
 		$subsumtotal=0;
 		$subptnr2=$subptnr1/($sp*$substss);
 		$subptnr3=$subptnr2*2;
-		1/1;$pp=($k)/$le;
-		print SFO"$pp\t$subptnr1\t$subptnr2\t$subptnr3\n";
+		1/1;
+		#if ($le/$k == 3)
+		#{
+		$pp=($k)/$le;
+		print "$sname\t$pp\t$subptnr1\t$subptnr2\t$subptnr3\n";
+		#if($pp eq (1/3)){print $pp\t$subptnr3\n";}
+		}
 		}#undef @ssts;
-		print "S(f) to Frequency written to file $sfo\n";
+		#print "S(f) to Frequency written to file $sfo\n";
 		close SFO;
 	}
 }

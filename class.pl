@@ -1,37 +1,81 @@
-#!/usr/bin/perl
-#read in data for mw:
-$allowed="ACDEFGHIKLMNPQRSTVWY";# Supported amino acids
-$water=18.0152;                 # mol wt of H2O (added decimals, since
-                                # it's multiplied by no_aa-1).
-                                # molecular weights
-%aawt=('A', 89.09, 'C', 121.16, 'D', 133.10, 'E', 147.13, 'F', 165.19,
-       'G', 75.07, 'H', 155.16, 'I', 131.18, 'K', 146.19, 'L', 131.18,
-       'M',149.21, 'N', 132.12, 'P', 115.13, 'Q', 146.15, 'R', 174.20,
-       'S',105.09, 'T', 119.12, 'V', 117.15, 'W', 204.23, 'Y', 181.19);
-$protein="";
-print "What is the filename containing the sequences? ";
-$name = <STDIN>;
-chomp($name);
-print "The sequence filename is $name \n";
-#
-open (FILENAME, $name) ||
-       die "can't open $name: $!";
-while ($line = <FILENAME>) {
-        chomp $line;
-	if ($line =~ /^>/){
-	    $line =~ s/>//;
-	    $seqname=($line);
-	} else {
-            $seq=$seq.$line;
-        }
-        }
-$protein=$seq;
-$no_aa = length($protein);
-                                # amino acid composition
-foreach $aa (split(//, $allowed)) {
-  $residue{$aa} = ($protein =~ s/$aa//g);
-  $molwt += $residue{$aa}*$aawt{$aa};
-  print "$protein\n\n";
-}
-     $molwt -= ($no_aa-1)*$water;
-     print "Seq: $seqname\nMolecular wt: $molwt\n";
+#!/perl/user/bin/perl
+
+
+
+print "Enter the list of file names\n[ALL FILE NAMES SHOULD BE IN A SINGLE COLUMN\n";
+
+$list = <>;
+chomp($list);
+
+open (IN, "$list")|| die "can`t open $!";
+
+while ($line = <IN>)
+	{
+	chomp($line);
+	print "$line\n";
+	push (@files, $line);
+	}
+
+open (OP, ">$list.csv");
+print OP "##CLASS##\t  ##FOLD##\t  ##SUPERFAMILY##\t  ##FAMILY##\n";
+for ($i=0; $i<= $#files; $i++)
+	{
+	$name = $files[$i];
+	print "name= $name\n";
+	print OP "\nGene file name=$name\n";
+
+	mainprog($name);
+	}
+
+
+sub mainprog {
+
+		$class = 'unknown';
+		$fold = 'unknown';
+		$supfam='unknown';
+		$fam ='unknown';
+		$in = $_[0];
+		print "in=$in\n";
+		open (F, "$in");
+		#open (O, ">$in.csv");
+		while ($ll = <F>)
+			{
+			#print "ll= $ll\n";
+			if ($ll =~ /Class:/)
+				{
+				print "ll=$ll\n";
+				$ll =~ s/Class://;
+				$ll =~ s/\s+//g;
+				$class = $ll;
+				print OP "$class\t";
+				}
+			elsif ($ll =~ /Fold:/)
+				{
+				print "ll=$ll\n";
+				$ll =~ s/Fold://;
+				$ll =~ s/\s+//g;
+				$fold = $ll;
+				print OP "$fold\t";
+				}
+			elsif ($ll =~ /Superfamily:/)
+				{
+				print "ll=$ll\n";
+				$ll =~ s/Superfamily://;
+				$ll =~ s/\s+//g;
+				$supfam = $ll;
+				print OP "$supfam\t";
+				}
+			elsif ($ll =~ /Family:/)
+				{
+				print "ll=$ll\n";
+				$ll =~ s/Family://;
+				$ll =~ s/\s+//g;
+				$fam = $ll;
+				print OP "$fam\t";
+				}
+
+			}
+			print OP "\n";
+	}#ends subroutine
+
+

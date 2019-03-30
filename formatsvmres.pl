@@ -1,8 +1,8 @@
 $filetemplr = shift @ARGV;
 chomp $filetemplr;
-system("grep -E \"a = C0\|b = C1\" IC_*_toML.txt.class.arff.10fold.svm.txt > $filetemplr ");
+system("grep -E \"a = C0\|b = C1\" IC_*_toML.txt.class.arff.72fold.svm.txt > $filetemplr ");
 open(F,$filetemplr);
-$filetemplrout=$filetemplr.".out";
+$filetemplrout=$filetemplr.".72.out";
 open(FO,">$filetemplrout");
 while(<F>){
 	chomp;

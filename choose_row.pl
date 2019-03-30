@@ -23,8 +23,10 @@ open F2,$f2||die"cannot open $f2";
 while($l2=<F2>){
 	chomp $l2;
 	@t=split(/\t/,$l2);
-	@t3=split(/\_/,@t[1]);
-	push(@t5,@t3[0]);
+	if($l2=~/^[0-9]/){
+		@t3=split(/\s+/,$l2);
+		push(@t5,(@t3[0]-1));
+	}
 }
 close F2;
 while($l1=<F1>){

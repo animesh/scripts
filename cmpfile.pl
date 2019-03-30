@@ -13,9 +13,17 @@ while(<F1>)
 	$n12{@tmp[2]}=@tmp[1];
 	$namecord1{@tmp[0]}=@tmp[2];
 	$cordname1{@tmp[2]}=@tmp[0];
-	#print "@tmp[0]-@tmp[1]-@tmp[2]\t$n11{@tmp[0]}-$n12{@tmp[2]}-$cordname1{@tmp[2]}\n";
-  }
+            if ($seq ne ""){
+              $seq1{@tmp[0]}=$seq;
+              $seq = "";
+            }
+        }
+        else{
+            $seq=$seq.$_;
+        }
 }
+$seq1{@tmp[0]}=$seq;
+$seq="";
 $f2=shift;
 open(F2,$f2);
 while(<F2>)
@@ -30,26 +38,64 @@ while(<F2>)
         $n22{@tmp[2]}=@tmp[1];
         $namecord2{@tmp[0]}=@tmp[2];
 	$cordname2{@tmp[2]}=@tmp[0];
-  }
+            if ($seq ne ""){
+              $seq2{@tmp[0]}=$seq;
+              $seq = "";   
+            } 
+        }   
+        else{
+            $seq=$seq.$_;
+        }   
 }
-open(F1O,">$f1.$f2.name");
-open(F2O,">$f1.$f2.cord");
-@uniquelistn1 = keys %{{map {$_=>1} @name1}};
-@uniquelistn2 = keys %{{map {$_=>1} @name2}};
-foreach (@uniquelistn1){
-	#print "$c1\t$_\t$n11{$_} and $n21{$_}\t$cordname1{$_} and $cordname2{$_}\n";
-	if($n11{$_} and $n21{$_}){
-		$c1++;
-		print F1O"$c1\t$_\t$n11{$_} and $n21{$_}\t$namecord1{$_} and $namecord2{$_}\n";
-	}
-}
+$seq2{@tmp[0]}=$seq;
+$seq="";
+open(F1O,">$f1.$f2.res");
+@uniquelistn = keys %{{map {$_=>1} @name1}};
 foreach (@uniquelistn2){
-        if($n12{$_} and $n22{$_}){
+        if($n11{$_} and $n21{$_}){
 		$c2++;
-                print F2O "$c2\t$_\t$n12{$_} and $n22{$_}\t$cordname1{$_} and $cordname2{$_}\n";
+                print F2O "$c2\t$_\t$n11{$_} and $n21{$_}\t$cordname1{$_} and $cordname2{$_} and $seq1{$_} and $seq2{$_}\n";
         }
 }
 
+__END__
+
+$fp=$file1_$file2.".comp.txt";
+open (FP,">$fp");
+$fm=$file1_$file2.".mat.txt";
+open (FM,">$fm");
+
+for($c1=0;$c1<=$#seq1;c1++){
+        open(F1,">file1");
+        print F1">$seqname1[$c1]\n$seq1[$c1]\n";
+        for($c2=0;$c2<=$#seq2;c2++){            
+            open(F2,">file2");
+            print F2">$seqname2[$c2]\n$seq2[$c2]\n";
+            print "Aligning seq $seqname1[$c1] and seq $seqname2[$c2] with ";
+            system("needle file1 file2 -gapopen=10 -gapext=0.5 -outfile=file3");
+            open(FN,"file3");
+            my $length;
+            while(my $line=<FN>){
+                if($line=~/^# Length: /){chomp $line;my @t=split(/\:/,$line);$length=@t[1];}
+                if($line=~/^# Identity:     /){
+                   my @t=split(/\(|\)/,$line);
+                   @t[1]=~s/\%|\s+//g;
+                   my $per_sim=@t[1]+0;
+                   #if($max<$per_sim){
+                       $max=$per_sim;
+                       $max_seq_name=$i;
+                   print FP"$o-$i $seq_o_name\t$seq_i_name\t$per_sim\t$seq_o_length\t$seq_i_length\t$length\n";
+                   print FM"$per_sim\t";
+                   #}
+
+                }
+            }
+            close FN;
+            close F1;
+            close F2;
+        }
+        print FM"\n";
+}       
 
 #!/usr/bin/perl
 
