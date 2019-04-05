@@ -17,9 +17,21 @@ svg.selectAll('rect')
       .attr('fill', options.color);
 ```
 
+```{r data, echo = FALSE}
+scriptD <- 'C:\\Users\\animeshs\\Desktop\\scripts\\'
+inpD <-'L:\\promec\\Elite\\LARS\\2014\\desember\\christiano\\'
+data <- read.delim(paste0(inpD,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
+summary(data)
+decoyPrefix="REV"
+contaminantPrefix="CON"
+dataC="LFQ.intensity."
+```
+
 ```{r ROTS, echo = FALSE}
 #install.packages("BiocManager")
 #BiocManager::install("ROTS", version = "3.8")
+dataNormImpCom[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
 library(ROTS)
 data(upsSpikeIn)
 input = upsSpikeIn
@@ -32,40 +44,79 @@ plot(results, fdr = 0.2, type = "volcano")
 #plot(results, fdr = 0.05, type = "heatmap")
 ```
 
+```{r reticulate, echo = FALSE}
+#https://rviews.rstudio.com/2019/03/18/the-reticulate-package-solves-the-hardest-problem-in-data-science-people/
+install.packages('mlbench') #provides the data set
+library(mlbench) #provides the data set
+data("BreastCancer")
+#convert to numeric for models and remove na values for this example
+install.packages('xgboost')
+library(xgboost)
+
+model_set <- sapply(BreastCancer[complete.cases(BreastCancer),-1], as.numeric) 
+
+#format target variable as 0, 1 instead of 1,2
+model_set[,10]<-model_set[,10]-1 
+  
+#Split into test and train sets
+indices <- sample(1:nrow(model_set), size = 0.7 * nrow(model_set))
+
+#Target variables
+target<-unlist(model_set[indices,10])
+test_target<-unlist(model_set[-indices,10])
+
+#create unscaled data set for boosted tree models
+unscale_train<-as.matrix(model_set[indices,-10])
+unscale_test<-as.matrix(model_set[-indices,-10 ])
+
+#create normalized data set for neural network
+mean <- apply(model_set[indices,-10], 2, mean)
+std <- apply(model_set[indices,-10], 2, sd)
+
+train <- scale(model_set[indices,-10], center = mean, scale = std)
+test <- scale(model_set[-indices,-10], center = mean, scale = std)
+
+boost_model<-xgboost(data = unscale_train,label=target,booster="gbtree", nfold = 2,nrounds = 25, verbose = FALSE, objective = "binary:logistic", eval_metric = "auc", nthread = 4)
+
+install.packages('dplyr')
+library(dplyr)
+
+install.packages('keras')
+library(keras)
+y_target<-to_categorical(target,2)
+
+tf_nn <- keras_model_sequential() %>%
+  layer_dense(units = 12,
+              activation = 'relu',
+              input_shape = dim(train)[[2]]) %>% 
+  layer_dropout(rate = 0.4) %>% 
+  layer_dense(units = 12,
+              activation = 'relu')%>%
+  layer_dropout(rate = 0.3) %>%
+  layer_dense(units = 2,
+              activation = 'softmax')
+
+
+tf_nn %>% compile(
+  optimizer = optimizer_rmsprop(),
+  loss = "categorical_crossentropy",
+  metrics = c("accuracy")
+)
+
+history<-tf_nn %>% fit(
+  x=train,
+  y=y_target,
+  epochs = 7,
+  batch_size = 12
+)
+
+```
 
 ```{r stan, echo = FALSE}
-#https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
-#install.packages('rstan')
 library('rstan')
-rstan_options(auto_write = TRUE)
-mc.cores = parallel::detectCores()
-school8_dat <- list(J = 8, 
-                    y = c(28,  8, -3,  7, -1,  1, 18, 12),
-                    sigma = c(15, 10, 16, 11,  9, 11, 10, 18))
-fit<-stan(file='school8.stan',data=school8_dat)
-print(fit)
-plot(fit)
-pairs(fit, pars = c("mu", "tau", "lp__"))
-la <- extract(fit, permuted = TRUE) # return a list of arrays 
-mu <- la$mu 
-### return an array of three dimensions: iterations, chains, parameters 
-a <- extract(fit, permuted = FALSE) 
-### use S3 functions on stanfit objects
-a2 <- as.array(fit)
-m <- as.matrix(fit)
-d <- as.data.frame(fit)
+stan(paste0(scriptD,'school8.stan'))
 ```
 
-```{r rats, echo = FALSE}
-y = as.matrix(read.table('https://raw.github.com/wiki/stan-dev/rstan/rats.txt', header = TRUE))
-rats_fit = stan('https://raw.githubusercontent.com/stan-dev/example-models/master/bugs_examples/vol1/rats/rats.stan',y)
-plot(rats_fit)
-pairs(fit, pars = c("mu", "tau", "lp__"))
-x = c(8, 15, 22, 29, 36)
-xbar <- mean(x)
-N = nrow(y)
-T = ncol(y)
-```
 
 ```{r tmp, echo = FALSE}
 frac $\frac{1}{n}$ 

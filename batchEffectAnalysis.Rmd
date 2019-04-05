@@ -70,21 +70,29 @@ library("exploBATCH")
 #?expBATCH
 #data(Breast)
 #data(batchBreast)
-expBATCH(D=Breast,batchCL=batchBreast,Conf=NA,mindim=5,maxdim=7,method="ppcca")#,SDselect=2)
+expBATCH(D=t(dataNormImpCom),batchCL=(factors),mindim=1,maxdim=7,method="ppcca")#,SDselect=2)
+#expBATCH(D=Breast,batchCL=batchBreast,Conf=NA,mindim=5,maxdim=7,method="ppcca")#,SDselect=2)
 #expBATCH(Breast,batchBreast)
-expBATCH(t(dataNormImpCom),factors)
+#expBATCH(t(dataNormImpCom),factors)
 ```
 
 
 ```{r ROTS, echo = FALSE}
 #install.packages("BiocManager")
 #BiocManager::install("ROTS", version = "3.8")
+dataNormImpCom<-read.delim("L:\\promec\\Elite\\LARS\\2014\\desember\\christiano\\plantaris-walker-hit.txt",row.names=1,sep="\t",header = T)
+dataNormImpCom[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(rep(0,5), rep(1,5))
 library(ROTS)
-results = ROTS(data = dataNormImpCom, groups = factors , B = 100 , K = 500 , seed = 1234)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 1000 , K = 500 , seed = 1234)
+write.csv(summary(results, fdr = 1),file=paste0(inpD,"L:\\promec\\Elite\\LARS\\2014\\desember\\christiano\\plantaris-walker-hit.rots.csv"), sep = "\t")
+
 names(results) 
-summary(results, fdr = 0.05)
-plot(results, fdr = 0.2, type = "volcano")
-#plot(results, fdr = 0.05, type = "heatmap")
+summary(results, fdr = 1)
+plot(results, fdr = 0.5, type = "volcano")
+#P61203-2;P61203
+#plot(results, fdr = 0.5, type = "heatmap")
 ```
 
 
