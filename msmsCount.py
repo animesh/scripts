@@ -1,5 +1,5 @@
 from pathlib import Path
-pathFiles = Path('L:/promec/Animesh/HUNT/txt106dpMBR/')
+pathFiles = Path('L:/promec/Animesh/HUNT/combined/txt/')
 fileName=pathFiles/'msms.txt'
 import pandas as pd
 df=pd.read_table(fileName, low_memory=False)
@@ -10,6 +10,7 @@ dfDP=df.loc[:, df.columns.str.startswith(colName)]
 dfDP=dfDP[dfDP[colName].notnull()]
 dfDP[colName].replace('170704_OLUF_','',inplace=True,regex=True)
 dfDPcnt=dfDP[colName].value_counts()
+dfDPcnt.to_csv(pathFiles/(colName+'count.csv'))
 #dfDPcnt[(dfDPcnt>0)].plot(kind='pie')
 
 fileName=pathFiles/'all_the_labels_HUNT3_aliquot_batch.csv'
