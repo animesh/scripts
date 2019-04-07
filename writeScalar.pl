@@ -1,12 +1,12 @@
 #!/usr/bin/perl -w
 use strict;
 use Archive::Zip qw(:CONSTANTS :ERROR_CODES);
-use IO::Scalar;
+use IO::String;
 use IO::File;
 
 # test writing to a scalar
 my $zipContents = '';
-my $SH = IO::Scalar->new(\$zipContents);
+my $SH = IO::String->new($zipContents);
 
 my $zip = Archive::Zip->new();
 my $member = $zip->addString('a' x 300, 'bunchOfAs.txt');

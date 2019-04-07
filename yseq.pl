@@ -14,7 +14,7 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-open (FILENAME,"6357yorfs.txt") ||
+open (FILENAME,"orf_coding.fasta") ||
        die "can't open $name: $!";
 $seq = "";
 while ($line = <FILENAME>) {
@@ -34,16 +34,21 @@ while ($line = <FILENAME>) {
 }
 push(@seq,$seq);
 $lll=@seq;
-$e=0;
-while($e<$lll)
-{
+$cnt=1;
 print "\n\nSeqNo.\tSeqNam\tSequence\n\n";
-foreach $w(@seq)
+for($e=0;$e<$lll;$e++)
 {
-$cnt=$cnt+1;
-print "$cnt\t";
-print "@seqname[$e]\t";
-$e++;
-print "$w\n";
+$free=@seqname[$e];
+$free =~ s/:/ /g;
+@done=split(/ /,$free);
+$cont=1;
+if(@done[$cont]=~/Y/)
+{if(@done[$cont+1]=~/Y/)
+{
+print ">$cnt\t";
+print "$free\n";
+print "@seq[$e]\n";
+$cnt++;
+}
 }
 }

@@ -1,39 +1,22 @@
+import time
+import fluidsynth
 
-from StringIO import StringIO
-import string
+fs = fluidsynth.Synth()
+fs.start()
 
-testcases = r"""1 -> 1
-1"2" -> 12
-1"2  -> 12
-1"\"2" -> 1"2
-"1" "2" -> 1, 2
-1\" -> 1"
-1\\" -> 1\  
-1\\\" -> 1\"  
-1\\\\" -> 1\\  
-1" 1 -> 1 1
-1\" 1 -> 1", 1
-1\1 -> 1\1
-1\\1 -> 1\\1
-"""
+sfid = fs.sfload("example.sf2")
+fs.program_select(0, sfid, 0, 0)
 
-#testcases = r"""1\\\\" -> 1\\
-#"""
+fs.noteon(0, 60, 30)
+fs.noteon(0, 67, 30)
+fs.noteon(0, 76, 30)
 
-t = StringIO(testcases)
+time.sleep(1.0)
 
-def quote(s):
-    result = s.replace("\\", r"\\")
-    result = result.replace("\"", "\\\"")
-    return '"' + result + '"'
+fs.noteoff(0, 60)
+fs.noteoff(0, 67)
+fs.noteoff(0, 76)
 
+time.sleep(1.0)
 
-for s in t:
-    s = string.strip(s)
-    (value, result) = string.split(s, "->")
-#    print value, result
-    tokens = string.split(result, ",")
-    value = quote(value)
-    tokens = map(string.strip, tokens)
-    tokens = map(quote, tokens)
-    print "TEST(%s, {%s});" % (value, string.join(tokens, ","))
+fs.delete()

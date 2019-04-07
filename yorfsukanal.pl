@@ -16,25 +16,52 @@
 #!/usr/bin/perl
 open (FILENAME,"6357yorfs.txt") ||
        die "can't open $name: $!";
-while ($lin = <FILENAME>) {
-if ($lin =~ />/){
-print "hi";
-push(@seqname,$lin);
+$seq = "";
+while ($line = <FILENAME>) {
+	chomp ($line);	
+	if ($line =~ /^>/){
+          
+	    $line =~ s/>//;
+	    push(@seqname,$line);
+             $cc++;
+	    if ($seq ne ""){
+	      push(@seq,$seq);
+	      $seq = "";
+	    }
+      } else {
+		  $seq=$seq.$line;
+      }
 }
+open (FILE,"6357yorfs.txt") ||
+       die "can't open $name: $!";
+$no = "";
+while ($noline = <FILE>) {
+	chomp ($noline);	
+	$no=$no.$noline;
 }
-print @seqname;
-$lll=@seqname;
+$lll=@seq;
 $cnt=1;
-foreach $free (@seqname)
+print "\n\nSeqNo.\tSeqNam\tSequence\n\n";
+for($e=0;$e<$lll;$e++)
 {
+$free=@seqname[$e];
 $free =~ s/:/ /g;
 @done=split(/ /,$free);
 $cont=1;
 if(@done[$cont]=~/Y/)
 {if(@done[$cont+1]=~/Y/)
 {
-print "@done[$cont+1]\t@done[$cont]\n";
-}
+@nodone=split(/"\n"/,$no);
+foreach $nodon(@nodone)
+{
+if($nodon=~/@done[$cont]/)
+{
+print "$cnt\t";
+print "$free\n";
+print "@seq[$e]\n";
 }
 $cnt++;
+}
+}
+}
 }

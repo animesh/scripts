@@ -14,33 +14,52 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
+open (FILENAME,"orf_coding.fasta") ||
+       die "can't open $name: $!";
+$seq = "";
+while ($line = <FILENAME>) {
+	chomp ($line);	
+	if ($line =~ /^>/){
+          
+	    $line =~ s/>//;
+	    push(@seqname,$line);
+             $cc++;
+	    if ($seq ne ""){
+	      push(@seq,$seq);
+	      $seq = "";
+	    }
+      } else {
+		  $seq=$seq.$line;
+      }
+}
 open (FILE,"ukyeastgenes.txt") ||
        die "can't open $name: $!";
+$no = "";
 while ($noline = <FILE>) {
 	chomp ($noline);	
-	$no=$no." ".$noline;
+	$no=$no.$noline;
 }
-open (FILEY,"yt.txt") ||
-       die "can't open $name: $!";
-while ($nnoline = <FILEY>) {
-	chomp ($nnoline);	
-	$nno=$nno." ".$nnoline;
-}
-chomp ($no);
-chomp ($nno);
-@nodone=split(/ /,$no);
-@nnodone=split(/ /,$nno);
-$c=@nodone;
-$cc=@nnodone;
+$lll=@seq;
+$cnt=1;
+for($e=0;$e<$lll;$e++)
+{
+$free=@seqname[$e];
+$free =~ s/:/ /g;
+@done=split(/ /,$free);
 $cont=1;
-foreach $test (@nnodone) {
-	$test=~s/,//g;
+if(@done[$cont]=~/Y/)
+{if(@done[$cont+1]=~/Y/)
+{
+@nodone=split(/"\n"/,$no);
+foreach $nodon(@nodone)
+{
+if($nodon=~/@done[$cont]/)
+{
+@seqq=split(/ /,@seqname[$e]);
+print "@seqq[1]\n";
 }
-$cc=0;
-foreach $t (@nodone) {
-foreach $tt (@nnodone) {
-		$t=~s/$tt//;
-	}
-	print "> $cc $t\n";
-	$cc++;
+}
+$cnt++;
+}
+}
 }

@@ -14,21 +14,19 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-if( @ARGV ne 3){die "\nUSAGE\t\"ProgName MultSeqFile N-basedPeriodicity windows-size\t\n\n\n";}
+if( @ARGV ne 1){die "\nUSAGE\t\"ProgName MultSeqFile\t\n\n\n";}
 $file = shift @ARGV;
-$k = shift @ARGV;
-$ws = shift @ARGV;
 use Math::Complex;
 $pi=pi;
+#$i = Math::Complex->make(0, 0);
 $i=sqrt(-1);
-$f=(1/$k);
 open (F, $file) || die "can't open \"$file\": $!";
 $seq="";while ($line = <F>) {
         chomp ($line);
         if ($line =~ /^>/){
              @seqn=split(/\s+/,$line);
-                $snames=@seqn[0];$snames=~s/>//;1/1;$snames=~s/\|/ /g;1/1;
-                chomp $snames;
+                $snames=@seqn[0];$snames=~s/>//;1/1;
+                chomp $snames;$snames=~s/\s+//g;
              push(@seqname,$snames);
                 if ($seq ne ""){
               push(@seq,$seq);
@@ -37,52 +35,74 @@ $seq="";while ($line = <F>) {
       } else {$seq=$seq.$line;
       }
 }
+
 push(@seq,$seq);close F;
-@base=qw/A T G C/;$ss1=@seq;#print "$ss1\t$ss2\n";
+@base=qw/A T G C/;$ss1=@seq;#
+
+#print "$ss1\t$snames\n$seq\n";
 for($c1=0;$c1<$ss1;$c1++)
 {
 $seq=uc(@seq[$c1]);
 $sname=@seqname[$c1];
 $foo=$sname."ft"."\.out";
-open FO,">$foo";
+#open FO,">$foo";
 $N=length($seq);
+
 $R=$N%3;
+#print "$N\t";
 if($R ne 0){$N=$N-$R;}
-#$ws=$N;
-$len=($N-$ws+1);
-        for($c2=1;$c2<=$len;$c2++)
-        {
-	$c22=$c2+$ws-1;
-	$rn=$sname."\.".$c2."\-".$c22."\.fted";
-	open(FS1,">$rn");
-        $subseq=substr($seq,($c2-1),($ws));#$ll=length($subseq);
-        @wssplit=split(//,$subseq);#print "$seq1\n";
-        #foreach $temp (@window){print "$temp\n";}
-	$c=$subseq=~s/C/C/g;$a=$subseq=~s/A/A/g;$g=$subseq=~s/G/G/g;
-	$t=$subseq=~s/T/T/g;
-                for($c3=0;$c3<=$#base;$c3++)
-                {
-                $bvar=@base[$c3];
-                        for($c4=0;$c4<=$#wssplit;$c4++)
-                        {$wsvar=@wssplit[$c4];
-                                if ($bvar eq $wsvar)
-                                {
-                                $sum+=exp(2*$pi*$i*$f*($c4+1));#print"$wsvar\t$bvar\n";
-                                }
-                                else{$sum+=0;}
-                        }
-                        $sumtotal+=(((1/$ws)**2)*(abs($sum)**2));$sum=0;
-                }$atgcsq=((1/($ws**2))*($c**2+$a**2+$g**2+$t**2));
-                $sbar=(1/$ws)*(1+(1/$ws)-$atgcsq);$atgcsq=0;
-                $ptnr=$sumtotal/$sbar;
-                $ptnrnew=($ptnr)/($N*$sbar);
-                $ptnrnew2=2*$ptnrnew;
-                $sumtotal=0;$ll=$c2+$ws-1;
-                if($ptnr >= 4.0)
-                        {
-                	print "Window Analysis of $sname (range:$c2 to $ll):Peak 2 NoiseRatio is $ptnr\t$ptnrnew\t$ptnrnew2\n";
-                        print FS1"$sname\t$ptnr\t$ptnrnew\t$ptnrnew2\n";
+FT(1,$N);
+	sub FT {
+	#print "in the loop!\n";
+	$st=shift;
+	$sp=shift;
+	$le=$sp-$st+1;
+	$subs=substr($seq,($st-1),$le);$ws=$sp;$subseq=$subs;
+	$c=$subseq=~s/C/C/g;$a=$subseq=~s/A/A/g;$g=$subseq=~s/G/G/g;$t=$subseq=~s/T/T/g;
+	$sfo=$sname."\.fted\.out";
+#	open(SFO,">$sfo");
+	@subssplit=split(//,$subs);
+		
+		for($k=1;$k<=($sp/2);$k++)
+		 {#print "$subsum\n";
+                
+		if ($le/$k == 3)
+			{for($c6=0;$c6<=$#base;$c6++)
+		 	{
+			$bvar=@base[$c6];
+			#print "op!$c6\t$bvar\n";
+			for($c7=0;$c7<=$#subssplit;$c7++)
+			{$wsvar=@subssplit[$c7];$c70=$c7+1;#if($c70 ==1){next;}#print "$subsum\n";
+				if ($bvar eq $wsvar)
+				{	#print "$k\t$bvar\t$wsvar\n2\*$pi\* $i \*\($k\/$le\)\*\($c70\)\n";
+					$subsum+=exp((2)*$pi*$i*($k/$le)*($c70));
+					#print "$k\t$bvar\t$wsvar\n2\*$pi\* $i \*\($k\/$le\)\*\($c7\+1\)\n";
+				}
+				else{$subsum+=0;#print "$k\t$bvar\t$wsvar\n\n\n";
+				}
 			}
-		else{}
+			if($subsum){$subsumtotal+=(((1/$le)**2)*(abs($subsum)**2));}
+			$subsum=0;
+		 }
+		 $atgcsq=((1/($ws**2))*($c**2+$a**2+$g**2+$t**2));
+		 $sbar=(1/$ws)*(1+(1/$ws)-$atgcsq);$atgcsq=0;
+		 #push(@ssts,$subsumtotal);$substs+=$subsumtotal;
+		 $substss=$sbar;
+		$subptnr1=$subsumtotal/$substss;
+		$subsumtotal=0;
+		$subptnr2=$subptnr1/($sp*$substss);
+		$subptnr3=$subptnr2*2;
+		1/1;
+		#if ($le/$k == 3)
+		#{
+		$pp=($k)/$le;if($subptnr3 >= 4){
+		print "$sname\t$pp\t$subptnr1\t$subptnr2\t$subptnr3\n";}
+		#if($pp eq (1/3)){print $pp\t$subptnr3\n";}
+				else {
+				print "PTNR \< 4\n$sname\t$pp\t$subptnr1\t$subptnr2\t$subptnr3\n";}
+		}
+		}#undef @ssts;
+		#print "S(f) to Frequency written to file $sfo\n";
+		close SFO;
 	}
 }
