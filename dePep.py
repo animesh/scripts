@@ -1,28 +1,25 @@
 import sys
-if len(sys.argv)!=2:    sys.exit("USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s)>")
-
 from pathlib import Path
+if len(sys.argv)!=2:    sys.exit("USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s) like \"L:/combined/txt\" >")
 pathFiles = Path(sys.argv[1])
-pathFiles = Path("L:/promec/HF/Lars/2019/Camilla MIB/combined/txt")
+#pathFiles = Path("L:/promec/HF/Lars/2019/april/MENGTAN/combined")
 fileName='allPeptides.txt'
 trainList=list(pathFiles.rglob(fileName))
 
 import pandas as pd
-df=pd.read_table(trainList[0], low_memory=False)
+df=pd.DataFrame()
+for f in trainList:
+    peptideHits=pd.read_csv(f,low_memory=False,sep='\t')
+    print(f)
+    peptideHits['Name']=f
+    df=pd.concat([df,peptideHits],sort=False)
+print(df.head())
 print(df.columns)
-#df['Mass deficit'].hist()
-#df['Mass precision [ppm]'].hist()
-
 print(df.columns.get_loc("DP Proteins"))
-#awk -F '\t' '{print $47}' promec/promec/USERS/MarianneNymark/181009/Charlotte/HF/combined/txt/allPeptides.txt | sort | uniq -c
 dfDP=df.loc[:, df.columns.str.startswith('DP')]
 dfDP=dfDP[dfDP['DP Proteins'].notnull()]
 dfDP=dfDP.rename(columns = lambda x : str(x)[3:])
-#dfDP['Mass Difference'].hist()
-#dfDP['Base Raw File'].hist()
-#print(dfDP['Base Raw File'].value_counts())
 writeDPpng=pathFiles/(fileName+"DP.png")
-#dfDP['Modification'].value_counts().plot(kind='bar')
 dfDPcnt=dfDP['Modification'].value_counts()
 print(dfDPcnt)
 

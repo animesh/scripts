@@ -1,36 +1,30 @@
+import sys
 from pathlib import Path
-pathFiles = Path('L:/promec/Animesh/HUNT/combined/txt/')
-fileName=pathFiles/'msms.txt'
-import pandas as pd
-df=pd.read_table(fileName, low_memory=False)
+fileName='msms.txt'
 colName="Raw file"
+if len(sys.argv)!=2:    sys.exit("USAGE: python dePep.py <path to folder containing \""+fileName+"\" file(s) like \"L:/combined/txt\" with column \""+colName+"\">")
+pathFiles = Path(sys.argv[1])
+#pathFiles = Path('L:/promec/Animesh/HUNT/combined/txt/')
+trainList=list(pathFiles.rglob(fileName))
+
+import pandas as pd
+df=pd.DataFrame()
+for f in trainList:
+    peptideHits=pd.read_csv(f,low_memory=False,sep='\t')
+    print(f)
+    peptideHits['Name']=f
+    df=pd.concat([df,peptideHits],sort=False)
+print(df.head())
+
 df.columns.get_loc(colName)
-#df['Raw file'].value_counts().plot(kind='barh').figure.savefig('fooMeAd.png',dpi=300,bbox_inches = "tight")
-dfDP=df.loc[:, df.columns.str.startswith(colName)]
-dfDP=dfDP[dfDP[colName].notnull()]
-dfDP[colName].replace('170704_OLUF_','',inplace=True,regex=True)
-dfDPcnt=dfDP[colName].value_counts()
-dfDPcnt.to_csv(pathFiles/(colName+'count.csv'))
-#dfDPcnt[(dfDPcnt>0)].plot(kind='pie')
+dfMSMS=df.loc[:, df.columns.str.startswith(colName)]
+dfMSMS=dfMSMS[dfMSMS[colName].notnull()]
+dfMSMScnt=dfMSMS[colName].value_counts()
 
-fileName=pathFiles/'all_the_labels_HUNT3_aliquot_batch.csv'
-dfPTM=pd.read_csv(fileName, low_memory=False)
-dfPTM.columns.values
-colName="POSITION"
-dfPTM[colName].value_counts().plot(kind='barh').figure.savefig(pathFiles/(colName+'.png'),dpi=100,bbox_inches = "tight")
-
-#chkFiles="A1,A3,A6,A10,A11,C10,D1,D2,D3,E1,E2,F10,C11,E6,E9,E12,F1,F2,F4,G2,G3,H2,H5,H7"
-dfPTM[colName].replace('0','',inplace=True,regex=True)
-dfPTM['index']=dfPTM[colName].str[1:]+dfPTM[colName].str[:1]
-dfDPcnt=dfDPcnt.to_frame().reset_index()
-dfDPcnt[colName]=dfDPcnt['index'].str[-1:]+dfDPcnt['index'].str[0:-1]
-dfMerged=dfDPcnt.merge(dfPTM,left_on=colName, right_on=colName,how='inner')
-dfMergedOnIndex=dfDPcnt.merge(dfPTM,left_on='index', right_on='index',how='inner')
-dfMergedOnIndexM=dfMergedOnIndex[dfMergedOnIndex['Code'].str.contains('M')&dfMergedOnIndex['PrimaryLast']==1]
-dfMergedOnIndexM=dfMergedOnIndexM.set_index("index")
-dfMergedOnIndexM['Raw file'].plot(kind='barh').figure.savefig(pathFiles/(colName+'Me.png'),dpi=100,bbox_inches = "tight")
-dfMergedOnIndexAD=dfMergedOnIndex[dfMergedOnIndex['Code'].str.contains('AD')&dfMergedOnIndex['PrimaryLast']==1]
-dfMergedOnIndexAD=dfMergedOnIndexAD.set_index("index")
-dfMergedOnIndexAD['Raw file'].plot(kind='barh').figure.savefig(pathFiles/(colName+'Ad.png'),dpi=100,bbox_inches = "tight")
-
-dfMergedOnIndex.to_csv(pathFiles/(colName+'merged.csv'))
+print("writing output to ... ")
+writeMSMSpng=pathFiles/(fileName+".count.png")
+dfMSMScnt[dfMSMScnt>10].plot(kind='pie').figure.savefig(writeMSMSpng,dpi=100,bbox_inches = "tight")
+print(writeMSMSpng)
+writeMSMScsv=pathFiles/(fileName+".count.csv")
+dfMSMScnt.to_csv(writeMSMScsv)
+print(writeMSMScsv)

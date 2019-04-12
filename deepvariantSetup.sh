@@ -22,5 +22,3 @@ LOGDIR=./logs
 N_SHARDS=3
 CALL_VARIANTS_OUTPUT="${OUTPUT_DIR}/call_variants_output.tfrecord.gz"
 FINAL_OUTPUT_VCF="${OUTPUT_DIR}/output.vcf.gz"
-
-
