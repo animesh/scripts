@@ -14,36 +14,53 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-use strict;
 use Bio::SeqIO;
 
-my $input_file = shift;
-my $input_list=shift;
+$input_file = shift @ARGV;
+$input_list=shift @ARGV;
+open(FL,$input_list);
+while($l=<FL>){
+	chomp $l;
+	if($l ne ""){
+		my @t=split(/\t/,$l);
+		my $name=@t[0];
+		$name=~s/\s+/_/g;
+		push(@names,$name);
+		@t=split(/\,/,@t[1]);
+		foreach  (@t) {
+			my $sn="S".$_;
+			push(@$name,$sn);
+			print $sn;
+		}
+	}
+}
+close FL;
+foreach $filename (@names) {
+	$fn=$filename.".txt";
+	open(FO,">$fn");
+	foreach $seqn (@$filename) {
+		$seq_in  = Bio::SeqIO->new( -format => 'fasta', -file => $input_file);
+		while( $seq = $seq_in->next_seq() ) {
+			$seqname=$seq->id;
+			$seqtext=$seq->seq;
+			if($seqn eq $seqname){
+				print FO">$seqname\n$seqtext\n";
+				$match{$seqn}++;
+			}
+		}
+	}
+	close FO;
+}
 
-my $seq_in  = Bio::SeqIO->new( -format => 'fasta',
-   -file => $input_file);
-
-# loads the whole file into memory - be careful
-# if this is a big file, then this script will
-# use a lot of memory
-
-my $seq;
-my @seq_array;
+$fn="rest_of_$input_list.txt";
+open(FO,">$fn");
+$seq_in  = Bio::SeqIO->new( -format => 'fasta', -file => $input_file);
 while( $seq = $seq_in->next_seq() ) {
-   push(@seq_array,$seq);
+	$seqname=$seq->id;
+	$seqtext=$seq->seq;
+	if(!$match{$seqname}){
+		print $seqname;
+		print FO">$seqname\n$seqtext\n";
+	}
 }
-
-# now do something with these. First sort by length,
-# find the average and median lengths and print them out
-
-@seq_array = sort { $a->length <=> $b->length } @seq_array;
-
-my $total = 0;
-my $count = 0;
-foreach my $seq ( @seq_array ) {
-   $total += $seq->length;
-   $count++;
-}
-
-print "Mean length ",$total/$count," Median ",$seq_array[$count/2]->length,"\n";
-
+close FO;

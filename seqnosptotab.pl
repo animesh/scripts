@@ -17,19 +17,51 @@
 $f=shift @ARGV;
 open(F,$f);
 while($l=<F>){
-	chomp $l;
+		chomp $l;
+		$l=uc($l);
+		$l=~s/\r/\n/g;
+		$l=~s/\s+$//g;
+		if($l eq ""){next;}
 		@t=split(/,/,$l);
+#		for($c=0;$c<$#t;$c++){
+#			print "@t[$c],";
+#		}
+#		@t=split(//,@t[$c]);
+		print "@t[0],POS,";
+		@t=split(//,@t[2]);
 		for($c=0;$c<$#t;$c++){
 			print "@t[$c],";
 		}
-		@t=split(//,@t[$c]);
-		for($c=0;$c<$#t;$c++){
-			print "@t[$c],";
+		print "@t[$c]\n";
+
+		@st=split(/,/,$l);
+#		for($c=0;$c<$#st;$c++){
+#			print "@st[$c]-M,";
+#		}
+#		@st=split(//,@st[$c]);
+		print "@st[0]-M,NEG,";
+		@st=split(//,@st[2]);
+		shuffle(\@st);
+		for($c=0;$c<$#st;$c++){
+			print "@st[$c],";
 		}
-	print "@t[$c]\n";
+		print "@st[$c]\n";
+
 }
+
 		for($c=0;$c<$#t;$c++){
 			print "C-$c,";
 		}
 			print "C-$c\n";
+
+
+    sub shuffle {
+        my $deck = shift;
+        my $i = @$deck;
+        while ($i--) {
+            my $j = int rand ($i+1);
+            @$deck[$i,$j] = @$deck[$j,$i];
+        }
+    }
+
 

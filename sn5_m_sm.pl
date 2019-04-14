@@ -41,10 +41,10 @@ while($l1=<F1>){
 	$temp5=sqrt($temp5/$aml);
 	if($temp4 eq $temp5){$temp1=1;}
 	else{
-		$temp1=($temp2-$temp3)/($temp4+$temp5);
+		$temp1=($temp2-$temp3)/($temp4-$temp5);
 		#$temp1=($temp4);
 		}
-	$sum{"$key"}=abs($temp1);
+	$sum{"$key"}=($temp1);
 	$temp1=0;$temp2=0;$temp3=0;$temp4=0;$temp5=0;$temp6=0;$temp7=0;
 }
 foreach $q (sort {$sum{$b} <=> $sum{$a}} keys %sum){

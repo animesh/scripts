@@ -1,6 +1,6 @@
 for($c=50;$c<=400;$c+=50){
 	print "Length $c\n";
-	system("/usit/titan/u1/ash022/mapasm454_source_11172009/applicationsBin/runAssembly -fe list.$c -o ecoli.assembly.$c *.sff");
+	system("/usit/titan/u1/ash022/mapasm454_source_11172009/applicationsBin/runAssembly -fi list.$c -o ecoli.assembly.low.$c *.sff");
 }
 
 __END__

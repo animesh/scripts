@@ -1,34 +1,41 @@
-use strict;use warnings;use Text::ParseWords;
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
-my $f=shift @ARGV;my $sep=shift @ARGV;
-chomp $f;chomp $sep;
-
-if($sep eq "comma"){$sep=","}
-elsif($sep eq "tab"){$sep="\t"}
-else{$sep=" "}
-
-if (!$f) {die "\nUSAGE:	\'perl program_name filename_2_b_transposed separator(tab or comma?default space)\'\n\n";}
-open F,$f||die"cannot open $f";
-
-my $c1=0;my @mat;my @t;my %rc;
-while(my $l=<F>){
-	$l =~ s/[\r\n]+$//;
-	@t=parse_line($sep,0,$l);
-	$rc{$c1}=$#t;
-	if($c1>0&&$rc{$c1}!=$rc{$c1-1}){die "elements in row $c1 ($rc{$c1}) not same at first row ($rc{0})"}
-	for(my $c2=0;$c2<=$#t;$c2++){
-		$mat[$c1][$c2]=$t[$c2];
-	}
+#!/usr/bin/perl
+$f1=shift @ARGV;chomp $f1;
+if (!$f1) {print "\nUSAGE:	\'perl program_name filename_2_b_transposed_n_normalised\'\n\n";exit;}
+open F1,$f1||die"cannot open $f1";
+my $c1=0;
+while($l1=<F1>){
+	chomp $l1;
+	@t1=split(/\s+/,$l1);
+	$max=@t1[0];$min=@t1[0];
+	for($c2=0;$c2<=$#t1;$c2++){
+		if(@t1[($c2)]>$max){$max=@t1[$c2];}
+		if(@t1[($c2)]<$min){$min=@t1[$c2];}
+		}
+	for($c2=0;$c2<=$#t1;$c2++){
+		if($min==$max){$mat[$c2][$c1]=@t1[$c2];}
+		else{$mat[$c2][$c1]=(@t1[$c2]-$min)/($max-$min);}#print "@t1[$c2]  ";
+		}
+	
 	$c1++;
 }
-
-for(my $c3=0;$c3<=$rc{$c1-$c1};$c3++){
-	for(my $c4=0;$c4<$c1;$c4++){
-		print $mat[$c4][$c3],$sep;
-	}
-	print "\n";
+for($c5=0;$c5<$c2;$c5++){
+	for($c6=0;$c6<($c1-1);$c6++){
+		print "$mat[$c5][$c6]\t";
+		}
+	print "$mat[$c5][$c6]\n";
 }
-
-__END__
-
-for i in *_genus.csv ; do echo $i; perl $HOME/1d/scripts/trp.pl $i tab > $i.trp.txt ; done

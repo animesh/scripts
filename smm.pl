@@ -62,7 +62,6 @@ $fooo1=$file3."\.pP.out";$fooo2=$file."\.pN.out";$fooo3=$file."\.p0.out";
 open FC1,">$fooo1";open FC2,">$fooo2";open FC3,">$fooo3";
 for($fot=0;$fot<=$#sq3;$fot++){
 $seq=lc(@sq3[$fot]);$seqname=@seqname[$fot];$len=length($seq);
-
 		for($cot=0;$cot<=($len-$colo);$cot++)
 			{$subs=substr($seq,$cot,$colo);
 			if(($mash2{$subs} ne "") and ($mash1{$subs} ne ""))
@@ -78,44 +77,45 @@ $seq=lc(@sq3[$fot]);$seqname=@seqname[$fot];$len=length($seq);
 				{$p=(1/$cash1)/$mash2{$subs};
 				$prob+=log($p);}
 			}
-	$prob=$prob/$len;
-	$seq=uc(@sq3[$fot]);
-	if($prob gt 0){
-	print "coding\t$seqname\t$prob\n";
-	print FC1">$seqname\tP-$prob\n$seq\n";
-	}
-	elsif($prob eq 0){
-	print "intermediate !\t$seqname\t$prob\n";
-	print FC3">$seqname\tP-$prob\n$seq\n";
-	}
-	else{
-	print "non-coding\t$seqname\t$prob\n";
-	print FC2">$seqname\tP-$prob\n$seq\n";
-	}
-	$prob=0;
+$seq=uc(@sq3[$fot]);
+$prob=($prob/$len);
+if($len >= 150){
+if($prob gt 0){
+print "$seqname\tP - $prob\n";
+print FC1"$seqname\tP - $prob\n$seq\n";
+}
+elsif($prob eq 0){
+#print "intermediate !\t$seqname\t$prob\n";
+print FC3"$seqname\tP - $prob\n$seq\n";
+}
+else{
+#print "non-coding\t$seqname\t$prob\n";
+print FC2"$seqname\tP - $prob\n$seq\n";
+}
+}
+$prob=0;
 }
 close FC1;close FC2;close FC3;
 undef @sq3;
-
 sub openfile {
 $file=shift;undef @seqname;undef @seq;
 $seq="";
 open(F,$file)||die "can't open";
-	while ($line = <F>) {
-			chomp ($line);
-			if ($line =~ /^>/){
-				 @seqn=split(/\t/,$line);
-			#$snames=@seqn[0];
-			$snames=$line;
-			chomp $snames;
-				 push(@seqname,$snames);
-					if ($seq ne ""){
-				  push(@seq,$seq);
-				  $seq = "";
-				}
-		  } else {$seq=$seq.$line;
-		  }
-	}push(@seq,$seq);return (@seq);close F;
+while ($line = <F>) {
+        chomp ($line);
+        if ($line =~ /^>/){
+             @seqn=split(/\t/,$line);
+		#$snames=@seqn[0];
+		$snames=$line;
+		chomp $snames;
+             push(@seqname,$snames);
+                if ($seq ne ""){
+              push(@seq,$seq);
+              $seq = "";
+            }
+      } else {$seq=$seq.$line;
+      }
+}push(@seq,$seq);return (@seq);close F;
 }
 
 sub createhash{
@@ -123,12 +123,13 @@ sub createhash{
 	for($x11=0;$x11<=$#seq;$x11++){
 		$seq=lc(@seq[$x11]);chomp $seq;
 		$len=length($seq);
-		for($co2=0;$co2<=($len-$colo);$co2++)
+		if($len >= 150){
+			for($co2=0;$co2<=($len-$colo);$co2++)
 			{$subs=substr($seq,$co2,$colo);
 			#push(@fran,$subs);
 			$mash{$subs}+=1;
 			}
+		}
 	}
 return %mash;undef %mash;
-}
-#foreach $k (keys %mash) {print "$k => $mash{$k}\n";}
+}#foreach $k (keys %mash) {print "$k => $mash{$k}\n";}

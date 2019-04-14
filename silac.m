@@ -1,26 +1,21 @@
-%% read
-scorea=xlsread('X:\Elite\LARS\2013\oktober\PRN3R.xlsx')
+%% file
+prot=xlsread('L:\Tony\121005_CSR_SILAC_Velos_pro\combo.xlsx');
+mrna=prot(:,9:14);
 
-%% scores and areas
-prot=prot(:,[28,36,44,52,60,68,76,84,92,100,108,116,124,132,140,148,156,164,172,180,188,196])
-prot=prot(:,6:27)
-corr(scorea,'rows','pairwise')
+%% extract plot and correlate
+
+mm=2
+pm=5
+sum(mrna(:,mm)>0&mrna(:,pm)>0|mrna(:,mm)<0&mrna(:,pm)<0)
+corr(mrna((mrna(:,mm)>0&mrna(:,pm)>0|mrna(:,mm)<0&mrna(:,pm)<0),mm),mrna((mrna(:,mm)>0&mrna(:,pm)>0|mrna(:,mm)<0&mrna(:,pm)<0),pm),'rows','pairwise')
+plot(mrna((mrna(:,mm)>0&mrna(:,pm)>0|mrna(:,mm)<0&mrna(:,pm)<0),mm),mrna((mrna(:,mm)>0&mrna(:,pm)>0|mrna(:,mm)<0&mrna(:,pm)<0),pm),'r.')
+
+%% trending partners
+
+mm=2
+pm=5
+thr=std(mrna(abs(mrna(:,mm))>0&abs(mrna(:,pm))>0,mm)-mrna(abs(mrna(:,mm))>0&abs(mrna(:,pm))>0,pm))/10
+sum(abs(mrna(:,mm))-abs(mrna(:,pm))<thr)
+plot(mrna((mrna(:,mm)>thr&mrna(:,pm)>thr|mrna(:,mm)<thr&mrna(:,pm)<thr),mm),mrna((mrna(:,mm)>thr&mrna(:,pm)>thr|mrna(:,mm)<thr&mrna(:,pm)<thr),pm),'r.')
 
 
-%% cluster analysis
-
-corrprot=corrcoef(prot,'rows','pairwise')
-corrprot=corrcoef(prot','rows','pairwise')
-ccprop=clustergram(prot, 'Colormap', redgreencmap(256),'ImputeFun','knnimpute')%,'Distance', 'mahalanobis')
-get(ccprop)
-
-%% comp
-
-[pcom, z, dev] = pca(prot)
-cumsum(dev./sum(dev) * 100)
-plot(pcom(:,1),pcom(:,2),'r.')
-tags = num2str((1:size(pcom,1))','%d');
-text(pcom(:,1),pcom(:,2),tags)
-xlabel('PC1');
-ylabel('PC2');
-title('PCA Scatter');
