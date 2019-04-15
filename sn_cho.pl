@@ -28,9 +28,7 @@ for  ($c0=($all+1);$c0<=($all+$aml+1);$c0++) {
 }
 while($l1=<F1>){
 	$c1++;$c=$c1-1;chomp $l1;
-	if($c1 == 1){print "Rank\t$l1\n";next;
-	}
-	if($l1 eq ""){next;
+	if($c1 == 1 || $l1 eq ""){print "Rank\t$l1\n";next;
 	}
 	@t1=split(/\t/,$l1);
 	$key=$c."_".$l1;
@@ -50,7 +48,7 @@ while($l1=<F1>){
 	$temp5=sqrt($temp5/$N);
 	if($temp4==$temp5){$temp1=0;}
 	else{
-		$temp1=($temp2-$temp3)/($temp4-$temp5);
+		$temp1=($temp2-$temp3)/($temp4+$temp5);
 		}
 	$sum{"$key"}=abs($temp1);
 	$temp1=0;$temp2=0;$temp3=0;$temp4=0;$temp5=0;$temp6=0;$temp7=0;

@@ -21,7 +21,7 @@ if ($f1 eq "" or $all eq "" or $aml eq "" or $top eq "") {print "\nUSAGE:	\'perl
 open F1,$f1||die"cannot open $f1";
 while($l1=<F1>){
 	$c1++;$c=$c1-1;chomp $l1;
-	if($c1 == 1 || $l1 eq ""){print "Rank\t$l1\n";next;
+	if($c1 == 1 || $l1 eq ""){print "Rank\t$l1\tsnr\tall_mean\taml_mean\tall_std\taml_std\n";next;
 	}
 	@t1=split(/\t/,$l1);
 	$key=$c."_".$l1;
@@ -41,16 +41,12 @@ while($l1=<F1>){
 	$temp5=sqrt($temp5/$aml);
 	if($temp4 eq $temp5){$temp1=1;}
 	else{
-		$temp1=($temp2-$temp3)/($temp4-$temp5);
+		$temp1=($temp2-$temp3)/($temp4+$temp5);
 		#$temp1=($temp4);
 		}
-	$sum{"$key"}=($temp1);
+	#$sum{"$key"}=abs($temp1);
+	$temp1=abs($temp1);
+	print "$key\t\t$temp1\t$temp2\t$temp3\t$temp4\t$temp5\n";
 	$temp1=0;$temp2=0;$temp3=0;$temp4=0;$temp5=0;$temp6=0;$temp7=0;
+
 }
-foreach $q (sort {$sum{$b} <=> $sum{$a}} keys %sum){
-	$c3++;@t9=split(/\t/,$q);
-	@t10=split(/_/,@t9[0]);
-	if($c3<=$top){
-		print "$c3\t$q\t$sum{$q}\n";
-		}
-	}

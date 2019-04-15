@@ -19,11 +19,19 @@ $file = shift @ARGV;
 open (F, $file) || die "can't open \"$file\": $!";
 $seq="";
 $seqtoortho{"A"}="0\t0\t0\t1";
+
 $seqtoortho{"T"}="0\t0\t1\t0";
 $seqtoortho{"G"}="0\t1\t0\t0";
 $seqtoortho{"C"}="1\t0\t0\t0";
 $seqtoortho{"-"}="0\t0\t0\t0";
 $seqtoortho{"X"}="1\t1\t1\t1";
+
+
+$seqtoortho{"T"}="0\t0\t0\t0";
+$seqtoortho{"G"}="0\t0\t0\t0";
+$seqtoortho{"C"}="0\t0\t0\t0";
+$seqtoortho{"-"}="0\t0\t0\t0";
+$seqtoortho{"X"}="0\t0\t0\t0";
 
 while ($line = <F>) {chomp $line;
 	if ($line =~ /^>/){
@@ -53,7 +61,7 @@ for($c1=0;$c1<=$#seq;$c1++){
 	for($c2=0;$c2<=$#temp;$c2++){
 		print FO"$seqtoortho{@temp[$c2]}\t";
 	}
-	print FO"1\t0\t0\n";
+	#print FO"1\t0\t0\n";
 }
 #clustalw file /output=pir
 #perl rfas.pl file.pir

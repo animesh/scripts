@@ -12,6 +12,9 @@ x = tf.placeholder("float", name="x")
 y = tf.placeholder("float", name="y")
 w1 = tf.Variable(inpw, name="W1")
 w2 = tf.Variable(hidw, name="W2")
+
+print(x+y) #Tensor("add_4:0", dtype=float32)
+
 x_data=inp
 y_data=outputr
 
@@ -32,5 +35,6 @@ init = tf.global_variables_initializer()
 
 with tf.Session() as session:
     session.run(init)
-    for i in range(1):
-        session.run(train_op, feed_dict={x: x_data, y: y_data})
+    for i in range(10):
+        session.run(train_op, feed_dict={x: [x_data], y: [y_data]})
+        print(loss)

@@ -1,15 +1,19 @@
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+void main(){
+int c,f;
+scanf("%d",&c);
+f=fact(c);
+printf("fact is =%d\n",f);
 
-main()
-{ long Seed;
-  int i;
 
-   Seed = (long) time(NULL);
-
-   srand(Seed);
-
-   for(i=0; i<10; i++)
-      printf("%d \n", rand()%100);
-   printf("\n");
+}
+int fact(int n)
+{
+if (n == 0|| n==1)
+{
+return 1;
+}
+else{
+return(n*fact(n-1));
+}
 }
