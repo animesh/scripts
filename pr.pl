@@ -1,125 +1,64 @@
-print "Content-Type: text/html\n\n<pre>\n";
-
-$damp = 0.85;
-$a = 0;
-$b = 0;
-$i = 40; # loop 10 times
-
-# forward links
-# a -> b - 1 outgoing link
-# b -> a - 1 outgoing link
-
-# i.e. "backward" links (what's pointing to me?)
-# a <= b
-# b <= a
-
-print "I've rounded to 5 decimal places to make the output easier to read\n\n";
-
-while ($i--) {
-    printf("a: %.5f b: %.5f\n", $a, $b);
-    $a = (1 - $damp) + $damp * ($b);
-    $b = (1 - $damp) + $damp * ($a);
-}
-printf("Average pagerank = %.4f\n", ($a + $b) / 2);
-print("</pre><a href=http://www.iprcom.com/papers/pagerank/#ex0>Back</a>");
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
+$f1=shift @ARGV;chomp $f1;
+open F1,$f1||die"cannot open $f1";
 
-print "Content-Type: text/html\n\n<pre>\n";
-
-$damp = 0.85;
-$a = 0;
-$b = 0;
-$c = 0;
-$d = 0;
-$i = 40; # loop 40 times
-
-# forward links
-# a -> b, c    - 2 outgoing links
-# b -> c    - 1 outgoing link
-# c -> a    - 1 outgoing link
-# d -> a    - 1 outgoing link
-
-# i.e. "backward" links (what's pointing to me?)
-# a <= c
-# b <= a
-# c <= a, b, d
-# d - nothing
-while ($i--) {
-    printf(
-        "a: %.5f b: %.5f c: %.5f d: %.5f\n",
-        $a, $b, $c, $d
-    );
-    $a = 1 - $damp + $damp * $c;
-    $b = 1 - $damp + $damp * ($a/2);
-    $c = 1 - $damp + $damp * ($a/2 + $b + $d);
-    $d = 1 - $damp;
+while($l1=<F1>){
+	chomp $l1;
+	#$c1++;$c=$c1-1;#if($c1 == 1 || $l1 eq ""){print "Rank\t$l1\n";next;}
+	@t1=split(/\s+/,$l1);
+	for($c2=0;$c2<=$#t1;$c2++){
+		(
+		$mat[$c2][$c1]=(@t1[$c2]);
+		}
+	
+	$c1++;
 }
-printf("Average pagerank = %.4f\n", ($a + $b + $c + $d) / 4);
-print("</pre><a href=http://www.iprcom.com/papers/pagerank/#ex1>Back to example 1</a>");
+for($c5=0;$c5<$c2;$c5++){
+	for($c6=0;$c6<($c1-1);$c6++){
+		print "$mat[$c5][$c6]\t";
+		}
+	print "$mat[$c5][$c6]\n";
+}	
 
-
- PageRank Explained Example 7
-
-#!/usr/bin/perl
-
-print "Content-Type: text/html\n\n<pre>\n";
-
-$damp = 0.85;
-$a = $b = $c = $d = $e = $f = $g = $h = 0;
-$iterate = 40; # loop 40 times
-
-# Extensive Interlinking - "Fully Meshed"
-# forward links
-# a -> b,c,d    - 3 outgoing links    - home
-# b -> c,d,a    - 3 outgoing link    - about
-# c -> d,a,b    - 3 outgoing link    - products
-# d -> a,b,c    - 3 outgoing links    - more info
-
-# i.e. "backward" links (what's pointing to me?)
-# a <= b/3,c/3,d/3
-# b <= c/3,d/3,a/3
-# c <= d/3,a/3,b/3
-# d <= a/3,b/3,c/3
-while ($iterate--) {
-    printf("a: %.5f b: %.5f c: %.5f d: %.5f\n", $a, $b, $c, $d);
-
-    $a = 1 - $damp + $damp * ($b/3 + $c/3 + $d/3);
-    $b = 1 - $damp + $damp * ($c/3 + $d/3 + $a/3);
-    $c = 1 - $damp + $damp * ($d/3 + $a/3 + $b/3);
-    $d = 1 - $damp + $damp * ($a/3 + $b/3 + $c/3);
 }
-printf("Average pagerank = %.4f\n", ($a + $b + $c + $d) / 4); # to 4 decimal places!
-print("</pre><a href=http://www.iprcom.com/papers/pagerank/#ex7>Back to example 7</a>");
- 
 
+foreach $q (sort {$sum{$b} <=> $sum{$a}} keys %sum){
+	$c3++;
+	if($c3<=$top){
+		print "$c3\t$q\t$sum{$q}\n";
+		}
+	}
 
-#!/usr/bin/perl
-
-print "Content-Type: text/html\n\n<pre>\n";
-
-$damp = 0.85;
-$a = $b = $c = 0;
-$iterate = 40; # loop 40 times
-
-# Plain Heirarchical
-# forward links
-# a -> b           - 1 outgoing link      - home
-# b -> c1...c1000  - 1000 outgoing links  - link list
-# c1,c1000 -> a    - 1 outgoing link      - spam pages
-
-# i.e. "backward" links (what's pointing to me?)
-# a <= 1000 * c
-# b <= a
-# c <= b/1000
-while ($iterate--) {
-    printf("a: %.5f b: %.5f c: %.5f\n", $a, $b, $c);
-
-    $a = 1 - $damp + $damp * (1000 * $c);
-    $b = 1 - $damp + $damp * ($a);
-    $c = 1 - $damp + $damp * ($b/1000);
+sub PR
+{
+	@t1=split(/\t/,$l1);
+	$key=$c."_".$l1;
+	for($c2=1;$c2<=$#t1;$c2++){
+		$temp1+=(@t1[$c2]*$gi[$c2]);
+		$temp2+=@t1[$c2];
+		$temp3+=$gi[$c2];
+		$temp4+=(@t1[$c2]**2);
+		$temp5+=($gi[$c2]**2);
+	}
+	$length=@t1;$N=$length-1;#print "$N\n";
+	$temp6=$temp2**2;
+	$temp7=$temp3**2;#$t9=sqrt(($temp4-($temp6/$N))*($temp5-($temp7/$N)));
+	$temp1=($temp1-(($temp2*$temp3)/$N))/(sqrt(($temp4-($temp6/$N))*($temp5-($temp7/$N))));
+	$sum{"$key"}=abs($temp1);
+	$temp1=0;$temp2=0;$temp3=0;$temp4=0;$temp5=0;$temp6=0;$temp7=0;
 }
-printf("Average pagerank = %.4f\n", ($a + $b + $c*1000) / 1002);
-print("</pre><a href=http://www.iprcom.com/papers/pagerank/#ex13>Back to example 13</a>");
-
-

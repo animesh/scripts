@@ -14,22 +14,23 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-#if((@ARGV)!=2){die "USAGE: progname_name feature_file_with_OUTPUT_vector no_of_feature\n";}
+if((@ARGV)!=3){die "USAGE: progname_name feature_file_with_OUTPUT_vector no_of_feature Iteration(s)\n";}
 $f=shift @ARGV;
 $ftr=shift @ARGV;
+$iter=shift @ARGV;
+
 READDATA();
 $m=2;
-$threshold=0.0000000001;
+$threshold=0;
 #$minval=shift @ARGV;
 $sbcont=1000;
 $clusd=2;
 $features=$ftr;
 $samples=$row;
 $class=$c3-$ftr;
-$iter=1000;
-$eta=0.3;
+$eta=0.5;
 $hlayers=1;
-$hidnodez=30;
+$hidnodez=int(($ftr+$class)/2);
 $pstatus=1;
 $gamma=(-5);
 for($c1=0;$c1<$hlayers;$c1++){
@@ -46,7 +47,7 @@ MISCLASSIFICATION();
 sub READDATA {
 	if($ftr != "") {
 		open(F,$f);
-		$foo=$f.".out";
+		$foo=$f.".act.out";
 		open(FO,">$foo");
 		$c1=0;$rowno=0;
 		while($l1=<F>){
@@ -195,20 +196,25 @@ $classID=shift;$temp2=0;
 
 
 sub MISCLASSIFICATION{
+	$foo=$f.".pre.out";
+	open(FOT,">$foo");
    $misclas=0;	
    for($r1=0; $r1 < $samples; $r1++){
 	   FORWARD($r1);
         for($ims=0; $ims< $class; $ims++){
+			print FOT"$output3[$ims]\t";
 			if($output3[$ims]>$max){ 
 				$max = $output3[$ims];
                 $label = $ims;
 			}
 		}
+		print FOT"\n";
 		if($target[$r1][$label]!=1){$misclas++;}
       $max =0; $label =0;
      }
 
   printf "MISCLASSIFICATION-$misclas\n";
+  close FOT;
 }
 
 
@@ -216,8 +222,11 @@ TEST();
 sub TEST
 {  
 print "Test filename? - ";
-$choice=<>;chomp $choice;
-open(FT,$choice);
+$f=<>;chomp $f;$choice=$f;
+$fot=$f.".act.out";
+open(FO,">$fot");
+open(FT,$f);
+$c1=0;
 		while($l1=<FT>){
 			@t1=split(/\s+/,$l1);
 				for($c2=0;$c2<$ftr;$c2++){
@@ -237,7 +246,8 @@ open(FT,$choice);
 			$c1++;$label=0;
 		}
 		close FT;
-		$samples=$row;
+		close FO;
+		$samples=$c1;
    print "Misclassification on test data - \n";
    MISCLASSIFICATION();
 }

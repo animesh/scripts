@@ -14,6 +14,9 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/local/bin/perl
+# Created by sharma.animesh@gmail.com using
+# v 10.3
+
 use Bio::Structure::IO;
 use strict;
 
@@ -60,8 +63,11 @@ for my $chain ($struc->get_chains) {
      my $fnpdb=$fn.".$chainid.pdb";
      open(FO,">$fnfas");
      open(FPDB,">$fnpdb");
-     print FO"\>$file\tChain-$chainid\tGenerated @ $time\twith\tBioperl PDB\tParser\n";
-     print FPDB"REMARK   Chain-$chainid\tGenerated @ $time\twith\tBioperl PDB\tParser\n";
+
+     print FO"\>$file\t\tChain-$chainid\tGenerated @ $time\twith\tBioperl PDB\tParser\n";
+	 print FPDB"HEADER\t$file\t$fnpdb\t\t\t$time\n";
+     print FPDB"REMARK   Chain-$chainid\tGenerated @ $time with Bioperl PDB\tParser\n";
+
 	 my $res_cnt=0;
      for my $res ($struc->get_residues($chain)) {
         my $resid = $res->id;
@@ -87,8 +93,9 @@ for my $chain ($struc->get_chains) {
 			$pdb_atomnamea=sprintf('%4s', $pdb_atomnamea);
 			my $residuenamea=sprintf('%4s', $resolb);
 			my $chainida=sprintf('%2s', $chainid);
+			if($chainida eq "default"){$chainida="";}
 			$res_cnt=sprintf('%4s', $res_cnt);
-			$xa=sprintf('%12.3f', $xa);
+			$xa=sprintf('%8.3f', $xa);
 			$ya=sprintf('%8.3f', $ya);
 			$za=sprintf('%8.3f', $za);
 			$occupancya=sprintf('%6.2f', $occupancya);
@@ -96,10 +103,11 @@ for my $chain ($struc->get_chains) {
 			$segIDa=sprintf('%10s', $segIDa);
 			$elementa=sprintf('%2s', $elementa);
 			$chargea=sprintf('%2s', $chargea);
-			print FPDB "$atoma$seriala $pdb_atomnamea$residuenamea$chainida$res_cnt$xa$ya$za$occupancya$tempfactora$segIDa$elementa$chargea\n";
+			print FPDB "$atoma$seriala$pdb_atomnamea$residuenamea$chainida$res_cnt $xa$ya$za$occupancya$tempfactora$segIDa$elementa$chargea\n";
 		}
      }
-	 print FPDB"\n";
+	 print FPDB"MASTER\n";
+	 print FPDB"END\n";
 	 print FO"\n";
      close FO;
 }

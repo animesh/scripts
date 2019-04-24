@@ -1,3 +1,88 @@
+"""
+nary - convert integer to a number with an arbitrary base.
+"""
+
+__all__ = ['nary']
+
+_alphabet='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+def _getalpha(r):
+    if r>=len(_alphabet):
+        return '_'+nary(r-len(_alphabet),len(_alphabet))
+    return _alphabet[r]
+
+def nary(number, base=64):
+    """
+    Return string representation of a number with a given base.
+    """
+    if isinstance(number, str):
+        number = eval(number)
+    n = number
+    s = ''
+    while n:
+        n1 = n // base
+        r = n - n1*base
+        n = n1
+        s = _getalpha(r) + s
+    return s
+
+def encode(string):
+    import md5
+    return nary('0x'+md5.new(string).hexdigest())
+
+#print nary(12345124254252525522512324,64)
+
+import pdb
+def combine(s1,s2):      # define subroutine combine, which...
+    s3 = s1 + s2 + s1    # sandwiches s2 between copies of s1, ...
+    s3 = '"' + s3 +'"'   # encloses it in double quotes,...
+    return s3            # and returns it.
+    
+a = "aaa"
+pdb.set_trace()
+b = "bbb"
+c = "ccc"
+final = combine(a,b)
+print final
+
+
+my_list = [12, 5, 13, 8, 9, 65]
+def bubble(bad_list):
+    length = len(bad_list) - 1
+    sorted = False
+
+    while not sorted:
+        sorted = True
+        for i in range(length):
+            if bad_list[i] > bad_list[i+1]:
+                sorted = False
+                bad_list[i], bad_list[i+1] = bad_list[i+1], bad_list[i]
+
+bubble(my_list)
+print my_list
+
+"""
+http://stackoverflow.com/questions/895371/bubble-sort-homework
+n <enter>
+<enter>
+p <variable>
+q
+c
+l
+s
+r
+source http://pythonconquerstheuniverse.wordpress.com/category/python-debugger/
+http://www.youtube.com/watch?v=bZZTeKPRSLQ 
+"""
+
+import Numeric
+def foo(a):
+    a = Numeric.array(a)
+    m,n = a.shape
+    for i in range(m):
+        for j in range(n):
+            a[i,j] = a[i,j] + 10*(i+1) + (j+1)
+    return a
+
 #playing with output of https://github.com/animesh/RawRead
 import pandas as pd
 #df=pd.read_table('/home/animeshs/Documents/RawRead/20150512_BSA_The-PEG-envelope.raw.intensity0.charge0.FFT.txt')#, low_memory=False)

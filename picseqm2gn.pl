@@ -42,7 +42,9 @@ while($l2=<F2>){
 		#print "IFF $hname\t$name\t$percent\t$l\t$ln\t($l-@t[2])/$l\n";	
 		#print "IFF@t[1]\t@t[5]\n";
 		$sighit{$hname}=1;
+		$three++;
 	}
+	$four++;
 }
 close F2;
 
@@ -53,15 +55,18 @@ for($fot=0;$fot<=$#seq;$fot++){
 	$snames=@seqnamesplit[$fot];
 	#print "$sname\t$snames\t$sighit{$snames}\n";
 	if($sighit{$snames} == 1){
+		$one++;
 		#print "$sname\n$seqs\n";
 		#print "$sname\n";
 		
 	}
 	if($sighit{$snames} == 0){
-		print "$sname\n$seqs\n";
+		$zero++;
+		#print "$sname\n$seqs\n";
 		#print "$sname\n";
 		
 	}
 	$l=length(@seq[$fot]);
 }
-
+$five=$one+$zero;
+print "$three\t$one\t$two\t$zero\t$five\t$fot\t$four\n"

@@ -21,7 +21,6 @@ while (my $line = <F1>) {
 		my $name=uc($tmp[$idc]);
 		my @namez=split(/;/,$name);
 		foreach $name (@namez){
-			my ($name)=$name =~ m/GN *= *([^,; ]*)/;
 			$name =~ s/\s+//g;
 			$name =~ s/\W//g;
 			$nh{$name}++;

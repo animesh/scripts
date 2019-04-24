@@ -1,73 +1,23 @@
-print.pdf <- function(figure,name,extra.width=0){
-	
-	# Create file name
-	pdf <- paste("",name,".pdf",sep="")
-	
-	# Convert to pdf
-	trellis.device("pdf", color=TRUE)
-	pdf(pdf,onefile=FALSE, paper = "special")
-	print(figure)
-	dev.off()
-	dev.off()
-	
-	}
+setwd("D:\\animesh\\projects\\research\\nonlinear")
+'java weka.classifiers.meta.ClassificationViaRegression -t data4.arff -W weka.classifiers.trees.M5P -- -M 4.0]
 
-# load the crab data
-library(MASS)
-data(crabs)
-
-# Perform PCA on the data
-# retx returns the scores for each crab
-crab.pca <- prcomp(crabs[,4:8],retx=TRUE)
-
-# Print the rounded scores for the first three components
-write.table(signif(crab.pca$rotation[,1:3],5),"rotations.tab")
-
-#
-# The discrimating factors of the second component
-#
-library(lattice)
-second.discriminators <- xyplot(CW ~ RW,data=crabs)
-second.discriminators$xlab <- "Rear width (mm)"
-second.discriminators$ylab <- "Carapace width (mm)"
-print.pdf(second.discriminators,"second_discriminators")
-
-second.discriminators.density <- densityplot(~ CW/RW,data=crabs,)
-second.discriminators.density$xlab <- "Carapace width, Rear width ratio"
-print.pdf(second.discriminators.density,"second_discriminators_density")
-# The second principle component has meaning corresponding differences in the ratio of carapace to rear width
-
-#
-# Discriminating factors for the third component
-#
-third.discriminators <- xyplot(BD ~ CW,data=crabs)
-third.discriminators$xlab <- "Carapace width (mm)"
-third.discriminators$ylab <- "Body depth (mm)"
-print.pdf(third.discriminators,"third_discriminators")
-
-third.discriminators.density <- densityplot(~ BD/CW,data=crabs,)
-third.discriminators.density$xlab <- "Body depth, Carapace width ratio"
-print.pdf(third.discriminators.density,"third_discriminators_density")
-# The third component has meaning discriminating between body depth and carapace width
+data_tr$V1 <- data_xor$V1
+data_tr$V2 <- data_xor$V2
+data_tr$V3 <- data_xor$V3
 
 
-# Colors to discriminate the crab type
-crab.colors <- rep(c("blue1","blue4","orange1","orange4"),1,each=50)
 
-# Plot morphology characteristics
-morphology.plot <- xyplot(BD/CW ~ CW/RW,data=crabs,col=crab.colors,pch=crabs$sex)
-morphology.plot$xlab <- "Carapace width, Rear width ratio"
-morphology.plot$ylab <- "Body depth, Carapace width ratio"
-print.pdf(morphology.plot,"morphology_plot")
 
-# Plot pca components
-first.pca.components <- xyplot(crab.pca$x[,2] ~ crab.pca$x[,1],col=crab.colors,pch=crabs$sex)
-first.pca.components$xlab <- "First component"
-first.pca.components$ylab <- "Second component"
-print.pdf(first.pca.components,"first_pca_components")
+data_xor <- read.table("xora.txt")
 
-# Plot pca components
-second.pca.components <- xyplot(crab.pca$x[,3] ~ crab.pca$x[,2],col=crab.colors,pch=crabs$sex)
-second.pca.components$xlab <- "Second component"
-second.pca.components$ylab <- "Third component"
-print.pdf(second.pca.components,"second_pca_components")
+ftr = data.frame(data_xor$V1,data_xor$V2,data_xor$V3,data_xor$V4,data_xor$V5,data_xor$V6,data_xor$V7,data_xor$V8,data_xor$V9,data_xor$V)
+
+
+ftr = read.table("xora.txt_featv.dat")
+
+svd_ftr <- svd(ftr)
+
+plot(t(svd_ftr$v[,1]),t(svd_ftr$v[,2]))
+
+write.table(t(svd_ftr$v), file = "datavt", sep = "\t",col.names = FALSE, row.names = FALSE )
+

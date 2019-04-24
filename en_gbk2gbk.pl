@@ -32,10 +32,10 @@ my %other_source_sequence;
 my $tfl1;
 my $tfl2;
 my @other_file;
-my $total_seq_cnt_threshold=1500;
-my $n_gene_threshold=1200;
-my $total_seq_cnt_threshold=2;
-my $n_gene_threshold=2;
+my $total_seq_cnt_threshold=100;
+my $n_gene_threshold=100;
+my $total_seq_cnt_threshold=100;
+my $n_gene_threshold=100;
 my $total_seq_cnt;
 my $total_file_name="total.fas";
 my $total_file_name_utr="total.utr.fas";
@@ -254,9 +254,9 @@ my $gb_file_out=@t[0].".utr.txt";
 		if(($max<$sim_thresh)){
 			print FT"\t$o-$max_seq_name-$max-$per_sim\n";
 			$total_seq_cnt++;
-			print FTTLUTR">$h_seq_name{$o}\n$h_seq_utr{$o}\n";
-			print FTTLDUTR">$h_seq_name{$o}\n$h_seq_dutr{$o}\n";
-			print FTTL">$h_seq_name{$o}\n$h_seq{$o}\n";
+			#print FTTLUTR">$h_seq_name{$o}\n$h_seq_utr{$o}\n";
+			#print FTTLDUTR">$h_seq_name{$o}\n$h_seq_dutr{$o}\n";
+			#print FTTL">$h_seq_name{$o}\n$h_seq{$o}\n";
 			$total_seq_name{$total_seq_cnt}=$h_seq_name{$o};
 			$total_seq_utr{$total_seq_cnt}=$h_seq_utr{$o};
 			$total_seq_dutr{$total_seq_cnt}=$h_seq_dutr{$o};
@@ -310,15 +310,15 @@ sub other_seq_comp{
 	open(FWOUTRE,">$fooeg");
 	foreach my $o (sort {$a <=> $b} keys %total_seq) {
 	   foreach my $i (sort {$a <=> $b} keys %other_source_sequence){
-		   #if($i==$o){
-		   #if($other_source_sequence_name{$i} =~ /dispar102e08/){
-		   #true_string_match($o,$i);
-		   #water_string_match($o,$i);
-		   #needle_string_match($o,$i);
-		   #blast2seq($o,$i,$foofile);
+			#if($i==$o){
+			#if($other_source_sequence_name{$i} =~ /dispar102e08/){
+			#true_string_match($o,$i);
+			#water_string_match($o,$i);
+			#needle_string_match($o,$i);
+			#blast2seq($o,$i,$foofile);
 			map2gen($o,$i,$foofile);
-		   #}
-		   #}
+			#}
+			#}
 		}
 	}
 	close FWOUTRN;
@@ -335,12 +335,14 @@ sub map2gen{
     my $max=90;
     my $seq_o=$total_seq{$o};
     my $seq_i=$other_source_sequence{$i};
+	my $other_sequence_string=$seq_i;
     $seq_i=~s/\-/N/g;
     $seq_o=~s/\-/N/g;
     my $seq_o_name=$total_seq_name{$o};
     my $seq_i_name=$other_source_sequence_name{$i};
     my $seq_o_length=length($total_seq{$o});
     my $seq_i_length=length($other_source_sequence{$i});
+	my $ol_seq_complete=$seq_i_length;
 	open(F1,">file1");
 	open(F2,">file2");
 	print F1">$seq_o_name\n$seq_o\n";
@@ -349,61 +351,85 @@ sub map2gen{
 	system("est2genome file1 file2 -outfile=file3");
 	open(FN,"file3");
 	my $length;
+	my $lnoeg;
+	my @tnote;
+	my @t;
+	my $length;
+	my $per_sim;
+	my $other_start;
+	my $other_end;
 	while(my $line=<FN>){
 		chomp $line;
+		$lnoeg++;
+		if(($lnoeg==1) and ($line=~/^Note/)){
+			@tnote=split(/\s+/,$line);
+		}
 		if($line=~/^Span/){
-			my @t=split(/\s+/,$line);
-			my $length=@t[1];
-			my $per_sim=@t[2]+0;
-			my $other_start=@t[3]+0;
-			my $other_end=@t[4]+0;
+			@t=split(/\s+/,$line);
+			$length=@t[1];
+			$per_sim=@t[2]+0;
+			$other_start=@t[3]+0;
+			$other_end=@t[4]+0;
 		   print FWOUTRE"$o-$i $seq_o_name\t$seq_i_name\t$per_sim\t$seq_o_length\t$seq_i_length\tLength-$length\tPer-$per_sim\tS-$other_start\tE-$other_end\n$line\n";
 		}
-		elsif($line ne ""){
-		   #if($max<$per_sim){
-		   print FWOUTRE"$line\n";
-		   #}
-		}
+#		elsif($line ne ""){
+#		   #if($max<$per_sim){
+#		   print FWOUTRE"$line\n";
+#		   #}
+#		}
 	}
 	close FN;
 	close F1;
 	close F2;
-#	if($per_sim>$sim_thresh){
-#			if(($strand == -1) && (($end+$l_utr)<$l_seq_complete) && (($start-$l_dutr)>0)){
-#				$n_gene++;
-#				$select_utr_no++;
-#			    print "R->$n_gene\t$start-$end-$l_seq_complete-$l_utr-$l_dutr [$strand]\t";
-#			    $seq_utr = substr($sequence_string,$end,$l_utr);
-#			    $seq_utr=reverse($seq_utr);
-#			    $seq_utr=~tr/ATGC/TACG/d;
-#			    $seq_dutr = substr($sequence_string,($start-$l_dutr-1),$l_dutr);
-#			    $seq_dutr=reverse($seq_dutr);
-#			    $seq_dutr=~tr/ATGC/TACG/d;
-#			    $al_utr=length($seq_utr);
-#			    $al_dutr=length($seq_dutr);
-#				$seq_name.="$start-$end($l_seq) $strand UTR ($al_dutr-$al_utr)";
-#				$seq_name="$gb_file ($select_utr_no-$n_gene)".$seq_name;
-#				$h_seq_name{$n_gene}=$seq_name;
-#				$h_seq{$n_gene}=$seq;
-#				$h_seq_utr{$n_gene}=$seq_utr;
-#				$h_seq_dutr{$n_gene}=$seq_dutr;
-#			}
-#			elsif(($strand == 1) && (($start-$l_utr)>0) && (($end+$l_dutr)<$l_seq_complete)){
-#				$n_gene++;
-#				$select_utr_no++;
-#			    print "F->$n_gene\t$start-$end-$l_seq_complete-$l_utr-$l_dutr [$strand]\t";
-#			    $seq_utr = substr($sequence_string,($start-$l_utr-1),$l_utr);
-#			    $al_utr=length($seq_utr);
-#			    $seq_dutr = substr($sequence_string,$end,$l_dutr);
-#			    $al_dutr=length($seq_dutr);
-#				$seq_name.="$start-$end($l_seq) $strand UTR ($al_utr-$al_dutr)";
-#				$seq_name="$gb_file ($select_utr_no-$n_gene)".$seq_name;
-#				$h_seq_name{$n_gene}=$seq_name;
-#				$h_seq{$n_gene}=$seq;
-#				$h_seq_utr{$n_gene}=$seq_utr;
-#				$h_seq_dutr{$n_gene}=$seq_dutr;
-#			}
-#	}
+	if($per_sim>$sim_thresh and $seq_o_length==$length){
+	    if($other_total_seq_cnt>=$total_seq_cnt_threshold){die"Other Sequence count has reached $other_total_seq_cnt";}
+			if((@tnote[5] eq "reversed") && (($other_end+$l_utr)<$ol_seq_complete) && (($other_start-$l_dutr)>0)){
+				$other_total_seq_cnt++;
+			    my $oseq = substr($other_sequence_string,($other_start-1),($other_end-$other_start+1));
+			    $oseq=reverse($oseq);
+			    $oseq=~tr/ATGC/TACG/d;
+			    my $oseq_utr = substr($other_sequence_string,$other_end,$l_utr);
+			    $oseq_utr=reverse($oseq_utr);
+			    $oseq_utr=~tr/ATGC/TACG/d;
+			    my $oseq_dutr = substr($other_sequence_string,($other_start-$l_dutr-1),$l_dutr);
+			    $oseq_dutr=reverse($oseq_dutr);
+			    $oseq_dutr=~tr/ATGC/TACG/d;
+			    my $oal_utr=length($oseq_utr);
+			    my $oal_dutr=length($oseq_dutr);
+			    my $oal=length($oseq);
+				my $oseq_name_utr.="$seq_i_name $other_start-$other_end UTR [$oal_utr]";
+				my $oseq_name_dutr.="$seq_i_name $other_start-$other_end DUTR [$oal_utr]";
+			    print "R->$other_total_seq_cnt\t$other_start-$other_end-$ol_seq_complete-$l_utr-$l_dutr [@tnote[5]]\t";
+			    print OFTTL">$seq_i_name\t$other_start-$other_end\t$ol_seq_complete [$oal]\n$oseq\n";
+			    print OFTTLUTR">$oseq_name_utr\n$oseq_utr\n";
+			    print OFTTLDUTR">$oseq_name_dutr\n$oseq_dutr\n";
+				print FTTLUTR">$total_seq_name{$o}\tUTR [$l_utr]\n$total_seq_utr{$o}\n";
+				print FTTLDUTR">$total_seq_name{$o}\tDUTR [$l_dutr]\n$total_seq_dutr{$o}\n";
+				print FTTL">$total_seq_name{$o}\n$total_seq{$o}\n";
+				last;
+				return;
+			}
+			elsif((@tnote[5] eq "forward") && (($other_start-$l_utr)>0) && (($other_end+$l_dutr)<$ol_seq_complete)){
+				$other_total_seq_cnt++;
+			    my $oseq = substr($other_sequence_string,($other_start-1),($other_end-$other_start+1));
+			    my $oseq_utr = substr($other_sequence_string,($other_start-$l_utr-1),$l_utr);
+			    my $oseq_dutr = substr($other_sequence_string,$other_end,$l_dutr);
+			    my $oal_utr=length($oseq_utr);
+			    my $oal_dutr=length($oseq_dutr);
+			    my $oal=length($oseq);
+				my $oseq_name_utr.="$seq_i_name $other_start-$other_end UTR [$oal_utr]";
+				my $oseq_name_dutr.="$seq_i_name $other_start-$other_end DUTR [$oal_dutr]";
+			    print "F->$other_total_seq_cnt\t$other_start-$other_end-$ol_seq_complete-$l_utr-$l_dutr [@tnote[5]]\t";
+			    print OFTTL">$seq_i_name\t$other_start-$other_end\t$ol_seq_complete [$oal]\n$oseq\n";
+			    print OFTTLUTR">$oseq_name_utr\n$oseq_utr\n";
+			    print OFTTLDUTR">$oseq_name_dutr\n$oseq_dutr\n";
+				print FTTLUTR">$total_seq_name{$o}\tUTR [$l_utr]\n$total_seq_utr{$o}\n";
+				print FTTLDUTR">$total_seq_name{$o}\tDUTR [$l_dutr]\n$total_seq_dutr{$o}\n";
+				print FTTL">$total_seq_name{$o}\n$total_seq{$o}\n";
+				last;
+				return;
+			}
+	}
     #return($max,$max_seq_name);
 }
 

@@ -1,64 +1,22 @@
-#!/software/bin/perl -w
-
-use strict;
-use Data::Dumper;
-
-# define the names of the columns we want, as the order may change
-our @COLS = (
-  'PUBMEDID',
-  'Disease/Trait',
-  'Reported Gene(s)',
-  'Strongest SNP-Risk Allele',
-  'SNPs',
-  'Risk Allele Frequency',
-  'p-Value',
-);
-
-parse_file();
-process_file();
-
-sub parse_file {
-  die "You must provide a filename to $0 to be parsed" unless @ARGV;
-  
-  open IN, $ARGV[0];
-  
-  # get header
-  my $header = <IN>;
-  chomp $header;
-  my @headers = split /\t/, $header;
-  
-  my %hash;
-  $hash{$headers[$_]} = $_ for (0..$#headers);
-  
-  open OUT, ">initial_data_new";
-  
-  # read file
-  while(<IN>) {
+while(<>){
 	chomp;
-	
-	my @data = split /\t/, $_;
-	
-	# check number of cols
-	next unless scalar @data == scalar @headers;
-	
-	print OUT (join "\t", map {$data[$hash{$_}]} @COLS);
-	print OUT "\n";
-  }
+	@t=split(/,/);
+	@n=split(/vs/,$t[0]);
+	push(@ns1,$n[0]);
+	push(@ns2,$n[1]);
+	$m{"$n[0]-$n[1]"}="$t[1]-$t[2]-$t[7]";
+}
+%seen = (); @ns1 = grep { ! $seen{ $_ }++ } @ns1;
+%seen = (); @ns2 = grep { ! $seen{ $_ }++ } @ns2;
+for($c1=0;$c1<=$#ns1;$c1++){
+	if($c1==0){print "GI , ";for($c=0;$c<=$#ns2;$c++){print "$ns2[$c] , ";}print "\n";}
+	print "$ns1[$c1] , ";
+	for($c2=0;$c2<=$#ns2;$c2++){
+		if($m{"$ns1[$c1]-$ns2[$c2]"} ne ""){
+			print $m{"$ns1[$c1]-$ns2[$c2]"} ," , ";
+		}
+		else{print " , ";}
+	}
+	print "\n";
 }
 
-sub process_file {# join pubmed_id together and for each rsname in name list,put it in separate entry
-
-  open IN, "initial_data_new";
-  open OUT, ">initial_data2";
-
-  while (<IN>) {
-    next if /^PubMedID/;
-    chomp;
-    my @all=split /\t/, $_;
-    $all[0] = "pubmed/$all[0]";
-    my @rsnames = split /\,/, $all[4] if $all[4];
-    foreach my $n (@rsnames) {
-      print OUT join ("\t", $n,@all)."\n";
-    }
-  }
-}

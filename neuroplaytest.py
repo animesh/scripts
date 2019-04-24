@@ -1,55 +1,78 @@
-from mindwave.parser import ThinkGearParser, TimeSeriesRecorder
-import bluetooth
-import time
-import sys
-import argparse
-from progressbar import ProgressBar, Bar, Percentage
+from NeuroPy import NeuroPy
+#import winsound 		 
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from pyo import *
+s = Server().boot()
+
+npo=NeuroPy('/dev/rfcomm0',57600)
+
+npo.start()
+def npacb(sigval):
+    print sigval
+    return None
+
+#npo.setCallBack("rawValue",npacb)
+npo.setCallBack("attention",npacb)
+
+freqeeg = 512
+
+def crtfrearray(feeg):
+    eegcoll = []
+    cnteeg=0
+    while cnteeg<feeg:
+        eegcoll.append(npo.rawValue)
+        cnteeg+=1
+    freqs = np.fft.fftfreq(len(eegcoll))
+    idx=np.argmax(np.abs(np.array(eegcoll))**2)
+    freq=freqs[idx]
+    freqhz=abs(freq*freqeeg)
+    if freqhz>40 and freqhz<freqeeg:
+        print freqhz
+	#a = Sine(int(freqhz)*10, 0, 0.1).out()
+	#a.setFreq(int(freqhz))
+        #winsound.Beep(int(freqhz),int(freqhz))
+    return eegcoll
+
+#x = np.arange(0, 2*np.pi, 0.01)
+#y = np.sin(x)
+x=np.arange(0,freqeeg,1)
+y=np.array(crtfrearray(freqeeg))
+a = Sine(440, 0, 0.1).out()
+s.start()
+#s.gui(locals())
+
+fig, axes = plt.subplots(nrows=2)
+
+styles = ['r-', 'k-']
+def plot(ax, style):
+    return ax.plot(x, y, style, animated=True)[0]
+lines = [plot(ax, style) for ax, style in zip(axes, styles)]
+
+def animate(i):
+    for j, line in enumerate(lines, start=1):
+        line.set_ydata(np.fft.fft(np.array(crtfrearray(freqeeg)))*j)
+	a = Sine(int(np.median(np.fft.fft(np.array(crtfrearray(freqeeg))))+10)*100, 0, 0.1).out()
+	#line.set_ydata((y)*j+i/10)
+    return lines
 
 
-from mindwave.bluetooth_headset import connect_magic, connect_bluetooth_addr
-from mindwave.bluetooth_headset import BluetoothError
-from example_startup import mindwave_startup
+ani = animation.FuncAnimation(fig, animate, xrange(1, freqeeg), interval=1, blit=True)
+plt.show()
 
-description = """Simple commandline application to record EEG.
-
-Make sure you paired the Mindwave to your computer. You need to
-do that pairing for every operating system/user profile you run
-seperately.
-
-If you don't know the address, leave it out, and this program will
-figure it out, but you need to put the MindWave Mobile headset into
-pairing mode first, otherwise it can't be found.
-
-"""
-if __name__ == '__main__':
-    extra_args = [dict(name='filename', type=str, nargs=1, help="File to write data to (HDF5 format)."), dict(name='frequency', type=int, nargs='?',
-            const=10, default=10,
-            help="""Frequency of recording, in iterations per second.
-            This doesn't affect the sampling accuracy, but rather how
-            often the parser is translating the data from the device
-            into Timeseries data.
-            """)]
-
-    socket, args = mindwave_startup(description=description,
-                              extra_args=extra_args)
-
-    recorder = TimeSeriesRecorder(args.filename[0])
-    parser = ThinkGearParser(recorders=[recorder])
-    loop_time = 1.0 / float(args.frequency)
-    last_message = time.time()
-    start = last_message
-    while 1:
-        t = time.time()
-        try:
-            data = socket.recv(20000)
-        except BluetoothError, e:
-            print e
-            time.sleep(0.5)
-            continue
-        parser.feed(data)
-        elapsed = time.time()-t
-        time.sleep(max(0.01, loop_time-elapsed))
-        if (time.time()-last_message)>=5:
-            print("%.2f" % (time.time()-start))
-            last_message = time.time()
-
+#source
+#c:\Python27\pythonw.exe c:\Users\animeshs\misccb\neuroplay.py
+#http://stackoverflow.com/questions/3694918/how-to-extract-frequency-associated-with-fft-values-in-python
+#http://stackoverflow.com/questions/8955869/why-is-plotting-with-matplotlib-so-slow
+#http://askubuntu.com/a/252235
+#sudo mv /etc/bluetooth/rfcomm.conf /etc/bluetooth/rfcomm.conf.temp
+#sudo vim /etc/bluetooth/rfcomm.conf
+#rfcomm0 {
+#        bind no;
+#        device 9C:B7:0D:89:E5:88;
+#        channel 1;
+#        comment "Serial Port";
+#        }
+#sudo rfcomm connect 0
+    

@@ -46,8 +46,8 @@ $seq=lc($seq);
 push(@seq,$seq);
 close $file;
 $ppp =~ s/{/[^/g;
-$ppp =~ tr/x}()<>\-\./.]{}^$/d;
-$ppp =~ s/\[G\$\]/(G|\$)/g;
+$ppp =~ tr/cx}()<>\-\./C.]{}^$/d;
+$ppp =~ s/\[G\$\]/(G|\$)/;
 #@pp=split(/-/,$patt);
 #for($cc=0;$cc<=$#pp;$cc++)
 #{
@@ -55,20 +55,20 @@ $ppp =~ s/\[G\$\]/(G|\$)/g;
 #$ppp=@pp[$cc];
 #	if($ppp=~/^[/)
 #	{
-#	$ppp=~s/[//g;$ppp=~s/]//g;D-x-[DNS];
+#	$ppp=~s/[//g;$ppp=~s/]//g;
 ##		{
 #		$l=
 ##	}
 #	elsif($ppp=~/^{/)
 #	{
 #}
-#	else{$l=$l.$ppp;}Makefile.\in;
+#	else{$l=$l.$ppp;}
 #}
 for($c=0;$c<=$#seq;$c++)
 {
 $sequ=@seq[$c];
 $seqn=@seqname[$c];
-print FO"In sequence\t$seqn\n$sequ\n\nFound MOTIF \"$motif\"\n\nAt =>\n";
+print FO"In sequence\t$seqn\nFound MOTIF \"$motif\"\nAt =>\n";
   while ($sequ =~ /$ppp/g) {
     $posi= (pos $sequ) - length($&) +1;
     $moti = substr($sequ,$posi,length($&));

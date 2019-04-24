@@ -16,9 +16,9 @@
 #!/usr/bin/perl
 print "Name of the file containing multiple sequences in FASTA format : \n";
 $file=<STDIN>;
-chomp $file;   $least=10000;
+chomp $file;   $least=1;
 $seq="";
-open (F,"testseq")||die "cant open  :$!";
+open (F,$file)||die "cant open  :$!";
 while ($line = <F>)
 {
         chomp ($line);
@@ -46,7 +46,7 @@ for ($i=1;$i<=$#seq;$i++)
         {
                  if ($i==$k)
                  {
-                        $distij[$i][$k]=10000;
+                        $distij[$i][$k]=1;
                         print "\t$distij[$i][$k]";
                  }
          else
@@ -73,54 +73,67 @@ $leastcol[$num]=$leastcol;
 print "  \n$least[$num], row=$leastrow[$num], col=$leastcol[$num]\n\n";
 # to begin clustering
 $count=$#seq-1;
-#print "total seq=$#seq\n";
+$count1=$#seq;
+
 while ( $count!=1)
-{       @copydistij=@distij;
-        $least=10000; $dist=$least;
+{
+
+for ($row=1;$row<=$#seq;$row++)
+{
+        for($colu=1;$colu<=$count1;$colu++)
+        {
+        $copydistij[$row][$colu]=$distij[$row][$colu];
+        #print ">$copydistij[$row][$colu]\t";
+        }
+#print "\n";
+}
+$count1++;
+        $least=1; $dist=$least;
         for ($i=1;$i<=$#seq;$i++)
         {       # print "i=$i ";
-                for($k=1;$k<=$#seq;$k++)
+                for($k=1;$k<=$count1;$k++)
                 {
-                        # print "\tk=$k ";
-                        if ($i==$leastrow[$num])
+			#print "leastrow=$leastrow[$num] ";
+                        if ($i==$leastrow[$num]or $i==$leastcol[$num])
                         {
-                                if ($k==$leastcol[$num] or $i==$k)
-                                {
-                                $distij[$i][$k]=10000;
+				#print "row";
+                                $distij[$i][$k]=1;
                                 print "\t$distij[$i][$k]";
-                                }
-                                else
-                                {
-                                        $dist=(($copydistij[$i][$k])+($copydistij[$leastcol[$num]][$k]))/2;
-                                        $distij[$i][$k]=$dist;
-                                        print "\t$distij[$i][$k]";
-                                }
-                        }
-                        elsif ($i==$leastcol[$num])
-                        {
-                        $distij[$i][$k]=10000;
-                        print "\t$distij[$i][$k]";
-                        }
-                        elsif ($k==$leastcol[$num] )
-                        {       print "c";
-                               $dist=(($copydistij[$i][$k])+($copydistij[$i][$leastrow[$num]]))/2;
-                               $distij[$i][$k]=$dist;
-                               print "\t$distij[$i][$k]";
-                        }
-                        elsif ($k==$leastrow[$num])
-                        {      print "r";
-                               $dist=(($copydistij[$i][$k])+($copydistij[$i][$leastcol[$num]]))/2;
-                               $distij[$i][$k]=$dist;
-                               print "\t$distij[$i][$k]";
+
                         }
 
-                        else
-                        {       $dist=$distij[$i][$k];
+                        elsif ($k==$leastcol[$num] or $k==$leastrow[$num])
+                        {
+				#print "col";
+				$distij[$i][$k]=1;
+                               	print "\t$distij[$i][$k]";
+                        }
+
+
+			elsif ($k==$count1)
+			{
+				#print "last";
+				if ($i==$leastrow[$num] or $i==$leastcol[$num])
+				{
+				      $distij[$i][$k]=1;
+				      print "\t$distij[$i][$k]";
+				}
+				else
+				{
+					$dist=(($copydistij[$i][$leastrow[$num]])+($copydistij[$i][$leastcol[$num]]))/2;
+					$distij[$i][$k]=$dist;
+					print "\t$distij[$i][$k]";
+				}
+			}
+			else
+                        {
+				#print "same";
+				$dist=$distij[$i][$k];
                                 print "\t$distij[$i][$k]";
                         }
 
                         if ($dist<$least)
-                        {       print "le";
+                        {       #print "le";
                                 $least=$dist;
                                 $leastrow=$i;
                                 $leastcol=$k;
@@ -139,9 +152,10 @@ while ( $count!=1)
 @leastrow=reverse(@leastrow);
 @leastcol=reverse(@leastcol);
  $j=0;
+print " The following is the tree construction from the root - ";
 foreach $r(@leastrow)
 {
-        print " \nleast pair = $r ,$leastcol[$j]";
+        print " \nleast pair = $r ,$leastcol[$j]\n";
         $j++;
 }
 

@@ -1,24 +1,42 @@
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-#    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
+while(<>){
+	chomp;
+        $c++;
+	if($c==1){next}
+	@tmp=split(/\t/,);        
+        $template=@tmp[0];
+        $status=@tmp[1];
+        $leftid=@tmp[3];
+        $rightid=@tmp[6];
+        $leftd=@tmp[8];
+        $rightd=@tmp[9];
+	$ri{"$leftid - $rightid"}++;
+	$rit{"$leftid - $rightid"}.="$template\t";
+	#if("$leftid - $rightid" eq "Repeat - Repeat"){print "$_\n";}
+	
+}
 
-#!/usr/bin/perl
-chomp($var=shift @ARGV);
- open(PS_F, "ps -fa|"); 
- while (<PS_F>) { 
- ($uid,$pid,$ppid,$c,$stime,$tty,$time,$cmd,$restOfLine) = split; 
- #print "$uid,$pid,$ppid,$c,$stime,$tty,$time,$cmd\n$var";
- if ($cmd eq $var){system("kill -9 $pid");}
- } 
- close(PS_F); 
+open(FO1,">connectedcontigs.txt");
+open(FO2,">connectedcontigsgraph.txt");
+
+
+foreach (sort {$ri{$b}<=>$ri{$a}} keys %ri){
+		$name=$rit{$_};
+		$name=~s/\s+//g;
+		if($name ne ""){
+			print FO1"$_\t$ri{$_}\t$rit{$_}\n";
+			@tmp=split(/\s+|\-/,);
+			$l=@tmp[0];
+			$r=@tmp[3];	
+			$l=~s/contig//g;
+			$r=~s/contig//g;
+			$l=~s/Repeat/0/g;
+			$r=~s/Repeat/0/g;
+			$r+=0;$l+=0;
+			print FO2"$l\t$r\t$ri{$_}\n";
+		
+		}
+}
+
+
+__END__
+

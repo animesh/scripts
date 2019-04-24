@@ -13,6 +13,12 @@
 #
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
+#$y= shift @ARGV;
+#for($x=0;$x<$y;$x++){
+#$S=cos(0);
+#print "infosys\t";
+#print "$S\n";
+#}
 
 use Math::Complex;
 $a=1;$b=1;$c=1;$d=1;$e=1;$pi=Pi;
