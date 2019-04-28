@@ -18,24 +18,27 @@ $f1=shift @ARGV;chomp $f1;
 if (!$f1) {print "\nUSAGE:	\'perl program_name filename_2_b_normalised\'\n\n";exit;}
 open F1,$f1||die"cannot open $f1";
 my $c1=0;
-while($l1=<F1>){
+while($l1=<F1>){$mean=0;
+	if($c1==0){print $l1;}
+	else{
 	chomp $l1;
-	@t1=split(/\s+/,$l1);
-	$max=@t1[0];$min=@t1[0];
-	for($c2=0;$c2<=$#t1;$c2++){
+	@t1=split(/\t/,$l1);
+	
+	$max=@t1[1];$min=@t1[1];
+	for($c2=1;$c2<=$#t1;$c2++){
 		if(@t1[($c2)]>$max){$max=@t1[$c2];}
 		if(@t1[($c2)]<$min){$min=@t1[$c2];}
+		$mean+=@t1[$c2];
 		}
-	for($c2=0;$c2<=$#t1;$c2++){
-		if($min==$max){$mat[$c2][$c1]=@t1[$c2];}
-		else{$mat[$c2][$c1]=(@t1[$c2]-$min)/($max-$min);}
-		}
-	
-	$c1++;
-}
-for($c6=0;$c6<=$c1;$c6++){
-	for($c5=0;$c5<=$c2;$c5++){
-		print "$mat[$c5][$c6]\t";
+		print "@t1[0]\t";
+	for($c2=1;$c2<=$#t1;$c2++){
+		if($min==$max){@t1[$c2]=1;}
+		else{$mat[$c2][$c1]=(@t1[$c2]-$mean;#print "@t1[$c2]  ";
+		@t1[($c2)]=(@t1[$c2]-$mean;}
+		print "@t1[($c2)]\t";
 		}
 	print "\n";
+	}
+	$c1++;
+
 }

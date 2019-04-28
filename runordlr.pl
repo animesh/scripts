@@ -5,6 +5,6 @@ system("export CLASSPATH=/work/ash022");
 foreach $file (@files) {
 	$c++;
 	print "Processing file # $c $file\n"; 
-	system("java -Xmx3000m  weka.classifiers.meta.ClassificationViaRegression -t $file > $file.lrclass.txt ");
+	system("java -Xmx3000m  weka.classifiers.meta.ClassificationViaRegression -t $file -x 10 > $file.10fold.lrclass.txt ");
 }
 

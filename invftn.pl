@@ -18,18 +18,20 @@ $f=shift @ARGV;
 $row=shift @ARGV;
 open(F,$f);
 
+
+if($row eq ""){
+$file2=$f."_ft_t.dat";
+open(F2,">$file2");
+}
 if($row eq "pgm"){
-$file1=$f."_ft.pgm";
 $file2=$f."_invft.pgm";
 open(F2,">$file2");
 }
 
 if($row eq ""){
-$file1=$f."_ft.dat";
-$file2=$f."_invft.dat";
-open(F2,">$file2");
+$file3=$f."_invft.dat";
+open(F5,">$file3");
 }
-
 use Math::Complex;
 $pi=pi;
 $i=sqrt(-1);
@@ -47,11 +49,54 @@ while($l1=<F>){
 		}
 	@t1=split(/\s+/,$l1);
 	for($c2=0;$c2<=$#t1;$c2++){
-		if($c1==0 or $c2==0){$mattt[$c1][$c2]=cplx(@t1[$c2]);}
-		else{$mattt[$c1][$c2]=cplx(@t1[$c2]);}#print "@t1[$c2]  ";
+		if($c1==0 or $c2==0){$mattt3[$c2][$c1]=@t1[$c2];}
+		else{$mattt3[$c2][$c1]=(@t1[$c2]);}#print "@t1[$c2]  ";
 		}
 	
 	$c1++;
+}
+if($row eq "pgm"){$c1=@rc[0];$c2=@rc[1];@rcn=split(/\s+/,$str);
+	for($s1=0;$s1<$c1;$s1++){
+		for($s2=0;$s2<$c2;$s2++){
+			$mattt3[$s1][$s2]=@rcn[$s1*$c1+$s2];
+		}
+	}
+	#die "invalid PGM file $file";
+}
+close F;
+
+for($s1=0;$s1<$c2;$s1++){
+	for($s2=0;$s2<$c1;$s2++){
+		print F2"$mattt3[$s1][$s2]\t";
+	}
+		print F2"\n";
+		#print "Completed for Row - $s1\n";
+}
+close F2;
+undef $mattt;
+open F3,$file2;
+$c1=0;$c2=0;$rowno=0;
+while($l1=<F3>){
+	chomp $l1;
+	if($row eq "pgm" and $rowno<=3){
+		if(($rowno==0) and ($l1!~/^P2/)){die "invalid PGM file $file";}
+		if($rowno==2){@rc=split(/\s+/,$l1);}
+		$rowno++;print F1"$l1\n";print F2"$l1\n";next;
+		}
+	if($row eq "pgm" and $rowno>3){
+		$str=$str." $l1";
+		next;
+		}
+	@t1=split(/\s+/,$l1);
+	for($c2=0;$c2<=$#t1;$c2++){
+		if($c1==0 or $c2==0){$mattt[$c1][$c2]=@t1[$c2];#print "$mattt[$c1][$c2]\t";
+		}
+		else{$mattt[$c1][$c2]=(@t1[$c2]);#print "$mattt[$c1][$c2]\t";
+		}#print "@t1[$c2]  ";
+		}
+	
+	$c1++;
+	#print "$mattt[$c1][$c2]-$c1\n";
 }
 if($row eq "pgm"){$c1=@rc[0];$c2=@rc[1];@rcn=split(/\s+/,$str);
 	for($s1=0;$s1<$c1;$s1++){
@@ -61,8 +106,10 @@ if($row eq "pgm"){$c1=@rc[0];$c2=@rc[1];@rcn=split(/\s+/,$str);
 	}
 	#die "invalid PGM file $file";
 }
-#$c3=$c1;$c1=$c2;$c2=$c3;
-#print "$c1\t$c2\n";
+close F2;close F3;
+print "$c1\t$c2\n";
+#$c=$c1;$c1=$c2;$c2=$c;$c=0;
+
 for($c9=0;$c9<$c2;$c9++){
 	for($c10=0;$c10<$c1;$c10++){
 		$subsum=0;
@@ -92,7 +139,6 @@ for($c6=0;$c6<$c1;$c6++){
 		$u=$c5;
 		#print "$mat[0][$c6]\t$mat[$c5][0]\t$val\t";
 		for($c7=0;$c7<$c2;$c7++){
-			$val=($matttt[$c6][$c7]+0);		
 			$N=$c2;
 			$x=$c7;
 			$val=($matttt[$c6][$c7]);
@@ -113,10 +159,12 @@ for($c6=0;$c6<$c1;$c6++){
 	#print F2"\n";
 	#print "\n";
 }
+
 print "$c1\t$c2\n";
 for($s1=0;$s1<$c2;$s1++){
-	for($s2=0;$s2<$c1;$s2++){
-		print F2"$mattttt[$s2][$s1]\t";
+	for($s2=0;$s2<$c2;$s2++){
+		print F5"$mattttt[$s1][$s2]\t";
 	}
-		print F2"\n";
+		print F5"\n";
 }
+close F5;

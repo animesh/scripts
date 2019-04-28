@@ -1,24 +1,26 @@
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-#    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
+  use strict;
+  use warnings;
+  use lib '/usit/titan/u1/ash022/';
+  use lib '/xanadu/home/ash022/libwww-perl-5.832/lib';
+  use lib '/xanadu/home/ash022/URI-1.40';
+  use LWP::Simple;
+  use Parallel::ForkManager;
+  #system("ls -1 *.fas > list.tmp");
+  #my $command="est2genome";
+  #my $genome="NC_010336.fna";
+  my @tasks;
+  my $tasksize= 16;
+  #open(F,"list.tmp");
+  #while(<F>){chomp;push(@tasks,$_);}
+  #close F;  
+ for(my $c=1;$c<=720;$c+=$tasksize){
+  print "There are #  $tasksize from $c \n";
+  my $pm = new Parallel::ForkManager($tasksize); 
+   for(my $task=$c;$task<$c+$tasksize;$task++) {
+    $pm->start and next; 
+    system("/work/1341743.d/Dwgs6dhmcod/1-overlapper/overlap.sh $task");
+    $pm->finish; 
+  }
+  $pm->wait_all_children;
+}
 
-#!/usr/local/bin/perl
-
-use strict;
-
-system ("perl dna_test.pl -dbname ens100");
-system ("perl every_atleast.pl -dbname ens100");
-system ("perl stop_codons.pl -dbname ens100");
-system ("perl transcript_strand.pl -dbname ens100");
-system ("perl exon_duplicates.pl -dbname ens100");

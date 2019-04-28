@@ -1,3 +1,48 @@
-#!/usr/bin/perl
-while($t++<$FOUR*$FOUR+$EIGHT){$b[$_]=[map{$"}@a]for@a;$xs=$z>23?($z-=+$FOUR,$xs):$z-$FOUR;$u=int(@a/$THREE-$xs);
-for$x($u..$u+$xs*$THREE+$TWO){$b[$_]->[$x]=$x==$_?'\\':$x==@a-$_?'/':$b[$_]->[$x]for($u..$u+$TWO+$THREE*$xs)}$i=0;while($z-$i>0){$s=$z-($i+=$FOUR);$u=int(@a/$THREE-$s);$s*=$THREE;$us=$u+$s;for$x($u..10+$us-9){for$y($u..$u+$TWO+$s){;$b[$y]->[$x]=''if$t>=31&&$s<$EIGHT;$b[$y]->[$x]=($y==$u||$y-$TWO==$us)&&($x==$u||$x-$TWO==$us)?'+':$y==$u||$y==$us+$TWO?'-+':$x==$u||$x-$TWO==$us?'|':$b[$y]->[$x]};}BEGIN{$FOUR=5;$THREE=$FOUR-3;$TWO=$FOUR/5;@a=0..$TWO+42-$FOUR;$EIGHT=$FOUR*2}}if(@a-$FOUR+$TWO==$t){$TEN=$FOUR+$FOUR+$TWO;$THREE;@w=map{[split//]}qw(Just Another Perl Hacker);$y=$x=42-$FOUR**$THREE; for$w(@w){$y++;$b[$y]->[$x+$_]=$w->[$_]for(0..$#$w)}}print"\ec",map{@{$b[$_]},$/}@a;select $&,$&,$&,$TWO/10;$z++;}
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
+
+#!/usr/local/bin/perl -w
+# Modified by sharma.animesh@gmail.com using
+#
+#		"How to retrieve GenBank entries over the Web"
+#	
+#										by Jason Stajich
+#
+# To download E. dispar WGS sequence from AANV01000001 to AANV01018095
+
+use Bio::DB::GenBank;
+use Bio::SeqIO;
+my $gb = new Bio::DB::GenBank;
+$dispar_start=1000001;
+$dispar_end=1018095;
+$common="AANV0";
+
+
+my $seqout = new Bio::SeqIO( -file => '>test.gbk' , -format => 'GenBank');
+
+# if you want a single seq
+#my $seq = $gb->get_Seq_by_id('MUSIGHBA1');
+#$seqout->write_seq($seq);
+# or by accession
+$seq = $gb->get_Seq_by_acc('AF303112');
+
+$seqout->write_seq($seq);
+
+# if you want to get a bunch of sequences use the batch method
+#my $seqio = $gb->get_Stream_by_batch([ qw(J00522 AF303112 2981014)]); 
+
+#while( defined ($seq = $seqio->next_seq )) {
+#        $seqout->write_seq($seq);
+#}

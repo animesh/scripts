@@ -89,17 +89,18 @@ while($l=<F>){
 	my $lowr=$min+($max-$min)*$perc;
 my $ucnt;
 my $lcnt;
-my $of1=$fileflow.$file.".test.train.csv";
+my $of1=$fileflow.$file.".new.train.csv";
 open(FO1,">$of1");
-my $of2=$fileflow.$file.".test.trainname.csv";
+my $of2=$fileflow.$file.".new.trainname.csv";
 open(FO2,">$of2");
-my $of3=$fileflow.$file.".test.test.csv";
+my $of3=$fileflow.$file.".new.test.csv";
 open(FO3,">$of3");
-my $of4=$fileflow.$file.".test.testname.csv";
+my $of4=$fileflow.$file.".new.testname.csv";
 open(FO4,">$of4");
 	
 foreach (keys %hitscore) {
 	$cnt++;
+	#print "$cnt\t$_\t$hitscore{$_}\n";
 	if($cnt==1){
 		@temp=split(/\,/,$flowval{$_});
 		#print "SeqName,";
@@ -114,18 +115,12 @@ foreach (keys %hitscore) {
 	}
 #	if($hitscore{$_}>=$upr && $ucnt<$seqcntthresh){print FO1"$flowval{$_}T\n";$ucnt++;}
 #	if($hitscore{$_}<=$lowr && $lcnt<$seqcntthresh){print FO1"$flowval{$_}B\n";$lcnt++;}
-	#if($hitscore{$_}>=$upr && $ucnt<$seqcntthresh){print FO1"$flowval{$_}T\n";$ucnt++;print FO2"$_\n"}
-	#if($hitscore{$_}<=$lowr && $lcnt<$seqcntthresh){print FO1"$flowval{$_}B\n";$lcnt++;print FO2"$_\n"}
-#	elsif($hitscore{$_}>(($max-$min)/2)&&($ucnt>=$seqcntthresh)){print FO3"$flowval{$_}T\n";print FO4"$_\n"}
-#	elsif($hitscore{$_}<=(($max-$min)/2)&&($lcnt>=$seqcntthresh)){print FO3"$flowval{$_}B\n";print FO4"$_\n"}
+	if($hitscore{$_}>=$upr && $ucnt<$seqcntthresh){print FO1"$flowval{$_}T\n";$ucnt++;print FO2"$_\n"}
+	if($hitscore{$_}<=$lowr && $lcnt<$seqcntthresh){print FO1"$flowval{$_}B\n";$lcnt++;print FO2"$_\n"}
+	elsif($hitscore{$_}>(($max-$min)/2)&&($ucnt>=$seqcntthresh)){print FO3"$flowval{$_}T\n";print FO4"$_\n"}
+	elsif($hitscore{$_}<=(($max-$min)/2)&&($lcnt>=$seqcntthresh)){print FO3"$flowval{$_}B\n";print FO4"$_\n"}
 	#elsif($hitscore{$_}>(($max-$min)/2)){print FO3"$flowval{$_}T\n";print FO4"$_\n"}
 	#elsif($hitscore{$_}<=(($max-$min)/2)){print FO3"$flowval{$_}B\n";print FO4"$_\n"}
-	if($hitscore{$_}<$lowr){print FO1"$flowval{$_}B\n";$lcnt++;print FO2"$_\n";print "B ";}
-	if($hitscore{$_}>=$upr){print FO1"$flowval{$_}T\n";$ucnt++;print FO2"$_\n";print "T "}
-	if($hitscore{$_}<=($max-$min)/2){print FO3"$flowval{$_}B\n";$lcnt++;print FO4"$_\n";print "Bm ";}
-	if($hitscore{$_}>($max-$min)/2){print FO3"$flowval{$_}T\n";$ucnt++;print FO4"$_\n";print "Tm "}
-	
-	print "$cnt\t$_\t$hitscore{$_}\t$upr\t$lowr\t$max\t$min\n";
 }
 
 __END__

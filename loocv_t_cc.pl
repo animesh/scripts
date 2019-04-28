@@ -1,32 +1,31 @@
 #!/user/local/bin/perl
 
-# LOOCV t-test, compound covariate (2001)
+# LOOCV t-test weighted vote (2001)
 
-open (IN, '*.csv') or die "$!";             # file name
+open (IN, '*.csv') or die "$!";           # file name
 @file = <IN>;
 close (IN);
 @miss = "";
 
-for ($trao = 0; $trao <= 999; ++ $trao) {    # outer
+for ($trao = 0; $trao <= 999; ++ $trao) {             # outer
     $miss = 0;
     print "No.".$trao.": ";
-    for ($minus =0; $minus <=7; ++$minus)  {       # LOOCV
-        @CC = "";
-        $gene = 0;
+    for ($minus =0; $minus <=7; ++$minus)  {        # LOOCV
+        $gene = 0;$vote = 0;
         foreach $line (@file) {
             $line =~ s/\n//;
             ($name, $a, $b, $c, $d, $e, $f, $g, $h) = split(/,/,$line);
-            @arrayminus = @array = ($a, $b, $c, $d, $e, $f, $g, $h);
-            $sample = splice(@arrayminus,$minus,1);
-            @original = @minusone = @arrayminus;
+            @valueminus = ($a, $b, $c, $d, $e, $f, $g, $h);
+            $valuesampl = splice(@valueminus,$minus,1);
+            @original = @minusone = @valueminus;
             @permute = "";
             if ($minus <= 3) {
-                for ($trai = 0; $trai <= 9999; ++ $trai) {        # inner
+                for ($trai = 0; $trai <= 9999; ++ $trai) {     # inner
                     $m1 = ($minusone[0] + $minusone[1] + $minusone[2]) / 3;
                     $m2 = ($minusone[3] + $minusone[4] + $minusone[5] + $minusone[6]) / 4;
                     $S1_2 = (($minusone[0] - $m1)**2 + ($minusone[1] - $m1)**2 
                         + ($minusone[2] - $m2)**2) / 2;
-                    $S2_2 = (+ ($minusone[3] - $m2)**2 + ($minusone[4] - $m2)**2 
+                    $S2_2 = (($minusone[3] - $m2)**2 + ($minusone[4] - $m2)**2 
                         + ($minusone[5] - $m2)**2 + ($minusone[6] - $m2)**2) / 3;
                     $Sp_2 = (2 * $S1_2 + 3 * $S2_2) / 5;
                     $t = abs($m1 - $m2)/ sqrt($Sp_2 * (1/3 +1/4));
@@ -35,65 +34,75 @@ for ($trao = 0; $trao <= 999; ++ $trao) {    # outer
                 }
             }
             if ($minus >= 4) {  
-                for ($trai = 0; $trai <= 9999; ++ $trai) {        # inner
+                for ($trai = 0; $trai <= 9999; ++ $trai) {      # inner
                     $m1 = ($minusone[0] + $minusone[1] + $minusone[2] + $minusone[3]) / 4;
                     $m2 = ($minusone[4] + $minusone[5] + $minusone[6]) / 3;
-                    $S1_2 = (($minusone[0] - $m1)**2 + ($minusone[1] - $m1)**2
+                    $S1_2 = (($minusone[0] - $m1)**2 + ($minusone[1] - $m1)**2 
                         + ($minusone[2] - $m1)**2 + ($minusone[3] - $m2)**2) / 3;
                     $S2_2 = (($minusone[4] - $m2)**2 + ($minusone[5] - $m2)**2 
                         + ($minusone[6] - $m2)**2) / 2;
                     $Sp_2 = (3 * $S1_2 + 2 * $S2_2) / 5;
                     $t = abs($m1 - $m2)/ sqrt($Sp_2 * (1/4 +1/3));
                     push (@permute, $t);
-                   &FYS7;
+                    &FYS7;
                 }
             }
             @permute = splice(@permute,1,10000);
             $original = $permute[0];
             @sorted = sort {$a <=> $b} @permute;
-            $threshold = ($sorted [94] + $sorted[95]) / 2;           # P = .05
-            if ($original >= $threshold and $original > 2.571) {      # P = .05
-                $sampleCC += $sample * $permute[0];
-                $CC[0] += $original[0] * $permute[0]; 
-                $CC[1] += $original[1] * $permute[0]; 
-                $CC[2] += $original[2] * $permute[0]; 
-                $CC[3] += $original[3] * $permute[0]; 
-                $CC[4] += $original[4] * $permute[0]; 
-                $CC[5] += $original[5] * $permute[0]; 
-                $CC[6] += $original[6] * $permute[0]; 
+            $threshold = ($sorted [9989] + $sorted[9990]) / 2;        # P = .001
+            if ($original >= $threshold and $original > 2.571) {             # p = .05
                 $gene += 1;
+                if ($minus <= 3) {
+                    $m1 = ($valueminus[0] + $valueminus[1] + $valueminus[2])/3;
+                    $m2 = ($valueminus[3] + $valueminus[4] + $valueminus[5] + $valueminus[6])/4;
+                    $m = ($m1 + $m2)/2;
+                    $sd1 = sqrt ((($valueminus[0]-$m1)**2+ ($valueminus[1]-$m1)**2
+                        + ($valueminus[2]-$m1)**2)/2);
+                    $sd2 = sqrt ((($valueminus[3]-$m2)**2+ ($valueminus[4]-$m2)**2
+                        + ($valueminus[5]-$m2)**2 + ($valueminus[6]-$m2)**2)/3);
+                    $wt = abs ($m1 - $m2)/($sd1 + $sd2);
+                    $delta1 = abs($m1 - $valuesampl);
+                    $delta2 = abs($m2 - $valuesampl);
+                    if ($delta1 < $delta2) {
+                        $vote += (abs($m - $valuesampl) * $wt);
+                    } elsif ($delta1 > $delta2) {
+                        $vote += (-1)*(abs($valuesampl - $m) * $wt);
+                    }
+                }
+                if ($minus >= 4) {
+                    $m1 = ($valueminus[0] + $valueminus[1] + $valueminus[2] + $valueminus[3])/4;
+                    $m2 = ($valueminus[4] + $valueminus[5] + $valueminus[6])/3;
+                    $m = ($m1 + $m2)/2;
+                    $sd1 = sqrt ((($valueminus[0]-$m1)**2+ ($valueminus[1]-$m1)**2
+                        + ($valueminus[2]-$m1)**2 + ($valueminus[3]-$m1)**2)/3);
+                    $sd2 = sqrt ((($valueminus[4]-$m2)**2+ ($valueminus[5]-$m2)**2
+                        + ($valueminus[6]-$m2)**2)/2);
+                    $wt = abs ($m1 - $m2)/($sd1 + $sd2);
+                    $delta1 = abs($m1 - $valuesampl);
+                    $delta2 = abs($m2 - $valuesampl);
+                    if ($delta1 > $delta2) {
+                        $vote += (abs($m - $valuesampl) * $wt);
+                    } elsif ($delta1 < $delta2) {
+                        $vote += (-1)*(abs($valuesampl - $m) * $wt);
+                    }
+                }
             }
         }
-        print $gene."g-";
 
-        if ($minus <= 3) {                        # count miss
-            $meanCC1 = ($CC[0] + $CC[1] + $CC[2]) / 3;
-            $meanCC2 = ($CC[3] + $CC[4] + $CC[5] + $CC[6]) / 4;
-            $delta1 = abs ($meanCC1 - $sampleCC);
-            $delta2 = abs ($meanCC2 - $sampleCC);            
-            if ($delta1 > $delta2) {
-                $miss += 1; print "X, ";
-            } else {
-                print "O, ";
-            }
+        print $gene."g-";
+        if ($vote < 0) {
+            $miss += 1;
+            print "X, ";
+        } else {
+            print "O, "
         }
-        if ($minus >= 4) {
-            $meanCC1 = ($CC[0] + $CC[1] + $CC[2] + $CC[3]) /4;
-            $meanCC2 = ($CC[4] + $CC[5] + $CC[6]) / 3;
-            $delta1 = abs ($meanCC1 - $sampleCC);
-            $delta2 = abs ($meanCC2 - $sampleCC);
-            if ($delta1 < $delta2) {
-                $miss += 1;
-                print "X, ";
-            } else {
-                print "O, ";
-            }
-        }      
-    }                             # LOOCV end
+    }                                         # LOOCV end
+
     print "miss:$miss\n";
     push (@miss, $miss);
 
-    open (IN, '*.csv') or die "$!";       # permute 8 cells
+    open (IN, '*.csv') or die "$!";                  # permute 8 cells
     @file = <IN>;
     close (IN);
     open (OUT, '>permuted.csv') or die "$!";
@@ -116,7 +125,7 @@ print "miss:@miss\n";
 $missoriginal = $miss[0];
 @missorted = sort {$a <=> $b} @miss;
 print "misorrt:@missorted\n";
-$missthr = ($missorted[48] + $missorted[49])/2;             # P = .05
+$missthr = ($missorted[48] + $missorted[49])/2;           # P = .05
 print "Number of miss in original set: $missoriginal\n";
 print "Threshold number of miss from random permutations (P=.05): $missthr\n";
 for ($l = 0; $l <= 999; ++$l) {
@@ -127,7 +136,7 @@ for ($l = 0; $l <= 999; ++$l) {
 print "Number of total random permutations :".($trao+1)."\n";
 print "Number of random permutations with fewer miss than original set :$count\n";
 
-sub FYS7 {                   # Fisher Yates Shuffle
+sub FYS7 {                # Fisher Yates Shuffle
     my $i;
     for ($i = 6; $i>=0; --$i ) {
         my $j = int rand($i + 1);
@@ -136,7 +145,7 @@ sub FYS7 {                   # Fisher Yates Shuffle
     }
 }
 
-sub FYS8 {                   # Fisher Yates Shuffle
+sub FYS8 {                 # Fisher Yates Shuffle
     my $i;
     for ($i = 7; $i>=0; --$i ) {
         my $j = int rand($i + 1);
