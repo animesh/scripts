@@ -14,105 +14,53 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-$f=shift @ARGV;
-$row=shift @ARGV;
-open(F,$f);
-
-if($row eq "pgm"){
-$file1=$f."_ft.pgm";
-$file2=$f."_invft.pgm";
-open(F1,">$file1");
-}
-
-if($row eq ""){
-$file1=$f."_ft.dat";
-$file2=$f."_invft.dat";
-open(F1,">$file1");
-}
-
-use Math::Complex;
-$pi=pi;
-$i=sqrt(-1);
-$c1=0;$rowno=0;
-while($l1=<F>){
-	chomp $l1;
-	if($row eq "pgm" and $rowno<=3){
-		if(($rowno==0) and ($l1!~/^P2/)){die "invalid PGM file $file";}
-		if($rowno==2){@rc=split(/\s+/,$l1);}
-		$rowno++;print F1"$l1\n";print F2"$l1\n";next;
-		}
-	if($row eq "pgm" and $rowno>3){
-		$str=$str." $l1";
-		next;
-		}
-	@t1=split(/\s+/,$l1);
-	for($c2=0;$c2<=$#t1;$c2++){
-		if($c1==0 or $c2==0){$mat[$c2][$c1]=@t1[$c2]+0;}
-		else{$mat[$c1][$c2]=(@t1[$c2])+0;}#print "@t1[$c2]  ";
-		}
+$file=shift @ARGV;
+$file2=shift @ARGV;
+$pk=shift @ARGV;
+$choose= shift @ARGV;
+open(F,$file)||die "can't open";
+open(F2,$file2)||die "can't open";
+while ($line = <F>) {
+        chomp ($line);
+        @n=split(/\t/,$line);@n[4]=~s/\s+//g;
+#	foreach $w (@n){print "$c=>$w\n";$c++}$c=0;
+	if($choose eq "l" and @n[4] <= $pk){
+	$lto{@n[2]}=@n[4];}	
+	elsif($choose eq "m" and @n[4] >= $pk){
+	$lto{@n[2]}=@n[4];}
 	
-	$c1++;
 }
-if($row eq "pgm"){$c1=@rc[0];$c2=@rc[1];@rcn=split(/\s+/,$str);
-	for($s1=0;$s1<$c1;$s1++){
-		for($s2=0;$s2<$c2;$s2++){
-			$mat[$s1][$s2]=@rcn[$s1*$c1+$s2];
-		}
-	}
-	#die "invalid PGM file $file";
+close F;
+while ($l=<F2>){	
+	if($l=~/^ORIGIN/){
+		while($ll=<F2>)
+                {
+                $ll=~s/[0-9]//g;$ll=~s/\s+//g;chomp $ll;$line.=$ll;
+                }
+        }
 }
-
-#print "$c1\t$c2\n";
-for($c6=0;$c6<$c1;$c6++){
-	for($c5=0;$c5<$c2;$c5++){
-		$subsum=0;
-		$u=$c5;
-		#print "$mat[0][$c6]\t$mat[$c5][0]\t$val\t";
-		for($c7=0;$c7<$c2;$c7++){
-			$val=($mat[$c6][$c7]+0)*((-1)**($c7+$c6));		
-			$N=$c2;
-			$x=$c7;
-			$subsum+=($val*exp(-(2*$pi*$i*($u*$x)/$N)));
-			#print "$val\t2PI I $x $u $N\t";
-		}
-		#print "\n";
-		#$subsumtotal+=(((1/$le)**2)*(abs($subsum)**2));
-		$subsuma=(1/$N)*(($subsum));
-		#print "$mat[0][$c6]\t$mat[$c5][0]\t$val\t$subsum\t$subsuma\n";
-		#print "$subsuma\t";
-		$matt[$c6][$c5]=$subsuma;
-		#print "$subsuma\t";
-	}
-	#print "\n";
+close F2;
+$line=($line);$line=~s/\///g;1/1;$seql=length($line);
+foreach $w (keys %lto){
+#print "$w\t$lto{$w}\n";
+$seqname=$w;
+@t1=split(/\s+|\[|\]|\_|\-|\,|\:|\n|\t/,$seqname);
+#$t1[0]=~s/\>|\s+//g;
+$c2=0;#foreach $w (@t1){print "$c2 \t $w\n";$c2++;}
+$st=@t1[1]+0;$sp=@t1[2]+0;$length=$sp-$st+1;
+$str = uc(substr($line,($st-1),($length)));
+$t11=@t1[0];$t11=~s/\>|\s+//g;
+if($t11 eq "cIntergenic"){
+#$st=@t1[2]-@t1[9]+1-3;$sp=@t1[2]-@t1[6]+1;$length=$sp-$st+1;$str = uc(substr($line,($st-1),($length)));
+$str = reverse ($str);
+$str =~ tr/ATCG/TAGC/d;
+if($str=~/^(TTG|GTG|ATG)/ and $str=~/(TAA|TAG|TGA)$/){
+print "@t1[0]\[$st-$sp]\t$t1[4]\t$length\t$file\n$str\n";
 }
-print "$c1\t$c2\n";
-for($c9=0;$c9<$c2;$c9++){
-	for($c10=0;$c10<$c1;$c10++){
-		$subsum=0;
-		$u=$c10;
-		#print "$matt[$c9][$c10]\t$matt[$c10][$c9]\t";
-		for($c7=0;$c7<$c1;$c7++){
-			#$val=i;
-			$val=($matt[$c7][$c9]);
-			#print "$val\t$matt[$c10][$c9]\t";
-			$N=$c1;
-			$x=$c7;
-			$subsum+=($val*exp(-(2*$pi*$i*($u*$x)/$N)));
-			#print "$mat2[$c7][$c6]\t2PI I $x $u $N\t";
-			#print "$c6\t$c7\t";
-		}
-		#print "\n";
-		#$subsumtotal+=(((1/$le)**2)*(abs($subsum)**2));
-		$subsuma=(1/$N)*(($subsum));
-		#print "$mat[0][$c6]\t$mat[$c5][0]\t$val\t$subsum\t$subsuma\n";
-		$mattt[$c10][$c9]=$subsuma;
-		#print "$mattt[$c7][$c9]\t";
-		#$subsumm=abs($subsuma);
-		$subsumm = int($subsuma);
-		print F1"$mattt[$c10][$c9]\t";#print F1"$subsumm\t";
-		#print "$subsuma\t";
-
-	}
-	#print "\n";
-	print F1"\n";
+}
+else{
+if($str=~/^(TTG|GTG|ATG)/ and $str=~/(TAA|TAG|TGA)$/){
+print "@t1[0]\[$st-$sp]\t$t1[4]\t$length\t$file\n$str\n";
+}
+}
 }

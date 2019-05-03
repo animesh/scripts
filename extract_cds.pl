@@ -1,21 +1,30 @@
-#!/usr/bin/perl -w
-# Contributed by Jason Stajich <jason@bioperl.org>
-
-# simple extract the CDS features from a genbank file and 
-# write out the CDS and Peptide sequences
-
 use strict;
+use warnings;
 use Bio::SeqIO;
-my $filename = shift || die("pass in a genbank filename on the cmd line");
-my $in = new Bio::SeqIO(-file => $filename, -format => 'genbank');
-my $out = new Bio::SeqIO(-file => ">$filename.cds");
-my $outpep = new Bio::SeqIO(-file => ">$filename.pep");
-
-while( my $seq = $in->next_seq ) {
-  my @cds = grep { $_->primary_tag eq 'CDS' } $seq->get_SeqFeatures();
-  foreach my $feature ( @cds ) {
-    my $featureseq = $feature->spliced_seq;
-    $out->write_seq($featureseq);
-    $outpep->write_seq($featureseq->translate);
+my $f=shift;
+my $ftype=shift;
+my $i = new Bio::SeqIO(-file => $f, -format => $ftype);
+my $o = new Bio::SeqIO(-file => ">$f.cds.fasta");
+my $opep = new Bio::SeqIO(-file => ">$f.pep.fasta");
+my $seqno=0;
+while( my $s = $i->next_seq ) {
+  my @codingseq = grep { $_->primary_tag eq 'CDS' } $s->get_SeqFeatures();
+  foreach my $feat ( @codingseq ) {
+	#print "ID   ", _id_generation_func($feat), "\n";
+  $seqno++;
+	#print "$feat\n";
+    my $fseq = $feat->spliced_seq;
+    $o->write_seq($fseq);
+    $opep->write_seq($fseq->translate);
+	print ">$seqno-";
+   for my $tag ($feat->get_all_tags) {
+      print "$tag-";
+	if($tag eq "translation"){for my $value ($feat->get_tag_values($tag)) {
+         print "\n", $value, "\n";
+      }}
+      else{for my $value ($feat->get_tag_values($tag)) {
+         print "-", $value, "-";
+      }}
+   }
   }
 }

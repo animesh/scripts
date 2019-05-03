@@ -17,7 +17,7 @@
 $f1=shift @ARGV;chomp $f1;
 $all=shift @ARGV;chomp $all;
 $aml=shift @ARGV;chomp $aml;$top=shift @ARGV;chomp $top;
-if (!$f1) {print "enter a filename";exit;}
+if ($f1 eq "" or $all eq "" or $aml eq "" or $top eq "") {print "\nUSAGE:	\'perl program_name file no_of_all no_of_aml no_of_feature_2_b_selected\'\n\n";exit;}
 open F1,$f1||die"cannot open $f1";
 push(@gi,0);
 for  ($c0=1;$c0<=$all;$c0++) {

@@ -1,56 +1,53 @@
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-#    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
-
-#!/usr/bin/perl
 use strict;
-use lib "/Home/siv11/ash022/bioperl/";
-use Bio::SeqIO;
+use warnings;
 
-
-my $main_file_pattern=shift @ARGV;chomp $main_file_pattern;
-my $start=shift @ARGV;
-open(F,$main_file_pattern)||die "can't open";
-my $seq;
-my @seq;
-my $fot;
-my $line;
-my @seqname;
-my $snames;
-while ($line = <F>) {
-        chomp ($line);
-        if ($line =~ /^>/){
-		$snames=$line;
-		chomp $snames;
-             push(@seqname,$snames);
-                if ($seq ne ""){
-              push(@seq,$seq);
-              $seq = "";
-            }
-      } else {$seq=$seq.$line;
-      }
-}push(@seq,$seq);
-$seq="";
-close F;
-
-my $fo=$main_file_pattern.".$start.out";
-open(FRA,">$fo")||die "can't open";
-
-for($fot=$start;$fot<=$#seq;$fot++){
-print FRA"@seqname[$fot]\n@seq[$fot]\n";
-
+my %seqh;
+my %seqm;
+my $seqc;
+my $f1=shift @ARGV;
+open(F1,$f1);
+while(my $l1=<F1>){
+	chomp $l1;
+	$l1=~s/\r//g;
+	if($l1=~/^>/){$seqc=$l1;$seqc=~s/^>//;$seqc=~s/^(\w+).*$/$1/;}
+	else{$seqh{$seqc}.=uc($l1);}
 }
-close FRA;
+close F1;
+
+my $f2=shift @ARGV;
+open(F2,$f2);
+my $gn=shift @ARGV;
+my $utr=shift @ARGV;
+my $min=1e9999;
+my $max=-$min;
+my $chr;
+while(my $l2=<F2>){
+	if($l2=~m/\b$gn\b/){
+		chomp $l2;
+		$l2=~s/\r//g;
+		my @tmpnm=split(/\t/,$l2);
+		if($min>$tmpnm[3]){$min=$tmpnm[3]}
+		if($max<$tmpnm[4]){$max=$tmpnm[4]}
+		$chr=$tmpnm[0];
+		print ">",join('|',@tmpnm),"\n";
+		if($tmpnm[6] eq "-"){
+			my $revseq=reverse(substr($seqh{$tmpnm[0]},$tmpnm[3]-1,$tmpnm[4]-$tmpnm[3]+1));
+			$revseq=~tr/ATCG/TAGC/;
+			print $revseq,"\n";
+		}
+		elsif($tmpnm[6] eq "+"){print substr($seqh{$tmpnm[0]},$tmpnm[3]-1,$tmpnm[4]-$tmpnm[3]+1),"\n";}
+		else{print "Unknown Frame\n";}
+	}
+}
+close F2;
+
+if($utr){
+	print ">utr|$gn|$chr|$min|-$utr","\n",substr($seqh{$chr},$min-$utr-1,$utr),"\n";
+	print ">utr|$gn|$chr|$max|+$utr","\n",substr($seqh{$chr},$max,$utr),"\n";
+}
+
+__END__
+perl fastaFile GTFfile Gene lengthUTR
+
 
 

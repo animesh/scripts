@@ -14,25 +14,28 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-$f1=shift @ARGV;chomp $f1;
-if (!$f1) {print "\nUSAGE:	\'perl program_name filename_2_b_transposed\'\n\n";exit;}
-open F1,$f1||die"cannot open $f1";
-$c1=0;
-while($l1=<F1>){
-	chomp $l1;
-	#print "$l1\n";
-	$l3=$l1;$l3=~s/\s+//g;
-	if($l3 eq ""){next;}
-	@t1=split(/\t/,$l1);
-	for($c2=0;$c2<=$#t1;$c2++){
-		$mat[$c2][$c1]=@t1[$c2];
-		}
-	$c1++;
+#libname inform 'D:\animesh\umkc\snp\project_din'; 
+#options fmtsearch=(inform);
+open(F,"d1.csv");$c=0;
+#open(F,"ppar11nov2004.csv");$c=0;
+while($l=<F>){
+	$ccc=0;
+	#if($c>1){last;}
+	@t1=split(/\,/,$l);
+	#for($cc=0;$cc<=$#t;$cc++){
+	#for($cc=214;$cc<=229;$cc++){$ccc++;
+	for($cc=213;$cc<=235;$cc++){$ccc++;
+	#for($cc=216;$cc<=231;$cc++){$ccc++;
+		$t2[$cc][$c]=@t1[$cc];
+		#print "$cc\t@t1[$cc]\n";
+	}
+	$c++;
 }
-for($c5=0;$c5<$c2;$c5++){
-	for($c6=0;$c6<=($c1);$c6++){
-		print "$mat[$c5][$c6]\t";
-		}
-	print "$mat[$c5][$c6]\n";
+for($c1=213;$c1<=235;$c1++){
+	for($c2=0;$c2<=$c;$c2++){
+		#$t2[$c1][$c2]=@t1[$cc];
+		print "$t2[$c1][$c2]\t";
+	}
+	print "\n";
 }
-#print "$c1\n";
+

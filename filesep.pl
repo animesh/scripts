@@ -14,35 +14,43 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-if(@ARGV!=3){die"USAGE: Input_File No_of_Feature Ratio";}
-$file1=shift @ARGV;
-$ftr=shift @ARGV;
-$prop=shift @ARGV;
-$file2=$file1.".train.txt";
-open(F2,">$file2");
-$file3=$file1.".test.txt";
-open(F3,">$file3");
-open(F1,$file1);
+if( @ARGV ne 2){die "\nUSAGE\t\"ProgName Actual FFN Predicted FFN\n\n\n";}
+$file1 = shift @ARGV;$file2 = shift @ARGV;
+$f3=$file1."_".$file2.".out";
+open (F1, $file1) || die "can't open \"$file1\": $!";
+open (F2, $file2) || die "can't open \"$file2\": $!";
+open (F3, ">$f3") || die "can't open \"$f3\": $!";
+while ($line = <F1>) {
+		chomp $line;@t=split(/\s+/,$line);
+		for($c=0;$c<=$#t;$c++){
+		$l1=@t[$c]+0;
+		$l2.=$l1;
+		}
+			push(@seqo,$l2);
+			$l2="";
+}
+close F1;
+while ($line = <F2>) {
+		chomp $line;@t=split(/\s+/,$line);
+		for($c=0;$c<=$#t;$c++){
+		$l1=@t[$c]+0;
+		$l2.=$l1;
+		}
+			push(@seqn,$l2);
+			$l2="";
+}
+close F2;
 
-	while($l1=<F1>){chomp $l1;$row++;
-		@t1=split(/\s+/,$l1);
-			for($c3=$ftr;$c3<=$#t1;$c3++){
-				$otp[$c1][$c3]=@t1[$c3]+0;
-				if($otp[$c1][$c3]==1){$label=$c3-$ftr+1;}
-			}
-		$labhash{"$l1|$row"}=$label;
-		$class{$label}++;
+for($c1=0;$c1<=$#seqo;$c1++){
+	$seqoo=@seqo[$c1];
+	for($c2=0;$c2<=$#seqn;$c2++){
+		$seqnn=$seqn[$c2];
+		if($seqnn eq $seqoo){
+			$cc1=$c1+1;$cc2=$c2+1;
+			print F3"$cc1\t$cc2\n";			
+			print "$cc1\t$cc2\n";
+			last;
+		}
 	}
-	close F1;
-
-foreach(sort {$labhash{$a}<=>$labhash{$b}} keys %labhash){
-	@t=split(/\|/,$_);
-	if(($classp{$labhash{$_}}/$class{$labhash{$_}})<$prop){
-		$classp{$labhash{$_}}++;
-		print F2"@t[0]\n";
-	}
-	else
-	{
-		print F3"@t[0]\n";
-	}
-	}
+}
+#perl fileser3.pl dub_4200_train.txt  mixdub_4200_train.txt

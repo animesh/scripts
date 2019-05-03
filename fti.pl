@@ -14,60 +14,52 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-$f=shift @ARGV;
-$row=shift @ARGV;
-open(F,$f);
-
-
-$file1=$f."_ft.dat";
-open(F1,">$file1");
-
-use Math::Complex;
-$pi=pi;
-$i=sqrt(-1);
-$c1=0;$rowno=0;
-while($l1=<F>){
-	chomp $l1;
-	@t1=split(/\s+/,$l1);
-	for($c2=0;$c2<=$#t1;$c2++){
-		if($c1==0 or $c2==0){$mat[$c2][$c1]=cplx(@t1[$c2]);}
-		else{$mat[$c1][$c2]=cplx(@t1[$c2]);}
-		}
+#final NCDS extractor based on the chi stat
+$file=shift @ARGV;
+$file2=shift @ARGV;
+$pk=shift @ARGV;
+$choose= shift @ARGV;
+open(F,$file)||die "can't open";
+open(F2,$file2)||die "can't open";
+while ($line = <F>) {
+        chomp ($line);
+        @n=split(/\t/,$line);@n[4]=~s/\s+//g;
+#	foreach $w (@n){print "$c=>$w\n";$c++}$c=0;
+	if($choose eq "l" and @n[4] <= $pk){
+	$lto{@n[2]}=@n[4];}	
+	elsif($choose eq "m" and @n[4] >= $pk){
+	$lto{@n[2]}=@n[4];}
 	
-	$c1++;
 }
-
-
-for($c6=0;$c6<$c1;$c6++){
-	for($c5=0;$c5<$c2;$c5++){
-		$subsum=0;
-		$u=$c5;
-		for($c7=0;$c7<$c2;$c7++){
-			$val=($mat[$c6][$c7])*((-1)**($c7+$c6));		
-			$N=$c2;
-			$x=$c7;
-			$subsum+=($val*exp(-(2*$pi*$i*($u*$x)/$N)));
-		}
-		$subsuma=(1/$N)*(($subsum));
-		$matt[$c6][$c5]=$subsuma;
-	}
+close F;
+while ($l=<F2>){	
+	if($l=~/^ORIGIN/){
+		while($ll=<F2>)
+                {
+                $ll=~s/[0-9]//g;$ll=~s/\s+//g;chomp $ll;$line.=$ll;
+                }
+        }
 }
-print "$c1\t$c2\n";
-for($c9=0;$c9<$c2;$c9++){
-	for($c10=0;$c10<$c1;$c10++){
-		$subsum=0;
-		$u=$c10;
-		for($c7=0;$c7<$c1;$c7++){
-			$val=($matt[$c7][$c9]);
-			$N=$c1;
-			$x=$c7;
-			$subsum+=($val*exp(-(2*$pi*$i*($u*$x)/$N)));
-		}
-		$subsuma=(1/$N)*(($subsum));
-		$mattt[$c10][$c9]=$subsuma;
-		$subsumm = int($subsuma);
-		print F1"$mattt[$c10][$c9]\t";
-
-	}
-	print F1"\n";
+close F2;
+$line=($line);$line=~s/\///g;1/1;$seql=length($line);
+foreach $w (keys %lto){
+#print "$w\t$lto{$w}\n";
+$seqname=$w;
+@t1=split(/\s+|\[|\]|\_|\-|\,|\:|\n|\t/,$seqname);
+#$t1[0]=~s/\>|\s+//g;
+$c2=0;#foreach $w (@t1){print "$c2 \t $w\n";$c2++;}
+$st=@t1[1]+0;$sp=@t1[2]+0;$length=$sp-$st+1;
+$str = uc(substr($line,($st-1),($length)));
+$t11=@t1[0];$t11=~s/\>|\s+//g;
+if($t11 eq "cIntergenic"){
+#$st=@t1[2]-@t1[9]+1-3;$sp=@t1[2]-@t1[6]+1;$length=$sp-$st+1;$str = uc(substr($line,($st-1),($length)));
+$str = reverse ($str);
+$str =~ tr/ATCG/TAGC/d;
+if(($length >= 30) and ($length <= 153)){
+print "$seqname\t[$st-$sp]\t$length\t$lto{$w}\t$file\n$str\n";
+}
+}
+elsif($t11 eq "Intergenic" and ($length >= 30) and ($length <= 153)){
+print "$seqname\t[$st-$sp]\t$length\t$lto{$w}\t$file\n$str\n";
+}
 }

@@ -14,9 +14,9 @@
   print "There are #  $tasksize \n";
   my $pm = new Parallel::ForkManager($tasksize); 
   foreach my $task (@tasks) {
-    $pm->start and next; # do the fork
+    $pm->start and next; 
     system("$command $task $genome $task.$genome.out");
-    $pm->finish; # do the exit in the child process
+    $pm->finish; 
   }
   $pm->wait_all_children;
 

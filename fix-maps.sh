@@ -9,3 +9,23 @@ do b=`basename $f name`
    test -n "${n}" && echo "s/${b}data/${n}/" >>t.sed
 done
 sed -f t.sed
+
+#!/bin/sh
+for x in *; do
+	y=`echo $x | tr '[A-Z]' '[a-z]'`
+	if [ $x != $y ]; then
+		mv $x $y
+	fi
+done
+	
+
+	# 1:50 pm 4/26/97
+# fixpath file
+# fix iconx path in UNIX executable
+for f in $*;do
+ex $f <<\END
+/iconx/
+.,+s/.usr.home.rhm.icon/$KEHOME/
+wq
+END
+done

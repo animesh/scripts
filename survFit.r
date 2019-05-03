@@ -1,76 +1,131 @@
+#
+# Ensure that factors work in prediction
+#
+options(na.action=na.exclude) # preserve missings
+options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
+library(survival)
+aeq <- function(x,y, ...) all.equal(as.vector(x), as.vector(y), ...)
+
+tfit <- coxph(Surv(time, status) ~ age + factor(ph.ecog), lung)
+p1 <- predict(tfit, type='risk')
+
+lung2 <- lung[lung$ph.ecog!=1,]
+p2 <- predict(tfit, type='risk', newdata=lung2)
+
+aeq(p1[is.na(lung$ph.ecog) | lung$ph.ecog!=1], p2)
+
+# Same, for survreg
+tfit <- survreg(Surv(time, status) ~ age + factor(ph.ecog), lung)
+p1 <- predict(tfit, type='response')
+p2 <- predict(tfit, type='response', newdata=lung2)
+aeq(p1[is.na(lung$ph.ecog) | lung$ph.ecog!=1], p2)
+
+
+# Now repeat it tossing the missings
+options(na.action=na.omit) 
+tfit2 <- coxph(Surv(time, status) ~ age + factor(ph.ecog), lung)
+p3 <- predict(tfit2, type='risk')
+p4 <- predict(tfit2, type='risk', newdata=lung2, na.action=na.omit)
+
+aeq(p3[lung$ph.ecog[!is.na(lung$ph.ecog)] !=1] , p4)
+
+tfit2 <- survreg(Surv(time, status) ~ age + factor(ph.ecog), lung)
+p3 <- predict(tfit2, type='response')
+p4 <- predict(tfit2, type='response', newdata=lung2, na.action=na.omit)
+
+aeq(p3[lung$ph.ecog[!is.na(lung$ph.ecog)] !=1] , p4)
+
 options(na.action=na.exclude) # preserve missings
 options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 library(survival)
 
-expect <- survexp(futime ~ ratetable(age=(accept.dt - birth.dt), sex=1,
-		year=accept.dt, race='white'), jasa, cohort=F, 
-                  ratetable=survexp.usr)
+#
+# The residual methods treat a sparse frailty as a fixed offset with
+#   no variance
+#
+aeq <- function(x,y, ...) all.equal(as.vector(x), as.vector(y), ...)
 
-survdiff(Surv(jasa$futime, jasa$fustat) ~ offset(expect))
-# Now fit the 6 models found in Kalbfleisch and Prentice, p139
-sfit.1 <- coxph(Surv(start, stop, event)~ (age + surgery)*transplant,
-				jasa1, method='breslow')
-sfit.2 <- coxph(Surv(start, stop, event)~ year*transplant,
-				jasa1, method='breslow')
-sfit.3 <- coxph(Surv(start, stop, event)~ (age + year)*transplant,
-				jasa1, method='breslow')
-sfit.4 <- coxph(Surv(start, stop, event)~ (year +surgery) *transplant,
-				jasa1, method='breslow')
-sfit.5 <- coxph(Surv(start, stop, event)~ (age + surgery)*transplant + year ,
-				jasa1, method='breslow')
-sfit.6 <- coxph(Surv(start, stop, event)~ age*transplant + surgery + year,
-				jasa1, method='breslow')
+kfit1 <- coxph(Surv(time, status) ~ age + sex + 
+	           frailty(id, dist='gauss'), kidney)
+tempf <- predict(kfit1, type='terms')[,3]
+temp  <- kfit1$frail[match(kidney$id, sort(unique(kidney$id)))]
+#all.equal(unclass(tempf), unclass(temp))
+all.equal(as.vector(tempf), as.vector(temp))
 
-summary(sfit.1)
-sfit.2
-summary(sfit.3)
-sfit.4
-sfit.5
-sfit.6
+# Now fit a model with explicit offset
+kfitx <- coxph(Surv(time, status) ~ age + sex + offset(tempf),kidney,
+	       eps=1e-7)
 
-# Survival curve for the "average" subject
-summary(survfit(sfit.1))
+# These are not precisely the same, due to different iteration paths
+aeq(kfitx$coef, kfit1$coef)
 
-# Survival curve for a subject of age 50, with prior surgery, tx at 6 months
-data <- data.frame(start=c(0,183), stop=c(183,3*365), event=c(1,1),
-		   age=c(50,50),  surgery=c(1,1), transplant=c(0,1))
-summary(survfit(sfit.1, data, individual=T))
+# This will make them identical
+kfitx <- coxph(Surv(time, status) ~ age + sex  + offset(temp),kidney,
+	       iter=0, init=kfit1$coef)
+aeq(resid(kfit1), resid(kfitx))
+aeq(resid(kfit1, type='score'), resid(kfitx, type='score'))
+aeq(resid(kfit1, type='schoe'), resid(kfitx, type='schoe'))
 
-# These should all give the same answer
-j.age <- jasa$age -48
-fit1 <- coxph(Surv(futime, fustat) ~ j.age, data=jasa)
-fit2 <- coxph(Surv(futime, fustat) ~ j.age, jasa, init=fit1$coef, iter=0)
-fit3 <- coxph(Surv(start, stop, event) ~ age, jasa1)
-fit4 <- coxph(Surv(start, stop, event) ~ offset((age-fit3$means)*fit1$coef),
-              jasa1)
-s1 <- survfit(fit1, fit3$means)
-s2 <- survfit(fit2, fit3$means)
-s3 <- survfit(fit3)
-s4 <- survfit(fit4)
+# These are not the same, due to a different variance matrix
+#  The frailty model's variance is about 2x the naive "assume an offset" var
+# The score residuals are equal, however.
+aeq(resid(kfit1, type='dfbeta'), resid(kfitx, type='dfbeta'))
+zed <- kfitx
+zed$var <- kfit1$var
+aeq(resid(kfit1, type='dfbeta'), resid(zed, type='dfbeta'))
 
-all.equal(s1$surv, s2$surv)
-all.equal(s1$surv, s3$surv)
-all.equal(s1$surv, s4$surv)
 
-# Still the same answer, fit multiple strata at once
-#  Strata 1 has independent coefs of strata 2, so putting in
-#    the other data should not affect it
-attach(jasa1)
-ll <- length(start)
-ss <- rep(0:1, c(ll,ll))
-tdata <- data.frame(start=rep(start,2), stop=rep(stop,2),
-		    event=rep(event,2), ss=ss, age=rep(age,2),
-		    age2 = (rep(age,2))^2 * ss)
-fit <- coxph(Surv(start, stop, event) ~ age*strata(ss) + age2, tdata)
-#  Above replaced these 2 lines, which kill Splus5 as of 8/98
-#    Something with data frames, I expect.
-#fit <- coxph(Surv(rep(start,2), rep(stop,2), rep(event,2)) ~
-#			rep(age,2)*strata(ss) + I(rep(age,2)^2*ss) )
-all.equal(fit$coef[1], fit3$coef)
-s5 <- survfit(fit, c(fit3$means, 0,0))
-all.equal(s5$surv[1:(s5$strata[1])],  s3$surv)
-detach("jasa1")
+temp1 <- resid(kfit1, type='score')
+temp2 <- resid(kfitx, type='score')
+aeq(temp1, temp2)
 
-rm(s1, s2, s3, s4, s5, tdata, ll, ss, data)
-rm(fit1, fit2, fit3, fit4, fit, j.age)
-rm(sfit.1, sfit.2, sfit.3, sfit.4, sfit.5, sfit.6)
+#
+# Now for some tests of predicted values
+#
+aeq(predict(kfit1, type='expected'), predict(kfitx, type='expected'))
+aeq(predict(kfit1, type='lp'), predict(kfitx, type='lp'))
+
+temp1 <- predict(kfit1, type='terms', se.fit=T)
+temp2 <- predict(kfitx, type='terms', se.fit=T)
+aeq(temp1$fit[,1:2], temp2$fit)
+aeq(temp1$se.fit[,1:2], temp2$se.fit)  #should be false
+mean(temp1$se.fit[,1:2]/ temp2$se.fit)
+aeq(as.vector(temp1$se.fit[,3])^2, 
+	  as.vector(kfit1$fvar[match(kidney$id, sort(unique(kidney$id)))]))
+
+print(temp1)
+kfit1
+kfitx
+
+rm(temp1, temp2, kfitx, zed, tempf)
+#
+# The special case of a single sparse frailty
+#
+
+kfit1 <- coxph(Surv(time, status) ~ frailty(id, dist='gauss'), kidney)
+tempf <- predict(kfit1, type='terms')
+temp  <- kfit1$frail[match(kidney$id, sort(unique(kidney$id)))]
+all.equal(as.vector(tempf), as.vector(temp))
+
+# Now fit a model with explicit offset
+kfitx <- coxph(Surv(time, status) ~ offset(tempf),kidney, eps=1e-7)
+
+aeq(resid(kfit1), resid(kfitx))
+aeq(resid(kfit1, type='deviance'), resid(kfitx, type='deviance'))
+
+#
+# Some tests of predicted values
+#
+aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
+aeq(predict(kfit1, type='expected'), predict(kfitx, type='expected'))
+aeq(predict(kfit1, type='lp'), predict(kfitx, type='lp'))
+
+temp1 <- predict(kfit1, type='terms', se.fit=T)
+aeq(temp1$fit, kfitx$linear)
+aeq(temp1$se.fit^2, 
+	  kfit1$fvar[match(kidney$id, sort(unique(kidney$id)))])
+
+temp1
+kfit1
+
+

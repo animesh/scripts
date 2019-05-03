@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 $linenew="";
-open (FH,"contigAC109594") || die "cant open file : $!";
+open (FH,"AC109365.fas.2") || die "cant open file : $!";
 while ($line1=<FH>){
 chomp $line1;
 $linenew=$linenew.$line1;
@@ -8,7 +8,7 @@ $linenew=$linenew.$line1;
 $linenew="0".$linenew;
 #print "$linenew\n";
 $count=0;
-open (F, "assnmnt1.out") || die "cant open file : $!";
+open (F, "AC109365.fas.2.glimmerR") || die "cant open file : $!";
 while ($line=<F>){chomp$line;
 if($line =~ /^\s+[1-9]/){
 $line=~s/\t/\s/g;

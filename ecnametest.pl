@@ -1,5 +1,6 @@
 #!/usr/bin/perl
-if( @ARGV ne 2){die "\nUSAGE\t\"ProgName SeparatedSeqFile\t AnnotationFile\n\n\n";}
+if( @ARGV ne 2){die "\nUSAGE\t\"ProgName SeparatedSeqFile\t 
+AnnotationFile\n\n\n";}
 $filess = shift @ARGV;$cp=0;$cnp=0;
 $fileas = shift @ARGV;$cp=0;$cnp=0;
 open (F1, $filess) || die "can't open \"$filess\": $!";
@@ -28,18 +29,7 @@ foreach $n1 (@name1){
 	}
 close F;close FS1,close FS2;
 
-eew
-we
-wewewewe
 
 
-wdewd
-we
-we
-wew
-e
-ee
-we
-we
 
 

@@ -8,8 +8,9 @@ open (F, $file) || die "can't open \"$file\": $!";
 $seq="";while ($line = <F>) {
         chomp ($line);
         if ($line =~ /^>/){
-             @seqn=split(/\t/,$line);
-                $snames=@seqn[0];$snames=~s/>//;1/1;
+             @seqn=split(/\s+/,$line);
+                $snames=@seqn[1];
+		#$snames=~s/>//;1/1;
                 chomp $snames;
              push(@seqname,$snames);
                 if ($seq ne ""){
@@ -21,16 +22,17 @@ $seq="";while ($line = <F>) {
 }
 push(@seq,$seq);close F;
 @base=qw/A T G C/;$ss1=@seq;#print "$ss1\t$ss2\n";
+$fo=$file."ft.4cross.values";
+open(FF,">$fo");
 for($c1=0;$c1<$ss1;$c1++)
 {
 $seq=uc(@seq[$c1]);
 $sname=@seqname[$c1];
-$foo=$sname."ft"."\.out";
-open FO,">$foo";
+#$foo=$sname.".ft";
+#open FO,">$foo";
 $N=length($seq);
 $R=$N%3;
-print "$N\t";
-if($R ne 0){$N=$N-$R;print "R+ $N\t";}
+if($R ne 0){$N=$N-$R;}
 FT(1,$N);
 	sub FT {
 	$st=shift;
@@ -38,14 +40,12 @@ FT(1,$N);
 	$le=$sp-$st+1;
 	$subs=substr($seq,($st-1),$le);$ws=$sp;$subseq=$subs;
 	$c=$subseq=~s/C/C/g;$a=$subseq=~s/A/A/g;$g=$subseq=~s/G/G/g;$t=$subseq=~s/T/T/g;
-	$sfo=$sname."\.fted\.out";
-	open(SFO,">$sfo");
+	#$sfo=$foo.".$st.$sp.subseq";
+	#open(SFO,">$sfo");
 	@subssplit=split(//,$subs);
 		for($k=1;$k<=($sp/2);$k++)
+		 {for($c6=0;$c6<=$#base;$c6++)
 		 {
-                if ($le/$k == 3)
-			{for($c6=0;$c6<=$#base;$c6++)
-		 	{
 			$bvar=@base[$c6];
   			for($c7=0;$c7<=$#subssplit;$c7++)
 			{$wsvar=@subssplit[$c7];
@@ -66,15 +66,14 @@ FT(1,$N);
 		$subsumtotal=0;
 		$subptnr2=$subptnr1/($sp*$substss);
 		$subptnr3=$subptnr2*2;
-		1/1;
-		#if ($le/$k == 3)
-		#{
-		$pp=($k)/$le;
-		print "$sname\t$pp\t$subptnr1\t$subptnr2\t$subptnr3\n";
-		#if($pp eq (1/3)){print $pp\t$subptnr3\n";}
-		}
+		1/1;$pp=($k)/$le;
+		$temp=$le/$k;
+		if($subptnr3 ge 4){
+			print FF"$sname\t$temp\t$pp\t$subptnr1\t$subptnr2\t$subptnr3\n";
+			}
 		}#undef @ssts;
 		#print "S(f) to Frequency written to file $sfo\n";
-		close SFO;
+		#close SFO;
 	}
 }
+close FF;

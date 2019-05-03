@@ -6,7 +6,7 @@ foreach $w (sort {$b<=>$a} keys %dictast){
 	print FI"$dictast{$w}";
 	close FI;
 	#system("cp 1T32.A.fas temp.blast.in");
-	system("blastcl3 -p blastp -d swissprot -i temp.blast.in -o temp.blast.out");
+	system("blastcl3 -p blastp -d nr -i temp.blast.in -o temp.blast.out");
 	open(FO,"temp.blast.out");
 	my $c=0; 
 	while(<FO>){

@@ -25,15 +25,15 @@ close F;
 
 $list_file_pattern=shift @ARGV;
 chomp $list_file_pattern;
-system("head $list_file_pattern > $list_file_pattern.tmp");
-open(FF,"$list_file_pattern.tmp")||die "can't open";
+#system("head $list_file_pattern > $list_file_pattern.tmp");
+open(FF,$list_file_pattern)||die "can't open";
 while ($line = <FF>) {
 	$opln++;
         chomp $line;
         $line=~s/^\s+//g;
  	@ty=split(/\s+/,$line);
-	push(@list,@ty[1]);
-	print "$opln\t@ty[0]\t@ty[1]\t@ty[2]\n";
+	if(@ty[0] ne ""){push(@list,@ty[0]);}
+	print "$opln\t@ty[0]\n";
 }
 close FF;
 
@@ -42,19 +42,19 @@ open(FRA,">$fresall");
 for($f=0;$f<=$#list;$f++){
 for($fot=0;$fot<=$#seq;$fot++){
 @seqname[$fot]=~s/\>|\s+//g;
+@list[$f]=~s/\>|\s+//g;
 lc(@seqname[$fot]);
 @list[$f]=~s/\s+//g;
 lc(@list[$f]);
+#print "@seqname[$fot]\t@list[$f]\n";
 if(@list[$f] eq @seqname[$fot]){
-print "@seqname[$fot]\t@list[$f]\n";
-$Seqname.=@seqname[$fot];
-$Seq.=@seq[$fot];
-}
-else{
-last;
-}
-}
-}
+print "IN LOOP @seqname[$fot]\t@list[$f]\n";
+$Seqname=@seqname[$fot];
+$Seq=@seq[$fot];
 print FRA">$Seqname\n$Seq\n";
+}
+else{next;}
+}
+}
 close FRA;
 

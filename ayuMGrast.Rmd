@@ -21,7 +21,9 @@ library('readxl')
 inpF4<-file.path(pathD,"File-4.xlsx")
 data4 <- read_excel(inpF4)
 summary(data4)
-plot(data4)
+data4rn<-data4[,-1]
+row.names(data4rn)<-data4[,1]
+plot(log2(data4rn))
 ```
 
 ```{r label}

@@ -11,9 +11,16 @@ my $file1=shift @ARGV;my @seqname;my @seq;my $seq="";my $line;
 open(F1,$file1)||die "can't open";
 while ($line = <F1>) {
         chomp ($line);
+        if ($line =~ /^>/){
              push(@seqname,$line);
+                if ($seq ne ""){
+              push(@seq,$seq);
+              $seq = "";
+            }
+      } else {$seq=$seq.$line;
+      }
 }
-close F1;
+push(@seq,$seq);close F1;
 
 my $file2=shift @ARGV;my @seqnamen;my @seqn;my $seqn="";my $linen;
 
@@ -34,14 +41,9 @@ push(@seqn,$seqn);close F2;
 
 
 my $c1;my $c2;
-for($c1=0;$c1<=$#seqname;$c1++){
+for($c1=0;$c1<=$#seq;$c1++){
 	for($c2=0;$c2<=$#seqn;$c2++){
-		my @ty=split(/\t/,$seqname[$c1]);
-                @ty=split(/\//,$ty[3]);
-		my @se=split(/\-/,$ty[1]);
-		my $ust=$se[0];
-		my $dst=$se[1];
-		smatch($ty[0],$seqnamen[$c2],$ust,$dst);
+		smatch($seq[$c1],$seqn[$c2]);
 		#my ($per_sim,$length)=nw_string_match($seq[$c1],$seqn[$c2]);
 		#if($per_sim>$sim_thresh){print "$per_sim\t$length\n";last;}
 		# print "$c1-C1-@seq[$c1]\n$c2-C2-@seqn[$c2]\n";
@@ -54,21 +56,19 @@ for($c1=0;$c1<=$#seqname;$c1++){
 sub smatch {
 	my $seq_i=shift;
 	my $seq_o=shift;
-                my $ust=shift;
-                my $dst=shift;
- 
-#         print "$c1-$seq_i\t$c2-$seq_o\n";
+        # print "$c1-$seq_i\n$c2-$seq_o\n";
 	my $length_motif=22;
-	
-		    if ($seq_o =~ /$seq_i/ and $ust>$length_motif) {
-			
-		    #while ($seq_o =~ /$seq_i/g) {
-			my $moti1 = substr($seqn[$c2],$ust-$length_motif-1,$length_motif);
-			my $moti2 = substr($seqn[$c2],$dst+1,$length_motif);
-			my $len1=length($moti1);
+		    while ($seq_o =~ /$seq_i/g) {
+			my $position= ((pos $seq_o) - length($&) +1);
+			my $posi= ((pos $seq_o) - length($&) +1);
+			my $start_posi=$posi-$length_motif-1;
+			my $end_posi=$start_posi+length($&)+$length_motif;
+			my $moti = substr($seq_o,$start_posi,$length_motif);
+			my $moti2 = substr($seq_o,$end_posi,$length_motif);
 			my $len2=length($moti2);
-			#print "UST-$ust\tDST-$dst\t$seq_i\t$seq_o - $start_posi - $end_posi\n";
-			print ">Pos in Seq $seq_o\t- Pos - $ust\n>Upstream UF - $ust (Length-$len1) \n$moti1\n>Downstream DF - $dst (Length-$len2)\n$moti2\nFor Seqlist $seqname[$c1]\n";
+			(pos $seq_o)=(pos $seq_o)-length($&) +1;
+			#print "$seq_i\n$seq_o - $start_posi - $end_posi\n";
+			print ">Pos in Seq $seqnamen[$c2]\t- Pos - $position - \n>Upstream UF - $start_posi (Length-$length_motif) \n$moti\n>Downstream DF - $end_posi (Length-$len2)\n$moti2\n$seqname[$c1]\n$seq[$c1]\n";
 		    }
 }
 

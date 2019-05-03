@@ -57,7 +57,15 @@ my $other_total_file_name="other_total.fas";
 my $other_total_file_name_utr="other_total.utr.fas";
 my $other_total_file_name_dutr="other_total.dutr.fas";
 
-system("ls -1 $other_file_pattern*.gb* > tempfile1");
+#my $l_utr=500;
+#my $l_dutr=500;
+#my $sim_thresh=2;
+#my $blast_thresh=2;
+#my $date_cnt=time;
+#my $total_file_name="total.".$date_cnt.".fas";
+#my $total_file_name_utr="total.".$date_cnt."utr.fas";
+
+system("ls -1 $other_file_pattern* > tempfile1");
 open(FT2,"tempfile1");
 while($tfl2=<FT2>){
     chomp $tfl2;
@@ -69,7 +77,7 @@ close FT2;
 
 
 
-system("ls -1 $main_file_pattern*.gb* > tempfile1");
+system("ls -1 $main_file_pattern* > tempfile1");
 
 open(FT1,"tempfile1");
 open(FT,">temp.txt");
@@ -102,6 +110,12 @@ close FT1;
 close FTTL;
 close FT;
 system("rm -rf tempfile1");
+
+
+#select_utr($gb_file);
+
+
+#seq_pic_other($other_file1);
 
 sub select_utr{
     my $gb_file=shift;
@@ -358,6 +372,11 @@ sub map2gen{
 			$other_end=@t[4]+0;
 		   print FWOUTRE"$o-$i $seq_o_name\t$seq_i_name\t$per_sim\t$seq_o_length\t$seq_i_length\tLength-$length\tPer-$per_sim\tS-$other_start\tE-$other_end\n$line\n";
 		}
+#		elsif($line ne ""){
+#		   #if($max<$per_sim){
+#		   print FWOUTRE"$line\n";
+#		   #}
+#		}
 	}
 	close FN;
 	close F1;
@@ -413,3 +432,184 @@ sub map2gen{
 	}
     #return($max,$max_seq_name);
 }
+
+
+
+sub true_string_match{
+    my $o=shift;
+    my $i=shift;
+    my $seq_o=$total_seq{$o};
+    my $seq_i=$other_source_sequence{$i};
+    $seq_i=~s/\-/N/g;
+    $seq_o=~s/\-/N/g;
+    my $seq_o_name=$total_seq_name{$o};
+    my $seq_i_name=$other_source_sequence_name{$i};
+    my $seq_o_length=length($total_seq{$o});
+    my $seq_i_length=length($other_source_sequence{$i});
+	print "Aligning seq $o and seq $i with String Match\n";
+	#print FWOUTR"$total_seq_name{$o}\n$other_source_sequence_name{$i}\n$seq_i\n$seq_o\n";
+	my $start_motif=$l_utr;
+	my $length_motif=$l_utr;
+	while ($seq_i =~ /$seq_o/g) {
+	#while ($seq_i =~ /$seq_i/g) {
+		my $posi= ((pos $seq_i) - length($&) +1);
+		my $start_posi=$posi-$start_motif-1;
+		my $moti = substr($seq_i,$start_posi,$length_motif);
+		my $len=length($moti);
+		(pos $seq_i)=(pos $seq_i)-length($&) +1;
+		#if($start_posi>=0){
+			print FWOUTRM">$o-$i $seq_o_name\t$seq_i_name\t$posi$seq_o_length\t$seq_o_length\n";
+		#}
+	}
+}
+
+sub water_string_match{
+    my $o=shift;
+    my $i=shift;
+    my $max_seq_name;
+    my $max=90;
+    my $seq_o=$total_seq{$o};
+    my $seq_i=$other_source_sequence{$i};
+    $seq_i=~s/\-/N/g;
+    $seq_o=~s/\-/N/g;
+    my $seq_o_name=$total_seq_name{$o};
+    my $seq_i_name=$other_source_sequence_name{$i};
+    my $seq_o_length=length($total_seq{$o});
+    my $seq_i_length=length($other_source_sequence{$i});
+	open(F1,">file1");
+	open(F2,">file2");
+	print F1">$seq_o_name\n$seq_o\n";
+	print F2">$seq_i_name\n$seq_i\n";
+	print "Aligning seq $o and seq $i with ";
+	system("water file1 file2 -gapopen=10 -gapext=0.5 -outfile=file3");
+	open(FN,"file3");
+	my $length;
+    while(my $line=<FN>){
+		if($line=~/^\# Length: /){chomp $line;my @t=split(/\:/,$line);$length=@t[1];}
+		if($line=~/^\# Identity:     /){
+		   my @t=split(/\(|\)/,$line);
+		   @t[1]=~s/\%|\s+//g;
+		   my $per_sim=@t[1]+0;
+		   #if($max<$per_sim){
+	       $max=$per_sim;
+	       $max_seq_name=$i;
+		   print FWOUTRS"$o-$i $seq_o_name\t$seq_i_name\t$per_sim\t$seq_o_length\t$seq_i_length\t$length\n";
+		   #}
+		}
+   }
+   close FN;
+   close F1;
+   close F2;
+}
+
+sub needle_string_match{
+    my $o=shift;
+    my $i=shift;
+    my $max_seq_name;
+    my $max=90;
+    my $seq_o=$total_seq{$o};
+    my $seq_i=$other_source_sequence{$i};
+    $seq_i=~s/\-/N/g;
+    $seq_o=~s/\-/N/g;
+    my $seq_o_name=$total_seq_name{$o};
+    my $seq_i_name=$other_source_sequence_name{$i};
+    my $seq_o_length=length($total_seq{$o});
+    my $seq_i_length=length($other_source_sequence{$i});
+	open(F1,">file1");
+	open(F2,">file2");
+	print F1">$seq_o_name\n$seq_o\n";
+	print F2">$seq_i_name\n$seq_i\n";
+	print "Aligning seq $o and seq $i with ";
+	system("needle file1 file2 -gapopen=10 -gapext=0.5 -outfile=file3");
+	open(FN,"file3");
+	my $length;
+	while(my $line=<FN>){
+		if($line=~/^\# Length: /){chomp $line;my @t=split(/\:/,$line);$length=@t[1];}
+		if($line=~/^\# Identity:     /){
+		   my @t=split(/\(|\)/,$line);
+		   @t[1]=~s/\%|\s+//g;
+		   my $per_sim=@t[1]+0;
+		   #if($max<$per_sim){
+		       $max=$per_sim;
+		       $max_seq_name=$i;
+		   print FWOUTRN"$o-$i $seq_o_name\t$seq_i_name\t$per_sim\t$seq_o_length\t$seq_i_length\t$length\n";
+		   #}
+
+		}
+	}
+	close FN;
+	close F1;
+	close F2;
+    #return($max,$max_seq_name);
+}
+
+
+
+sub blast2seq{
+    my $o=shift;
+    my $i=shift;
+    my $blast_file_name=shift;
+    my $max_seq_name;
+    my $max=0;
+    my $seq_o=$total_seq{$o};
+	my $qlength=length($seq_o);
+    my $seq_o_utr=$total_seq_utr{$o};
+    my $seq_i=$other_source_sequence{$i};
+    $seq_i=~s/\-/N/g;
+    $seq_o=~s/\-/N/g;
+    my $seq_o_name=$total_seq_name{$o};
+    my $seq_i_name=$other_source_sequence_name{$i};
+    my $seq_o_length=length($total_seq{$o});
+    my $seq_i_length=length($other_source_sequence{$i});
+	print "Aligning seq $o and seq $i with Blast2Seq\n";
+	open(F1,">file1");
+	open(F2,">file2");
+	print F1">$seq_o_name\n$seq_o\n";
+	print F2">$seq_i_name\n$seq_i\n";
+	system("bl2seq -i file1 -j file2 -o filer -p blastn");
+	use Bio::Tools::BPbl2seq;
+	use Bio::Root::IO;
+	my $report = new Bio::Tools::BPbl2seq(-file => "filer", -report_type => 'blastn');
+	while( my $hsp = $report->next_feature ) {
+		my $hlength=abs(($hsp->hit->start)-($hsp->hit->end)+1);
+		print FWOUTRB "$qlength=>$hlength\n";
+		if($qlength==(abs($hsp->hit->start-$hsp->hit->end)+1)){
+		print FWOUTRB join("\t",
+					"Score", $hsp->score,
+					"Bits", $hsp->bits,
+					"Percent", int $hsp->percent,
+					"P-Value", $hsp->P,
+					"Match", $hsp->match,
+					"Positive", $hsp->positive,
+					"Start", $hsp->start,
+					"End", $hsp->end,
+					"Length", $hsp->length,
+					"QuerySeq", $hsp->querySeq,
+					"SubSeq", $hsp->sbjctSeq,
+					"Homology", $hsp->homologySeq,
+					"Query start" , $hsp->query->start, 
+					"Query end",$hsp->query->end,
+					"Query Strand", $hsp->query->strand,
+					"Query ID", $hsp->query->seq_id,
+					"Hit start", $hsp->hit->start,
+					"Hit end", $hsp->hit->end,
+					"Hit Strand", $hsp->hit->strand,
+					"Hit ID", $hsp->hit->seq_id,
+					"Sub start", $hsp->sbjct->start,
+					"Sub end", $hsp->sbjct->end,
+					"Sub Strand", $hsp->sbjct->strand,
+					"Sub ID", $hsp->sbjct->seq_id,
+					"Direction", $hsp->strand,
+					"Gaps", $hsp->gaps,
+					"SubjectName", $report->sbjctName,
+					"Dir", $hsp->hit->strand
+					), "\n";
+		}
+	}
+	print FWOUTRB"$seq_o_length\t$seq_i_length\n";		       
+	close FN;
+	close F1;
+	close F2;
+}
+
+

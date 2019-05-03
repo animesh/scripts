@@ -14,67 +14,81 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-$fc = shift @ARGV;
-$fs = shift @ARGV;
-$patlstart=6;
-open(F1,$fc);
-while($l=<F1>){
-	chomp $l;
-	if($l!~/^>/){
-		$pat.=$l;
-	}
-	else{
-		$pn=$l;
-	}
-	$pat=~s/\s+//g;
+if( @ARGV ne 2){die "\nUSAGE\t\"ProgName MultSeqFile1 MultSeqFile2\t\n\n\n";}
+$file = shift @ARGV;
+open (F, $file) || die "can't open \"$file\": $!";
+$seq="";
+while ($line = <F>) {
+	if ($line =~ /^>/){
+		$c++;
+		chomp $line;
+		#print "Reading\t\tseq no.$c\t$line\n";
+		#$line=~s/\|/\-/g; $line=~s/\s+//g;#$line=substr($line,1,30);
+		push(@seqname,$line);	
+		#@seqn=split(/\s+/,$line);push(@seqname,$seqn[0]);#$snames=$line;
+		if ($seq ne ""){
+			push(@seq,$seq);
+              		$seq = "";
+            	}
+      	}
+	 else {$seq=$seq.$line;
+      	}
 }
-close F1;
-open(F2,$fs);
-while($l=<F2>){
-	chomp $l;
-	if($l!~/^>/){
-		$seq.=$l;
-	}
-	$seq=~s/\s+//g;
+push(@seq,$seq);
+close F;
+$file1=$file;
+
+
+$file = shift @ARGV;
+open (F, $file) || die "can't open \"$file\": $!";
+$seq="";$c=0;
+while ($line = <F>) {
+	if ($line =~ /^>/){
+		$c++;
+		chomp $line;
+		#print "Reading\t\tseq no.$c\t$line\n";
+		#$line=~s/\|/\-/g; $line=~s/\s+//g;#$line=substr($line,1,30);
+		push(@oseqname,$line);	
+		#@seqn=split(/\s+/,$line);push(@seqname,$seqn[0]);#$snames=$line;
+		if ($seq ne ""){
+			push(@oseq,$seq);
+              		$seq = "";
+            	}
+      	}
+	 else {$seq=$seq.$line;
+      	}
 }
-close F2;
-#print "p-$pat\ns-$seq";
-$pattern=$pat;
-$lpat=length($pat);
-#print "\n$lpat\n";
-print "Place\t";
-print "Pattern\t[From-To]\tMatch\t";
-print "Pattern Name\n";
+push(@oseq,$seq);
+close F;
+$file2=$file;
 
-for($c=0;$c<($lpat-$patlstart+1);$c++){
-	$pat1=substr($pat,$c,$patlstart);
-	$pat2=$pat1;
-	$pat2=~s/W/\[A\|T\]/g;
-	$pat2=~s/N/\./g;
-	for($c1=0;$c1<$c;$c1++){
-		$pat2=reverse($pat2);
-		$pat2.=".";
-		$pat2=reverse($pat2);
-	}
-	for($c1=$c+$patlstart;$c1<$lpat;$c1++){
-		$pat2.=".";
-	}
-	#print "P - $c\t$pat\t$pat1\t$pat2\n";
-	PF($pat2,$seq,$pn);
+#@t=split(/\./,$file1);
+#$file1=@t[0];
+#@t=split(/\./,$file2);
+#$file2=@t[0];
+
+$fo=$file1.".".$file2.".ac.out";
+
+for($c1=0;$c1<=$#seq;$c1++){
+    alignace($seq[$c1],$oseq[$c1],$seqname[$c1],$oseqname[$c1]);
+    print "LENGTH",length($seq[$c1]),"\n";
 }
 
 
+sub alignace{
+    my $o=shift;
+    my $i=shift;
+    my $seq_o_name=shift;
+    my $seq_i_name=shift;
+    my $seq_o=$o;
+    my $seq_i=$i;
+    my $seq_o_length=length($o);
+    my $seq_i_length=length($i);
 
-sub PF {
-		my $pattern = shift;
-		my $sequence = shift;
-		my $patternname = shift;
-		$st=$c+1;
-		$sp=$c+$patlstart;
-		while ($sequence =~ /$pattern/g) {
-			my $position = (pos $sequence) - length($&) +1;
-			print "$position\t";
-			print "$pat1\t[$st-$sp]\t$&\t";
-			print "$patternname\n";
-		}
+    open(F1,">file1");
+    print F1">$seq_o_name\n$seq_o\n";
+    print F1">$seq_i_name\n$seq_i\n";
+    print "Finding common motif in seq $seq_i_name and seq $seq_o_name with alignace";
+    system("alignace -i file1 >> $fo");
+    close F1;
 }
