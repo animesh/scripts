@@ -1,3 +1,14 @@
+#https://medium.com/@ODSC/reinforcement-learning-vs-differentiable-programming-48528f464795?source=email-51edc4174b8c-1557027412126-digest.reader------0-58------------------585c497f_b359_40d6_9661_ae5703bd5c26-1&sectionName=top
+Calculus.gradient(x -> 3x^2 + 2x + 1, 5) # (32,)
+
+#https://github.com/FluxML/model-zoo/blob/cdda5cad3e87b216fa67069a5ca84a3016f2a604/games/differentiable-programming/trebuchet/DiffRL.jl
+using Flux, Trebuchet
+using Flux.Tracker: forwarddiff
+using Statistics: mean
+using Random
+
+gradient((wind, angle, weight) -> Trebuchet.shoot(wind, angle, weight),-2, 45, 200) # (4.02, -0.99, 0.051)
+
 using Gadfly
 Gadfly.plot([sin, cos,tan], -20*pi, 20*pi)
 Pkg.add("Mocha")

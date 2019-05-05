@@ -6,14 +6,23 @@ inpF1<-file.path(pathD,"File-1.xlsx")
 data1 <- read_excel(inpF1)
 #plot(log(data$percentage.identity),log(data$e.value),col=factor(data$number.of.mismatches))
 summary(data1)
-plot(data1)
+boxplot(as.numeric(data1[11,]), col="orange")
+
 ```
 
 ```{r data2}
 inpF2<-file.path(pathD,"File-2.xlsx")
 data2 <- read_excel(inpF2)
 summary(data2)
-plot(data2)
+data2rn<-data2[,-10]
+data2rn<-data2rn[-1,]
+data2rn<-data2rn[,-1]
+data2rn<-sapply(data2rn, as.numeric)
+data2rn[is.na(data2rn)]=0
+summary(data2rn)
+summary(log2(data2rn+1))
+princomp(data2rn)
+biplot(prcomp(data2rn))
 ```
 ```{r data4}
 #install.packages('readxl')
@@ -24,7 +33,16 @@ summary(data4)
 data4rn<-data4[,-1]
 row.names(data4rn)<-data4[,1]
 plot(log2(data4rn))
+biplot(prcomp(data4rn))
 ```
+
+```{r venn}
+install.packages("BiocManager")
+BiocManager::install("VennDetail")
+library(VennDetail)
+
+```
+
 
 ```{r label}
 inpL<-"~/Documents/new/class.txt"
