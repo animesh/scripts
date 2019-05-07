@@ -1,9 +1,163 @@
 Scratch for R
 **check**
 ========================================================
+
 ```{r setup}
 library(r2d3)
 bars <- c(10, 20, 30)
+```
+
+```{r VennDetail}
+#https://bioconductor.org/packages/release/bioc/vignettes/VennDetail/inst/doc/VennDetail.html
+BiocManager::install("VennDetail")
+library(VennDetail)
+data(T2DM)
+ven <- venndetail(list(Cortex = T2DM$Cortex$Entrez, SCN = T2DM$SCN$Entrez,Glom = T2DM$Glom$Entrez))
+plot(ven, type = "vennpie")
+```
+
+```{r proBatch}
+#https://bioconductor.org/packages/release/bioc/vignettes/proBatch/inst/doc/proBatch.pdf
+bioc_deps <- c("GO.db", "impute", "preprocessCore", "pvca","sva" ) cran_deps <- c("corrplot", "data.table", "ggplot2", "ggfortify","lazyeval", "pheatmap", "reshape2", "rlang" "tibble", "dplyr", "tidyr" "wesanderson","WGCNA")
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager") BiocManager::install(bioc_deps) install.packages(cran_deps)
+BiocManager::install("proBatch")
+#install.packages("devtools") devtools::install_github("symbioticMe/proBatch", build_vignettes = TRUE)
+require(dplyr) require(tibble) require(ggplot2)
+```
+
+```{r PrInCE}
+#https://bioconductor.org/packages/release/bioc/vignettes/PrInCE/inst/doc/intro-to-prince.html
+BiocManager::install("PrInCE")
+library(PrInCE)
+data(scott)
+PrInCE(scott, gold_standard)
+
+library(r2d3)
+bars <- c(10, 20, 30)
+```
+
+```{r PoTRA}
+#https://bioconductor.org/packages/release/bioc/vignettes/PoTRA/inst/doc/PoTRA.html
+BiocManager::install("PoTRA")
+library(PoTRA) 
+library(repmis) 
+options(warn=-1) 
+library(BiocGenerics) 
+library(graph) 
+library(graphite) 
+library(igraph) 
+source_data("https://github.com/GenomicsPrograms/example_data/raw/master/PoTRA-vignette.RData") 
+humanKEGG <- pathways("hsapiens", "kegg") 
+Pathway.database = humanKEGG 
+results.KEGG <- PoTRA.corN(mydata=mydata, genelist=genelist, Num.sample.normal=113, Num.sample.case=113, Pathway.database=Pathway.database[1:15], PR.quantile=PR.quantile)
+names(results.KEGG)
+head(results.KEGG$Fishertest.p.value)
+
+```
+```{r PCAtools}
+#https://bioconductor.org/packages/release/bioc/vignettes/PCAtools/inst/doc/PCAtools.html
+devtools::install_github('kevinblighe/PCAtools')
+library(PCAtools)
+  p <- pca(x, metadata = metadata, removeVar = 0.1)
+```
+
+```{r pathwayPCA}
+#https://github.com/gabrielodom/pathwayPCA
+#install.packages("BiocManager")
+BiocManager::install("pathwayPCA")
+
+```
+
+```{r animalcules}
+#https://bioconductor.org/packages/release/bioc/vignettes/animalcules/inst/doc/animalcules.html
+BiocManager::install("animalcules")
+library(animalcules)
+
+```
+
+```{r AMARETTO}
+#https://bioconductor.org/packages/release/bioc/vignettes/AMARETTO/inst/doc/amaretto.pdf
+#https://github.com/gevaertlab/AMARETTO
+BiocManager::install("AMARETTO")
+
+```
+
+```{r VCFArray}
+#https://bioconductor.org/packages/release/bioc/vignettes/VCFArray/inst/doc/VCFArray.html
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+#The development version is also available to download from Github.
+install.packages("remotes")
+BiocManager::install("Bioconductor/VCFArray")
+library(VCFArray)
+```
+
+
+```{r survtype}
+#https://bioconductor.org/packages/release/bioc/vignettes/survtype/inst/doc/survtype.html
+BiocManager::install("survtype")
+library(survtype)
+data(lung)
+lung.survtype <- Surv.survtype(lung, time = "time", status = "status")
+plot.survtype(lung.survtype, pval = TRUE)
+```
+
+```{r SubCellBarCode}
+#https://bioconductor.org/packages/release/bioc/vignettes/SubCellBarCode/inst/doc/SubCellBarCode.html
+BiocManager::install("SubCellBarCode")
+library(SubCellBarCode)
+head(markerProteins)
+```
+
+```{r StructuralVariantAnnotation}
+#https://bioconductor.org/packages/release/bioc/vignettes/StructuralVariantAnnotation/inst/doc/vignettes.html
+BiocManager::install("StructuralVariantAnnotation")
+suppressPackageStartupMessages(require(StructuralVariantAnnotation))
+suppressPackageStartupMessages(require(VariantAnnotation))
+vcf.file <- system.file("extdata", "gridss.vcf", package = "StructuralVariantAnnotation")
+vcf <- VariantAnnotation::readVcf(vcf.file, "hg19")
+gr <- breakpointRanges(vcf)
+partner(gr)
+
+```
+
+```{r SMAD}
+#https://bioconductor.org/packages/release/bioc/vignettes/SMAD/inst/doc/quickstart.html
+#BiocManager::install("SMAD")
+library(SMAD)
+data("TestDatInput")
+head(TestDatInput)
+
+scoreCompPASS <- CompPASS(TestDatInput)
+head(scoreCompPASS)
+
+scoreHG <- HG(TestDatInput)
+head(scoreHG)
+
+```
+
+```{r RepViz}
+#https://bioconductor.org/packages/release/bioc/vignettes/RepViz/inst/doc/RepViz.html
+BiocManager::install("RepViz")
+file.copy(from = list.files(system.file("extdata", package = "RepViz"), full.names = TRUE),to = tempdir())
+setwd(tempdir())
+region <- GRanges("chr12:110938000-110940000")
+```
+
+```{r qckitfastq}
+#https://bioconductor.org/packages/release/bioc/vignettes/qckitfastq/inst/doc/vignette-qckitfastq.pdf
+#BiocManager::install("qckitfastq")
+library(qckitfastq)
+infile <- system.file("extdata", "10^5_reads_test.fq.gz", package = "qckitfastq") fseq <- seqTools::fastqq(infile)
+read_len <- read_length(fseq) 
+kable(head(read_len)) %>% kable_styling()
+```
+
+```{r projectR}
+#https://bioconductor.org/packages/release/bioc/vignettes/projectR/inst/doc/projectR.pdf
+BiocManager::install("projectR")
+library(projectR) 
+projectR(data, loadings, dataNames=NULL, loadingsNames=NULL, NP = NULL, full = false)
 ```
 
 ```{r NLME}
