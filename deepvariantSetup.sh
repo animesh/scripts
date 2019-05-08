@@ -22,3 +22,13 @@ LOGDIR=./logs
 N_SHARDS=3
 CALL_VARIANTS_OUTPUT="${OUTPUT_DIR}/call_variants_output.tfrecord.gz"
 FINAL_OUTPUT_VCF="${OUTPUT_DIR}/output.vcf.gz"
+#git clone https://github.com/Illumina/hap.py
+#sudo apt install openjdk-8-jdk
+#python install.py . --with-rtgtools
+#/mnt/f/HeLa/hap.py/bin/hap.py quickstart-testdatatest_nist.b37_chr20_100kbp_at_10mb.vcf.gz examplesroot.vcf -f quickstart-testdata/test_nist.b37_chr20_100kbp_at_10mb.bed -r quickstart-testdata/ucsc.hg19.chr20.unittest.fasta -o happyeg.out --engine=vcfeval -l chr20:10000000-10010000
+#for i in /mnt/z/ncbi/sra/dbGaP-12668/*.fastq ; do echo $i ; bwa mem -M -t 8 /home/animeshs/HeLa/hg38chr3bwaidx $i > $i.sam ; done
+#for i in bam/* ; do echo $i; j=$(basename $i);   j=${j%%.*} ; echo $j ; time seq 0 $((N_SHARDS-1)) | parallel --eta --halt 2 --joblog "${LOGDIR}/log" --res "${LOGDIR}" python bin/make_examples.zip --mode calling   --ref ../hg38chr3bwaidx.fasta  --reads $i --examples $i.hg38.tfrecord@${N_SHARDS}.gz --sample_name $j --regions '"chr1"'  --task {} ; done
+#for i in bam/*.sam.bam ; do echo $i; j=$(basename $i);   j=${j%%.*} ; echo $j ; parallel python bin/make_examples.zip --mode calling   --ref ../hg38chr3bwaidx.fasta  --reads $i --examples $i.hg38.tfrecord.{}.gz --sample_name $j --regions '"chr{}"'  ::: {2..22} X Y   ; done  
+#for i in bam/*.sam.bam ; do echo $i; j=$(basename $i);   j=${j%%.*} ; echo $j ; parallel python bin/make_examples.zip --mode calling   --ref ../hg38chr3bwaidx.fasta  --reads $i --examples $i.hg38.tfrecord.{}.gz --sample_name $j --regions '"chr{}"'  ::: {1..22} X Y   ; done
+#bcftools mpileup -Ou -P 1.1e-5 --max-depth 1000 -f ../hg38chr3bwaidx.fasta /mnt/z/ncbi/sra/dbGaP-12668/SRR*.fastq.sam.bam | bcftools call -mv -Oz -o calls.vcf.gz
+
