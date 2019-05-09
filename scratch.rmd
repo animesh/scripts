@@ -2,6 +2,25 @@ Scratch for R
 **check**
 ========================================================
 
+```{r peptideDistribChk}
+lPep=100
+nPep=10000
+nTot=lPep*nPep
+data<-runif(nTot)
+#hist(sample(data,100000,replace=T),breaks=nPep)
+sPep=rnorm(lPep)
+n=1
+i=1
+while(n<=lPep){
+  print(n)
+  print(i)
+  sPep[c(seq(n,n+i-1))]=sample(data,i,replace=T)
+  n=n+i
+  i=i+1
+}
+hist(sPep,breaks=lPep)
+```
+
 ```{r setup}
 library(r2d3)
 bars <- c(10, 20, 30)

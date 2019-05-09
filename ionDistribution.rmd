@@ -1,0 +1,43 @@
+---
+#title: Distribution of Ions"
+output: html_document
+runtime: shiny
+---
+
+```{r data,echo=F}
+lPep=100
+nPep=10000
+nTot=lPep*nPep
+data<-runif(nTot)
+#hist(sample(data,100000,replace=T),breaks=nPep)
+sPep=rnorm(lPep)
+n=1
+i=1
+while(n<=lPep){
+  print(n)
+  print(i)
+  sPep[c(seq(n,n+i-1))]=sample(data,i,replace=T)
+  n=n+i
+  i=i+1
+}
+hist(sPep,breaks=lPep)
+```
+
+```{r shiny, echo = FALSE}
+#install.packages('shiny')
+library(shiny)
+dN_shiny <- sPep
+```
+
+```{r slider, echo=FALSE}
+inputPanel(
+  sliderInput("length", "#value:", min = 0, max = 1000, value = 100),
+  sliderInput("number", "#value:", min = 0, max = 1000000, value = 10000),
+)
+```
+
+```{r plot, echo = FALSE}
+renderPlot({hist(sPep,breaks=lPep)})
+```
+
+
