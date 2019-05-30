@@ -1,4 +1,116 @@
+```{r data}
+pathD<-"L:/promec/Animesh/HeLa/Metagenome data analysis/Metagenome data analysis/"
+typeF<-"phylum."
+files<-list.files(path=pathD, pattern=typeF, full.names=TRUE, recursive=TRUE)
+comb = data.frame(ID="_holder_",typeF=typeF,stringsAsFactors=F)#row.names(total)="bacteria"
+for(i in files){
+  name=gsub(pathD, "", i)
+  print(name)
+  i1<-read.table(i,sep='\t')
+  i1<-t(i1)
+  colnames(i1)=c("ID",name)
+  i1df<-data.frame(i1,stringsAsFactors=F)
+  comb=merge(comb,i1df,by="ID",all = TRUE)
+}
+comb<-comb[-1,]
+comb<-comb[,-2]
+write.table(comb,paste(pathD,toupper(typeF),"total",".txt",sep = ""),sep = "\t",quote = FALSE,col.names = TRUE,row.names = FALSE)
+```
+
+```{r scale}
+y<-read.table(paste(pathD,toupper(typeF),"total",".txt",sep = ""),sep = "\t",header = T)
+#install.packages('quantable')
+library(quantable)
+row.names(y)<-y[,1]
+y<-y[,-1]
+#y<-as.matrix(unlist(y))
+#y[is.na(y)]<-0
+summary(y)
+typeof(y)
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+pheatmap(y$data,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)
+```
+
 ```{r data1}
+#ayurP<-read.table("L:/promec/Animesh/HeLa/ayu/new/Total Phylum.txt",sep='\t')#,col.names = F,row.names = F)
+ayurP<-read.table("L:/promec/Animesh/HeLa/ayu/new/Total Phylum.txt",header=T,sep="\t",row.names = 1)
+summary(ayurP)
+ayurP<-ayurP[2:20]
+ayurP[is.na(ayurP)]<-0
+pheatmap(ayurP,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+```
+
+```{r datacom}
+#ayurP<-read.table("L:/promec/Animesh/HeLa/ayu/new/Total Phylum.txt",sep='\t')#,col.names = F,row.names = F)
+ayurP<-read.table("L:/promec/Animesh/HeLa/ayu/new/Total Phylum.txt",header=T,sep="\t",row.names = 1)
+ayurP<-ayurP[2:20]
+summary(ayurP)
+
+y<-read.table(paste(pathD,toupper(typeF),"total",".txt",sep = ""),sep = "\t",header = T)
+library(quantable)
+row.names(y)<-y[,1]
+y<-y[,-1]
+summary(y)
+
+y=merge(ayurP,y,by=0,all = TRUE)
+row.names(y)<-y[,1]
+y<-y[,-1]
+
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+pheatmap(y$data,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,fontsize_col=6)
+
+```
+
+
+```{r data1}
+#y[is.na(y)]<-0
+y=robustscale(y)
+names(y$data)=sub("X\\.","",names(y$data))
+names(y$data)=sub("\\..*","",names(y$data))
+summary(y)
+pheatmap(y,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+```
+
+
+```{r data1}
+n1<-read.table("Norway/mgm4541725.3_genus.csv",sep='\t')
+colnames(n1) <-  as.character(unlist(n1[1,]))
+n1<-n1[-1,]
+n1<-t(n1)
+#n1<-n1[]
+i1<-read.table("L:/promec/Animesh/HeLa/Metagenome data analysis/Metagenome data analysis/USA/mgm4541707.3_genus.csv",sep='\t')
+#colnames(i1) <-  as.character(unlist(i1[1,]))
+i1<-i1[-1,]
+i1<-t(i1)
+inT<-merge(t(i1)[,2],t(n1)[,2])
+inT<-merge(t(i1[2,]),t(n1[2,]))
+colnames(i1)=c("ID","Value")
+colnames(n1)=c("ID","nValue")
+inT<-merge(i1,n1,by=0, all=TRUE)
+names(i1)<-"ID"
+totalG = data.frame(ID="genus place holder",Value=c(0),stringsAsFactors=F)#row.names(total)="bacteria"
+i1df<-data.frame(i1,stringsAsFactors=F)
+n1df<-data.frame(n1,stringsAsFactors=F)
+totalG=merge(totalG,i1df,by="ID",all = TRUE)
+totalG=merge(totalG,n1df,by="ID",all = TRUE)
+totalonto=merge(totalG,i1,by="ID",all = TRUE)
+
+for(i in dte){
+    name=names(dte)[x]
+    name=as.name(paste(name,"subsytem",sep = ""))
+    dft <- data.frame(i$Subsystems[,1],i$Subsystems[,2],stringsAsFactors=F)
+    names(dft)=c("ID",names(dte)[x])
+    x=x+1
+    totalonto=merge(totalonto,dft,by="ID",all = TRUE)
+    write.table(dft,paste(name,".txt",sep = ""),sep = "\t",quote = FALSE,col.names = FALSE,row.names = FALSE)
+    print(name)
+}
+
+
 #install.packages('readxl')
 library('readxl')
 pathD<-"L:/promec/Animesh/giz004_supplemental_files/"
