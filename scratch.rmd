@@ -1,6 +1,160 @@
-Scratch for R
-**check**
-========================================================
+```{r SiB-Workshop - Example 1 – Basic Histogram}
+library(shiny)
+ui<- fluidPage(
+titlePanel("Workshop - Example 1 – Basic Histogram"),
+sidebarLayout(
+sidebarPanel(
+numericInput(inputId="n", label="Number of observations", value=1000)
+),
+mainPanel(plotOutput("plot"))
+)
+)
+server<-function(input, output) {
+data <- reactive({
+x <- rnorm(input$n)
+x
+})
+output$plot <- renderPlot({
+hist(data(), 50,main="", xlab="x")
+})
+}
+shinyApp(ui,server)
+```
+
+```{r Revox64}
+dataRx<-rxImport(indata=inFile)
+```
+
+
+```{r SiBday1}
+x <- runif(50); y <- 2*x + 0.5 + rnorm(50)/5
+groups <- ifelse( y<1, 1, 2 )
+par(las=1)
+plot(x, y, col=c("red", "blue")[groups], pch=c(1,2)[groups])
+title("Scatterplot of x vs y")
+abline( lm( y ~ x) )
+abline( h=1, lty=2 )
+legend( x="topleft", legend=c("Group 1", "Group 2"),
+fill=c("red","blue") )
+text( 0,2, paste("Correlation = ", round(cor(x,y),2)), pos=4)
+rug(x)
+```
+
+```{r SiBgoogleVis}
+install.packages("googleVis")
+library(googleVis)
+data_survival<-read.csv("~/Documents/survival.csv", header=TRUE)
+MCH<-gvisMotionChart(data,idvar = "",timevar = "",xvar=" ",yvar="",colorvar="",sizevar="",options = list())
+MCH<-gvisMotionChart(data,idvar = "",timevar = "",xvar=" ",yvar="",colorvar="",sizevar="",options = list())
+plot(gvisTable(data_survival))
+
+df=data.frame(country=c("US", "GB", "BR"), 
+              val1=c(10,13,14), 
+              val2=c(23,12,32))
+```
+
+```{r SiB}
+library(googleVis)
+data_map<-read.csv( "~/Documents/map.csv", header=TRUE,sep= "\t")
+map<-gvisGeoChart(data_map,locationvar="Country",colorvar="mortalit
+y")
+plot(map)
+```
+```{r SiBdataTable}
+#excel limit by 60K rows
+#R by 2GB lines*columns
+memory.limit()
+data("esoph")
+object.size(esoph)
+install.packages("SASxport")
+library(SASxport)
+brfss<-read.xport("~/LLCP2013.XPT")
+object.size(brfss)
+summary(brfss)
+install.packages("data.table")
+library(data.table)
+brfss_dt<-data.table(brfss)
+object.size(brfss_dt)
+summary(brfss_dt)
+brfss_dt<-data.table("~/LLCP2013.XPT")
+brfss_dt$V1
+object.size(brfss_dt)
+summary(brfss_dt)
+brfss_sample<-sample(t(brfss),50)
+install.packages("oddsratio")
+library(oddsratio)
+library(epitools) 
+oddsratio(as.factor(brfss$X.HCVU651),as.factor(brfss$X.RFCHOL))
+rows_to_select <- sample(1:nrow(brfss), 500, replace=F) 
+brfss_sample <- brfss[rows_to_select,]
+oddsratio(as.factor(brfss_sample$X.HCVU651),as.factor(brfss_sample$X.RFCHOL))
+
+```
+
+```{r SiBbenchmark}
+df <- data.frame(group=factor(sample(c("g1","g2"), 10, replace=TRUE)),mortality=runif(10))
+
+
+library(microbenchmark)
+library(ggplot2)
+#install.packages("dplyr")
+library(plyr)
+library(dplyr)
+library(reshape2)
+library(data.table)
+#install.packages('tidyverse')
+library(tidyverse)
+
+dt<- data.table(df)
+setkey(dt, mortality)
+
+setDT(df)[ , .(mean_mortality =mean(mortality)), by = group]
+
+
+splitmean <- function(df) {
+s <- split( df, df$group)
+sapply( s, function(x)
+mean(x$mortality) )
+}
+splitmean(df)
+
+
+m1 <- microbenchmark(
+by( df$mortality, df$group, mean),
+aggregate(mortality~ group, df, mean ),
+splitmean(df),
+ddply( df, .(group), function(x) mean(x$mortality) ),
+dcast( melt(df), variable ~ group, mean),
+#dt[, mean(mortality), by = group],
+summarize( group_by(df, group), m = mean(mortality) ),
+summarize( group_by(dt, group), m = mean(mortality) )
+)
+print(m1, signif = 3)
+autoplot(m1)
+```
+
+
+```{r SiBpack}
+install.packages("epitools")
+install.packages("taRifx")
+install.packages("data.table")
+install.packages("reshape")
+install.packages("dplyr")
+install.packages("plyr")
+#install.packages("utils")
+install.packages("microbenchmark")
+
+install.packages("rpart")
+install.packages("rpart.plot")
+install.packages("randomForest")
+install.packages("ggplot2")
+
+install.packages("devtools")
+devtools::install_github("rstudio/keras")
+library(keras)
+install_keras()
+install.packages("ggfortify")
+```
 
 ```{r peptideDistribChk}
 lPep=100
@@ -19,6 +173,7 @@ while(n<=lPep){
   i=i+1
 }
 hist(sPep,breaks=lPep)
+summary(sPep)
 ```
 
 ```{r setup}
@@ -28,6 +183,7 @@ bars <- c(10, 20, 30)
 
 ```{r VennDetail}
 #https://bioconductor.org/packages/release/bioc/vignettes/VennDetail/inst/doc/VennDetail.html
+#install.packages('BiocManager')
 BiocManager::install("VennDetail")
 library(VennDetail)
 data(T2DM)

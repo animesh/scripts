@@ -6,7 +6,7 @@ runtime: shiny
 
 ```{r data,echo=F}
 lPep=100
-nPep=10000
+nPep=100000
 nTot=lPep*nPep
 data<-runif(nTot)
 #hist(sample(data,100000,replace=T),breaks=nPep)
@@ -20,7 +20,8 @@ while(n<=lPep){
   n=n+i
   i=i+1
 }
-hist(sPep,breaks=lPep)
+bins=hist(sPep,breaks=lPep)
+hist(bins$counts)
 ```
 
 ```{r shiny, echo = FALSE}
