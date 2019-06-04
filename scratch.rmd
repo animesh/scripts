@@ -1,4 +1,263 @@
-```{r SiB-Workshop - Example 1 – Basic Histogram}
+```{r SiB-Workshop - Day 2 – RevoScaleR}
+#<pre>export RSTUDIO_WHICH_R=/usr/bin/Revo64</pre>
+#export R_LIBS_SITE=/opt/microsoft/rclient/3.4.3/libraries/RServer
+
+   inputFileFlight <- paste0("/home/animeshs/Downloads/", "Flight_Delays_Sample.csv")
+   inputFileWeather <- paste0("/home/animeshs/Downloads/", "Weather_Sample.csv")
+
+#Create a temporary directory to store the intermediate XDF files. 
+
+   outFileFlight  <- "/home/animeshs/Downloads/flight.xdf"
+   outFileWeather <- "/home/animeshs/Downloads/weather.xdf"
+   outFileOrigin <-  "/home/animeshs/Downloads/originData.xdf"
+   outFileDest   <-  "/home/animeshs/Downloads/destData.xdf"
+   outFileFinal  <-  "/home/animeshs/Downloads/finalData.xdf"
+
+#Import the flight data.
+    flight_mrs <- rxImport(
+      inData = inputFileFlight, outFile = outFileFlight,
+      missingValueString = "M", stringsAsFactors = FALSE,
+      # Remove columns that are possible target leakers from the flight data.
+      varsToDrop = c("DepDelay", "DepDel15", "ArrDelay", "Cancelled", "Year"),
+      # Define "Carrier" as categorical.
+      colInfo = list(Carrier = list(type = "factor")),
+      # Round down scheduled departure time to full hour.
+      transforms = list(CRSDepTime = floor(CRSDepTime/100)),  
+      overwrite = TRUE
+    )
+
+#Review the first six rows of flight data.
+    head(flight_mrs)
+
+#Summarize the flight data.
+    rxSummary(~., data = flight_mrs, blocksPerRead = 2)
+
+#Import the weather data.
+    xform <- function(dataList) {
+      # Create a function to normalize some numerical features.
+      featureNames <- c(
+        "Visibility", 
+        "DryBulbCelsius", 
+        "DewPointCelsius", 
+        "RelativeHumidity", 
+        "WindSpeed", 
+        "Altimeter"
+      )
+      dataList[featureNames] <- lapply(dataList[featureNames], scale)
+      return(dataList)
+    }
+
+    weather_mrs <- rxImport(
+      inData = inputFileWeather, outFile = outFileWeather,
+      missingValueString = "M", stringsAsFactors = FALSE,
+      # Eliminate some features due to redundance.
+      varsToDrop = c("Year", "Timezone", 
+                     "DryBulbFarenheit", "DewPointFarenheit"),
+      # Create a new column "DestAirportID" in weather data.
+      transforms = list(DestAirportID = AirportID),
+      # Apply the normalization function.
+      transformFunc = xform,  
+      transformVars = c(
+        "Visibility", 
+        "DryBulbCelsius", 
+        "DewPointCelsius", 
+        "RelativeHumidity", 
+        "WindSpeed", 
+        "Altimeter"
+      ),
+      overwrite = TRUE
+    )
+
+#Review the variable information for the weather data.
+    rxGetVarInfo(weather_mrs)
+
+
+#Step 2: Pre-process Data
+#Prepare for a merge by renaming some columns in the weather data.
+    newVarInfo <- list(
+      AdjustedMonth = list(newName = "Month"),
+      AdjustedDay = list(newName = "DayofMonth"),
+      AirportID = list(newName = "OriginAirportID"),
+      AdjustedHour = list(newName = "CRSDepTime")
+    )
+    rxSetVarInfo(varInfo = newVarInfo, data = weather_mrs)
+
+#Concatenate/Merge flight records and weather data.
+##Join flight records and weather data at origin of the flight `OriginAirportID`.
+      originData_mrs <- rxMerge(
+        inData1 = flight_mrs, inData2 = weather_mrs, outFile = outFileOrigin,
+        type = "inner", autoSort = TRUE, 
+        matchVars = c("Month", "DayofMonth", "OriginAirportID", "CRSDepTime"),
+        varsToDrop2 = "DestAirportID",
+        overwrite = TRUE
+      )
+
+##Join flight records and weather data using the destination of the flight `DestAirportID`.
+      destData_mrs <- rxMerge(
+        inData1 = originData_mrs, inData2 = weather_mrs, outFile = outFileDest,
+        type = "inner", autoSort = TRUE, 
+        matchVars = c("Month", "DayofMonth", "DestAirportID", "CRSDepTime"),
+        varsToDrop2 = c("OriginAirportID"),
+        duplicateVarExt = c("Origin", "Destination"),
+        overwrite = TRUE
+      )
+
+##Call the rxFactors() function to convert `OriginAirportID` and `DestAirportID` as categorical.
+      rxFactors(inData = destData_mrs, outFile = outFileFinal, sortLevels = TRUE,
+                factorInfo = c("OriginAirportID", "DestAirportID"),
+                overwrite = TRUE)
+rxGetInfo(outFileFinal)
+rxGetInfo(outFileFinal,getVarInfo=TRUE)
+```
+
+```{r SiB-Workshop - Day 2 - Example 2 – Basic Regression}
+data <- read.table("/home/animeshs/Downloads/class.txt")
+summary(data)
+pairs(data)
+model <- lm( Height ~ Age , data = data)
+summary(model)
+lm_class_basicR<-lm(formula= Height~Weight, data = data[,-1])
+summary(lm_class_basicR)
+
+class_data<-rxImport(inData = "/home/animeshs/Downloads/class.txt")
+lm_class<-rxLinMod(formula= Height~Weight, data =class_data[,-1])
+summary(lm_class)
+summary(lm_class_basicR)
+
+
+big_data<-rxImport(inData = outFileFinal)
+lm_class_big<-rxLinMod(formula= WindSpeed.Destination~Altimeter.Destination, data =big_data)
+summary(lm_class_big)
+#scatter(~WindSpeed.Destination,~Altimeter.Destination,data=outFileFinal)
+rxHistogram(~WindSpeed.Destination,data=outFileFinal)
+
+lm_class_big_basicR<-lm(WindSpeed.Destination~Altimeter.Destination, data =big_data)
+summary(lm_class_big_basicR)
+lm_class_gender<-rxLinMod(formula= Height~Age+Gender, data =recodedDF2[,-1])
+summary(lm_class_gender)
+#scatter(~WindSpeed.Destination,~Altimeter.Destination,data=outFileFinal)
+rxHistogram(~WindSpeed.Destination,data=outFileFinal)
+
+recodedDF2 <- rxFactors(inData = class_data, sortLevels = TRUE,factorInfo = c("Gender"))   
+rxGetVarInfo(recodedDF2)
+lm_class_gender<-rxLinMod(formula= Height~Age+Gender,data =recodedDF2[,-1])
+summary(lm_class_gender)
+```
+
+```{r cheeseTest}
+cheese_data<-rxImport(inData = "/home/animeshs/Downloads/cheese.txt")
+rxGetVarInfo(cheese_data)
+lm_taste<-rxLinMod(formula= taste~Acetic, data =cheese_data[,-1])
+summary(lm_taste)
+lm_taste<-rxLinMod(formula= taste~Lactic, data =cheese_data[,-1])
+summary(lm_taste)
+lm_taste<-rxLinMod(formula= taste~H2S, data =cheese_data[,-1])
+summary(lm_taste)
+lm_taste<-rxLinMod(formula= taste~Case, data =cheese_data[,-1])
+summary(lm_taste)
+lm_taste<-rxLinMod(formula= taste~Acetic*Lactic, data =cheese_data[,-1])
+summary(lm_taste)
+lm_taste<-rxLinMod(formula= taste~Acetic+Lactic, data =cheese_data[,-1])
+summary(lm_taste)
+head(cheese_data)
+rxHistogram(~Case,data=cheese_data)
+recodedDF2 <- rxFactors(inData = cheese_data, sortLevels = TRUE,factorInfo = c("Case"))   
+rxGetVarInfo(recodedDF2)
+lm_taste_case<-rxLinMod(formula= taste~Acetic+Lactic+Case, data =recodedDF2[,-1])
+summary(lm_taste_case)
+rxHistogram(~taste,data=cheese_data)
+rxHistogram(~H2S,data=cheese_data)
+cheese_data_logH2S<-rxDataStep(inData=cheese_data,transforms = list(logH2S = log(cheese_data[,5])),overwrite = TRUE)
+hist(log(cheese_data[,5]))
+lm_taste_case<-rxLinMod(formula= taste~H2S, data =recodedDF2[,-1])
+summary(lm_taste_case)
+lm_taste_case<-lm(formula= taste~log(H2S), data =recodedDF2[,-1])
+summary(lm_taste_case)
+```
+
+```{r logit}
+class_data_basic<-read.table("/home/animeshs/Downloads/class.txt")
+logitmodel_basic<-glm(Gender~Height,family=binomial,data=class_data_basic)
+summary(logitmodel_basic)
+class_data<-rxImport(inData = "/home/animeshs/Downloads/class.txt")
+recodedDF <- rxFactors(inData = class_data, sortLevels = TRUE,factorInfo = c("Gender"))   
+rxGetVarInfo(recodedDF)
+logitmodel<-rxLogit(Gender~Height,data=recodedDF[,-1])
+summary(logitmodel)
+rxHistogram(~Height,data=recodedDF[,-1])
+```
+
+```{r logit-brfss}
+#brfss_data<-rxImport(inData = "/home/animeshs/LLCP2013.XPT")
+brfss<-read.csv("/home/animeshs/Downloads/LLCP2013_sampled.csv")
+brfss$has_plan <- brfss$HLTHPLN1 == 1
+brfss$X.RACE
+summary(glm(has_plan ~ as.factor(brfss$X.RACE), data=brfss,family=binomial))
+recodedDF2 <-brfss
+recodedDF2 <- rxFactors(inData = brfss, sortLevels = TRUE,factorInfo = c("X.RACE"))   
+str(recodedDF2$X.RACE)
+recodedDF2$HLTHPLN1_has<- recodedDF2$HLTHPLN1 == 1
+logitmodel_brfss<-rxLogit(has_plan~X.RACE,data=recodedDF2[,-1])
+logitmodel_brfss<-rxLogit(HLTHPLN1_has~X.RACE,data=recodedDF2[,-1])
+summary(logitmodel_brfss)
+levels(as.factor(brfss$X.RACE))
+levels(recodedDF2$X.RACE)
+       
+brfss_data<-rxImport(inData = "/home/animeshs/Downloads/LLCP2013_sampled.csv")
+rxGetVarInfo(brfss_data)
+recodedDF2 <- rxFactors(inData = brfss_data, sortLevels = TRUE,factorInfo = c("X.RACE"))   
+recodedDF2$HLTHPLN1_has<- recodedDF2$HLTHPLN1 == 1
+recodedDF2$has_plan<- recodedDF2$HLTHPLN1 == 1
+str(recodedDF2$X.RACE)
+str(recodedDF2$has_plan)
+rxGetVarInfo(recodedDF2)
+rxHistogram(~X.RACE,data=recodedDF2[,-1])
+rxHistogram(~HLTHPLN1,data=recodedDF2[,-1])
+rxHistogram(~HLTHPLN1_has,data=recodedDF2[,-1])
+#complete.cases(recodedDF2)
+logitmodel_brfss<-rxLogit(HLTHPLN1_has~X.RACE,data=recodedDF2[,-1])
+#logitmodel_brfss<-rxLogit(HHLTHPLN1_has~X.RACE,data=recodedDF2[,-1],family=binomial())
+summary(logitmodel_brfss)
+logitmodel_brfss<-rxLogit(has_plan~X.RACE,data=recodedDF2[,-1])
+#logitmodel_brfss<-rxLogit(HHLTHPLN1_has~X.RACE,data=recodedDF2[,-1],family=binomial())
+summary(logitmodel_brfss)
+valP<-(glm(has_plan ~ as.factor(brfss$X.RACE), data=brfss,family=binomial))
+valP[[7]]$tol
+pv<-c(0.00346, 0.94744, 0.97384, 0.98888, 0.18799, 0.05449, 0.27669)
+p.adjust(pv, method = "hommel", n = length(pv))
+```
+
+```{r Revox64}
+#library("RevoScaleR")
+data<-rxImport(inData='/home/animeshs/Downloads/mortality.csv')
+rxGetInfo(data,getVarInfo=TRUE,numRows=3)
+dataStep<-rxImport(inData='/home/animeshs/Downloads/mortality.csv',outFile='/home/animeshs/Downloads/mortalityDS.txt',varsToDrop=c("year"),overwrite=TRUE, rowSelection=score<850)
+rxGetInfo(dataStep,getVarInfo=TRUE)
+dataStep<-rxImport(inData='/home/animeshs/Downloads/mortality.csv',outFile='/home/animeshs/Downloads/mortalityDS.gz',varsToDrop=c("year"),overwrite=TRUE, rowSelection=score<850,transforms = list(expression = cut(ccExp, breaks = c(0, 6500, 13000),labels = c("Low exp", "High exp"))))
+dataStep<-rxImport(inData='/home/animeshs/Downloads/mortality.csv',outFile='/home/animeshs/Downloads/mortalityDS.gz',varsToDrop=c("year"),overwrite=TRUE, rowSelection=score<850,transforms = list(expression = floor(ccExp/100)))
+rxHistogram(~score,data=dataStep)
+rxHistogram(~expression,data=dataStep)
+dataStep<-rxImport(inData='/home/animeshs/Downloads/mortality.csv',outFile='/home/animeshs/Downloads/mortalityDS.gz',varsToDrop=c("year"),overwrite=TRUE, rowSelection=score<850,transforms = list(expression = floor(ccExp/100)))
+dataStep<-rxDataStep(inData='/home/animeshs/Downloads/mortality.csv',outFile='/home/animeshs/Downloads/mortalityDS.gz',varsToDrop=c("year"),overwrite=TRUE, rowSelection=score<850,transforms = list(expression = floor(ccExp/100)))
+
+datacsv <- rxImport("/home/animeshs/Downloads/mortality.csv")
+dataExampleNew1<-rxDataStep(inData=dataStep,outFile='/home/animeshs/Downloads/mortalityDS.gz',varsToDrop=c("year"),overwrite=TRUE, rowSelection=score<850,transforms = list(expression = floor(ccExp/100)))
+dataExampleNew1<-rxDataStep(inData=dataStep,transforms = list(expression = floor(ccExp/100)))
+dataExampleNew2<-rxDataStep(inData=dataStep,transforms = list(expression = floor(ccExp/100)))
+
+dataFD <- rxImport("/home/animeshs/Downloads/Flight_Delays_Sample.csv")
+dataWS <- rxImport("/home/animeshs/Downloads/Weather_Sample.csv")
+rxGetInfo(dataFD,getVarInfo=TRUE)
+rxGetInfo(dataWS,getVarInfo=TRUE)
+dataWSdesport<-rxDataStep(inData=dataWS,transforms = list(OriginAirportID = AirportID))
+rxGetInfo(dataWSdesport,getVarInfo=TRUE)
+dataWSdesport<-rxDataStep(inData=dataWS,transforms = list(OriginAirportID = AirportID))
+WDmFD<-rxMerge (inData1=dataWSdesport,inData2= dataFD,type="inner",matchVars=c("OriginAirportID"))
+
+
+```
+
+```{r SiB-Workshop - Day 1 - Example 1 – Basic Histogram}
 library(shiny)
 ui<- fluidPage(
 titlePanel("Workshop - Example 1 – Basic Histogram"),
@@ -19,10 +278,6 @@ hist(data(), 50,main="", xlab="x")
 })
 }
 shinyApp(ui,server)
-```
-
-```{r Revox64}
-dataRx<-rxImport(indata=inFile)
 ```
 
 
@@ -56,8 +311,7 @@ df=data.frame(country=c("US", "GB", "BR"),
 ```{r SiB}
 library(googleVis)
 data_map<-read.csv( "~/Documents/map.csv", header=TRUE,sep= "\t")
-map<-gvisGeoChart(data_map,locationvar="Country",colorvar="mortalit
-y")
+map<-gvisGeoChart(data_map,locationvar="Country",colorvar="mortality")
 plot(map)
 ```
 ```{r SiBdataTable}
