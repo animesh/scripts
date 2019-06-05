@@ -1,6 +1,273 @@
+```{r SiB-Workshop - Day 3 – deep-learning - lym}
+fileP<-"/home/animeshs/Downloads/"
+fileN<-"Sel66.txt"
+lym<-read.table(paste0(fileP, fileN),row.names = 1, header=T)
+fileC<-"Code.txt"
+code<-read.table(paste0(fileP, fileC),row.names = 1, header=T)
+summary(lym)
+library(quantable)
+y<-lym
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+colnames(y$data)
+yy<-rbind(y$data,code$Code)
+
+yyt<-t(yy)
+summary(yyt)
+yyt[,67]=as.numeric(yyt[,67]-1)
+summary(yyt)
+plot(yyt[,67])
+yyt=as.matrix(yyt)
+dimnames(yyt)=NULL
+
+library(keras)
+#install_keras()
+use_session_with_seed(3)
+set.seed(2)
+ind=sample(2,nrow(yyt),replace=TRUE,prob=c(0.80,0.20))
+
+yyt.training=yyt[ind==1,1:66]
+yyt.test=yyt[ind==2,1:66]
+
+yyt.trainingtarget=yyt[ind==1,67]
+yyt.testtarget=yyt[ind==2,67]
+
+yyt.trainLabels=to_categorical(yyt.trainingtarget)
+yyt.testLabels=to_categorical(yyt.testtarget)
+model=keras_model_sequential()
+model %>%
+    layer_dense(input_shape=c(66),units=33,activation='relu',kernel_initializer="glorot_normal",use_bias=TRUE) %>%
+    layer_dense(units=3,activation='softmax',kernel_initializer="glorot_normal",use_bias=TRUE)
+summary(model)
+
+model %>% compile(loss='categorical_crossentropy',optimizer='adam',metrics='accuracy')
+history=model %>% fit(yyt.training,yyt.trainLabels,epochs=100,batch_size=5,validation_split=0.2)
+
+plot(history)
+predicted.classes=model %>% predict_classes(yyt.test)
+table(yyt.testtarget,predicted.classes)
+```
+
+```{r SiB-Workshop - Day 3 – deep-learning}
+#install.packages("devtools")
+#devtools::install_github("rstudio/keras")
+library(keras)
+#install_keras()
+use_session_with_seed(3)
+data(iris)
+head(iris, 3)
+summary(iris)
+plot(iris)
+#install.packages("ggplot2")
+#install.packages("ggfortify")
+library("ggfortify")
+log.iris=log(iris[,1:4])
+iris.pca=prcomp(log.iris,center=TRUE,scale.=TRUE) 
+library("ggplot2")
+autoplot(iris.pca,data=iris,colour='Species',main="PCA of the iris dataset")
+
+plot(iris$Sepal.Length,iris$Sepal.Width,pch=21,bg=c("red","green3","blue")[unclass(iris$Species)],xlab="Sepal Length",ylab="Sepal Width")
+
+plot(iris$Petal.Length,iris$Petal.Width,pch=21,bg=c("red","green3","blue")[unclass(iris$Species)],xlab="Petal Length",ylab="Petal Width")
+
+data(iris)
+iris[,5]=as.numeric(iris[,5])-1
+iris=as.matrix(iris)
+dimnames(iris)=NULL
+
+set.seed(2)
+ind=sample(2,nrow(iris),replace=TRUE,prob=c(0.80,0.20))
+
+iris.training=iris[ind==1,1:4]
+iris.test=iris[ind==2,1:4]
+
+iris.trainingtarget=iris[ind==1,5]
+iris.testtarget=iris[ind==2,5]
+
+iris.trainLabels=to_categorical(iris.trainingtarget)
+iris.testLabels=to_categorical(iris.testtarget)
+model=keras_model_sequential()
+model %>%
+    layer_dense(input_shape=c(4),units=8,activation='relu',kernel_initializer="glorot_normal",use_bias=TRUE) %>%
+    layer_dense(units=3,activation='softmax',kernel_initializer="glorot_normal",use_bias=TRUE)
+summary(model)
+
+model %>% compile(loss='categorical_crossentropy',optimizer='adam',metrics='accuracy')
+history=model %>% fit(iris.training,iris.trainLabels,epochs=100,batch_size=5,validation_split=0.2)
+
+plot(history)
+
+predicted.classes=model %>% predict_classes(iris.test)
+table(iris.testtarget,predicted.classes)
+
+score=model %>% evaluate(iris.test,iris.testLabels)
+print(score)
+```
+
+```{r SiB-Workshop - Day 3 – deep-learning - test}
+
+
+model=keras_model_sequential() 
+
+model %>% 
+    layer_dense(input_shape=c(4),units=28,activation='relu',kernel_initializer="glorot_normal",use_bias=TRUE) %>% 
+    layer_dense(units=3,activation='softmax',kernel_initializer="glorot_normal",use_bias=TRUE)
+
+model %>% compile(loss='categorical_crossentropy',optimizer='adam',metrics='accuracy')
+
+model %>% fit(iris.training,iris.trainLabels,epochs=200,batch_size=5,validation_split=0.2)
+
+score=model %>% evaluate(iris.test,iris.testLabels)
+
+print(score)
+
+model=keras_model_sequential() 
+model %>% 
+    layer_dense(input_shape=c(4),units=28,activation='relu',kernel_initializer="glorot_normal",use_bias=TRUE) %>% 
+    layer_dense(units=5,activation='relu',kernel_initializer="glorot_normal",use_bias=TRUE) %>% 
+    layer_dense(units=3,activation='softmax',kernel_initializer="glorot_normal",use_bias=TRUE)
+model %>% compile(loss='categorical_crossentropy',optimizer='adam',metrics='accuracy')
+model %>% fit(iris.training,iris.trainLabels,epochs=200,batch_size=5,validation_split=0.2)
+score=model %>% evaluate(iris.test,iris.testLabels)
+print(score)
+```
+
+
+```{r SiB-Workshop - Day 4 – tree}
+install.packages("rpart")
+install.packages("rpart.plot")
+install.packages("randomForest")
+```
+
+
+```{r SiB-Workshop - Day 3 – clust}
+?hclust
+?kmeans
+mat <- matrix(data = rnorm(30, mean= 100,sd=10), nrow = 15, ncol = 2)
+mat.dist<-as.matrix(dist(mat))
+heatmap(mat.dist)
+heatmap(mat.dist,Colv=NA, Rowv=NA, scale="none")
+colorScale <- colorRampPalette(c("blue","green","yellow","red","darkred"))(1000)
+
+heatmap(mat.dist,Colv=NA, Rowv=NA,scale="none",col=colorScale)
+
+fileP<-"/home/animeshs/Downloads/"
+fileN<-"Sel66.txt"
+inputFile <- paste0(fileP, fileN)
+lym<-read.table(inputFile,row.names = 1, header=T)
+mat.dist<-as.matrix(dist(t(lym)))
+heatmap(mat.dist)
+cl<- kmeans(lym, 10, iter.max=20)
+plot(cl$centers)
+cah <- hclust(dist(cl$centers))#,"complete")#, graph=FALSE, nb.clust=-1)
+plot(cah)
+
+
+distE<- dist(mat)
+distC<- dist(mat,method="manhattan")
+mat.distE<-as.matrix(dist(mat))
+mat.distC<-as.matrix(dist(mat,method="manhattan"))
+heatmap(mat.distE,Colv=NA, Rowv=NA,scale="none",col=colorScale)
+heatmap(mat.distC,Colv=NA, Rowv=NA,scale="none",col=colorScale)
+hE<-hclust(distE,"complete")
+hC<-hclust(distC,"complete")
+plot(hE)
+plot(hC)
+
+df<-data.frame(mat)
+kmeans(df,3)
+cl.1 <- kmeans(df, 3, iter.max = 1)
+plot(df, col = cl.1$cluster)
+points(cl.1$centers, col = 1:5, pch = 8)
+
+cl.1000 <- kmeans(df, 3, iter.max = 1000)
+plot(df, col = cl.1000$cluster)
+points(cl.1000$centers, col = 1:5, pch = 8)
+
+x<- rbind(matrix(rnorm(70000, sd = 0.3), ncol = 2),matrix(rnorm(70000, mean = 1, sd = 0.3),ncol = 2))
+colnames(x) <- c("x", "y")
+cl<- kmeans(x, 1000, iter.max=20)
+plot(cl$centers)
+cah <- hclust(dist(cl$centers))#,"complete")#, graph=FALSE, nb.clust=-1)
+plot(cah)
+
+fileP<-"/home/animeshs/Downloads/"
+fileN<-"Sel66.txt"
+inputFile <- paste0(fileP, fileN)
+lym<-read.table(inputFile,row.names = 1)
+cl<- kmeans(lym, 10, iter.max=20)
+plot(cl$centers)
+cah <- hclust(dist(cl$centers))#,"complete")#, graph=FALSE, nb.clust=-1)
+plot(cah)
+
+clustering_data<- rxImport(inData = inputFile)
+rxGetVarInfo(clustering_data)
+
+z<-rxKmeans(~1_19912 + ~9_1702, data =clustering_data, numClusters = 3, maxIterations=100)
+
+lym<-read.table(inputFile,row.names = 1,header = T)
+summary(lym)
+clustering_data<-data.frame(lym)
+#clustering_data<- rxImport(inData = "/home/animeshs/Downloads/dataClustering.csv")
+rxGetVarInfo(clustering_data)
+z<-rxKmeans(~X9_1702 + X8_16846, data =clustering_data, numClusters = 3, maxIterations=100)
+z<-rxKmeans(as.formula(paste("~",paste(names(clustering_data),collapse="+"))),data = clustering_data, numClusters = 3, maxIterations=100)
+#plot(clustering_data, col = z$cluster)
+points(z$centers, col = 1:5, pch = 8)
+
+```
+
+```{r SiB-Workshop - Day 2 – mclus}
+#install.packages("mclust")
+library("mclust")
+?mclustBIC
+?Mclust
+fileP<-"/home/animeshs/Downloads/"
+fileN<-"Sel66.txt"
+inputFile <- paste0(fileP, fileN)
+lym<-read.table(inputFile,row.names = 1,header=T)
+summary(lym)
+lym[is.na(lym)]=0
+BIC <- mclustBIC(lym)
+plot(BIC)
+summary(BIC)
+mod1 <- Mclust(lym, x = BIC)
+summary(mod1, parameters = TRUE)
+plot(mod1, what = "classification")
+```
+
+```{r SiB-Workshop - Day 2 – pca}
+pcaD<-prcomp(lym, center = TRUE, scale. = FALSE)
+summary(pcaD)
+plot(pcaD$x)
+```
+
+```{r SiB-Workshop - Day 2 – lda}
+library(MASS)
+data(iris)
+head(iris, 3)
+train <- sample(1:150, 75)
+r <- lda(formula = Species ~ .,data = iris,prior = c(1,1,1)/3,subset = train)
+r$prior
+r$counts
+#means for each covariate
+r$means
+#with 3 classes we have at most two linear discriminants
+r$scaling
+#the singular values (svd) that gives the ratio of the between- and within-group standard deviations on the linear discriminan variables.
+r$svd
+# amount of the between-group variance that is explained by eaclinear discriminant
+prop = r$svd^2/sum(r$svd^2)
+head(prop$class)
+head(r2$posterior, 3)
+plda = predict(object = r, newdata = iris[-train, ])
+```
+
 ```{r SiB-Workshop - Day 2 – RevoScaleR}
 #<pre>export RSTUDIO_WHICH_R=/usr/bin/Revo64</pre>
 #export R_LIBS_SITE=/opt/microsoft/rclient/3.4.3/libraries/RServer
+#sudo ln -s /usr/lib/x86_64-linux-gnu/libpng16.so.16.36.0 /usr/lib/x86_64-linux-gnu/libpng12.so.0
 
    inputFileFlight <- paste0("/home/animeshs/Downloads/", "Flight_Delays_Sample.csv")
    inputFileWeather <- paste0("/home/animeshs/Downloads/", "Weather_Sample.csv")
@@ -398,15 +665,8 @@ install.packages("plyr")
 #install.packages("utils")
 install.packages("microbenchmark")
 
-install.packages("rpart")
-install.packages("rpart.plot")
-install.packages("randomForest")
 install.packages("ggplot2")
 
-install.packages("devtools")
-devtools::install_github("rstudio/keras")
-library(keras)
-install_keras()
 install.packages("ggfortify")
 ```
 
