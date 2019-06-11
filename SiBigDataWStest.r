@@ -1,4 +1,5 @@
 rm(list=ls())
+setwd("/home/animeshs/Downloads/")
 fileP<-"/home/animeshs/Downloads/"
 fileN<-"diabetes.csv"
 yy<-read.csv(paste0(fileP, fileN),header=T)
@@ -12,83 +13,30 @@ log.yyt=log(yyt[,1:8]+1)
 yyt.pca=prcomp(log.yyt,center=TRUE,scale.=TRUE)
 autoplot(yyt.pca,data=yyt,colour='Outcome',main="dataset")
 
-data<-yy
+#install.packages("randomForest")
+library(randomForest)
+
+DIABETESDATA<-yy
 str(data)
-
-# removing lines with zeros:
-data1 = data[!data$Glucose==0, ]
-data1 = data1[!data1$BMI==0, ]
-data1$Outcome <- factor(data1$Outcome)
-str(data1)
-summary(data1)
-
-# split the data
-ind=sample(2,nrow(data1),replace=TRUE,prob=c(0.8,0.2))
-data.training=data1[ind==1,]
-data.test=data1[ind==2,]
-
-# notmality of the data
-pairs(data.training)
-summary(data.training)
-
-shapiro.test(data.training$Pregnancies)
-hist(data.training$Pregnancies)
-
-shapiro.test(data.training$Glucose)
-hist(data.training$Glucose)
-
-shapiro.test(data.training$BloodPressure)
-hist(data.training$BloodPressure)
-
-shapiro.test(data.training$SkinThickness)
-hist(data.training$SkinThickness)
-
-shapiro.test(data.training$Insulin)
-hist(data.training$Insulin)
-
-shapiro.test(data.training$BMI)
-hist(data.training$BMI)
-
-shapiro.test(data.training$DiabetesPedigreeFunction)
-hist(data.training$DiabetesPedigreeFunction)
-
-shapiro.test(data.training$Age)
-hist(data.training$Age)
+?kmeans
+kmeans(DIABETESDATA,3)
 
 
-model  <- glm(data=data.training, Outcome ~ BMI  , family  = "binomial")
-model1 <- glm(data=data.training, Outcome ~ Glucose  , family  = "binomial")
-model2 <- glm(data=data.training, Outcome ~ Glucose + BMI  , family  = "binomial")
-model3 <- glm(data=data.training, Outcome ~ Age , family  = "binomial")
-model4 <- glm(data=data.training, Outcome ~ Glucose + BMI + Age , family  = "binomial")
+DIABETESDATA = data.frame(DIABETESDATA)
+DIABETESDATA.fact = as.factor(DIABETESDATA[,9])
+DIABETES8 = data.frame(DIABETESDATA[,1:8])
+DIABETESDATA.fact = data.frame(DIABETES8,DIABETESDATA.fact)
+DIABETESDATA =DIABETESDATA.fact
+names(DIABETESDATA)[9] = "Outcome"
 
+set.seed(2)
+ind = sample(2,nrow(DIABETESDATA),replace=TRUE)
 
-summary(model)
-summary(model1)
-summary(model2)
-summary(model3)
-summary(model4) #best model
+DIABETES.training=DIABETESDATA[ind==1,]
+DIABETES.test=DIABETESDATA[ind==2,]
 
-plot(fitted(model1) ~ Glucose , data=data.training)
-curve(exp(-5.690114+0.040457 *x)/
-        (1+exp(-5.690114+0.040457 *x)), col= "green",add=TRUE) #estimates of the summery (model1)
+?randomForest
+random_forest = randomForest(DIABETES.training,Outcome ~ Pregnancies+Glucose+BloodPressure+SkinThickness+Insulin+BMI+DiabetesPedigreeFunction+Age,impurity = 'gini',ntree = 200,replace = TRUE,prob = c(0.80,0.20))
 
-
-model4 <- glm(data=data.training, Outcome ~ Glucose + BMI + Age, family  = "binomial")
-summary(model4)
-
-predict(model4, data.test, type = "response")
-
-prob <- data.frame(predict(model4, data.test, type = "response"))
-names(prob) <- c('var1')
-prob$new <- ifelse(prob$var1 > 0.5, 1,0)
-prob$Outcome <- data.test$Outcome
-
-table = table(prob$new,prob$Outcome)
-
-perc =(table[1]+table[4]) / sum(table)
-perc
-
-library(caret)
-confusionMatrix(as.factor(as.numeric(prob$var1>0.5)), as.factor(prob$Outcome))
-
+                             
+print(random_forest)

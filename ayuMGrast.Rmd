@@ -1,8 +1,56 @@
+```{r phage}
+fileP<-"L:/promec/Animesh/HeLa/ayu/new/"
+data<-read.table(paste0(fileP,"krakencountcomb.txt"),sep = "\t",header = T,row.names = 1)
+row.names(data)<-paste(data[,1],row.names(data))
+data<-data[,-1]
+summary(data)
+hist(as.matrix((data)))
+typeof(data)
+y=as.matrix(log2(data*100+1))
+apply(y,1,function(x) !all(x==0))
+data[apply(data,1,function(x) !all(x==0))==T,]
+y<-y[apply(y, 1, function(x) !all(x==0)),]
+y<-y[,apply(y, 2, function(x) !all(x==0))]
+summary(y)
+hist(as.matrix(y[-1]))
+plot(y)
+library(pheatmap)
+y[is.infinite(y)]<-0
+pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)
+library(quantable)
+y=robustscale(log2(data*100))
+y=robustscale((y))
+data[,-(which(colSums(data) == 0))] 
+data[-(which(colSums(data) == 0)),] 
+summary(y$data)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+hist(as.matrix((y$data)))
+pheatmap(y$data,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)
+
+grepl("phag",row.names( data ) )
+phageD<-data[grepl( "phage" , row.names( data ) ),  ]
+phageDn0<-phageD[,-(which(colSums(phageD) == 0))] 
+#phageDn0<-phageDn0[-(which(rowSums(phageDn0) == 0)),] 
+write.table(phageDn0,paste0(fileP,"phageDn0.txt"),sep="\t",quote=FALSE,col.names=TRUE,row.names=TRUE)
+pheatmap(phageDn0,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)
+colnames(phageDn0)=sub("X.","",colnames(phageDn0))
+colnames(phageDn0)=sub(".QUALITY_PASSED..0","",colnames(phageDn0))
+label<-read.table("L:/promec/Animesh/HeLa/ayu/new/class.txt",header=T,row.names=1,sep="\t")
+colnames(label)
+summary(label)
+library(ggplot2)
+ggsave(file=paste0(fileP,"phageD.svg"), plot=pheatmap(phageDn0,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,annotation_col = label), width=6, height=6)
+dev.off()
+svgPHC<-pheatmap(phageDn0,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,annotation_col = label)
+ggsave(file=paste0(fileP,"phageD.svg"), plot=svgPHC, width=6, height=6)
+```
+
 ```{r PCA}
 fileP<-"L:/promec/Animesh/HeLa/ayu/new/"
 #install.packages('readxl')
 library('readxl')
-?read_excel
+#?read_excel
 #install.packages("dplyr")
 library(ggfortify)
 for(i in 1:4){
