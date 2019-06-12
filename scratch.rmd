@@ -1219,6 +1219,7 @@ summary(fm3)
 ```{r ROTS, echo = FALSE}
 #install.packages("BiocManager")
 #BiocManager::install("ROTS", version = "3.8")
+BiocManager::install("ROTS")
 dataNormImpCom[is.na(dataNormImpCom)]=5
 summary(dataNormImpCom)
 library(ROTS)

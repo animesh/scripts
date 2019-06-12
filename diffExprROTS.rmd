@@ -1,0 +1,178 @@
+```{r data}
+inpF<-"L:/promec/Animesh/Lymphoma/Log2L2HproteinGroupsPeptidesCheckTtestThr1p5FCPV5pFasta.txt"
+data<-read.table(inpF,header=T,sep="\t",row.names = 1)
+summary(data)
+```
+
+```{r label}
+inpL<-"L:/promec/Animesh/Lymphoma/Code.txt"
+label<-read.table(inpL,header=T,row.names=1,sep="\t")
+colnames(label)=sub("\\-[0-9]+","",colnames(label))
+colnames(label)
+summary(label)
+```
+
+```{r select}
+yyt=as.matrix(data)
+yyt[is.na(yyt)]<-0
+yyt<-yyt[,-(which(colSums(yyt) == 0))] 
+yyt<-yyt[-(which(rowSums(yyt) == 0)),] 
+summary(yyt)
+colnames(yyt)<-sub("X","",colnames(yyt))
+colnames(yyt)
+
+groups = label#$Code
+groups
+yyt<-yyt[,rownames(groups)]
+colnames(yyt)
+#yyt[,9]=as.factor(yyt[,9])
+```
+
+```{r PCA}
+library(ggfortify)
+#log.yyt=log(yyt[,1:8]+1)
+#yyt.pca=prcomp(log.yyt,center=TRUE,scale.=TRUE) 
+
+yyt.pca=prcomp((yyt),center=TRUE,scale.=TRUE) 
+autoplot(yyt.pca,data=(yyt))#,colour=t(label$Code))
+```
+
+```{r ROTS, echo = FALSE}
+#install.packages("BiocManager")
+#BiocManager::install("ROTS", version = "3.8")
+#BiocManager::install("ROTS")
+dataNormImpCom<-yyt
+#dataNormImpCom[dataNormImpCom==0]=5
+summary(dataNormImpCom)
+library(ROTS)
+input = dataNormImpCom
+colnames(dataNormImpCom)<-sub("X","",colnames(dataNormImpCom))
+
+colnames(dataNormImpCom)
+
+groups = label#$Code
+groups
+yyt<-yyt[,rownames(groups)]
+#?ROTS
+results = ROTS(data = dataNormImpCom, groups = as.numeric(groups$Code2) , B = 250 , K = 1000 , seed = 42)
+names(results) 
+fdrThr<-0.2
+uniP<-summary(results, fdr = fdrThr)
+#?plot
+plot(results, fdr = fdrThr, type = "volcano")
+#plot(results, fdr = fdrThr, type = "heatmap")
+```
+
+
+
+```{r heatmap}
+#install.packages('pheatmap')
+library(pheatmap)
+y<-as.matrix(data[1:35])
+summary(y)
+pheatmap(y,scale="row")
+y[is.na(y)]<-0
+pheatmap(y,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+colnames(y)=sub("X","",colnames(y))
+pheatmap(y,scale="row",clustering_distance_rows = "euclidean",clustering_distance_cols = "manhattan",annotation_col = label)
+library(ggplot2)
+ggsave(file=paste0(fileP,"phageD.svg"), plot=pheatmap(phageDn0,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,annotation_col = label), width=6, height=6)
+dev.off()
+svgPHC<-pheatmap(phageDn0,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,annotation_col = label)
+ggsave(file=paste0(fileP,"phageD.svg"), plot=svgPHC, width=6, height=6)
+```
+
+```{r scale}
+#install.packages('quantable')
+library(quantable)
+y<-data[1:35]
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+pheatmap(y$data,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)
+pheatmap(y$data,scale="row",clustering_distance_rows = "manhattan",clustering_distance_cols = "manhattan",fontsize_row=6,annotation_col = label)
+```
+
+```{r SiB-Workshop - Day 4 â randomtree - lym - pred}
+set.seed(100)
+yyt=as.data.frame(yyt)
+colnames(yyt)[67] <- "class"
+yyt[,67]=as.factor(yyt[,67])
+ind=sample(2,nrow(yyt),replace=TRUE,prob=c(0.80,0.20))
+yyt.training=yyt[ind==1,]
+yyt.test=yyt[ind==2,]
+
+tree=rpart(data=yyt.training,class~.,method="class",control=rpart.control(minsplit=10,minbucket=5),parms=list(split="information"))
+rpart.plot(tree,main="Classification tree for the yyt data (using 80% of data as training set)",extra=101)
+
+
+library(randomForest)
+set.seed(100)
+#yyt=as.data.frame(yyt)
+random_forest=randomForest(data=yyt.training,class~.,impurity='gini',ntree=200,replace=TRUE)
+print(random_forest)
+
+plot(random_forest)
+legend("top",cex=0.8,legend=colnames(random_forest$err.rate),lty=c(1,2,3),col=c(1,2,3),horiz=T)
+
+random_forest=randomForest(data=yyt.training,class~.,impurity='gini',ntree=25,replace=TRUE)
+
+predictions=predict(random_forest,newdata=yyt.training,type="class")
+actuals=yyt.training$class
+table(actuals,predictions)
+
+predictions=predict(random_forest,newdata=yyt.test,type="class")
+actuals=yyt.test$class
+confusion.matrix=table(actuals,predictions)
+print(confusion.matrix)
+
+accuracy=sum(diag(confusion.matrix))/sum(confusion.matrix)
+print(accuracy)
+
+sort(importance(random_forest))
+varImpPlot(random_forest)
+#qplot(RCN1,GALNT2,data=yyt,colour=class,size=I(3))
+```
+
+```{r SiB-Workshop - Day 4 â tree - lym - pred}
+library("rpart")
+library("rpart.plot")
+library("randomForest")
+predictions=predict(tree,newdata=yyt.training,type="class")
+actuals=yyt.training$class
+table(actuals,predictions)
+
+predictions=predict(tree,newdata=yyt.test,type="class")
+actuals=yyt.test$class
+confusion.matrix=table(actuals,predictions)
+print(confusion.matrix)
+
+accuracy=sum(diag(confusion.matrix))/sum(confusion.matrix)
+print(accuracy)
+
+tree=rpart(data=yyt,class~.,method="class",control=rpart.control(minsplit=1,minbucket=1,cp=0.000001),parms=list(split="information"))
+rpart.plot(tree,main="Biggest Tree",extra=101)
+
+printcp(tree)
+
+plotcp(tree)
+
+ptree=prune(tree,cp=2.0e-02)
+rpart.plot(ptree,main="Pruned Tree",extra=101)
+#qplot(ALDH1B1,PTBP2,data=yyt,colour=class,size=I(3))
+```
+
+
+
+
+
+```{r write}
+install.packages('dplyr')
+library(dplyr)
+colnames(y$data)
+yy<-rbind(y$data,label$Code)
+pheatmap(yy,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)
+yy<-t(yy)
+write.csv(y$data,"L:/promec/Animesh/Tomas/Copy of for z-score conversion (003).csv")
+```
+
