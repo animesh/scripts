@@ -1,0 +1,420 @@
+```{r data, echo = FALSE}
+inpD <-"L:/promec/Elite/LARS/2018/november/Rolf final/txt/"
+data <- read.delim(paste0(inpD,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
+summary(data)
+decoyPrefix="REV"
+contaminantPrefix="CON"
+hdr="LFQ.intensity."
+```
+
+
+```{r dataNorm, echo = FALSE}
+dataNorm=log2(data[,grep(hdr, names(data))])
+#set.seed(1)
+#dataNorm[dataNorm==-Inf]<-rnorm(1,mean=mean(dataNorm[dataNorm!=-Inf]),sd=sd(dataNorm[dataNorm!=-Inf]))
+#dataNorm[dataNorm==-Inf]=NA
+summary(dataNorm)
+```
+
+```{r VennDetail}
+#https://bioconductor.org/packages/release/bioc/vignettes/VennDetail/inst/doc/VennDetail.html
+#install.packages('BiocManager')
+head(dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12)
+BiocManager::install("VennDetail")
+library(VennDetail)
+ven <- venndetail(list(Red = dataNorm$LFQ.intensity.19+dataNorm$LFQ.intensity.26+dataNorm$LFQ.intensity.29, White = dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12+dataNorm$LFQ.intensity.30))
+ven <- venndetail(dataNorm)
+plot(ven)
+plot(ven, type = "vennpie")
+```
+
+```{r write-output, echo = FALSE}
+write.table(dataNorm,file=paste0(inpD,"log2data.txt"), sep = "\t")
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+
+```{r impute, echo = FALSE}
+#install.packages('mice')
+library(mice)
+#install.packages('randomForest')
+library(randomForest)
+dataNormImp=mice(dataNorm, method="rf")
+dataNormImpCom <- complete(dataNormImp,1)
+row.names(dataNormImpCom)<-row.names(dataNorm)
+summary(dataNormImpCom)
+```
+
+```{r write-output, echo = FALSE}
+write.csv(dataNormImpCom,file=paste0(inpD,"log2dataImp.csv"))
+#write.csv(factors,file=paste0(inpD,"dataNormImpComFactor.csv"))
+dataNormImpCom <- read.csv(paste0(inpD,"log2dataImp.csv"),row.names=1,header = T)
+#factors<-read.csv(paste0(inpD,"dataNormImpComFactor.csv"))
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+```{r PCA, echo = FALSE}
+plot(princomp(dataNormImpCom))
+biplot(prcomp(as.matrix(t(dataNormImpCom)),scale = T))
+biplot(prcomp(dataNormImpCom,scale = F))
+biplot(prcomp(dataNormImpCom,scale = T),col=c(1,8), cex=c(0.5, 0.4))
+```
+
+
+```{r DEqMS}
+#https://rdrr.io/bioc/DEqMS/f/vignettes/DEqMS-package-vignette.Rmd
+#install.packages("BiocManager")
+#BiocManager::install("DEqMS")
+library(DEqMS)
+#df.prot = read.table("F:\\promec\\Animesh\\Yan_miR_Protein_table.flatprottable.txt",stringsAsFactors = FALSE,header = TRUE, quote = "", comment.char = "",sep = "\t")
+# filter at 1% protein FDR and extract TMT quantifications
+dat.log=dataNormImpCom
+boxplot(dat.log,las=2,main="")
+cond = as.factor(c("w","w","r","r","r","w"))
+# The function model.matrix is used to generate the design matrix
+design = model.matrix(~0+cond) # 0 means no intercept for the linear model
+colnames(design) = gsub("cond","",colnames(design))
+# you can define one or multiple contrasts here
+x <- c("r-w")
+contrast =  makeContrasts(contrasts=x,levels=design)
+fit1 <- lmFit(dat.log, design)
+fit2 <- contrasts.fit(fit1,contrasts = contrast)
+fit3 <- eBayes(fit2)
+# assign a extra variable `count` to fit3 object, telling how many PSMs are 
+# quantifed for each protein
+df.prot=data
+library(matrixStats)
+count_columns = "MS.MS.count."
+#psm.count.table = data.frame(count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))])))+1
+rownames(fit3$coefficients)
+fit3$count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))]))+1
+fit4 = spectraCounteBayes(fit3)
+# n=30 limits the boxplot to show only proteins quantified by <= 30 PSMs.
+VarianceBoxplot(fit4,n=30,main=inpD,xlab="PSM count")
+VarianceScatterplot(fit4,main=inpD)
+DEqMS.results = outputResult(fit4,coef_col = 1)
+#if you are not sure which coef_col refers to the specific contrast,type
+head(fit4$coefficients)
+# a quick look on the DEqMS results table
+head(DEqMS.results)
+# Save it into a tabular text file
+write.table(DEqMS.results,paste0(inpD,hdr,"DEqMS.results.txt"),sep = "\t",row.names = F,quote=F)
+#install.packages("ggrepel")
+library(ggrepel)
+# Use ggplot2 allows more flexibility in plotting
+DEqMS.results$log.sca.pval = -log10(DEqMS.results$sca.P.Value)
+ggplot(DEqMS.results, aes(x = logFC, y =log.sca.pval )) + 
+    geom_point(size=0.5 )+
+    theme_bw(base_size = 16) + # change theme
+    xlab(expression("log2(red/white)")) + # x-axis label
+    ylab(expression(" -log10(P-value)")) + # y-axis label
+    geom_vline(xintercept = c(-1,1), colour = "red") + # Add fold change cutoffs
+    geom_hline(yintercept = 3, colour = "red") + # Add significance cutoffs
+    geom_vline(xintercept = 0, colour = "black") + # Add 0 lines
+    scale_colour_gradient(low = "black", high = "black", guide = FALSE)+
+    geom_text_repel(data=subset(DEqMS.results, abs(logFC)>1&log.sca.pval > 3),
+                    aes( logFC, log.sca.pval ,label=gene)) # add gene label
+
+fit4$p.value = fit4$sca.p
+# volcanoplot highlight top 20 proteins ranked by p-value here
+volcanoplot(fit4,coef=1, style = "p-value", highlight = 20,names=rownames(fit4$coefficients))
+
+
+df.LFQ<-dataNormImpCom
+boxplot(df.LFQ)
+library(matrixStats)
+#psm.count.table = data.frame(count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))])))+1
+
+pep.count.table = data.frame(count = rowMins(as.matrix(data[,112:217])))
+# Minimum peptide count of some proteins can be 0
+# add pseudocount 1 to all proteins
+pep.count.table$count = pep.count.table$count+1
+protein.matrix = as.matrix(df.LFQ)
+fit1 = lmFit(protein.matrix,design = design)
+fit2 = contrasts.fit(fit1,contrasts = contrast)
+fit3 <- eBayes(fit2)
+
+count_columns = "Peptides."
+rownames(fit3$coefficients)
+
+fit3$count = rowMins(as.matrix(data[,grep(count_columns, names(data))]))+1
+min(fit3$count)
+
+fit4 = spectraCounteBayes(fit3)
+VarianceBoxplot(fit4, n=20, main = hdr,xlab="peptide count + 1")
+#class = as.factor(c("H","H","H","L","L","L"))
+#design = model.matrix(~0+class) # fitting without intercept
+
+DEqMS.results = outputResult(fit4,coef_col = 1)
+# Add Gene names to the data frame
+rownames(df.prot) = df.prot$Majority.protein.IDs
+DEqMS.results$Gene.name = df.prot[DEqMS.results$gene,]$Gene.names
+head(DEqMS.results)
+write.table(DEqMS.results,paste0(inpD,hdr,"R-W.DEqMS.results.txt"),sep = "\t",row.names = F,quote=F)
+#dat.gene.nm = medianSweeping(dat.psm.log,group_col = 2)
+head(DEqMS.results)
+VarianceBoxplot(fit4,n=20)
+peptideProfilePlot(dat=df.prot)#,col=2,gene="TGFBR2")
+VarianceScatterplot(fit4, xlab="log2(LFQ)")
+limma.prior = fit4$s2.prior
+abline(h = log(limma.prior),col="green",lwd=3 )
+legend("topright",legend=c("DEqMS prior variance","Limma prior variance"),
+        col=c("red","green"),lwd=3)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+Residualplot(fit4,  xlab="log2(PSM count)",main="DEqMS")
+x = fit3$count
+y = log(limma.prior) - log(fit3$sigma^2)
+plot(log2(x),y,ylim=c(-6,2),ylab="Variance(estimated-observed)", pch=20, cex=0.5,
+     xlab = "log2(PSMcount)",main="Limma")
+#install.packages("LSD")
+library(LSD)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+x = fit3$count
+y = fit3$s2.post
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)", 
+     ylab="log(Variance)",
+     main="Posterior Variance in Limma")
+
+y = fit4$sca.postvar
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
+     ylab="log(Variance)", 
+     main="Posterior Variance in DEqMS")
+
+```
+
+
+```{r ROTS, echo = FALSE}
+#iocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(rep(0,3), rep(1,3))
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 1000 , K = 500 , seed = 1234)
+write.csv(summary(results, fdr = 1),file=paste0(inpD,hdr,"rots.csv"))
+names(results) 
+summary(results, fdr = 0.2)
+plot(results, fdr = 0.5, type = "volcano")
+#P61203-2;P61203
+#plot(results, fdr = 0.5, type = "heatmap")
+```
+
+
+
+```{r MSstats, echo = FALSE}
+#https://bioconductor.org/packages/3.3/bioc/vignettes/MSstats/inst/doc/MSstats-manual.pdf
+library('MSstats')
+QuantData<-dataProcess(SRMRawData)
+head(QuantData$ProcessedData)
+## based on multiple comparisons (T1 vs T3; T1 vs T7; T1 vs T9)
+comparison1<-matrix(c(-1,0,1,0,0,0,0,0,0,0),nrow=1)
+comparison2<-matrix(c(-1,0,0,0,0,0,1,0,0,0),nrow=1)
+comparison3<-matrix(c(-1,0,0,0,0,0,0,0,1,0),nrow=1)
+comparison<-rbind(comparison1,comparison2, comparison3)
+row.names(comparison)<-c("T3-T1","T7-T1","T9-T1")
+testResultMultiComparisons<-groupComparison(contrast.matrix=comparison,data=QuantData)
+## Calculate sample size for future experiments:
+#(1) Minimal number of biological replicates per condition
+designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=TRUE,
+desiredFC=c(1.25,1.75),FDR=0.05,power=0.8)
+#(2) Power calculation
+designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=2,
+desiredFC=c(1.25,1.75),FDR=0.05,power=TRUE)```
+```
+
+```{r SAM, echo = FALSE}
+#https://github.com/MikeJSeo/SAM
+install.packages(c("samr", "matrixStats", "GSA", "shiny", "shinyFiles", "openxlsx"))
+source("http://bioconductor.org/biocLite.R")
+biocLite("impute")
+library(shiny)
+library(shinyFiles)
+runGitHub("SAM", "MikeJSeo")
+```
+
+
+
+
+```{r NA}
+#impute(data, method = "mixed",randna = fData(naset)$randna,mar = "knn", mnar = "min")
+md.pattern(datasel)
+dataimp <- mice(datasel,m=length(colnames(datasel))/2,maxit=length(colnames(datasel)),meth='pmm',seed=1)
+dataimp <- complete(dataimp,length(colnames(datasel))/2)
+heatmap(as.matrix(dataimp),col=colscl)
+```
+
+```{r Scale}
+datascale=t(scale(t(dataimp))) # takes away the polynomial in YFP data
+heatmap(as.matrix(datascale),col=colscl)
+```
+
+```{r DistCor}
+dataasmat<-data.matrix(datascale)
+cor(data)
+dissimilarityc <- 1 - cor(dataasmat,method = "s")
+distancec <- as.dist(dissimilarityc)
+col.clus <- hclust(distancec, "aver")
+dissimilarityr <- 1 - cor(t(dataasmat),method = "s")
+distancer <- as.dist(dissimilarityr)
+row.clus <- hclust(distancer, "aver")
+heatmap(as.matrix(datascale),col=colscl)
+cr <- rainbow(nrow(dataasmat))
+cc <- rainbow(ncol(dataasmat))
+heatmap((na.omit(dataasmat)), RowSideColors = cr, ColSideColors = cc,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5 )
+```
+
+
+```{r Quantile}
+dataasmat<-normalize.quantiles(dataasmat)
+rn<-rownames(dataasmat)
+cn<-colnames(dataasmat)
+colnames(dataasmat)<-cn
+rownames(dataasmat)<-rn
+```
+
+```{r AdjPval}
+p.adjust(10^(-data$X.log10P),method = c("hochberg"), n = length(data$X.log10P))
+p.adjust(data$pv,method = c("hochberg"), n = length(data$pv))
+```
+
+```{r interpolate}
+data<-read.table("c:/Users/animeshs/Downloads/Sunshine hours.txt",sep='\t',header=T)
+summary(data$SONNENSCHEINDAUER)
+dp=approx(data$SONNENSCHEINDAUER)
+summary(dp)
+plot(dp$SONNENSCHEINDAUER,data$SONNENSCHEINDAUER)
+install.packages('zoo')
+library('zoo')
+dp<-rollmean(data,1)
+dp<-na.approx(data)
+summary(dp)
+write.table(dp,"c:/Users/animeshs/Downloads/SunshineDP.txt",sep='\t')
+```
+
+
+
+```{r lmfit}
+source("https://bioconductor.org/biocLite.R")
+biocLite("golubEsets")
+library(golubEsets)
+data()
+data(golubTrain)
+golubTrain
+golub<-data.frame(golubTrain@exprs)
+labelgb <- factor(c(rep("ALL",27),rep("AML",11)))
+names(golub) <- labelgb
+golub2<-log2(golub)
+plot(golub2)
+biocLite('limma')
+library('limma')
+fit3 = lmFit(golub2)
+e3 = eBayes(fit3)
+tab3<-topTable(e3, number=nrow(golub))
+head(tab3)
+fit3@.Data[[9]]
+fit4 = lmFit(golub2, design)
+```
+
+
+```{r shuffle}
+ecoli <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/Christina/Strainssamples.txt", header=TRUE, na.strings='', sep="\t")
+for  (cnt in 1:6){
+  cnt
+}
+  ecoli_shuffle <- ecoli_shuffle[sample(nrow(ecoli)),]
+write.csv(file="Y:/felles/PROTEOMICS and XRAY/Ani/Christina/Strainssamples_shuffled_rn.csv",x=ecoli_shuffle,row.names = F)
+```
+
+
+```{r prot}
+install.packages("PTXQC")
+library("PTXQC")
+help(package = "PTXQC")
+vignette("PTXQC-InputData", package = "PTXQC")
+txt_folder = "F:/promec/Elite/LARS/2016/desember/Lymphoma/Results"
+r = createReport(txt_folder)
+cat(paste0("\nReport generated as '", r$report_file, "'\n\n"))
+
+```
+
+
+```{r Cluster}
+colscl <- colorRampPalette(c("darkblue", "chocolate"), space = "rgb")(100)
+heatmap(na.omit(as.matrix(data)),col=colscl)
+```
+
+
+
+
+```{r SVA}
+#https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btu375
+#source("http://www.bioconductor.org/biocLite.R")
+#biocLite(c("Biobase","sva","bladderbatch","snpStats"))
+  library(sva)
+  library(devtools)
+  library(Biobase)
+  library(bladderbatch)
+  library(snpStats)
+
+data(bladderdata)
+pheno = pData(bladderEset)
+edata = exprs(bladderEset)
+
+mod = model.matrix(~as.factor(cancer) + as.factor(batch),data=pheno)
+fit = lm.fit(mod,t(edata))
+hist(fit$coefficients[2,],col=2,breaks=100)
+table(pheno$cancer,pheno$batch)
+
+batch = pheno$batch
+modcombat = model.matrix(~1, data=pheno)
+modcancer = model.matrix(~cancer, data=pheno)
+combat_edata = ComBat(dat=edata, batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+
+combat_fit = lm.fit(modcancer,t(combat_edata))
+hist(combat_fit$coefficients[2,],col=2,breaks=100)
+
+plot(fit$coefficients[2,],combat_fit$coefficients[2,],col=2,
+      xlab="Linear Model",ylab="Combat",xlim=c(-5,5),ylim=c(-5,5))
+abline(c(0,1),col=1,lwd=3)
+
+mod = model.matrix(~cancer,data=pheno)
+mod0 = model.matrix(~1, data=pheno)
+sva1 = sva(edata,mod,mod0,n.sv=2)
+
+summary(lm(sva1$sv ~ pheno$batch))
+
+boxplot(sva1$sv[,2] ~ pheno$batch)
+points(sva1$sv[,2] ~ jitter(as.numeric(pheno$batch)),col=as.numeric(pheno$batch))
+
+modsv = cbind(mod,sva1$sv)
+fitsv = lm.fit(modsv,t(edata))
+
+par(mfrow=c(1,2))
+plot(fitsv$coefficients[2,],combat_fit$coefficients[2,],col=2,
+      xlab="SVA",ylab="Combat",xlim=c(-5,5),ylim=c(-5,5))
+abline(c(0,1),col=1,lwd=3)
+plot(fitsv$coefficients[2,], fit$coefficients[2,],col=2,
+      xlab="SVA",ylab="linear model",xlim=c(-5,5),ylim=c(-5,5))
+abline(c(0,1),col=1,lwd=3)
+
+data(for.exercise)
+controls <- rownames(subject.support)[subject.support$cc==0]
+use <- seq(1, ncol(snps.10), 10)
+ctl.10 <- snps.10[controls,use]
+
+xxmat <- xxt(ctl.10, correct.for.missing=FALSE)
+evv <- eigen(xxmat, symmetric=TRUE)
+pcs <- evv$vectors[,1:5]
+
+pop <- subject.support[controls,"stratum"]
+plot(pcs[,1],pcs[,2],col=as.numeric(pop),
+      xlab="PC1",ylab="PC2")
+legend(0,0.15,legend=levels(pop),pch=19,col=1:2)
+```
+
+---
+title: "batch-effect-analysis"
+author: "Ani"
+date: "Monday, Feb 15, 2016"
+output: html_document
+---
+
