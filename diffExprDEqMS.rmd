@@ -2,30 +2,108 @@
 inpD <-"L:/promec/Elite/LARS/2018/november/Rolf final/txt/"
 data <- read.delim(paste0(inpD,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
 summary(data)
+```
+
+
+```{r clean, echo = FALSE}
 decoyPrefix="REV"
-contaminantPrefix="CON"
+dataClean<-data[-grep(decoyPrefix, rownames(data)),]
+dfNoRev = data[!data$Reverse=="+",]
+setdiff(rownames(dataClean),rownames(dfNoRev))
+setdiff(rownames(dfNoRev),rownames(dataClean))
+decoyPrefix="REV__"
+dataClean<-data[-grep(decoyPrefix, rownames(data)),]
+setdiff(rownames(dataClean),rownames(dfNoRev))
+setdiff(rownames(dfNoRev),rownames(dataClean))
+contaminantPrefix="CON__"
+#dataClean<-dataClean[-grep(contaminantPrefix, rownames(dataClean)),]
+dataClean=dataClean[!dataClean$Potential.contaminant=="+",]
+#dataClean=dataClean[!dataClean$Only.identified.by.site=="+",]
+summary(dataClean)
+```
+
+
+```{r norm, echo = FALSE}
 hdr="LFQ.intensity."
-```
-
-
-```{r dataNorm, echo = FALSE}
-dataNorm=log2(data[,grep(hdr, names(data))])
-#set.seed(1)
-#dataNorm[dataNorm==-Inf]<-rnorm(1,mean=mean(dataNorm[dataNorm!=-Inf]),sd=sd(dataNorm[dataNorm!=-Inf]))
-#dataNorm[dataNorm==-Inf]=NA
+dataNorm=log2(dataClean[,grep(hdr, names(dataClean))])
 summary(dataNorm)
+hist(as.matrix(dataNorm))
 ```
+
+```{r select, echo = FALSE}
+dataNormFilter<-dataNorm
+dataNormFilter[dataNormFilter==-Inf]=NA
+summary(dataNormFilter)
+selThr<-2
+dataNormFilter$Red = apply(dataNormFilter,1,function(x) sum(is.na(x[3:5])))
+dataNormFilter$White = apply(dataNormFilter,1,function(x) sum(is.na(x[c(1,2,6)])))
+dataNormFilter.Select = dataNormFilter[dataNormFilter$Red<selThr | dataNormFilter$White<selThr,1:6]
+summary(dataNormFilter.Select)
+```
+
 
 ```{r VennDetail}
 #https://bioconductor.org/packages/release/bioc/vignettes/VennDetail/inst/doc/VennDetail.html
 #install.packages('BiocManager')
-head(dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12)
-BiocManager::install("VennDetail")
+#BiocManager::install("VennDetail")
 library(VennDetail)
-ven <- venndetail(list(Red = dataNorm$LFQ.intensity.19+dataNorm$LFQ.intensity.26+dataNorm$LFQ.intensity.29, White = dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12+dataNorm$LFQ.intensity.30))
-ven <- venndetail(dataNorm)
+#ven <- venndetail(list(dat=dataClean$Majority.protein.IDs,daf=df.prot$Majority.protein.IDs))
+#plot(ven)
+#head(dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12)
+#ven <- venndetail(list(Red = dataNorm$LFQ.intensity.19+dataNorm$LFQ.intensity.26+dataNorm$LFQ.intensity.29, White = dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12+dataNorm$LFQ.intensity.30))
+ven <- venndetail(list(Red = dataNormFilter$Red, White = dataNormFilter$White))
+#ven <- venndetail(dataNorm)
 plot(ven)
 plot(ven, type = "vennpie")
+```
+
+```{r euler,echo=F}
+#install.packages('eulerr')
+library(eulerr)
+euler(dataNormFilter[,8:7]<2,shape="ellipse")$original.values
+plot(euler(dataNormFilter[,8:7]<selThr,shape="ellipse"),quantities=TRUE)
+plot(euler(dataNormFilter[,8:7]<selThr,shape="ellipse"),quantities=TRUE, col="black",fill=c("white","red"),main="Identified Protein Groups in Salmon Types")
+#plot(euler(c(dataNormFilter$Red, dataNormFilter$White),shape="ellipse"),quantities=TRUE)
+#euler(dataNorm<.5)$original.values
+```
+
+
+```{r impute, echo = FALSE}
+dataNormImp<-dataNorm
+set.seed(1)
+dataNormImp[dataNormImp==-Inf]<-rnorm(sum(dataNormImp==-Inf),mean=mean(dataNormImp[dataNormImp!=-Inf])-10,sd=sd(dataNormImp[dataNormImp!=-Inf])/10)
+summary(dataNormImp)
+hist(as.matrix(dataNormImp))
+```
+
+
+
+```{r imputeFilter, echo = FALSE}
+dataNormImpFilter<-dataNormFilter.Select
+set.seed(1)
+dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-3,sd=sd(!is.na(dataNormImpFilter))/3)
+summary(dataNormImpFilter)
+hist(as.matrix(dataNormImpFilter))
+```
+
+
+```{r ROTS, echo = FALSE}
+#iocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormImpFilter#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,2,2,2,1)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpD,hdr,"rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.5)
+plot(results, fdr = 0.2, type = "heatmap")
+```
+
+```{r imputeFilter-ttest, echo = FALSE}
+pairwise.t.test(as.matrix(dataNormImpFilter),c(0,0,1,1,1,0))#[1,3:5],dataNormImpFilter[1,c(1,2,6)])
 ```
 
 ```{r write-output, echo = FALSE}
@@ -54,6 +132,7 @@ dataNormImpCom <- read.csv(paste0(inpD,"log2dataImp.csv"),row.names=1,header = T
 ```
 
 ```{r PCA, echo = FALSE}
+dataNormImpCom<-dataNormImpFilter
 plot(princomp(dataNormImpCom))
 biplot(prcomp(as.matrix(t(dataNormImpCom)),scale = T))
 biplot(prcomp(dataNormImpCom,scale = F))
@@ -66,27 +145,21 @@ biplot(prcomp(dataNormImpCom,scale = T),col=c(1,8), cex=c(0.5, 0.4))
 #install.packages("BiocManager")
 #BiocManager::install("DEqMS")
 library(DEqMS)
-#df.prot = read.table("F:\\promec\\Animesh\\Yan_miR_Protein_table.flatprottable.txt",stringsAsFactors = FALSE,header = TRUE, quote = "", comment.char = "",sep = "\t")
-# filter at 1% protein FDR and extract TMT quantifications
-dat.log=dataNormImpCom
+dat.log=dataNormImpFilter
 boxplot(dat.log,las=2,main="")
 cond = as.factor(c("w","w","r","r","r","w"))
-# The function model.matrix is used to generate the design matrix
 design = model.matrix(~0+cond) # 0 means no intercept for the linear model
 colnames(design) = gsub("cond","",colnames(design))
-# you can define one or multiple contrasts here
 x <- c("r-w")
 contrast =  makeContrasts(contrasts=x,levels=design)
 fit1 <- lmFit(dat.log, design)
 fit2 <- contrasts.fit(fit1,contrasts = contrast)
 fit3 <- eBayes(fit2)
-# assign a extra variable `count` to fit3 object, telling how many PSMs are 
-# quantifed for each protein
-df.prot=data
+df.prot=dataClean[dataNormFilter$Red<selThr | dataNormFilter$White<selThr,]
 library(matrixStats)
 count_columns = "MS.MS.count."
 #psm.count.table = data.frame(count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))])))+1
-rownames(fit3$coefficients)
+#rownames(fit3$coefficients)
 fit3$count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))]))+1
 fit4 = spectraCounteBayes(fit3)
 # n=30 limits the boxplot to show only proteins quantified by <= 30 PSMs.
@@ -109,17 +182,17 @@ ggplot(DEqMS.results, aes(x = logFC, y =log.sca.pval )) +
     xlab(expression("log2(red/white)")) + # x-axis label
     ylab(expression(" -log10(P-value)")) + # y-axis label
     geom_vline(xintercept = c(-1,1), colour = "red") + # Add fold change cutoffs
-    geom_hline(yintercept = 3, colour = "red") + # Add significance cutoffs
+    geom_hline(yintercept = 2, colour = "red") + # Add significance cutoffs
     geom_vline(xintercept = 0, colour = "black") + # Add 0 lines
     scale_colour_gradient(low = "black", high = "black", guide = FALSE)+
-    geom_text_repel(data=subset(DEqMS.results, abs(logFC)>1&log.sca.pval > 3),
+    geom_text_repel(data=subset(DEqMS.results, abs(logFC)>1&log.sca.pval > 2),
                     aes( logFC, log.sca.pval ,label=gene)) # add gene label
 
-fit4$p.value = fit4$sca.p
-# volcanoplot highlight top 20 proteins ranked by p-value here
-volcanoplot(fit4,coef=1, style = "p-value", highlight = 20,names=rownames(fit4$coefficients))
+#fit4$p.value = fit4$sca.p
+#volcanoplot(fit4,coef=1, style = "p-value", highlight = 10,names=rownames(fit4$coefficients))
+```
 
-
+```{r DEqMS-peptides}
 df.LFQ<-dataNormImpCom
 boxplot(df.LFQ)
 library(matrixStats)
@@ -181,23 +254,6 @@ heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
      main="Posterior Variance in DEqMS")
 
 ```
-
-
-```{r ROTS, echo = FALSE}
-#iocManager::install("ROTS")#, version = "3.8")
-dataNormImpCom[is.na(dataNormImpCom)]=5
-summary(dataNormImpCom)
-factors<-c(rep(0,3), rep(1,3))
-library(ROTS)
-results = ROTS(data = dataNormImpCom, groups = factors , B = 1000 , K = 500 , seed = 1234)
-write.csv(summary(results, fdr = 1),file=paste0(inpD,hdr,"rots.csv"))
-names(results) 
-summary(results, fdr = 0.2)
-plot(results, fdr = 0.5, type = "volcano")
-#P61203-2;P61203
-#plot(results, fdr = 0.5, type = "heatmap")
-```
-
 
 
 ```{r MSstats, echo = FALSE}
