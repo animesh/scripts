@@ -61,10 +61,10 @@ plot(ven, type = "vennpie")
 #install.packages('eulerr')
 library(eulerr)
 euler(dataNormFilter[,8:7]<2,shape="ellipse")$original.values
-plot(euler(dataNormFilter[,8:7]<selThr,shape="ellipse"),quantities=TRUE)
-plot(euler(dataNormFilter[,8:7]<selThr,shape="ellipse"),quantities=TRUE, col="black",fill=c("white","red"),main="Identified Protein Groups in Salmon Types")
+vplot<-plot(euler(dataNormFilter[,8:7]<selThr,shape="ellipse"),quantities=TRUE, col="black",fill=c("white","red"),main="Identified Protein Groups in Salmon Types")
 #plot(euler(c(dataNormFilter$Red, dataNormFilter$White),shape="ellipse"),quantities=TRUE)
 #euler(dataNorm<.5)$original.values
+ggsave(file=paste0(inpD,hdr,"venn.svg"),plot=vplot)#,  width=6, height=6)
 ```
 
 
@@ -80,10 +80,45 @@ hist(as.matrix(dataNormImp))
 
 ```{r imputeFilter, echo = FALSE}
 dataNormImpFilter<-dataNormFilter.Select
+summary(dataNormImpFilter)
 set.seed(1)
-dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-3,sd=sd(!is.na(dataNormImpFilter))/3)
+#dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-3,sd=sd(!is.na(dataNormImpFilter))/3)
+dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-12,sd=sd(!is.na(dataNormImpFilter))/12)
 summary(dataNormImpFilter)
 hist(as.matrix(dataNormImpFilter))
+```
+
+```{r PCA, echo = FALSE}
+dataNormImpCom<-dataNormImpFilter
+plot(princomp(dataNormImpCom))
+biplot(prcomp(as.matrix(t(dataNormImpCom)),scale = T))
+biplot(prcomp(dataNormImpCom,scale = F))
+biplot(prcomp(dataNormImpCom,scale = T),col=c(1,8), cex=c(0.5, 0.4))
+```
+
+
+```{r t-test, echo = FALSE}
+pVal = apply(dataNormImpFilter, 1, function(x) t.test(as.numeric(x[c(3:5)]),as.numeric(x[c(1,2,6)]),var.equal=T)$p.value)
+logFC = rowMeans(dataNormImpFilter[,c(3:5)])-rowMeans(dataNormImpFilter[,c(1,2,6)])
+ttest.results = data.frame(gene=rownames(dataNormImpFilter),logFC=logFC,P.Value = pVal, adj.pval = p.adjust(pVal,method = "BH")) 
+#ttest.results$PSMcount = psm.count.table[ttest.results$gene,"count"]
+ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
+head(ttest.results)
+write.csv(ttest.results,file=paste0(inpD,hdr,"tTestBH.csv"))
+plot(logFC,-log10(pVal))
+plot(logFC,-log10(pVal),col="orange",)
+dsub=subset(ttest.results,ttest.results$P.Value<0.05&abs(ttest.results$logFC)>0.58)
+#rn<-do.call(rbind, strsplit(rownames(dsub), '\\.'))
+rn<-strsplit(rownames(dsub), ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+#g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval)) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)),position = position_dodge(width=0.5), vjust=0.5, size=1) + xlab("Log2 Fold Change")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradientn(colours = rainbow(4))
+#g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval)) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=2) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+#g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval)) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=2) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#FFFFFF")+geom_point(alpha = 0.05)
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+#install.packages("svglite")
+#library(svglite)
+ggsave(file=paste0(inpD,hdr,"volcanoPlot.svg"),plot=g)#,  width=6, height=6)
 ```
 
 
@@ -131,13 +166,6 @@ dataNormImpCom <- read.csv(paste0(inpD,"log2dataImp.csv"),row.names=1,header = T
 #dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
 ```
 
-```{r PCA, echo = FALSE}
-dataNormImpCom<-dataNormImpFilter
-plot(princomp(dataNormImpCom))
-biplot(prcomp(as.matrix(t(dataNormImpCom)),scale = T))
-biplot(prcomp(dataNormImpCom,scale = F))
-biplot(prcomp(dataNormImpCom,scale = T),col=c(1,8), cex=c(0.5, 0.4))
-```
 
 
 ```{r DEqMS}
@@ -193,41 +221,18 @@ ggplot(DEqMS.results, aes(x = logFC, y =log.sca.pval )) +
 ```
 
 ```{r DEqMS-peptides}
-df.LFQ<-dataNormImpCom
-boxplot(df.LFQ)
-library(matrixStats)
-#psm.count.table = data.frame(count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))])))+1
-
-pep.count.table = data.frame(count = rowMins(as.matrix(data[,112:217])))
-# Minimum peptide count of some proteins can be 0
-# add pseudocount 1 to all proteins
-pep.count.table$count = pep.count.table$count+1
-protein.matrix = as.matrix(df.LFQ)
-fit1 = lmFit(protein.matrix,design = design)
-fit2 = contrasts.fit(fit1,contrasts = contrast)
-fit3 <- eBayes(fit2)
-
-count_columns = "Peptides."
-rownames(fit3$coefficients)
-
-fit3$count = rowMins(as.matrix(data[,grep(count_columns, names(data))]))+1
+fit3$count = rowMins(as.matrix(df.prot[,grepl("^Peptides\\.[0-9]+", names(df.prot))]))+1
 min(fit3$count)
 
 fit4 = spectraCounteBayes(fit3)
 VarianceBoxplot(fit4, n=20, main = hdr,xlab="peptide count + 1")
-#class = as.factor(c("H","H","H","L","L","L"))
-#design = model.matrix(~0+class) # fitting without intercept
-
 DEqMS.results = outputResult(fit4,coef_col = 1)
-# Add Gene names to the data frame
-rownames(df.prot) = df.prot$Majority.protein.IDs
 DEqMS.results$Gene.name = df.prot[DEqMS.results$gene,]$Gene.names
 head(DEqMS.results)
-write.table(DEqMS.results,paste0(inpD,hdr,"R-W.DEqMS.results.txt"),sep = "\t",row.names = F,quote=F)
-#dat.gene.nm = medianSweeping(dat.psm.log,group_col = 2)
+write.table(DEqMS.results,paste0(inpD,hdr,"R-W.DEqMS.pep.results.txt"),sep = "\t",row.names = F,quote=F)
 head(DEqMS.results)
 VarianceBoxplot(fit4,n=20)
-peptideProfilePlot(dat=df.prot)#,col=2,gene="TGFBR2")
+#peptideProfilePlot(dat=df.prot)#,col=2,gene="TGFBR2")
 VarianceScatterplot(fit4, xlab="log2(LFQ)")
 limma.prior = fit4$s2.prior
 abline(h = log(limma.prior),col="green",lwd=3 )
