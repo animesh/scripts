@@ -4,4 +4,4 @@ function fact(x) {
    }
    return x * fact(x-1);
 }
-fact(4)
+console.log(fact(4))

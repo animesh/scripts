@@ -1,77 +1,164 @@
-import tensorflow as tf
-import datetime
-mnist = tf.keras.datasets.mnist
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-x_train, x_test = x_train / 255.0, x_test / 255.0
-
-def create_model():
-  return tf.keras.models.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(10, activation='softmax')
-  ])
-
-
-model = create_model()
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
-
-log_dir="logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-
-model.fit(x=x_train,
-          y=y_train,
-          epochs=5,
-          validation_data=(x_test, y_test),
-          callbacks=[tensorboard_callback])
-
-
-
-
-
- #tensorboard --logdir logs/gradient_tape
-
-import tensorflow as tf
-import datetime
-mnist = tf.keras.datasets.mnist
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-x_train, x_test = x_train / 255.0, x_test / 255.0
-
-def create_model():
-  return tf.keras.models.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(10, activation='softmax')
-  ])
-
-
-model = create_model()
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
-
-log_dir="logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-
-model.fit(x=x_train,
-          y=y_train,
-          epochs=5,
-          validation_data=(x_test, y_test),
-          callbacks=[tensorboard_callback])
-
-
-
-
-
- #tensorboard --logdir logs/gradient_tape
-
-
-
+#https://github.com/tensorflow/probability/blob/master/tensorflow_probability/examples/jupyter_notebooks/A_Tour_of_TensorFlow_Probability.ipynb
 import tensorflow as tf
 import tensorflow_probability as tfp
+tfd = tfp.distributions
+tfb = tfp.bijectors
+
+mats = tf.random.uniform(shape=[1000, 10, 10])
+vecs = tf.random.uniform(shape=[1000, 10, 1])
+
+import numpy as np
+def for_loop_solve():
+  return np.array(
+    [tf.linalg.solve(mats[i, ...], vecs[i, ...]) for i in range(1000)])
+
+def vectorized_solve():
+  return tf.linalg.solve(mats, vecs)
+
+# Vectorization for the win!
+for_loop_solve()
+%timeit vectorized_solve()
+
+a = tf.constant(np.pi)
+b = tf.constant(np.e)
+with tf.GradientTape() as tape:
+  tape.watch([a, b])
+  c = .5 * (a**2 + b**2)
+grads = tape.gradient(c, [a, b])
+print(grads[0])
+print(grads[1])
+
+normal = tfd.Normal(loc=0., scale=1.)
+print(normal)
+In [56]:
+# Plot 1000 samples from a standard normal
+import seaborn as sns
+samples = normal.sample(1000)
+sns.distplot(samples)
+plt.title("Samples from a standard Normal")
+plt.show()
+
+normal.log_prob(0.)
+
+normal_cdf = tfp.bijectors.NormalCDF()
+xs = np.linspace(-4., 4., 200)
+plt.plot(xs, normal_cdf.forward(xs))
+plt.show()
+
+exp_bijector = tfp.bijectors.Exp()
+log_normal = exp_bijector(tfd.Normal(0., .5))
+
+samples = log_normal.sample(1000)
+xs = np.linspace(1e-10, np.max(samples), 200)
+sns.distplot(samples, norm_hist=True, kde=False)
+plt.plot(xs, log_normal.prob(xs), c='k', alpha=.75)
+plt.show()
+
+
+def f(x, w):
+  x = tf.pad(x, [[1, 0], [0, 0]], constant_values=1)
+  linop = tf.linalg.LinearOperatorFullMatrix(w[..., np.newaxis])
+  result = linop.matmul(x, adjoint=True)
+  return result[..., 0, :]
+
+num_features = 2
+num_examples = 50
+noise_scale = .5
+true_w = np.array([-1., 2., 3.])
+
+xs = np.random.uniform(-1., 1., [num_features, num_examples])
+ys = f(xs, true_w) + np.random.normal(0., noise_scale, size=num_examples)
+# Visualize the data set
+plt.scatter(*xs, c=ys, s=100, linewidths=0)
+
+grid = np.meshgrid(*([np.linspace(-1, 1, 100)] * 2))
+xs_grid = np.stack(grid, axis=0)
+fs_grid = f(xs_grid.reshape([num_features, -1]), true_w)
+fs_grid = np.reshape(fs_grid, [100, 100])
+plt.contour(xs_grid[0, ...], xs_grid[1, ...], fs_grid, 20, linewidths=1)
+plt.show()
+
+
+import datetime
+datetime
+mnist = tf.keras.datasets.mnist
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
+
+def create_model():
+  return tf.keras.models.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28)),
+    tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(10, activation='softmax')
+  ])
+
+import matplotlib.pyplot as plt
+plt.style.use('dark_background')
+plt.plot(range(1,100),range(2,101))
+
+model = create_model()
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+log_dir="logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+model.fit(x=x_train,
+          y=y_train,
+          epochs=5,
+          validation_data=(x_test, y_test),
+          callbacks=[tensorboard_callback])
+
+
+
+
+
+ #tensorboard --logdir logs/gradient_tape
+
+import tensorflow as tf
+import datetime
+mnist = tf.keras.datasets.mnist
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
+
+def create_model():
+  return tf.keras.models.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28)),
+    tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(10, activation='softmax')
+  ])
+
+
+model = create_model()
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+log_dir="logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+model.fit(x=x_train,
+          y=y_train,
+          epochs=5,
+          validation_data=(x_test, y_test),
+          callbacks=[tensorboard_callback])
+
+
+
+
+
+ #tensorboard --logdir logs/gradient_tape
+
+
+
+import tensorflow as tf
+tf.
+import tensorflow.probability as tfp
+
+
 
 # Pretend to load synthetic data set.
 features = tfp.distributions.Normal(loc=0., scale=1.).sample(int(100e3))

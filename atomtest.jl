@@ -1,16 +1,63 @@
 #https://medium.com/@ODSC/reinforcement-learning-vs-differentiable-programming-48528f464795?source=email-51edc4174b8c-1557027412126-digest.reader------0-58------------------585c497f_b359_40d6_9661_ae5703bd5c26-1&sectionName=top
+Pkg.add("Calculus")
+using Calculus
 Calculus.gradient(x -> 3x^2 + 2x + 1, 5) # (32,)
+2+2
 
+Pkg.add("Nemo")
+
+using Nemo
+
+R, x = FiniteField(7, 11, "x")
+#(Finite field of degree 11 over F_7,x)
+S, y = PolynomialRing(R, "y")
+#(Univariate Polynomial Ring in y over Finite field of degree 11 over F_7,y)
+T = ResidueRing(S, y^3 + 3x*y + 1)
+#Residue ring of Univariate Polynomial Ring in y over Finite field of degree 11 over F_7 modulo y^3+(3*x)*y+(1)
+U, z = PolynomialRing(T, "z")
+#(Univariate Polynomial Ring in z over Residue ring of Univariate Polynomial Ring in y over Finite field of degree 11 over F_7 modulo y^3+(3*x)*y+(1),z)
+f = (3y^2 + y + x)*z^2 + ((x + 2)*y^2 + x + 1)*z + 4x*y + 3;
+g = (7y^2 - y + 2x + 7)*z^2 + (3y^2 + 4x + 1)*z + (2x + 1)*y + 1;
+s = f^12;
+t = (s + g)^12;
+@time resultant(s, t)
+#0.426612 seconds (705.88 k allocations: 52.346 MB, 2.79% gc time)
+#(x^10+4*x^8+6*x^7+3*x^6+4*x^5+x^4+6*x^3+5*x^2+x)*y^2+(5*x^10+x^8+4*x^7+3*x^5+5*x^4+3*x^3+x^2+x+6)*y+(2*x^10+6*x^9+5*x^8+5*x^7+x^6+6*x^5+5*x^4+4*x^3+x+3)
+Pkg.add("https://github.com/tpapp/DynamicHMCExamples.jl")
+
+] add https://github.com/tpapp/DynamicHMCExamples.jl
 #https://github.com/FluxML/model-zoo/blob/cdda5cad3e87b216fa67069a5ca84a3016f2a604/games/differentiable-programming/trebuchet/DiffRL.jl
+
+Pkg.add("VegaLite")
+using Soss
+hello = @model μ,x begin
+       σ ~ HalfCauchy()
+       x ~ Normal(μ,σ) |> iid
+       end
+
+data = (μ=1, x=[2,4,5])
+lda
+
+graphEdges(hello)
+logdensity(hello)
+
+using DynamicHMC
+
+DynamicHMC.nuts(hello, data=data).samples
+
 using Flux, Trebuchet
 using Flux.Tracker: forwarddiff
 using Statistics: mean
-using Random
 
+using Trebuchet
 gradient((wind, angle, weight) -> Trebuchet.shoot(wind, angle, weight),-2, 45, 200) # (4.02, -0.99, 0.051)
+using Pkg
+Pkg.add("Gadfly")
 
+Pkg.add("Trebuchet")
 using Gadfly
 Gadfly.plot([sin, cos,tan], -20*pi, 20*pi)
+Pkg.add("Soss")
 Pkg.add("Mocha")
 Pkg.test("Mocha")
 

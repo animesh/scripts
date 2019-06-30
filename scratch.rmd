@@ -1,3 +1,63 @@
+```{r kernel, echo = FALSE}
+setRepositories(graphics = getOption("menu.graphics"),ind = NULL, addURLs = character())
+install.packages('IRkernel')
+#https://rmarkdown.rstudio.com/authoring_shiny.html
+```
+
+```{r tfp, echo = FALSE}
+#https://blogs.rstudio.com/tensorflow/posts/2019-06-25-dynamic_linear_models_tfprobability/
+#install.packages("devtools")
+#devtools::install_github("rstudio/tfprobability")
+library(tensorflow)
+#tensorflow::install_tensorflow(version = "1.14")
+library(tfprobability)
+install.packages("tidyverse")
+library(tidyverse)
+library(zeallot)
+df <- read_table("~/Documents/capm.txt",col_types = list(X1 = col_date(format = "%Y.%m"))) %>%  rename(month = X1)
+df %>% glimpse()
+df %>% gather(key = "symbol", value = "return", -month) %>%
+  ggplot(aes(x = month, y = return, color = symbol)) +
+  geom_line() +
+  facet_grid(rows = vars(symbol), scales = "free")
+ibm <- df$IBM - df$RKFREE
+# market excess returns
+x <- df$MARKET - df$RKFREE
+
+fit <- lm(ibm ~ x)
+summary(fit)
+ts <- ibm %>% matrix()
+# forecast 12 months
+n_forecast_steps <- 12
+ts_train <- ts[1:(length(ts) - n_forecast_steps), 1, drop = FALSE]
+
+# make sure we work with float32 here
+ts_train <- tf$cast(ts_train, tf$float32)
+ts <- tf$cast(ts, tf$float32)
+linreg <- ts %>%
+  sts_dynamic_linear_regression(
+    design_matrix = cbind(rep(1, length(x)), x) %>% tf$cast(tf$float32)
+  )
+
+optimizer <- tf$compat$v1$train$AdamOptimizer(0.1)
+# only train on the training set!    
+loss_and_dists <- ts_train %>% sts_build_factored_variational_loss(model = model)
+variational_loss <- loss_and_dists[[1]]
+
+train_op <- optimizer$minimize(variational_loss)
+
+```
+
+```{r shiny, echo = FALSE}
+#https://rmarkdown.rstudio.com/authoring_shiny.html
+#install.packages('shiny')
+library(shiny)
+dN_shiny <- dataNorm
+#ctrl-shift-K
+#rmarkdown::run
+#shiny::renderUI
+```
+
 ```{r plotSVG}
 library(ggplot2)
 fileP<-"L:/promec/Animesh/api5000/"
@@ -51,16 +111,6 @@ dataNorm[dataNorm==0]<-rnorm(1,mean=mean(y),sd=sd(y))
 ```
 
 
-
-```{r shiny, echo = FALSE}
-#https://rmarkdown.rstudio.com/authoring_shiny.html
-#install.packages('shiny')
-library(shiny)
-dN_shiny <- dataNorm
-#ctrl-shift-K
-#rmarkdown::run
-#shiny::renderUI
-```
 
 ```{r slider, echo=FALSE}
 

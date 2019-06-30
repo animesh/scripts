@@ -1,7 +1,3 @@
-#!/bin/bash
-#nohup perl map2genome.pl codbac_in.454.fasta.47000.out   ecol_K12_MG1655genome.gbk_in.fasta &
-
-
 my %twoBit = ('T' => 0b00,'C' => 0b01,'G' => 0b10,'A' => 0b11, 0b00 => 'T',0b01 => 'C',0b10 => 'G',0b11 => 'A');
 my $fasta='TATAA';
 print $fasta. length( $fasta ) . "\n";
@@ -31,7 +27,7 @@ print $exstrs. length($exstrs) . "\n";
 
 __END__
 use strict;
-use warnings; 
+use warnings;
 use Math::BigFloat lib => 'GMP';
 
 #Accuracy upto 100th number
@@ -40,9 +36,9 @@ my $levelacc=100;
 my $x1=Math::BigFloat->new(-1);
 my $x2=Math::BigFloat->new(-1.57);
 my $x3=Math::BigFloat->new(-113.1);
-my $L1=$x1->bexp($levelacc); 
-my $L2=$x2->bexp($levelacc);  
-my $L3=$x3->bexp($levelacc);  
+my $L1=$x1->bexp($levelacc);
+my $L2=$x2->bexp($levelacc);
+my $L3=$x3->bexp($levelacc);
 my $sum1=($L1);
 my $sum2=($L1+$L2);
 my $sum3=($L1+$L2+$L3);
@@ -59,13 +55,13 @@ print "$L1,$L2,$L3\t$sum1\t$sum2\t$sum3\n";
 
 
 chomp($var=shift @ARGV);
- open(PS_F, "ps -fa|"); 
- while (<PS_F>) { 
- ($uid,$pid,$ppid,$c,$stime,$tty,$time,$cmd,$restOfLine) = split; 
+ open(PS_F, "ps -fa|");
+ while (<PS_F>) {
+ ($uid,$pid,$ppid,$c,$stime,$tty,$time,$cmd,$restOfLine) = split;
  #print "$uid,$pid,$ppid,$c,$stime,$tty,$time,$cmd\n$var";
  if ($cmd eq $var){system("kill -9 $pid");}
- } 
- close(PS_F); 
+ }
+ close(PS_F);
 
 #!/usr/bin/perl
 $testseq="atatatattt";
@@ -139,7 +135,7 @@ while ($line = <F>) {
 	if ($line =~ /^>/){
 		$c++;
 		chomp $line;
-		push(@seqname1,$line);	
+		push(@seqname1,$line);
 		if ($seq ne ""){
 			push(@seq1,$seq);
               		$seq = "";
@@ -166,7 +162,7 @@ for($c1=0;$c1<=$#seq1;$c1++){
 	print "$errornum-$pcl-$c1-$per-$toterr-$len-$seqname1[$c1]\n";
 	#print FT"$seqname1[$c1]\n$seq1[$c1]\n";
 
-}	
+}
 #close FT;
 
 sub gaussian_rand {
