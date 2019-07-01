@@ -1,11 +1,11 @@
 ```{r data}
-inpF<-"L:/promec/Animesh/MK/proteinGroups.txt"
+inpF<-"F:/promec/Animesh/MK/proteinGroups.txt"
 data<-read.table(inpF,header=T,sep="\t",row.names = 1)
 summary(data)
 ```
 
 ```{r label}
-inpL<-"L:/promec/Animesh/MK/Class.txt"
+inpL<-"F:/promec/Animesh/MK/Class.txt"
 label<-read.table(inpL,header=T,row.names=1,sep="\t", colClasses=c(rep("factor",3)))
 #colnames(label)=sub("\\-[0-9]+","",colnames(label))
 #colnames(label)
@@ -25,6 +25,26 @@ colnames(yyt)
 yyt<-yyt[,rownames(label)]
 colnames(yyt)
 #yyt[,9]=as.factor(yyt[,9])
+```
+
+```{r heatmap}
+#install.packages('pheatmap')
+library(pheatmap)
+#?pheatmap
+y<-as.matrix(yyt)
+summary(y)
+svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,annotation_col = label,show_rownames=F)
+#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
+plot(svgPHC)
+```
+
+```{r scale}
+#install.packages('quantable')
+library(quantable)
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+#names(y$data)=sub("X","",names(y$data))
+pheatmap(y$data,scale="row",clustering_distance_rows = "manhattan",clustering_distance_cols = "manhattan",fontsize_row=6,annotation_col = label,show_rownames=F)
 ```
 
 ```{r PCA}
@@ -60,26 +80,9 @@ plot(results, fdr = fdrThr, type = "heatmap")
 ```
 
 
-```{r heatmap}
-#install.packages('pheatmap')
-library(pheatmap)
-#?pheatmap
-y<-as.matrix(yyt)
-summary(y)
-svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,annotation_col = label,show_rownames=F)
-#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
-```
 
 
 
-```{r scale}
-#install.packages('quantable')
-library(quantable)
-y=robustscale(y)
-y$data[is.na(y$data)]<-0
-#names(y$data)=sub("X","",names(y$data))
-pheatmap(y$data,scale="row",clustering_distance_rows = "manhattan",clustering_distance_cols = "manhattan",fontsize_row=6,annotation_col = label,show_rownames=F)
-```
 
 ```{r randomtree}
 set.seed(42)

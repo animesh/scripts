@@ -1,8 +1,194 @@
 ```{r kernel, echo = FALSE}
 setRepositories(graphics = getOption("menu.graphics"),ind = NULL, addURLs = character())
+#install.packages("devtools")
 install.packages('IRkernel')
+IRkernel::installspec()
 #https://rmarkdown.rstudio.com/authoring_shiny.html
 ```
+
+```{r rand-1-10, echo = FALSE}
+#https://torvaney.github.io/projects/human-rng
+#install.packages("tidyverse")
+library(tidyverse)
+
+probabilities <-
+  read_csv("https://git.io/fjoZ2") %>%
+  count(outcome = round(pick_a_random_number_from_1_10)) %>%
+  filter(!is.na(outcome),
+         outcome != 0) %>%
+  mutate(p = n / sum(n))
+
+probabilities %>%
+  ggplot(aes(x = outcome, y = p)) +
+  geom_col(aes(fill = as.factor(outcome))) +
+  scale_x_continuous(breaks = 1:10) +
+  scale_y_continuous(labels = scales::percent_format(),
+                     breaks = seq(0, 1, 0.05)) +
+  scale_fill_discrete(h = c(120, 360)) +
+  theme_minimal(base_family = "Roboto") +
+  theme(legend.position = "none",
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  labs(title = '"1-10"',
+       subtitle = "RNG distribution",
+       x = "",
+       y = NULL,
+       caption = "Source: https://www.reddit.com/r/dataisbeautiful/comments/acow6y/asking_over_8500_students_to_pick_a_random_number/")
+
+
+variables <-
+  crossing(from = probabilities$outcome,
+           to   = probabilities$outcome) %>%
+  mutate(name = glue::glue("x({from},{to})"),
+         ix = row_number())
+
+variables
+
+fill_array <- function(indices,
+                       weights,
+                       dimensions = c(1, max(variables$ix))) {
+  init <- array(0, dim = dimensions)
+
+  if (length(weights) == 1) {
+    weights <- rep_len(1, length(indices))
+  }
+
+  reduce2(indices, weights, function(a, i, v) {
+    a[1, i] <- v
+    a
+  }, .init = init)
+}
+
+constrain_uniform_output <-
+  probabilities %>%
+  pmap(function(outcome, p, ...) {
+    x <-
+      variables %>%
+      filter(to == outcome) %>%
+      left_join(probabilities, by = c("from" = "outcome"))
+
+    fill_array(x$ix, x$p)
+  })
+
+
+one_hot <- partial(fill_array, weights = 1)
+
+constrain_original_conserved <-
+  probabilities %>%
+  pmap(function(outcome, p, ...) {
+    variables %>%
+      filter(from == outcome) %>%
+      pull(ix) %>%
+      one_hot()
+  })
+
+maximise_original_distribution_reuse <-
+  probabilities %>%
+  pmap(function(outcome, p, ...) {
+    variables %>%
+      filter(from == outcome,
+             to == outcome) %>%
+      pull(ix) %>%
+      one_hot()
+  })
+
+objective <- do.call(rbind, maximise_original_distribution_reuse) %>% colSums()
+
+
+# Make results reproducible...
+set.seed(23756434)
+
+#install.packages("lpSolve")
+solved <- lpSolve::lp(
+  direction    = "max",
+  objective.in = objective,
+  const.mat    = do.call(rbind, c(constrain_original_conserved, constrain_uniform_output)),
+  const.dir    = c(rep_len("==", length(constrain_original_conserved)),
+                   rep_len("==", length(constrain_uniform_output))),
+  const.rhs    = c(rep_len(1, length(constrain_original_conserved)),
+                   rep_len(1 / nrow(probabilities), length(constrain_uniform_output)))
+)
+
+balanced_probabilities <-
+  variables %>%
+  mutate(p = solved$solution) %>%
+  left_join(probabilities,
+            by = c("from" = "outcome"),
+            suffix = c("_redistributed", "_original"))
+
+#install.packages("gganimate")
+#install.packages("gifski")gifski_renderer
+#install.packages("png")
+library(png)
+library(gifski)
+library(gganimate)
+
+redistribute_anim <-
+  bind_rows(balanced_probabilities %>%
+            mutate(key   = from,
+                   state = "Before"),
+            balanced_probabilities %>%
+            mutate(key   = to,
+                   state = "After")) %>%
+  ggplot(aes(x = key, y = p_redistributed * p_original)) +
+  geom_col(aes(fill = as.factor(from)),
+           position = position_stack()) +
+  scale_x_continuous(breaks = 1:10) +
+  scale_y_continuous(labels = scales::percent_format(),
+                     breaks = seq(0, 1, 0.05)) +
+  scale_fill_discrete(h = c(120, 360)) +
+  theme_minimal(base_family = "Roboto") +
+  theme(legend.position = "none",
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  labs(title = 'Balancing RNG distribution"',
+       subtitle = "{closest_state}",
+       x = "",
+       y = NULL) +
+  transition_states(
+    state,
+    transition_length = 4,
+    state_length = 3
+  ) +
+  ease_aes('cubic-in-out')
+
+animate(
+  redistribute_anim,
+  start_pause = 8,
+  end_pause = 8
+)
+
+balanced_probabilities %>%
+  ggplot(aes(x = from, y = to)) +
+  geom_tile(aes(alpha = p_redistributed, fill = as.factor(from))) +
+  geom_text(aes(label = ifelse(p_redistributed == 0, "", scales::percent(p_redistributed, 2)))) +
+  scale_alpha_continuous(limits = c(0, 1), range = c(0, 1)) +
+  scale_fill_discrete(h = c(120, 360)) +
+  scale_x_continuous(breaks = 1:10) +
+  scale_y_continuous(breaks = 1:10) +
+  theme_minimal(base_family = "Roboto") +
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(linetype = "dotted"),
+        legend.position = "none") +
+  labs(title = "Probability mass redistribution",
+       x = "Original number",
+       y = "Redistributed number")
+
+probabilities %>%
+  transmute(number = outcome,
+            probability = scales::percent(p))
+
+
+```
+
+```{r compMS, echo = FALSE}
+install.packages('rlang')
+library(devtools)
+install_github('coltocaro/compMS')
+setRepositories(graphics = getOption("menu.graphics"),ind = NULL, addURLs = character())
+library(compMS)
+```
+
 
 ```{r tfp, echo = FALSE}
 #https://blogs.rstudio.com/tensorflow/posts/2019-06-25-dynamic_linear_models_tfprobability/
@@ -71,8 +257,7 @@ for(i in fileS){
 }
 ```
 
-``{r ANOVA,echo=F}
-
+```{r ANOVA,echo=F}
 pathD<-"F:/promec/USERS/MarianneNymark/181009/PDv2p3/181009_newprep_Charlotte_Alb3b-14_II"
 inpF<-file.path(pathD,"181009_newprep_Charlotte_Alb3b-14_II-(1)_Proteins.txt")
 data<-read.table(inpF,header=T,sep="\t",row.names = 3)

@@ -1,5 +1,6 @@
 #https://github.com/tensorflow/probability/blob/master/tensorflow_probability/examples/jupyter_notebooks/A_Tour_of_TensorFlow_Probability.ipynb
 import tensorflow as tf
+print(tf.__version__)
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 tfb = tfp.bijectors
@@ -30,20 +31,19 @@ print(grads[1])
 
 normal = tfd.Normal(loc=0., scale=1.)
 print(normal)
-In [56]:
-# Plot 1000 samples from a standard normal
+
 import seaborn as sns
 samples = normal.sample(1000)
 sns.distplot(samples)
-plt.title("Samples from a standard Normal")
-plt.show()
+
+
 
 normal.log_prob(0.)
 
 normal_cdf = tfp.bijectors.NormalCDF()
 xs = np.linspace(-4., 4., 200)
+import matplotlib.pyplot as plt
 plt.plot(xs, normal_cdf.forward(xs))
-plt.show()
 
 exp_bijector = tfp.bijectors.Exp()
 log_normal = exp_bijector(tfd.Normal(0., .5))
@@ -52,7 +52,6 @@ samples = log_normal.sample(1000)
 xs = np.linspace(1e-10, np.max(samples), 200)
 sns.distplot(samples, norm_hist=True, kde=False)
 plt.plot(xs, log_normal.prob(xs), c='k', alpha=.75)
-plt.show()
 
 
 def f(x, w):
@@ -76,7 +75,6 @@ xs_grid = np.stack(grid, axis=0)
 fs_grid = f(xs_grid.reshape([num_features, -1]), true_w)
 fs_grid = np.reshape(fs_grid, [100, 100])
 plt.contour(xs_grid[0, ...], xs_grid[1, ...], fs_grid, 20, linewidths=1)
-plt.show()
 
 
 import datetime
@@ -176,7 +174,6 @@ coeffs, linear_response, is_converged, num_iter = tfp.glm.fit(
 #https://matrices.io/deep-neural-network-from-scratch/ using https://www.tensorflow.org/alpha/guide/eager
 #!sudo pip3 install tf-nightly-2.0-preview #guide https://threader.app/thread/1105139360226140160
 import tensorflow as tf
-print(tf.__version__)
 #tf.enable_eager_execution()
 tf.executing_eagerly()
 tf.test.is_gpu_available()#:with tf.device("/gpu:0"):
