@@ -6,6 +6,20 @@ IRkernel::installspec()
 #https://rmarkdown.rstudio.com/authoring_shiny.html
 ```
 
+```{r dimensioN, echo = FALSE}
+#http://m-clark.github.io/posts/2019-05-14-shrinkage-in-mixed-models/
+N=1000
+#d<-runif(N)
+d<-rep(0,N)
+dd<-d
+for (n in seq(1:N)) {i=runif(n);d[n]=sum(i);dd[n]=sqrt(sum(i*i))}
+hist(d,breaks=N)
+plot(d)
+plot(dd)
+#plot(d,dd)
+hist(dd)#,breaks=N)
+```
+
 ```{r rand-1-10, echo = FALSE}
 #https://torvaney.github.io/projects/human-rng
 #install.packages("tidyverse")

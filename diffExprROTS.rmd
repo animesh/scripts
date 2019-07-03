@@ -57,6 +57,567 @@ autoplot(yyt.pca,data=t(yyt),colour=as.numeric(label$Treatment))
 #biplot(yyt.pca)
 ```
 
+```{r clean, echo = FALSE}
+decoyPrefix="REV__"
+dfNoRev<-data[-grep(decoyPrefix, rownames(data)),]
+dataClean = data[!data$Reverse=="+",]
+setdiff(rownames(dataClean),rownames(dfNoRev))
+setdiff(rownames(dfNoRev),rownames(dataClean))
+summary(dataClean)
+```
+
+
+```{r norm, echo = FALSE}
+hdr="LFQ.intensity."
+dataNorm=log2(dataClean[,grep(hdr, names(dataClean))])
+summary(dataNorm)
+hist(as.matrix(dataNorm))
+```
+
+```{r select, echo = FALSE}
+dataNormFilter<-dataNorm
+dataNormFilter[dataNormFilter==-Inf]=NA
+colnames(dataNormFilter)<-sub(hdr,"",colnames(dataNormFilter))
+summary(dataNormFilter)
+selThr<-4
+dataNormFilter$INRTI = apply(dataNormFilter,1,function(x) sum(is.na(x[1:5])))
+dataNormFilter$IRTI = apply(dataNormFilter,1,function(x) sum(is.na(x[6:10])))
+dataNormFilter$HCTI = apply(dataNormFilter,1,function(x) sum(is.na(x[11:15])))
+dataNormFilter$INRSI = apply(dataNormFilter,1,function(x) sum(is.na(x[16:20])))
+dataNormFilter$IRSI = apply(dataNormFilter,1,function(x) sum(is.na(x[21:25])))
+dataNormFilter$HCSI = apply(dataNormFilter,1,function(x) sum(is.na(x[26:30])))
+
+dataNormFilter.SelectINRTIIR = dataNormFilter[(dataNormFilter$INRTI < selThr & dataNormFilter$IRTI  < selThr )|(dataNormFilter$IRTI < selThr & dataNormFilter$INRTI  < selThr ),1:10]
+summary(dataNormFilter.SelectINRTIIR)
+dataNormFilter.SelectINRTIIR
+write.csv(dataNormFilter.SelectINRTIIR,file=paste0(inpF,hdr,selThr,"dataNormFilter.INRIR.TI.csv"))
+
+dataNormFilter.SelectINRTIHC = dataNormFilter[(dataNormFilter$INRTI < selThr & dataNormFilter$HCTI  < selThr )|(dataNormFilter$HCTI < selThr & dataNormFilter$INRTI  < selThr ),c(1:5,11:15)]
+summary(dataNormFilter.SelectINRTIHC)
+dataNormFilter.SelectINRTIHC
+write.csv(dataNormFilter.SelectINRTIHC,file=paste0(inpF,hdr,selThr,"dataNormFilter.INRHC.TI.csv"))
+
+dataNormFilter.SelectIRTIHC = dataNormFilter[(dataNormFilter$IRTI < selThr & dataNormFilter$HCTI  < selThr )|(dataNormFilter$HCTI < selThr & dataNormFilter$IRTI  < selThr ),6:15]
+summary(dataNormFilter.SelectIRTIHC)
+dataNormFilter.SelectIRTIHC
+write.csv(dataNormFilter.SelectIRTIHC,file=paste0(inpF,hdr,selThr,"dataNormFilter.IRHC.TI.csv"))
+
+dataNormFilter.SelectINRSIIR = dataNormFilter[(dataNormFilter$INRSI < selThr & dataNormFilter$IRSI  < selThr )|(dataNormFilter$IRSI < selThr & dataNormFilter$INRSI  < selThr ),16:25]
+summary(dataNormFilter.SelectINRSIIR)
+dataNormFilter.SelectINRSIIR
+write.csv(dataNormFilter.SelectINRSIIR,file=paste0(inpF,hdr,selThr,"dataNormFilter.INRIR.SI.csv"))
+
+dataNormFilter.SelectINRSIHC = dataNormFilter[(dataNormFilter$INRSI < selThr & dataNormFilter$HCSI  < selThr )|(dataNormFilter$HCSI < selThr & dataNormFilter$INRSI  < selThr ),c(16:20,26:30)]
+summary(dataNormFilter.SelectINRSIHC)
+dataNormFilter.SelectINRSIHC
+write.csv(dataNormFilter.SelectINRSIHC,file=paste0(inpF,hdr,selThr,"dataNormFilter.INRHC.SI.csv"))
+
+dataNormFilter.SelectIRSIHC = dataNormFilter[(dataNormFilter$IRSI < selThr & dataNormFilter$HCSI  < selThr )|(dataNormFilter$HCSI < selThr & dataNormFilter$IRSI  < selThr ),21:30]
+summary(dataNormFilter.SelectIRSIHC)
+dataNormFilter.SelectIRSIHC
+write.csv(dataNormFilter.SelectIRSIHC,file=paste0(inpF,hdr,selThr,"dataNormFilter.IRHC.SI.csv"))
+```
+
+```{r ROTS-dataNormFilter.SelectIRSIHC, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectIRSIHC#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectIRSIHC.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+```{r ROTS-dataNormFilter.SelectINRSIHC, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectINRSIHC#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectINRSIHC.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+```{r ROTS-dataNormFilter.SelectINRSIIR, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectINRSIIR#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectINRSIIR.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+
+```{r ROTS-dataNormFilter.SelectIRTIHC, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectIRTIHC#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectIRTIHC.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+```{r ROTS-dataNormFilter.SelectINRTIHC, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectINRTIHC#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectINRTIHC.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+```{r ROTS-dataNormFilter.SelectINRTIIR, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectINRTIIR#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectINRTIIR.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+
+
+```{r select-impute, echo = FALSE}
+dataNormFilter<-dataNorm
+dataNormFilter[dataNormFilter==-Inf]=NA
+colnames(dataNormFilter)<-sub(hdr,"",colnames(dataNormFilter))
+summary(dataNormFilter)
+selThr<-3
+dataNormFilter$INRTI = apply(dataNormFilter,1,function(x) sum(is.na(x[1:5])))
+dataNormFilter$IRTI = apply(dataNormFilter,1,function(x) sum(is.na(x[6:10])))
+dataNormFilter$HCTI = apply(dataNormFilter,1,function(x) sum(is.na(x[11:15])))
+dataNormFilter$INRSI = apply(dataNormFilter,1,function(x) sum(is.na(x[16:20])))
+dataNormFilter$IRSI = apply(dataNormFilter,1,function(x) sum(is.na(x[21:25])))
+dataNormFilter$HCSI = apply(dataNormFilter,1,function(x) sum(is.na(x[26:30])))
+
+set.seed(1)
+dataNormFilter[is.na(dataNormFilter)]<-rnorm(sum(dataNorm==-Inf),mean=mean(dataNorm[dataNorm!=-Inf])-10,sd=sd(dataNorm[dataNorm!=-Inf])/10)
+summary(dataNormFilter)
+hist(as.matrix(dataNormFilter))
+
+dataNormFilter.SelectINRTIIR = dataNormFilter[(dataNormFilter$INRTI < selThr & dataNormFilter$IRTI == 5)|(dataNormFilter$IRTI < selThr & dataNormFilter$INRTI  == 5),1:10]
+summary(dataNormFilter.SelectINRTIIR)
+dataNormFilter.SelectINRTIIR
+write.csv(dataNormFilter.SelectINRTIIR,file=paste0(inpF,hdr,selThr,"dataNormFilter.INRIR.TI.csv"))
+
+dataNormFilter.SelectINRTIHC = dataNormFilter[(dataNormFilter$INRTI < selThr & dataNormFilter$HCTI == 5)|(dataNormFilter$HCTI < selThr & dataNormFilter$INRTI  == 5),c(1:5,11:15)]
+summary(dataNormFilter.SelectINRTIHC)
+dataNormFilter.SelectINRTIHC
+write.csv(dataNormFilter.SelectINRTIHC,file=paste0(inpF,hdr,selThr,"dataNormFilter.INRHC.TI.csv"))
+
+dataNormFilter.SelectIRTIHC = dataNormFilter[(dataNormFilter$IRTI < selThr & dataNormFilter$HCTI == 5)|(dataNormFilter$HCTI < selThr & dataNormFilter$IRTI  == 5),6:15]
+summary(dataNormFilter.SelectIRTIHC)
+dataNormFilter.SelectIRTIHC
+write.csv(dataNormFilter.SelectIRTIHC,file=paste0(inpF,hdr,selThr,"dataNormFilter.IRHC.TI.csv"))
+
+dataNormFilter.SelectINRSIIR = dataNormFilter[(dataNormFilter$INRSI < selThr & dataNormFilter$IRSI == 5)|(dataNormFilter$IRSI < selThr & dataNormFilter$INRSI  == 5),16:25]
+summary(dataNormFilter.SelectINRSIIR)
+dataNormFilter.SelectINRSIIR
+write.csv(dataNormFilter.SelectINRSIIR,file=paste0(inpF,hdr,selThr,"dataNormFilter.INRIR.SI.csv"))
+
+dataNormFilter.SelectINRSIHC = dataNormFilter[(dataNormFilter$INRSI < selThr & dataNormFilter$HCSI == 5)|(dataNormFilter$HCSI < selThr & dataNormFilter$INRSI  == 5),c(16:20,26:30)]
+summary(dataNormFilter.SelectINRSIHC)
+dataNormFilter.SelectINRSIHC
+write.csv(dataNormFilter.SelectINRSIHC,file=paste0(inpF,hdr,selThr,"dataNormFilter.INRHC.SI.csv"))
+
+dataNormFilter.SelectIRSIHC = dataNormFilter[(dataNormFilter$IRSI < selThr & dataNormFilter$HCSI == 5)|(dataNormFilter$HCSI < selThr & dataNormFilter$IRSI  == 5),21:30]
+summary(dataNormFilter.SelectIRSIHC)
+dataNormFilter.SelectIRSIHC
+write.csv(dataNormFilter.SelectIRSIHC,file=paste0(inpF,hdr,selThr,"dataNormFilter.IRHC.SI.csv"))
+```
+
+```{r ROTS-dataNormFilter.SelectIRSIHC, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectIRSIHC#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectIRSIHC.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+```{r ROTS-dataNormFilter.SelectINRSIHC, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectINRSIHC#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectINRSIHC.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+```{r ROTS-dataNormFilter.SelectINRSIIR, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectINRSIIR#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectINRSIIR.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+
+```{r ROTS-dataNormFilter.SelectIRTIHC, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectIRTIHC#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectIRTIHC.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+```{r ROTS-dataNormFilter.SelectINRTIHC, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectINRTIHC#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectINRTIHC.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+```{r ROTS-dataNormFilter.SelectINRTIIR, echo = FALSE}
+#BiocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormFilter.SelectINRTIIR#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,1,1,1,2,2,2,2,2)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpF,hdr,selThr,"dataNormFilter.SelectINRTIIR.rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.05)
+plot(results, fdr = 0.2, type = "heatmap")#,na.rm=T)#,col=rainbow(4))
+```
+
+
+
+```{r euler,echo=F}
+#install.packages('eulerr')
+library(eulerr)
+
+euler(dataNormFilter[,31:33]<selThr,shape="ellipse")$original.values
+plot(euler(dataNormFilter[,31:33]<selThr,shape="ellipse"),quantities=TRUE, main="Identified Protein Groups in TI")
+vplot<-plot(euler(dataNormFilter[,31:33]<selThr,shape="ellipse"),quantities=TRUE, main="Identified Protein Groups in TI")
+ggsave(file=paste0(inpF,hdr,"venn.TI.svg"),plot=vplot)#,  width=6, height=6)
+
+euler(dataNormFilter[,34:36]<selThr,shape="ellipse")$original.values
+plot(euler(dataNormFilter[,34:36]<selThr,shape="ellipse"),quantities=TRUE, main="Identified Protein Groups in TI")
+vplot<-plot(euler(dataNormFilter[,34:36]<selThr,shape="ellipse"),quantities=TRUE, main="Identified Protein Groups in TI")
+ggsave(file=paste0(inpF,hdr,"venn.SI.svg"),plot=vplot)#,  width=6, height=6)
+```
+
+
+
+
+```{r imputeFilter, echo = FALSE}
+dataNormImpFilter<-dataNormFilter.Select
+summary(dataNormImpFilter)
+set.seed(1)
+#dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-3,sd=sd(!is.na(dataNormImpFilter))/3)
+dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-12,sd=sd(!is.na(dataNormImpFilter))/12)
+summary(dataNormImpFilter)
+hist(as.matrix(dataNormImpFilter))
+```
+
+```{r PCA, echo = FALSE}
+dataNormImpCom<-dataNormImpFilter
+plot(princomp(dataNormImpCom))
+biplot(prcomp(as.matrix(t(dataNormImpCom)),scale = T))
+biplot(prcomp(dataNormImpCom,scale = F))
+biplot(prcomp(dataNormImpCom,scale = T),col=c(1,8), cex=c(0.5, 0.4))
+```
+
+
+```{r t-test, echo = FALSE}
+pVal = apply(dataNormImpFilter, 1, function(x) t.test(as.numeric(x[c(3:5)]),as.numeric(x[c(1,2,6)]),var.equal=T)$p.value)
+logFC = rowMeans(dataNormImpFilter[,c(3:5)])-rowMeans(dataNormImpFilter[,c(1,2,6)])
+ttest.results = data.frame(gene=rownames(dataNormImpFilter),logFC=logFC,P.Value = pVal, adj.pval = p.adjust(pVal,method = "BH")) 
+#ttest.results$PSMcount = psm.count.table[ttest.results$gene,"count"]
+ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
+head(ttest.results)
+write.csv(ttest.results,file=paste0(inpD,hdr,"tTestBH.csv"))
+plot(logFC,-log10(pVal))
+plot(logFC,-log10(pVal),col="orange",)
+dsub=subset(ttest.results,ttest.results$P.Value<0.05&abs(ttest.results$logFC)>0.58)
+#rn<-do.call(rbind, strsplit(rownames(dsub), '\\.'))
+rn<-strsplit(rownames(dsub), ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+#g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval)) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)),position = position_dodge(width=0.5), vjust=0.5, size=1) + xlab("Log2 Fold Change")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradientn(colours = rainbow(4))
+#g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval)) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=2) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+#g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval)) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=2) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#FFFFFF")+geom_point(alpha = 0.05)
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+#install.packages("svglite")
+#library(svglite)
+ggsave(file=paste0(inpD,hdr,"volcanoPlot.svg"),plot=g)#,  width=6, height=6)
+```
+
+
+
+```{r imputeFilter-ttest, echo = FALSE}
+pairwise.t.test(as.matrix(dataNormImpFilter),c(0,0,1,1,1,0))#[1,3:5],dataNormImpFilter[1,c(1,2,6)])
+```
+
+```{r write-output, echo = FALSE}
+write.table(dataNorm,file=paste0(inpD,"log2data.txt"), sep = "\t")
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+
+```{r impute, echo = FALSE}
+#install.packages('mice')
+library(mice)
+#install.packages('randomForest')
+library(randomForest)
+dataNormImp=mice(dataNorm, method="rf")
+dataNormImpCom <- complete(dataNormImp,1)
+row.names(dataNormImpCom)<-row.names(dataNorm)
+summary(dataNormImpCom)
+```
+
+```{r write-output, echo = FALSE}
+write.csv(dataNormImpCom,file=paste0(inpD,"log2dataImp.csv"))
+#write.csv(factors,file=paste0(inpD,"dataNormImpComFactor.csv"))
+dataNormImpCom <- read.csv(paste0(inpD,"log2dataImp.csv"),row.names=1,header = T)
+#factors<-read.csv(paste0(inpD,"dataNormImpComFactor.csv"))
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+
+
+```{r DEqMS}
+#https://rdrr.io/bioc/DEqMS/f/vignettes/DEqMS-package-vignette.Rmd
+#install.packages("BiocManager")
+#BiocManager::install("DEqMS")
+library(DEqMS)
+dat.log=dataNormImpFilter
+boxplot(dat.log,las=2,main="")
+cond = as.factor(c("w","w","r","r","r","w"))
+design = model.matrix(~0+cond) # 0 means no intercept for the linear model
+colnames(design) = gsub("cond","",colnames(design))
+x <- c("r-w")
+contrast =  makeContrasts(contrasts=x,levels=design)
+fit1 <- lmFit(dat.log, design)
+fit2 <- contrasts.fit(fit1,contrasts = contrast)
+fit3 <- eBayes(fit2)
+df.prot=dataClean[dataNormFilter$Red<selThr | dataNormFilter$White<selThr,]
+library(matrixStats)
+count_columns = "MS.MS.count."
+#psm.count.table = data.frame(count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))])))+1
+#rownames(fit3$coefficients)
+fit3$count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))]))+1
+fit4 = spectraCounteBayes(fit3)
+# n=30 limits the boxplot to show only proteins quantified by <= 30 PSMs.
+VarianceBoxplot(fit4,n=30,main=inpD,xlab="PSM count")
+VarianceScatterplot(fit4,main=inpD)
+DEqMS.results = outputResult(fit4,coef_col = 1)
+#if you are not sure which coef_col refers to the specific contrast,type
+head(fit4$coefficients)
+# a quick look on the DEqMS results table
+head(DEqMS.results)
+# Save it into a tabular text file
+write.table(DEqMS.results,paste0(inpD,hdr,"DEqMS.results.txt"),sep = "\t",row.names = F,quote=F)
+#install.packages("ggrepel")
+library(ggrepel)
+# Use ggplot2 allows more flexibility in plotting
+DEqMS.results$log.sca.pval = -log10(DEqMS.results$sca.P.Value)
+ggplot(DEqMS.results, aes(x = logFC, y =log.sca.pval )) + 
+    geom_point(size=0.5 )+
+    theme_bw(base_size = 16) + # change theme
+    xlab(expression("log2(red/white)")) + # x-axis label
+    ylab(expression(" -log10(P-value)")) + # y-axis label
+    geom_vline(xintercept = c(-1,1), colour = "red") + # Add fold change cutoffs
+    geom_hline(yintercept = 2, colour = "red") + # Add significance cutoffs
+    geom_vline(xintercept = 0, colour = "black") + # Add 0 lines
+    scale_colour_gradient(low = "black", high = "black", guide = FALSE)+
+    geom_text_repel(data=subset(DEqMS.results, abs(logFC)>1&log.sca.pval > 2),
+                    aes( logFC, log.sca.pval ,label=gene)) # add gene label
+
+#fit4$p.value = fit4$sca.p
+#volcanoplot(fit4,coef=1, style = "p-value", highlight = 10,names=rownames(fit4$coefficients))
+```
+
+```{r DEqMS-peptides}
+fit3$count = rowMins(as.matrix(df.prot[,grepl("^Peptides\\.[0-9]+", names(df.prot))]))+1
+min(fit3$count)
+
+fit4 = spectraCounteBayes(fit3)
+VarianceBoxplot(fit4, n=20, main = hdr,xlab="peptide count + 1")
+DEqMS.results = outputResult(fit4,coef_col = 1)
+DEqMS.results$Gene.name = df.prot[DEqMS.results$gene,]$Gene.names
+head(DEqMS.results)
+write.table(DEqMS.results,paste0(inpD,hdr,"R-W.DEqMS.pep.results.txt"),sep = "\t",row.names = F,quote=F)
+head(DEqMS.results)
+VarianceBoxplot(fit4,n=20)
+#peptideProfilePlot(dat=df.prot)#,col=2,gene="TGFBR2")
+VarianceScatterplot(fit4, xlab="log2(LFQ)")
+limma.prior = fit4$s2.prior
+abline(h = log(limma.prior),col="green",lwd=3 )
+legend("topright",legend=c("DEqMS prior variance","Limma prior variance"),
+        col=c("red","green"),lwd=3)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+Residualplot(fit4,  xlab="log2(PSM count)",main="DEqMS")
+x = fit3$count
+y = log(limma.prior) - log(fit3$sigma^2)
+plot(log2(x),y,ylim=c(-6,2),ylab="Variance(estimated-observed)", pch=20, cex=0.5,
+     xlab = "log2(PSMcount)",main="Limma")
+#install.packages("LSD")
+library(LSD)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+x = fit3$count
+y = fit3$s2.post
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)", 
+     ylab="log(Variance)",
+     main="Posterior Variance in Limma")
+
+y = fit4$sca.postvar
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
+     ylab="log(Variance)", 
+     main="Posterior Variance in DEqMS")
+
+```
+
+
+```{r MSstats, echo = FALSE}
+#https://bioconductor.org/packages/3.3/bioc/vignettes/MSstats/inst/doc/MSstats-manual.pdf
+library('MSstats')
+QuantData<-dataProcess(SRMRawData)
+head(QuantData$ProcessedData)
+## based on multiple comparisons (T1 vs T3; T1 vs T7; T1 vs T9)
+comparison1<-matrix(c(-1,0,1,0,0,0,0,0,0,0),nrow=1)
+comparison2<-matrix(c(-1,0,0,0,0,0,1,0,0,0),nrow=1)
+comparison3<-matrix(c(-1,0,0,0,0,0,0,0,1,0),nrow=1)
+comparison<-rbind(comparison1,comparison2, comparison3)
+row.names(comparison)<-c("T3-T1","T7-T1","T9-T1")
+testResultMultiComparisons<-groupComparison(contrast.matrix=comparison,data=QuantData)
+## Calculate sample size for future experiments:
+#(1) Minimal number of biological replicates per condition
+designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=TRUE,
+desiredFC=c(1.25,1.75),FDR=0.05,power=0.8)
+#(2) Power calculation
+designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=2,
+desiredFC=c(1.25,1.75),FDR=0.05,power=TRUE)```
+```
+
+```{r SAM, echo = FALSE}
+#https://github.com/MikeJSeo/SAM
+install.packages(c("samr", "matrixStats", "GSA", "shiny", "shinyFiles", "openxlsx"))
+source("http://bioconductor.org/biocLite.R")
+biocLite("impute")
+library(shiny)
+library(shinyFiles)
+runGitHub("SAM", "MikeJSeo")
+```
+
+
+
+
+```{r NA}
+#impute(data, method = "mixed",randna = fData(naset)$randna,mar = "knn", mnar = "min")
+md.pattern(datasel)
+dataimp <- mice(datasel,m=length(colnames(datasel))/2,maxit=length(colnames(datasel)),meth='pmm',seed=1)
+dataimp <- complete(dataimp,length(colnames(datasel))/2)
+heatmap(as.matrix(dataimp),col=colscl)
+```
+
+```{r Scale}
+datascale=t(scale(t(dataimp))) # takes away the polynomial in YFP data
+heatmap(as.matrix(datascale),col=colscl)
+```
+
+```{r DistCor}
+dataasmat<-data.matrix(datascale)
+cor(data)
+dissimilarityc <- 1 - cor(dataasmat,method = "s")
+distancec <- as.dist(dissimilarityc)
+col.clus <- hclust(distancec, "aver")
+dissimilarityr <- 1 - cor(t(dataasmat),method = "s")
+distancer <- as.dist(dissimilarityr)
+row.clus <- hclust(distancer, "aver")
+heatmap(as.matrix(datascale),col=colscl)
+cr <- rainbow(nrow(dataasmat))
+cc <- rainbow(ncol(dataasmat))
+heatmap((na.omit(dataasmat)), RowSideColors = cr, ColSideColors = cc,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5 )
+```
+
+
+```{r Quantile}
+dataasmat<-normalize.quantiles(dataasmat)
+rn<-rownames(dataasmat)
+cn<-colnames(dataasmat)
+colnames(dataasmat)<-cn
+rownames(dataasmat)<-rn
+```
+
+```{r AdjPval}
+p.adjust(10^(-data$X.log10P),method = c("hochberg"), n = length(data$X.log10P))
+p.adjust(data$pv,method = c("hochberg"), n = length(data$pv))
+```
+
+
+
 ```{r ROTS, echo = FALSE}
 #install.packages("BiocManager")
 #BiocManager::install("ROTS", version = "3.8")

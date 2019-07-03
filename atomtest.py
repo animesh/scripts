@@ -1,3 +1,51 @@
+#https://www.eadan.net/blog/german-tank-problem/
+import numpy as np
+num_tanks = 1000
+num_captured = 15
+serial_numbers = np.arange(1, num_tanks + 1)
+num_simulations = 100_000
+def capture_tanks(serial_numbers, n):
+     """Capture `n` tanks, uniformly, at random."""
+     return np.random.choice(serial_numbers, n, replace=False)
+simulations = [
+    capture_tanks(serial_numbers, num_captured)
+    for _ in range(num_simulations)
+]
+
+import matplotlib.pyplot as plt
+first_estimates = [max(s) for s in simulations]
+plt.hist(first_estimates)
+avg_first_estimates = np.mean(first_estimates)
+
+def max_plus_avg_spacing(simulation):
+    m = max(simulation)
+    avg_spacing = (m / num_captured) - 1
+    return m + avg_spacing
+new_estimates = [max_plus_avg_spacing(s) for s in simulations]
+plt.hist(new_estimates)
+avg_new_estimates = np.mean(new_estimates)
+
+print(np.std(first_estimates))  #=> 57
+print(np.std(new_estimates))    #=> 62
+
+import pymc3 as pm
+captured = [499, 505, 190, 427, 185, 572, 818, 721,912, 302, 765, 231, 547, 410, 884]
+print(max_plus_avg_spacing(captured))   #=> 971.8
+
+with pm.Model():
+    num_tanks = pm.DiscreteUniform(
+        "num_tanks",
+	lower=max(captured),
+	upper=2000
+    )
+    likelihood = pm.DiscreteUniform(
+        "observed",
+	lower=1,
+	upper=num_tanks,
+	observed=captured
+    )
+    posterior = pm.sample(10000, tune=1000)
+pm.plot_posterior(posterior, credible_interval=0.95)
 #https://stackoverflow.com/questions/25735153/plotting-a-fast-fourier-transform-in-python
 #%matplotlib inline
 import numpy as np
