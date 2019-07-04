@@ -1,5 +1,5 @@
 ```{r data, echo = FALSE}
-inpD <-"L:/promec/Elite/LARS/2018/november/Rolf final/txt/"
+inpD <-"F:/promec/Elite/LARS/2018/november/Rolf final/txt/"
 data <- read.delim(paste0(inpD,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
 summary(data)
 ```
@@ -42,40 +42,18 @@ summary(dataNormFilter.Select)
 ```
 
 
-```{r VennDetail}
-#https://bioconductor.org/packages/release/bioc/vignettes/VennDetail/inst/doc/VennDetail.html
-#install.packages('BiocManager')
-#BiocManager::install("VennDetail")
-library(VennDetail)
-#ven <- venndetail(list(dat=dataClean$Majority.protein.IDs,daf=df.prot$Majority.protein.IDs))
-#plot(ven)
-#head(dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12)
-#ven <- venndetail(list(Red = dataNorm$LFQ.intensity.19+dataNorm$LFQ.intensity.26+dataNorm$LFQ.intensity.29, White = dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12+dataNorm$LFQ.intensity.30))
-ven <- venndetail(list(Red = dataNormFilter$Red, White = dataNormFilter$White))
-#ven <- venndetail(dataNorm)
-plot(ven)
-plot(ven, type = "vennpie")
-```
-
 ```{r euler,echo=F}
 #install.packages('eulerr')
 library(eulerr)
 euler(dataNormFilter[,8:7]<2,shape="ellipse")$original.values
 vplot<-plot(euler(dataNormFilter[,8:7]<selThr,shape="ellipse"),quantities=TRUE, col="black",fill=c("white","red"),main="Identified Protein Groups in Salmon Types")
-#plot(euler(c(dataNormFilter$Red, dataNormFilter$White),shape="ellipse"),quantities=TRUE)
-#euler(dataNorm<.5)$original.values
+plot(vplot)
+#iinstall.packages("ggplot2")
+#library(ggplot2)
+#install.packages("svglite")
+#library(svglite)
 ggsave(file=paste0(inpD,hdr,"venn.svg"),plot=vplot)#,  width=6, height=6)
 ```
-
-
-```{r impute, echo = FALSE}
-dataNormImp<-dataNorm
-set.seed(1)
-dataNormImp[dataNormImp==-Inf]<-rnorm(sum(dataNormImp==-Inf),mean=mean(dataNormImp[dataNormImp!=-Inf])-10,sd=sd(dataNormImp[dataNormImp!=-Inf])/10)
-summary(dataNormImp)
-hist(as.matrix(dataNormImp))
-```
-
 
 
 ```{r imputeFilter, echo = FALSE}
@@ -91,11 +69,10 @@ hist(as.matrix(dataNormImpFilter))
 ```{r PCA, echo = FALSE}
 dataNormImpCom<-dataNormImpFilter
 plot(princomp(dataNormImpCom))
-biplot(prcomp(as.matrix(t(dataNormImpCom)),scale = T))
-biplot(prcomp(dataNormImpCom,scale = F))
-biplot(prcomp(dataNormImpCom,scale = T),col=c(1,8), cex=c(0.5, 0.4))
+#biplot(prcomp(as.matrix(t(dataNormImpCom)),scale = T))
+#biplot(prcomp(dataNormImpCom,scale = F))
+#biplot(prcomp(dataNormImpCom,scale = T),col=c(1,8), cex=c(0.5, 0.4))
 ```
-
 
 ```{r t-test, echo = FALSE}
 pVal = apply(dataNormImpFilter, 1, function(x) t.test(as.numeric(x[c(3:5)]),as.numeric(x[c(1,2,6)]),var.equal=T)$p.value)
@@ -105,20 +82,41 @@ ttest.results = data.frame(gene=rownames(dataNormImpFilter),logFC=logFC,P.Value 
 ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
 head(ttest.results)
 write.csv(ttest.results,file=paste0(inpD,hdr,"tTestBH.csv"))
-plot(logFC,-log10(pVal))
 plot(logFC,-log10(pVal),col="orange",)
+```
+
+
+```{r t-test-plot, echo = FALSE}
 dsub=subset(ttest.results,ttest.results$P.Value<0.05&abs(ttest.results$logFC)>0.58)
 #rn<-do.call(rbind, strsplit(rownames(dsub), '\\.'))
 rn<-strsplit(rownames(dsub), ';')
 row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
-#g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval)) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)),position = position_dodge(width=0.5), vjust=0.5, size=1) + xlab("Log2 Fold Change")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradientn(colours = rainbow(4))
-#g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval)) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=2) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
-#g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval)) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=2) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#FFFFFF")+geom_point(alpha = 0.05)
 g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
 plot(g)
-#install.packages("svglite")
-#library(svglite)
 ggsave(file=paste0(inpD,hdr,"volcanoPlot.svg"),plot=g)#,  width=6, height=6)
+```
+
+```{r t-test-fraction-plot, echo = FALSE}
+dsub=data[grep("apo",data$Fasta.headers),]
+dsub=merge(dsub,ttest.results,by="row.names")
+rn<-strsplit(dsub$Row.names, ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+ggsave(file=paste0(inpD,hdr,"volcanoPlot.frac.svg"),plot=g)#,  width=6, height=6)
+```
+
+```{r fraction-clust-plot, echo = FALSE}
+#install.packages('pheatmap')
+library(pheatmap)
+#?pheatmap
+y<-as.matrix(dsub[,grepl("Fraction\\.[0-9]+",colnames(dsub))])
+y[is.na(y)]<-0
+summary(y)
+svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
+#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
+plot(svgPHC)
+ggsave(file=paste0(inpD,hdr,"clusterPlot.frac.svg"),plot=svgPHC)#,  width=6, height=6)
 ```
 
 
@@ -260,222 +258,4 @@ heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
 
 ```
 
-
-```{r MSstats, echo = FALSE}
-#https://bioconductor.org/packages/3.3/bioc/vignettes/MSstats/inst/doc/MSstats-manual.pdf
-library('MSstats')
-QuantData<-dataProcess(SRMRawData)
-head(QuantData$ProcessedData)
-## based on multiple comparisons (T1 vs T3; T1 vs T7; T1 vs T9)
-comparison1<-matrix(c(-1,0,1,0,0,0,0,0,0,0),nrow=1)
-comparison2<-matrix(c(-1,0,0,0,0,0,1,0,0,0),nrow=1)
-comparison3<-matrix(c(-1,0,0,0,0,0,0,0,1,0),nrow=1)
-comparison<-rbind(comparison1,comparison2, comparison3)
-row.names(comparison)<-c("T3-T1","T7-T1","T9-T1")
-testResultMultiComparisons<-groupComparison(contrast.matrix=comparison,data=QuantData)
-## Calculate sample size for future experiments:
-#(1) Minimal number of biological replicates per condition
-designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=TRUE,
-desiredFC=c(1.25,1.75),FDR=0.05,power=0.8)
-#(2) Power calculation
-designSampleSize(data=testResultMultiComparisons$fittedmodel,numSample=2,
-desiredFC=c(1.25,1.75),FDR=0.05,power=TRUE)```
-```
-
-```{r SAM, echo = FALSE}
-#https://github.com/MikeJSeo/SAM
-install.packages(c("samr", "matrixStats", "GSA", "shiny", "shinyFiles", "openxlsx"))
-source("http://bioconductor.org/biocLite.R")
-biocLite("impute")
-library(shiny)
-library(shinyFiles)
-runGitHub("SAM", "MikeJSeo")
-```
-
-
-
-
-```{r NA}
-#impute(data, method = "mixed",randna = fData(naset)$randna,mar = "knn", mnar = "min")
-md.pattern(datasel)
-dataimp <- mice(datasel,m=length(colnames(datasel))/2,maxit=length(colnames(datasel)),meth='pmm',seed=1)
-dataimp <- complete(dataimp,length(colnames(datasel))/2)
-heatmap(as.matrix(dataimp),col=colscl)
-```
-
-```{r Scale}
-datascale=t(scale(t(dataimp))) # takes away the polynomial in YFP data
-heatmap(as.matrix(datascale),col=colscl)
-```
-
-```{r DistCor}
-dataasmat<-data.matrix(datascale)
-cor(data)
-dissimilarityc <- 1 - cor(dataasmat,method = "s")
-distancec <- as.dist(dissimilarityc)
-col.clus <- hclust(distancec, "aver")
-dissimilarityr <- 1 - cor(t(dataasmat),method = "s")
-distancer <- as.dist(dissimilarityr)
-row.clus <- hclust(distancer, "aver")
-heatmap(as.matrix(datascale),col=colscl)
-cr <- rainbow(nrow(dataasmat))
-cc <- rainbow(ncol(dataasmat))
-heatmap((na.omit(dataasmat)), RowSideColors = cr, ColSideColors = cc,Rowv = as.dendrogram(row.clus), Colv = as.dendrogram(col.clus),cexRow=1.5,cexCol=1.5 )
-```
-
-
-```{r Quantile}
-dataasmat<-normalize.quantiles(dataasmat)
-rn<-rownames(dataasmat)
-cn<-colnames(dataasmat)
-colnames(dataasmat)<-cn
-rownames(dataasmat)<-rn
-```
-
-```{r AdjPval}
-p.adjust(10^(-data$X.log10P),method = c("hochberg"), n = length(data$X.log10P))
-p.adjust(data$pv,method = c("hochberg"), n = length(data$pv))
-```
-
-```{r interpolate}
-data<-read.table("c:/Users/animeshs/Downloads/Sunshine hours.txt",sep='\t',header=T)
-summary(data$SONNENSCHEINDAUER)
-dp=approx(data$SONNENSCHEINDAUER)
-summary(dp)
-plot(dp$SONNENSCHEINDAUER,data$SONNENSCHEINDAUER)
-install.packages('zoo')
-library('zoo')
-dp<-rollmean(data,1)
-dp<-na.approx(data)
-summary(dp)
-write.table(dp,"c:/Users/animeshs/Downloads/SunshineDP.txt",sep='\t')
-```
-
-
-
-```{r lmfit}
-source("https://bioconductor.org/biocLite.R")
-biocLite("golubEsets")
-library(golubEsets)
-data()
-data(golubTrain)
-golubTrain
-golub<-data.frame(golubTrain@exprs)
-labelgb <- factor(c(rep("ALL",27),rep("AML",11)))
-names(golub) <- labelgb
-golub2<-log2(golub)
-plot(golub2)
-biocLite('limma')
-library('limma')
-fit3 = lmFit(golub2)
-e3 = eBayes(fit3)
-tab3<-topTable(e3, number=nrow(golub))
-head(tab3)
-fit3@.Data[[9]]
-fit4 = lmFit(golub2, design)
-```
-
-
-```{r shuffle}
-ecoli <- read.delim("Y:/felles/PROTEOMICS and XRAY/Ani/Christina/Strainssamples.txt", header=TRUE, na.strings='', sep="\t")
-for  (cnt in 1:6){
-  cnt
-}
-  ecoli_shuffle <- ecoli_shuffle[sample(nrow(ecoli)),]
-write.csv(file="Y:/felles/PROTEOMICS and XRAY/Ani/Christina/Strainssamples_shuffled_rn.csv",x=ecoli_shuffle,row.names = F)
-```
-
-
-```{r prot}
-install.packages("PTXQC")
-library("PTXQC")
-help(package = "PTXQC")
-vignette("PTXQC-InputData", package = "PTXQC")
-txt_folder = "F:/promec/Elite/LARS/2016/desember/Lymphoma/Results"
-r = createReport(txt_folder)
-cat(paste0("\nReport generated as '", r$report_file, "'\n\n"))
-
-```
-
-
-```{r Cluster}
-colscl <- colorRampPalette(c("darkblue", "chocolate"), space = "rgb")(100)
-heatmap(na.omit(as.matrix(data)),col=colscl)
-```
-
-
-
-
-```{r SVA}
-#https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btu375
-#source("http://www.bioconductor.org/biocLite.R")
-#biocLite(c("Biobase","sva","bladderbatch","snpStats"))
-  library(sva)
-  library(devtools)
-  library(Biobase)
-  library(bladderbatch)
-  library(snpStats)
-
-data(bladderdata)
-pheno = pData(bladderEset)
-edata = exprs(bladderEset)
-
-mod = model.matrix(~as.factor(cancer) + as.factor(batch),data=pheno)
-fit = lm.fit(mod,t(edata))
-hist(fit$coefficients[2,],col=2,breaks=100)
-table(pheno$cancer,pheno$batch)
-
-batch = pheno$batch
-modcombat = model.matrix(~1, data=pheno)
-modcancer = model.matrix(~cancer, data=pheno)
-combat_edata = ComBat(dat=edata, batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
-
-combat_fit = lm.fit(modcancer,t(combat_edata))
-hist(combat_fit$coefficients[2,],col=2,breaks=100)
-
-plot(fit$coefficients[2,],combat_fit$coefficients[2,],col=2,
-      xlab="Linear Model",ylab="Combat",xlim=c(-5,5),ylim=c(-5,5))
-abline(c(0,1),col=1,lwd=3)
-
-mod = model.matrix(~cancer,data=pheno)
-mod0 = model.matrix(~1, data=pheno)
-sva1 = sva(edata,mod,mod0,n.sv=2)
-
-summary(lm(sva1$sv ~ pheno$batch))
-
-boxplot(sva1$sv[,2] ~ pheno$batch)
-points(sva1$sv[,2] ~ jitter(as.numeric(pheno$batch)),col=as.numeric(pheno$batch))
-
-modsv = cbind(mod,sva1$sv)
-fitsv = lm.fit(modsv,t(edata))
-
-par(mfrow=c(1,2))
-plot(fitsv$coefficients[2,],combat_fit$coefficients[2,],col=2,
-      xlab="SVA",ylab="Combat",xlim=c(-5,5),ylim=c(-5,5))
-abline(c(0,1),col=1,lwd=3)
-plot(fitsv$coefficients[2,], fit$coefficients[2,],col=2,
-      xlab="SVA",ylab="linear model",xlim=c(-5,5),ylim=c(-5,5))
-abline(c(0,1),col=1,lwd=3)
-
-data(for.exercise)
-controls <- rownames(subject.support)[subject.support$cc==0]
-use <- seq(1, ncol(snps.10), 10)
-ctl.10 <- snps.10[controls,use]
-
-xxmat <- xxt(ctl.10, correct.for.missing=FALSE)
-evv <- eigen(xxmat, symmetric=TRUE)
-pcs <- evv$vectors[,1:5]
-
-pop <- subject.support[controls,"stratum"]
-plot(pcs[,1],pcs[,2],col=as.numeric(pop),
-      xlab="PC1",ylab="PC2")
-legend(0,0.15,legend=levels(pop),pch=19,col=1:2)
-```
-
----
-title: "batch-effect-analysis"
-author: "Ani"
-date: "Monday, Feb 15, 2016"
-output: html_document
----
 

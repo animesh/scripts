@@ -2334,3 +2334,18 @@ names(scores)
 oneway.test(values ~ ind, data=scores, var.equal=T)
 ```
 
+
+```{r VennDetail}
+#https://bioconductor.org/packages/release/bioc/vignettes/VennDetail/inst/doc/VennDetail.html
+#install.packages('BiocManager')
+#BiocManager::install("VennDetail")
+library(VennDetail)
+#ven <- venndetail(list(dat=dataClean$Majority.protein.IDs,daf=df.prot$Majority.protein.IDs))
+#plot(ven)
+#head(dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12)
+#ven <- venndetail(list(Red = dataNorm$LFQ.intensity.19+dataNorm$LFQ.intensity.26+dataNorm$LFQ.intensity.29, White = dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12+dataNorm$LFQ.intensity.30))
+ven <- venndetail(list(Red = dataNormFilter$Red, White = dataNormFilter$White))
+#ven <- venndetail(dataNorm)
+plot(ven)
+plot(ven, type = "vennpie")
+```
