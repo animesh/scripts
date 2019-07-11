@@ -1,5 +1,5 @@
 ```{r data, echo = FALSE}
-inpD <-"F:/promec/Elite/LARS/2018/november/Rolf final/txt/"
+inpD <-"L:/promec/Elite/LARS/2018/november/Rolf final/txt/"
 data <- read.delim(paste0(inpD,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
 summary(data)
 ```
@@ -45,6 +45,8 @@ summary(dataNormFilter.Select)
 ```{r euler,echo=F}
 #install.packages('eulerr')
 library(eulerr)
+#install.packages('ggplot2')
+library(ggplot2)
 euler(dataNormFilter[,8:7]<2,shape="ellipse")$original.values
 vplot<-plot(euler(dataNormFilter[,8:7]<selThr,shape="ellipse"),quantities=TRUE, col="black",fill=c("white","red"),main="Identified Protein Groups in Salmon Types")
 plot(vplot)
@@ -97,7 +99,8 @@ ggsave(file=paste0(inpD,hdr,"volcanoPlot.svg"),plot=g)#,  width=6, height=6)
 ```
 
 ```{r t-test-fraction-plot, echo = FALSE}
-dsub=data[grep("apo",data$Fasta.headers),]
+#dsub=data[grep("apo",data$Fasta.headers),]
+dsub=data[(grepl("apo",data$Fasta.headers))|(grepl("alb",data$Fasta.headers)),]
 dsub=merge(dsub,ttest.results,by="row.names")
 rn<-strsplit(dsub$Row.names, ';')
 row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
@@ -111,9 +114,16 @@ ggsave(file=paste0(inpD,hdr,"volcanoPlot.frac.svg"),plot=g)#,  width=6, height=6
 library(pheatmap)
 #?pheatmap
 y<-as.matrix(dsub[,grepl("Fraction\\.[0-9]+",colnames(dsub))])
+#yy<-as.matrix(data[grepl("albumin",data$Fasta.headers),])
+
 y[is.na(y)]<-0
+rn<-sub(";","",dsub$Fasta.headers)
+#rn<-strsplit(rn, "apolipoprotein")
+rn<-strsplit(rn, " ")
+row.names(y)<-paste(sapply(rn, "[", 1),sapply(rn, "[", 3),sapply(rn, "[", 6))
 summary(y)
-svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
+#svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
+svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
 #ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
 plot(svgPHC)
 ggsave(file=paste0(inpD,hdr,"clusterPlot.frac.svg"),plot=svgPHC)#,  width=6, height=6)
