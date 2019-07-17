@@ -1,3 +1,20 @@
+#https://github.com/pFindStudio/pDeep/blob/master/pDeep2/predict.py
+import model.fragmentation_config as fconfig
+import model.load_data as load_data
+from model.bucket_utils import write_buckets, write_buckets_mgf
+import numpy as np
+import tensorflow as tf
+print(tf.__version__)
+import time
+import sys
+
+#https://github.com/pFindStudio/pDeep/tree/master/pDeep2
+import sys
+sys.path.append('F:\\promec\\Animesh\\pDeep\pDeep2')
+#sys.path.append('./pDeep/pDeep2')
+import model.lstm_tf as lstm
+#python predict.py -e 0.3 -i Lumos -in peptide.txt -out predict.txt
+
 #https://github.com/tensorflow/probability/blob/master/tensorflow_probability/examples/jupyter_notebooks/A_Tour_of_TensorFlow_Probability.ipynb
 import tensorflow as tf
 print(tf.__version__)

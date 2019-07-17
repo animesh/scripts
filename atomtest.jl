@@ -1,9 +1,65 @@
 #https://medium.com/@ODSC/reinforcement-learning-vs-differentiable-programming-48528f464795?source=email-51edc4174b8c-1557027412126-digest.reader------0-58------------------585c497f_b359_40d6_9661_ae5703bd5c26-1&sectionName=top
+using Pkg
+Pkg.add("Gadfly")
+
+using Gadfly
+Gadfly.plot([sin, cos,tan], -20*pi, 20*pi)
+
+#https://probcomp.github.io/Gen/ The, install the Gen package with the Julia package manager. From the Julia REPL, type ] to enter the Pkg REPL mode and then run: pkg> add https://github.com/probcomp/Gen
+#https://probcomp.github.io/Gen/intro-to-modeling/Introduction%20to%20Modeling%20in%20Gen
+using Gen
+
+@gen function sine_model(xs::Vector{Float64})
+    n = length(xs)
+    phase = @trace(uniform(0, 2 * pi), :phase)
+    period = @trace(gamma(5, 1), :period)
+    amplitude = @trace(gamma(1, 1), :amplitude)
+    for (i, x) in enumerate(xs)
+        mu = amplitude * sin(2 * pi * x / period + phase)
+        @trace(normal(mu, 0.1), (:y, i))
+    end
+    return n
+end;
+
+function render_sine_trace(trace; show_data=true)
+    xs = get_args(trace)[1]
+    xmin = minimum(xs)
+    xmax = maximum(xs)
+    if show_data
+        ys = [trace[(:y, i)] for i=1:length(xs)]
+        scatter(xs, ys, c="black")
+    end
+
+    phase = trace[:phase]
+    period = trace[:period]
+    amplitude = trace[:amplitude]
+
+    test_points = collect(range(xmin, stop=xmax, length=100))
+    plot(test_points, amplitude * sin.(2 * pi * test_points / period .+ phase))
+
+    ax = gca()
+    ax[:set_xlim]((xmin, xmax))
+    ax[:set_ylim]((xmin, xmax))
+end;
+
+xs = [-5., -4., -3., -.2, -1., 0., 1., 2., 3., 4., 5.];
+traces = [Gen.simulate(sine_model, (xs,)) for _=1:12];
+
+#Pkg.add("PyPlot")
+using PyPlot
+figure(figsize=(16, 8))
+for (i, trace) in enumerate(traces)
+    subplot(3, 6, i)
+    render_sine_trace(trace)
+end
+
+using Pkg
 #Pkg.add("Calculus")
 using Calculus
 Calculus.gradient(x -> 3x^2 + 2x + 1, 5) # (32,)
 
 #Pkg.add("Nemo")
+Pkg.add("Trebuchet")
 using Nemo
 R, x = FiniteField(7, 11, "x")
 #(Finite field of degree 11 over F_7,x)

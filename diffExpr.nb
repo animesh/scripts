@@ -1,13 +1,113 @@
+(*
 steps:
 download and install the engine using instructions at http://support.wolfram.com/kb/46069
 git clone https://github.com/WolframResearch/WolframLanguageForJupyter.git
 <path to wolframscript binary> WolframLanguageForJupyter/configure-jupyter.wls add
 jupyter kernelspec list
 https://stackoverflow.com/questions/52602720/cannot-read-an-m-file-in-atom-with-octave-although-it-works-in-nteract/52629947#52629947 for kernel spec in atom-hydrogen {"wolfram language": "mathematica"}
+*)
 
 Plot3D[Sin[x y], {x, -Pi, Pi}, {y, -Pi, Pi}]
+Transpose[%1]
+Dimensions[%2]
+Total[{1, 3}]
+Range[4]
+Partition[{1, 2, 3, 6}, 2]
 2*Pi
 
 9^9(* ::Input:: *)
-data = Import["L:\\promec\\Animesh\\MK\\proteinGroups.txt","Table"]
+Solve{x}
+hmm = HiddenMarkovProcess[{0.8,    0.2}, {{0.8, 0.2}, {0.3, 0.7}}, {{0.5, 0.5}, {0.1, 0.9}}];
+tosses = TemporalData[ Automatic, {{{1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2,    2, 2, 2}}, {{0, 20, 1}}, 1, {"Discrete", 1}, {"Discrete", 1}, 1, {   ValueDimensions -> 1, MetaInformation -> {}}}, False, 10.]
+FindHiddenMarkovStates[tosses, hmm]
+BarChart[%, Ticks -> {Automatic, {{1, "Fair"}, {2, "Unfair"}}}]
+
+
+
+data = SemanticImport["F:\\promec\\Animesh\\MK\\proteinGroups.txt",Delimiters -> "\t", HeaderLines -> 1]
+data[All, "Intensity"]
+%["Intensity"]
+Histogram[data[All, "Intensity", Log2]]
+FeatureExtract[data[All, "Intensity", Log2+1]]
+FindClusters[data[All, "Intensity", Log2+1]]
+adInt=AnomalyDetection[data[All, "Intensity"]]
+adIntNA=SynthesizeMissingValues[adInt]
+LearnDistribution[adIntNA]
+Table[{x, N[x Sin[x]]}, {x, 0, 4, .3}]
+FindFormula[%, x]
+FeatureSpacePlot[data]
+graph = Graph[{1, 2, 3}, {1 -> 2, 1 -> 3}, VertexWeight -> {10, 0, 0},   VertexLabels -> "Name"]
+Dendrogram[graph]
+
+apo = ActivePrediction[Det, RandomReal[1, {2, 2}] &]
+p = apo["PredictorFunction"]
+matrices = Table[RandomReal[1, {2, 2}], 5];
+p /@ matrices
+
+SynthesizeMissingValues[{{1.1, 3, "A"}, {2, 4.2, "A"}, {3.2, 3,  "B"}, {4.4, 5, "B"}, {5.2, 6.0, "A"}, {7, 7.3, "B"}, {9.1, 10.2,  "B"}}, MissingValuePattern -> _Integer]
+SynthesizeMissingValues[{{1.1, 1.4}, {2.3, 3.1}, {3, 4}, {Missing[], 5.4}, {8.7, 7.5}}]
+ld = LearnDistribution[{{1.1, 1.4}, {2.3, 3.1}, {4.4, 5.4}, {8.7,  7.5}}]
+SynthesizeMissingValues[ld, {4.2, Missing[]}]
+
+ld = LearnDistribution[{{1.1, 1.4}, {2.3, 3.1}, {4.4, 5.4}, {8.7,    7.5}}]
+RandomVariate[ld]
+PDF[ld, {{4.2, 5.3}, {4.2, 8.4}}]
+SynthesizeMissingValues[ld, {4.2, Missing[]}]
+RarerProbability[NormalDistribution[], 3]
+
+N[%]
+ad = AnomalyDetection[{1.2, 2.5, 3.2, 4.6, 5.6, 7, 8, 9, 8.3}]
+ad[{5, 6, 11, 100}]
+ad[{5, 6, 11, 100}, "RarerProbability"]
+ad = AnomalyDetection[RandomReal[1, {20, 2}]]
+FindAnomalies[ad, {{0.8, 0.7}, {5, 0.6}, {0.3, 0.5}, {0.1,   0.2}}, {"Anomalies", "Positions"}]
+FindAnomalies[ad, {{5, 0.6}, {0.3, 0.5}, {0.1, 0.2}}]
+
+
+c = Classify[{ {1.5, "blue"} -> "a", {3.2, "blue"} -> "a", {4.1, "red"} ->     "b", {5.3, "red"} -> "b", {10., "green"} -> "c", {12.4, "red"} ->     "c"}]
+c[{10.1, Missing[]}]
+
+c[{10.1, "blue"}, "TopProbabilities"]
+fcd=FindClusters[<|a -> 1, b -> 2, c -> 10, d -> 12, e -> 3, f -> 1, g -> 13, h -> 25|>]
+fcd
+
+c = ClusterClassify[{-10, -9, -8, -7, 5, 6, 7, 8}]
+c[{-10, 0, 30}]
+Plot[Values[c[x, "Probabilities"]], {x, -50, 50}]
+ClusteringTree[{1, 2, 5}]
+
+NearestNeighborGraph[RandomReal[1, {50, 2}]]
+
+RandomGraph[SpatialGraphDistribution[15, 0.5]]
+DD[n_, r_] := EmpiricalDistribution[ Flatten[Table[ EdgeCount[g], {g,     RandomGraph[SpatialGraphDistribution[n, r], 3000]}]]]
+DiscretePlot[Evaluate@Table[ PDF[DD[8, r], d], {r, 0.1, 1, 0.2}], {d, 0, 28}, PlotRange -> All, ExtentSize -> 1/2]
+RandomGraph[WattsStrogatzGraphDistribution[50, 0.05]]
+RandomGraph[BarabasiAlbertGraphDistribution[30, 2]]
+RandomGraph[BernoulliGraphDistribution[10, 0.6]]
+RandomGraph[UniformGraphDistribution[5, 6]]
+RandomGraph[PriceGraphDistribution[30, 2, 1]]
+RandomGraph[PriceGraphDistribution[10^5, 2, 2]]
+EmpiricalDistribution[VertexInDegree[%]]
+DiscretePlot[PDF[%, k], {k, 10, 30}, PlotRange -> All]
+
+t = {7, 23, 22, 6, 25, 20, 19, 6, 17, 6, 13};
+i = {0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0};
+S=SurvivalModelFit[EventData[t, i]]
+S[20]
+Normal[S][x]// PiecewiseExpand
+Plot[{S[x], S["PointwiseBands"][x]}, {x, 5, 30}]
+
+
+dist = FindDistribution[intensity = Normal@data[All, "Intensity"]]
+ProbabilityPlot[dist]
+SmoothHistogram[{intensity, RandomVariate[dist, Length[intensity]]},PlotLegends -> {"Data", "Computed"}]
+
+
+data = Import["F:\\promec\\Animesh\\HeLa\\ayu\\new\\Total Phylum.txt", "Table"] // Shallow
+
+data = Import["F:\\promec\\Animesh\\HeLa\\ayu\\new\\P value 0.05.csv"]
 Dimensions[data]
+Log2[data[All, "Prevotella tannerae"]]
+Histogram[data["Prevotella tannerae", Log2]]
+Histogram[Log2[data[All]] // Normal]
+Histogram[data[All] // Normal]
