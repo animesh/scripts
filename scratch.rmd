@@ -1,10 +1,229 @@
 ```{r kernel, echo = FALSE}
+#https://bookdown.org/yihui/rmarkdown/
 setRepositories(graphics = getOption("menu.graphics"),ind = NULL, addURLs = character())
 #install.packages("devtools")
 install.packages('IRkernel')
 IRkernel::installspec()
 #https://rmarkdown.rstudio.com/authoring_shiny.html
 ```
+
+```{r Automatic-Statistician}
+#https://link.springer.com/chapter/10.1007/978-3-030-05318-5_9
+#https://github.com/automl/auto-sklearn via reticulate
+#http://www.deeplearningbook.org/contents/monte_carlo.html
+```
+
+```{r umapr}
+#https://github.com/ropenscilabs/umapr#basic-use
+devtools::install_github("ropenscilabs/umapr")
+library(umapr)
+library(tidyverse)
+
+# select only numeric columns
+df <- as.matrix(iris[ , 1:4])
+
+# run UMAP algorithm
+embedding <- umap(df)
+embedding %>% 
+  mutate(Species = iris$Species) %>%
+  ggplot(aes(UMAP1, UMAP2, color = Species)) + geom_point()
+run_umap_shiny(embedding)
+```
+
+```{r tfp-install}
+#https://blogs.rstudio.com/tensorflow/posts/2019-06-25-dynamic_linear_models_tfprobability/
+install.packages("devtools",INSTALL_opts = "--no-multiarch")#https://stackoverflow.com/questions/40644971/error-installing-reporters-and-reportersjars
+install.packages("reticulate",INSTALL_opts = "--no-multiarch")
+devtools::install_github("rstudio/tfprobability",INSTALL_opts = "--no-multiarch")
+```
+
+```{r tfp-data}
+library(tensorflow)
+library(tfprobability)
+#install.packages("tidyverse")
+library(tidyverse)
+library(zeallot)
+library(dplyr)
+library(readr)
+library(tidyr)
+library(ggplot2)
+
+#https://raw.githubusercontent.com/rstudio/tensorflow-blog/master/docs/posts/2019-06-25-dynamic_linear_models_tfprobability/data/capm.txt
+df <- read_table("capm.txt",col_types = list(X1 = col_date(format = "%Y.%m"))) %>%rename(month = X1)
+df %>% glimpse()
+df %>% gather(key = "symbol", value = "return", -month) %>%
+  ggplot(aes(x = month, y = return, color = symbol)) +
+  geom_line() +
+  facet_grid(rows = vars(symbol), scales = "free")
+```
+
+```{r tfp-explore}
+ibm <- df$IBM - df$RKFREE
+# market excess returns
+x <- df$MARKET - df$RKFREE
+
+fit <- lm(ibm ~ x)
+summary(fit)
+ts <- ibm %>% matrix()
+# forecast 12 months
+n_forecast_steps <- 12
+ts_train <- ts[1:(length(ts) - n_forecast_steps), 1, drop = FALSE]
+
+# make sure we work with float32 here
+ts_train <- tf$cast(ts_train, tf$float32)
+ts <- tf$cast(ts, tf$float32)
+linreg <- ts %>%
+  sts_dynamic_linear_regression(
+    design_matrix = cbind(rep(1, length(x)), x) %>% tf$cast(tf$float32)
+  )
+optimizer <- tf$compat$v1$train$AdamOptimizer(0.1)
+model <- ts %>%
+  sts_dynamic_linear_regression(design_matrix = cbind(rep(1, length(x)), x) %>% tf$cast(tf$float32))
+
+# only train on the training set!    
+loss_and_dists <- ts_train %>% sts_build_factored_variational_loss(model = model)
+variational_loss <- loss_and_dists[[1]]
+
+train_op <- optimizer$minimize(variational_loss)
+
+
+fit_vi <-
+  function(ts,
+           ts_train,
+           model,
+           n_iterations,
+           n_param_samples,
+           n_forecast_steps,
+           n_forecast_samples) {
+    loss_and_dists <-
+      ts_train %>% sts_build_factored_variational_loss(model = model)
+    variational_loss <- loss_and_dists[[1]]
+    train_op <- optimizer$minimize(variational_loss)
+    
+    with (tf$Session() %as% sess,  {
+      sess$run(tf$compat$v1$global_variables_initializer())
+      for (step in 1:n_iterations) {
+        res <- sess$run(train_op)
+        loss <- sess$run(variational_loss)
+        if (step %% 1 == 0)
+          cat("Loss: ", as.numeric(loss), "\n")
+      }
+      variational_distributions <- loss_and_dists[[2]]
+      posterior_samples <-
+        Map(
+          function(d)
+            d %>% tfd_sample(n_param_samples),
+          variational_distributions %>% reticulate::py_to_r() %>% unname()
+        )
+      forecast_dists <-
+        ts_train %>% sts_forecast(model, posterior_samples, n_forecast_steps)
+      fc_means <- forecast_dists %>% tfd_mean()
+      fc_sds <- forecast_dists %>% tfd_stddev()
+      
+      c(posterior_samples,
+        fc_means,
+        fc_sds) %<-%
+        sess$run(list(posterior_samples,
+                      fc_means,
+                      fc_sds))
+    })
+    
+    list(variational_distributions,
+         posterior_samples,
+         fc_means[, 1],
+         fc_sds[, 1])
+  }
+
+
+# call fit_vi defined above
+# number of VI steps
+n_iterations <- 300
+# sample size for posterior samples
+n_param_samples <- 50
+# sample size to draw from the forecast distribution
+n_forecast_samples <- 50
+c(
+  param_distributions,
+  param_samples,
+  fc_means,
+  fc_sds,
+  smoothed_means,
+  smoothed_covs,
+  filtered_means,
+  filtered_covs
+) %<-% fit_vi(
+  ts,
+  ts_train,
+  model,
+  n_iterations,
+  n_param_samples,
+  n_forecast_steps,
+  n_forecast_samples
+)
+```
+
+```{r Everything-Is-Correlated}
+#https://www.gwern.net/Everything
+#https://lindeloev.github.io/tests-as-linear/
+# Load packages for data handling and plotting
+library(tidyverse)
+library(patchwork)
+library(broom)
+
+# Reproducible "random" results
+set.seed(40)
+
+# Generate normal data with known parameters
+rnorm_fixed = function(N, mu = 0, sd = 1)
+  scale(rnorm(N)) * sd + mu
+
+# Plot style.
+theme_axis = function(P,
+                      jitter = FALSE,
+                      xlim = c(-0.5, 2),
+                      ylim = c(-0.5, 2),
+                      legend.position = NULL) {
+  P = P + theme_bw(15) +
+    geom_segment(
+      x = -1000, xend = 1000,
+      y = 0, yend = 0,
+      lty = 2, color = 'dark gray', lwd = 0.5
+    ) +
+    geom_segment(
+      x = 0, xend = 0,
+      y = -1000, yend = 1000,
+      lty = 2, color = 'dark gray', lwd = 0.5
+    ) +
+    coord_cartesian(xlim = xlim, ylim = ylim) +
+    theme(
+      axis.title = element_blank(),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      panel.border = element_blank(),
+      panel.grid = element_blank(),
+      legend.position = legend.position
+    )
+  
+  # Return jittered or non-jittered plot?
+  if (jitter) {
+    P + geom_jitter(width = 0.1, size = 2)
+  }
+  else {
+    P + geom_point(size = 2)
+  }
+}
+# Wide format (sort of)
+#y = rnorm_fixed(50, mu=0.3, sd=2)  # Almost zero mean.
+y = c(rnorm(15), exp(rnorm(15)), runif(20, min = -3, max = 0))  # Almost zero mean, not normal
+x = rnorm_fixed(50, mu = 0, sd = 1)  # Used in correlation where this is on x-axis
+y2 = rnorm_fixed(50, mu = 0.5, sd = 1.5)  # Used in two means
+
+# Long format data with indicator
+value = c(y, y2)
+group = rep(c('y1', 'y2'), each = 50)
+
+```
+
 
 ```{r dimensioN, echo = FALSE}
 #http://m-clark.github.io/posts/2019-05-14-shrinkage-in-mixed-models/
