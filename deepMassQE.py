@@ -10,10 +10,75 @@
 #gcloud ai-platform predict     --model deepmass_prism     --project deepmass-204419     --format json     --json-instances "${DATA_DIR}/input.json" > "${DATA_DIR}/prediction.results"
 #python postprocess.py     --metadata_file="${DATA_DIR}/metadata.csv"     --input_data_pattern="${DATA_DIR}/prediction.results*"     --output_data_dir="${DATA_DIR}"     --batch_prediction=False
 #https://www.tensorflow.org/tutorials/eager/custom_training_walkthrough
-import tensorflow as tf
-tf.enable_eager_execution()
 
+#http://www.swig.org/download.html
+#sudo apt-get install build-essential swig
+#https://raw.githubusercontent.com/automl/auto-sklearn/master/requirements.txt
+#pip3 install --upgrade  --user setuptools nose Cython numpy scipy scikit-learn xgboost lockfile joblib psutil pyyaml liac-arff pandas ConfigSpace pynisher pyrfr smac
+#pip3 install --upgrade  --user auto-sklearn
+
+from pathlib import Path
+home=Path.home()
+print(home)
+
+pathFiles = home / Path('promec/Elite/LARS/2018/november/Rolf final/')
+fileName='evidence.txt'
+trainList=list(pathFiles.rglob(fileName))
+print(pathFiles,trainList)
+
+#https://github.com/AxeldeRomblay/MLBox
+#pip3 install  mlbox --user
+#https://github.com/AxeldeRomblay/MLBox/blob/master/examples/classification/example.ipynb
+from mlbox.preprocessing import *
+from mlbox.optimisation import *
+from mlbox.prediction import *
+
+
+#https://automl.github.io/auto-sklearn/master/
+import autosklearn.classification
+cls = autosklearn.classification.AutoSklearnClassifier()
+cls.fit(X_train, y_train)
+predictions = cls.predict(X_test)
+print(predictions,cls)
+
+
+#https://www.simonwenkel.com/2018/09/09/Introduction-to-auto-sklearn.html#classification-example
+import sklearn.model_selection
+import sklearn.datasets
+import sklearn.metrics
+
+import autosklearn.classification
+
+X, y = sklearn.datasets.load_digits(return_X_y=True)
+X_train, X_test, y_train, y_test = \
+sklearn.model_selection.train_test_split(X, y, random_state=1)
+
+automl = autosklearn.classification.AutoSklearnClassifier(
+time_left_for_this_task=3600,
+per_run_time_limit=300,
+tmp_folder='/tmp/autosklearn_sequential_example_tmp',
+output_folder='/tmp/autosklearn_sequential_example_out',
+# Do not construct ensembles in parallel to avoid using more than one
+# core at a time. The ensemble will be constructed after auto-sklearn
+# finished fitting all machine learning models.
+ensemble_size=0,
+delete_tmp_folder_after_terminate=False,
+)
+automl.fit(X_train, y_train, dataset_name='digits')
+# This call to fit_ensemble uses all models trained in the previous call
+# to fit to build an ensemble which can be used with automl.predict()
+automl.fit_ensemble(y_train, ensemble_size=50)
+
+print(automl.show_models())
+predictions = automl.predict(X_test)
+print(automl.sprint_statistics())
+print("Accuracy score", sklearn.metrics.accuracy_score(y_test, predictions))
+
+
+import tensorflow as tf
 print("TensorFlow version: {}".format(tf.__version__))
+
+tf.enable_eager_execution()
 print("Eager execution: {}".format(tf.executing_eagerly()))
 
 from tensorflow import app

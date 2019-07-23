@@ -1,3 +1,14 @@
+#check setup
+import os
+print(os.getuid())
+import pwd
+print(pwd.getpwuid(os.getuid()))
+from platform import python_version
+print(python_version())
+from pathlib import Path
+home=Path.home()
+print(home)
+
 #https://towardsdatascience.com/quantum-physics-visualization-with-python-35df8b365ff
 import matplotlib.pyplot as plt
 import numpy as np
@@ -960,3 +971,22 @@ with tf.Session() as sess:
             accuracy += 1. / len(Xte)
     print("Done!")
     print("Accuracy:", accuracy)
+from pyNN.recording import gather
+import numpy
+from mpi4py import MPI
+import time
+
+comm = MPI.COMM_WORLD
+
+for x in range(7):
+    N = pow(10, x)
+    local_data = numpy.empty((N,2))
+    local_data[:,0] = numpy.ones(N, dtype=float)*comm.rank
+    local_data[:,1] = numpy.random.rand(N)
+
+    start_time = time.time()
+    all_data = gather(local_data)
+    #print comm.rank, "local", local_data
+    if comm.rank == 0:
+    #    print "all", all_data
+        print N, time.time()-start_time

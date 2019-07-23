@@ -16,7 +16,9 @@ Partition[{1, 2, 3, 6}, 2]
 2*Pi
 
 9^9(* ::Input:: *)
-Solve{x}
+
+(*)#https://reference.wolfram.com/language/tutorial/SolvingEquations.html*)
+Solve[x^2 + 2 x + 1 == 0, x]
 hmm = HiddenMarkovProcess[{0.8,    0.2}, {{0.8, 0.2}, {0.3, 0.7}}, {{0.5, 0.5}, {0.1, 0.9}}];
 tosses = TemporalData[ Automatic, {{{1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2,    2, 2, 2}}, {{0, 20, 1}}, 1, {"Discrete", 1}, {"Discrete", 1}, 1, {   ValueDimensions -> 1, MetaInformation -> {}}}, False, 10.]
 FindHiddenMarkovStates[tosses, hmm]
@@ -24,9 +26,9 @@ BarChart[%, Ticks -> {Automatic, {{1, "Fair"}, {2, "Unfair"}}}]
 
 
 
-data = SemanticImport["F:\\promec\\Animesh\\MK\\proteinGroups.txt",Delimiters -> "\t", HeaderLines -> 1]
+data = SemanticImport["L:\\promec\\Elite\\LARS\\2018\\november\\Rolf final\\Red\\combined\\txt\\proteinGroups.txt",Delimiters -> "\t", HeaderLines -> 1]
 data[All, "Intensity"]
-%["Intensity"]
+Plot[%]
 Histogram[data[All, "Intensity", Log2]]
 FeatureExtract[data[All, "Intensity", Log2+1]]
 FindClusters[data[All, "Intensity", Log2+1]]

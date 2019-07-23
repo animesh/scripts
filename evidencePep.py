@@ -1,10 +1,11 @@
 import sys
 from pathlib import Path
-#if len(sys.argv)!=2:    sys.exit("USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s) like \"L:/combined/txt\" >")
-#pathFiles = Path(sys.argv[1])
-pathFiles = Path("L:/promec/Elite/LARS/2018/november/Rolf final/txt")
+if len(sys.argv)!=2: print("USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s) like \"C:/RawFiles\" >")
+sys.argv.append('L:/promec/Elite/LARS/2018/november/Rolf final/')
+pathFiles = Path(sys.argv[1])
 fileName='evidence.txt'
 trainList=list(pathFiles.rglob(fileName))
+print(trainList)
 
 import pandas as pd
 df=pd.DataFrame()

@@ -1,10 +1,3 @@
-#https://medium.com/@ODSC/reinforcement-learning-vs-differentiable-programming-48528f464795?source=email-51edc4174b8c-1557027412126-digest.reader------0-58------------------585c497f_b359_40d6_9661_ae5703bd5c26-1&sectionName=top
-using Pkg
-Pkg.add("Gadfly")
-
-using Gadfly
-Gadfly.plot([sin, cos,tan], -20*pi, 20*pi)
-
 #https://probcomp.github.io/Gen/ The, install the Gen package with the Julia package manager. From the Julia REPL, type ] to enter the Pkg REPL mode and then run: pkg> add https://github.com/probcomp/Gen
 #https://probcomp.github.io/Gen/intro-to-modeling/Introduction%20to%20Modeling%20in%20Gen
 using Gen
@@ -45,6 +38,7 @@ end;
 xs = [-5., -4., -3., -.2, -1., 0., 1., 2., 3., 4., 5.];
 traces = [Gen.simulate(sine_model, (xs,)) for _=1:12];
 
+#import Pkg
 #Pkg.add("PyPlot")
 using PyPlot
 figure(figsize=(16, 8))
@@ -53,7 +47,7 @@ for (i, trace) in enumerate(traces)
     render_sine_trace(trace)
 end
 
-using Pkg
+#using Pkg
 #Pkg.add("Calculus")
 using Calculus
 Calculus.gradient(x -> 3x^2 + 2x + 1, 5) # (32,)
@@ -175,3 +169,10 @@ categories = [2 3 4 5 6 12 13]
 for col in categories
     train[col] = fit_transform!(labelencoder, train[col])
 end
+
+
+#https://medium.com/@ODSC/reinforcement-learning-vs-differentiable-programming-48528f464795?source=email-51edc4174b8c-1557027412126-digest.reader------0-58------------------585c497f_b359_40d6_9661_ae5703bd5c26-1&sectionName=top
+using Pkg
+Pkg.add("Gadfly")
+using Gadfly
+Gadfly.plot([sin, cos,tan], -20*pi, 20*pi)
