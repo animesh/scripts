@@ -9,6 +9,41 @@ from pathlib import Path
 home=Path.home()
 print(home)
 
+#https://www.tensorflow.org/probability/api_docs/python/tfp/mcmc/SimpleStepSizeAdaptation
+import tensorflow as tf
+print("TensorFlow version: {}".format(tf.__version__))
+#tf.enable_eager_execution()
+print("Eager execution: {}".format(tf.executing_eagerly()))
+import tensorflow_probability as tfp
+tfd = tfp.distributions
+
+target_log_prob_fn = tfd.Normal(loc=0., scale=1.).log_prob
+num_burnin_steps = 500
+num_results = 500
+num_chains = 64
+step_size = 0.1
+# Or, if you want per-chain step size:
+# step_size = tf.fill([num_chains], step_size)
+
+kernel = tfp.mcmc.HamiltonianMonteCarlo(
+    target_log_prob_fn=target_log_prob_fn,
+    num_leapfrog_steps=2,
+    step_size=step_size)
+kernel = tfp.mcmc.SimpleStepSizeAdaptation(
+    inner_kernel=kernel, num_adaptation_steps=int(num_burnin_steps * 0.8))
+
+# The chain will be stepped for num_results + num_burnin_steps, adapting for
+# the first num_adaptation_steps.
+samples, [step_size, log_accept_ratio] = tfp.mcmc.sample_chain(
+    num_results=num_results,
+    num_burnin_steps=num_burnin_steps,
+    current_state=tf.zeros(num_chains),
+    kernel=kernel,
+    trace_fn=lambda _, pkr: [pkr.inner_results.accepted_results.step_size,
+                             pkr.inner_results.log_accept_ratio])
+
+# ~0.75
+p_accept = tf.reduce_mean(tf.exp(tf.minimum(log_accept_ratio, 0.)))
 #https://towardsdatascience.com/quantum-physics-visualization-with-python-35df8b365ff
 import matplotlib.pyplot as plt
 import numpy as np
