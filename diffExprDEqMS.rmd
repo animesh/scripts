@@ -1,5 +1,5 @@
 ```{r data, echo = FALSE}
-inpD <-"L:/promec/Elite/LARS/2018/november/Rolf final/txt/"
+inpD <-"F:/promec/Elite/LARS/2018/november/Rolf final/txt/"
 data <- read.delim(paste0(inpD,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
 summary(data)
 ```
@@ -79,7 +79,7 @@ plot(princomp(dataNormImpCom))
 ```{r t-test, echo = FALSE}
 pVal = apply(dataNormImpFilter, 1, function(x) t.test(as.numeric(x[c(3:5)]),as.numeric(x[c(1,2,6)]),var.equal=T)$p.value)
 logFC = rowMeans(dataNormImpFilter[,c(3:5)])-rowMeans(dataNormImpFilter[,c(1,2,6)])
-ttest.results = data.frame(gene=rownames(dataNormImpFilter),logFC=logFC,P.Value = pVal, adj.pval = p.adjust(pVal,method = "BH")) 
+ttest.results = data.frame(gene=rownames(dataNormImpFilter),logFC=logFC,P.Value = pVal, adj.pval = p.adjust(pVal,method = "BH"))
 #ttest.results$PSMcount = psm.count.table[ttest.results$gene,"count"]
 ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
 head(ttest.results)
@@ -138,7 +138,7 @@ factors<-c(1,1,2,2,2,1)
 library(ROTS)
 results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
 write.csv(summary(results, fdr = 1),file=paste0(inpD,hdr,"rots.csv"))
-names(results) 
+names(results)
 summary(results, fdr = 0.05)
 plot(results, fdr = 0.2, type = "pca")
 plot(results, type = "volcano",fdr = 0.5)
@@ -212,7 +212,7 @@ write.table(DEqMS.results,paste0(inpD,hdr,"DEqMS.results.txt"),sep = "\t",row.na
 library(ggrepel)
 # Use ggplot2 allows more flexibility in plotting
 DEqMS.results$log.sca.pval = -log10(DEqMS.results$sca.P.Value)
-ggplot(DEqMS.results, aes(x = logFC, y =log.sca.pval )) + 
+ggplot(DEqMS.results, aes(x = logFC, y =log.sca.pval )) +
     geom_point(size=0.5 )+
     theme_bw(base_size = 16) + # change theme
     xlab(expression("log2(red/white)")) + # x-axis label
@@ -257,15 +257,13 @@ library(LSD)
 op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
 x = fit3$count
 y = fit3$s2.post
-heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)", 
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
      ylab="log(Variance)",
      main="Posterior Variance in Limma")
 
 y = fit4$sca.postvar
 heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
-     ylab="log(Variance)", 
+     ylab="log(Variance)",
      main="Posterior Variance in DEqMS")
 
 ```
-
-

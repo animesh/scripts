@@ -1,0 +1,15 @@
+(*
+https://www.youtube.com/watch?v=k_lYeNuBTE8
+https://www.academia.edu/37221402/TECHNICAL_INCERTO_VOL_1_THE_STATISTICAL_CONSEQUENCES_OF_FAT_TAILS
+time<->ensemble Probabilities are NOT the same
+Ole Peters - https://www.youtube.com/watch?v=f1vXAHGIpfc&t=795s
+https://twitter.com/nntaleb/status/891343150782009344?lang=en
+*)
+
+hmm = HiddenMarkovProcess[{0.8,    0.2}, {{0.8, 0.2}, {0.3, 0.7}}, {{0.5, 0.5}, {0.1, 0.9}}];
+tosses = TemporalData[ Automatic, {{{1, 2, 1, 2, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2,    2, 2, 2}}, {{0, 20, 1}}, 1, {"Discrete", 1}, {"Discrete", 1}, 1, {   ValueDimensions -> 1, MetaInformation -> {}}}, False, 10.]
+ListLinePlot[tosses,Filling->Axis]
+FindHiddenMarkovStates[tosses, hmm]
+BarChart[%, Ticks -> {Automatic, {{1, "Fair"}, {2, "Unfair"}}}]
+data=RandomFunction[FractionalBrownianMotionProcess[0.3],{0,1,0.01}]
+ListLinePlot[%,Filling->Axis]
