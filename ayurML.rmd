@@ -1,0 +1,159 @@
+Data:
+
+```{r data}
+pathD<-"F:/promec/Animesh/HeLa/Metagenome data analysis/Metagenome data analysis/"
+typeF<-"phylum."
+files<-list.files(path=pathD, pattern=typeF, full.names=TRUE, recursive=TRUE)
+comb = data.frame(ID="_holder_",typeF=typeF,stringsAsFactors=F)#row.names(total)="bacteria"
+for(i in files){
+  name=gsub(pathD, "", i)
+  print(name)
+  i1<-read.table(i,sep='\t')
+  i1<-t(i1)
+  colnames(i1)=c("ID",name)
+  i1df<-data.frame(i1,stringsAsFactors=F)
+  comb=merge(comb,i1df,by="ID",all = TRUE)
+}
+comb<-comb[-1,]
+comb<-comb[,-2]
+write.table(comb,paste(pathD,toupper(typeF),"total",".txt",sep = ""),sep = "\t",quote = FALSE,col.names = TRUE,row.names = FALSE)
+```
+
+```{r data1}
+ayurP<-read.table("F:/promec/Animesh/HeLa/ayu/new/Total Phylum.txt",header=T,sep="\t",row.names = 1)
+summary(ayurP)
+ayurP<-ayurP[2:20]
+ayurP[is.na(ayurP)]<-0
+pheatmap(ayurP,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+```
+
+```{r label}
+label<-read.table("F:/promec/Animesh/HeLa/ayu/new/class.txt",comment="D",header=T,sep="\t")
+summary(label)
+label$Name=sub("-2","",label$Name)
+rownames(label)=label$Name
+```
+
+```{r data1}
+y=log2(ayurP[2:20]+1)
+y[is.na(y)]<-0
+y=robustscale(y)
+names(y$data)=sub("X\\.","",names(y$data))
+names(y$data)=sub("\\..*","",names(y$data))
+summary(y$data)
+colnames(y$data)
+pheatmap(y$data,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+pheatmap(y$data,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",annotation_col = label)
+```
+
+```{r datacom}
+y<-read.table(paste(pathD,toupper(typeF),"total",".txt",sep = ""),sep = "\t",header = T)
+library(quantable)
+row.names(y)<-y[,1]
+y<-y[,-1]
+summary(y)
+y=merge(ayurP,y,by=0,all = TRUE)
+row.names(y)<-y[,1]
+y<-y[,-1]
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+pheatmap(y$data,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,fontsize_col=6)
+```
+
+Scale:
+
+```{r scale}
+y<-read.table(paste(pathD,toupper(typeF),"total",".txt",sep = ""),sep = "\t",header = T)
+#install.packages('quantable')
+library(quantable)
+row.names(y)<-y[,1]
+y<-y[,-1]
+#y<-as.matrix(unlist(y))
+#y[is.na(y)]<-0
+summary(y)
+typeof(y)
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+pheatmap(y$data,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)
+```
+
+
+```{r}
+otu <- read.csv("F:/promec/Results/Ani/Ayur/datanormalizationforotutable/Copy of OTU table.csv", stringsAsFactors=F)
+species <- read.csv("C:/Users/animeshs/OneDrive - NTNU/ayurveda/species_div.csv",stringsAsFactors=T)
+species <- read.csv("C:/Users/animeshs/OneDrive - NTNU/ayurveda/species_div_zscore_med.csv",stringsAsFactors=T)
+summary(species$Species)
+species$Escherichia.coli.K12
+```
+
+ML:
+
+```{r }
+#https://towardsdatascience.com/understanding-random-forest-58381e0602d2?source=email-51edc4174b8c-1563159702818-digest.reader------1-50------------------d9cb9616_bb31_4c68_a2d7_e8ff41773564-1
+library(randomForest)
+set.seed(100)
+labelRF<-as.data.frame(label$Ayur)
+rownames(labelRF)<-label$Name
+yyt<-as.data.frame(t(y$data))
+yyt<-merge(yyt,labelRF,by=0, all=TRUE)
+yyt<-yyt[,-1]
+names(yyt)<- gsub(" ", "_", names(yyt))
+names(yyt)<- gsub("-", "__", names(yyt))
+random_forest=randomForest(data=yyt,yyt$`label$Ayur`~.,impurity='gini',ntree=150,replace=TRUE)
+print(random_forest)
+
+plot(random_forest)
+legend("top",cex=0.8,legend=colnames(random_forest$err.rate),lty=c(1,2,3),col=c(1,2,3),horiz=T)
+
+sort(importance(random_forest))
+varImpPlot(random_forest)
+#qplot(RCN1,GALNT2,data=yyt,colour=class,size=I(3))
+```
+
+```{r}
+library(rpart)
+fit <- rpart(formula= Species ~ Eubacterium.rectale.ATCC.33656  + Dorea.longicatena.DSM.13814  + Prevotella.maculosa.OT.289 + Helicobacter.pullorum.MIT.98.5489 ,method="class", data=species,  control = rpart.control(cp = 1e-04))
+fit <- rpart(Species ~ ., data=species, method="class", minsplit=2, minbucket=1)
+fit <- rpart(Species ~ Eubacterium.rectale.ATCC.33656  + Escherichia.coli.K12+ Prevotella.maculosa.OT.289 + Helicobacter.pullorum.MIT.98.5489, data=species, method="class", minsplit=2, minbucket=1)
+fit <- rpart(Species ~ Eubacterium.rectale.ATCC.33656  + Prevotella.maculosa.OT.289 , data=species, method="class", minsplit=2, minbucket=1)
+printcp(fit)
+plotcp(fit) 
+summary(fit)
+plot(fit)
+text(fit, use.n=TRUE, all=TRUE, cex=.6)
+jpeg(fit, file = "C:/Users/animeshs/OneDrive - NTNU/ayurveda/tree.jpg")
+pdf(fit, file = "C:/Users/animeshs/OneDrive - NTNU/ayurveda/tree.pdf")
+prp(fit)
+plot(1)
+```
+
+Plots:
+
+```{r}
+otu[1,]
+plot(otu[,2])
+hist(log2(otu[,2]))
+```
+
+Tree:
+
+```{r, echo=FALSE}
+#install.packages('party')
+library(party)
+k2p <- cforest( Kapha ~ Pita , data= otu, control=cforest_unbiased(mtry=2,ntree=50)) # fit the random forest
+varimp(k2p) 
+
+```
+
+#Source <http://rmarkdown.rstudio.com>  **Knit** button for HTML:
+#https://peerj.com/preprints/1466.pdf
+#http://marianattestad.com/blog/
+#http://r-statistics.co/Variable-Selection-and-Importance-With-R.html
+---
+title: "Ayur"
+author: "Ani"
+date: "Friday, January 08, 2016"
+output: html_document
+---

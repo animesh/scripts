@@ -22,10 +22,9 @@ python bin/call_variants.zip --outfile SRR2185909.fastq.sam.bam.hg38.tfrecord.20
 python bin/postprocess_variants.zip --ref ../hg38chr3bwaidx.fasta   --infile SRR2185909.fastq.sam.bam.hg38.tfrecord.20.gz_VO --outfile SRR2185909.vcf
 /mnt/f/HeLa/hap.py/bin/hap.py quickstart-testdata/test_nist.b37_chr20_100kbp_at_10mb.vcf.gz SRR2185909.vcf -f quickstart-testdata/test_nist.b37_chr20_100kbp_at_10mb.bed -r quickstart-testdata/ucsc.hg19.chr20.unittest.fasta -o happyeg.out --engine=vcfeval -l chr20:1-10010000
 awk '{print $1}' SRR2185909.vcf | sort -r | uniq -c
-#for loop test with single file SRR2185909
-for i in  chksrr/* ; do echo $i; j=$(basename $i);   j=${j%%.*} ; echo $j ;  done
-for i in  chksrr/*fastq.sam.bam.hg38.tfrecord.1.gz ; do echo $i; j=$(basename $i);   j=${j%%.*}; echo $j ; parallel -j24 python bin/call_variants.zip --outfile chksrr/$j.{}.VO  --examples chksrr/$j.fastq.sam.bam.hg38.tfrecord.{}.gz --checkpoint  DeepVariant-inception_v3-0.6.0+cl-191676894.data-wgs_standard/model.ckpt ::: {1..22} X Y   ; done
-for i in  chksrr/*fastq.sam.bam.hg38.tfrecord.1.gz ; do echo $i; j=$(basename $i);   j=${j%%.*}; echo $j ; parallel -j24 python bin/postprocess_variants.zip --ref ../hg38chr3bwaidx.fasta   --infile chksrr/$j.{}.VO --outfile chksrr/$j.{}.vcf ::: {1..22} X Y   ; done
+#for loop through entire bam folder and run for chromosome in parallel
+for i in  bam/*fastq.sam.bam.hg38.tfrecord.1.gz ; do echo $i; j=$(basename $i);   j=${j%%.*}; echo $j ; parallel -j24 python bin/call_variants.zip --outfile bam/$j.{}.VO  --examples bam/$j.fastq.sam.bam.hg38.tfrecord.{}.gz --checkpoint  DeepVariant-inception_v3-0.6.0+cl-191676894.data-wgs_standard/model.ckpt ::: {1..22} X Y   ; done^
+for i in  bam/*fastq.sam.bam.hg38.tfrecord.1.gz ; do echo $i; j=$(basename $i);   j=${j%%.*}; echo $j ; parallel -j24 python bin/postprocess_variants.zip --ref ../hg38chr3bwaidx.fasta   --infile bam/$j.{}.VO --outfile bam/$j.{}.vcf ::: {1..22} X Y   ; done
 #python bin/make_examples.zip   --mode calling     --ref "${REF}"     --reads "${BAM}"   --regions "chr20:10,000,000-10,010,000"   --examples "${OUTPUT_DIR}/examples.tfrecord.gz"
 #python bin/call_variants.zip  --outfile "${CALL_VARIANTS_OUTPUT}"  --examples "${OUTPUT_DIR}/examples.tfrecord.gz"  --checkpoint 0.6.0/DeepVariant-inception_v3-0.6.0+cl-191676894.data-wgs_standard/model.ckpt
 #python bin/postprocess_variants.zip   --ref "${REF}"   --infile "${CALL_VARIANTS_OUTPUT}"   --outfile "${FINAL_OUTPUT_VCF}"

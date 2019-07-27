@@ -1,0 +1,54 @@
+```{r data, echo = FALSE}
+inpDr <-"F:/promec/Elite/LARS/2018/november/Rolf final/Red/combined/txt/"
+inpDw <-"F:/promec/Elite/LARS/2018/november/Rolf final/White/combined/txt/"
+dataR <- read.delim(paste0(inpDr,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
+dataW <- read.delim(paste0(inpDw,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
+data=merge(dataR,dataW,by=0,all=TRUE)
+dim(data)
+data$Row.names[1]
+```
+
+```{r clean, echo = FALSE}
+decoyPrefix="REV__"
+dataClean<-data[-grep(decoyPrefix, data$Row.names),]
+contaminantPrefix="CON__"
+dataClean<-dataClean[-grep(contaminantPrefix, dataClean$Row.names),]
+summary(dataClean)
+```
+
+
+```{r select, echo = FALSE}
+hdr="Fraction."
+dataFrac=dataClean[,grep(hdr, names(dataClean))]
+summary(dataFrac)
+hist(as.matrix(dataFrac))
+```
+
+```{r imputeFilter0, echo = FALSE}
+dataFrac[is.na(dataFrac)]<-0
+summary(dataFrac)
+```
+
+```{r PCA, echo = FALSE}
+plot(princomp(dataFrac))
+biplot(prcomp(as.matrix(t(dataFrac)),scale = T))
+biplot(prcomp(dataFrac,scale = T),col=c(1,8), cex=c(0.5, 0.4))
+biplot(prcomp(as.matrix((dataFrac)),scale = T))
+biplot(prcomp(t(dataFrac),scale = T),col=c(1,8), cex=c(0.5, 0.4))
+```
+
+```{r fraction-clust-plot, echo = FALSE}
+#install.packages('pheatmap')
+library(pheatmap)
+dsub=data[(grepl("apo",data$Fasta.headers.x))|(grepl("alb",data$Fasta.headers.x))|(grepl("apo",data$Fasta.headers.y))|(grepl("alb",data$Fasta.headers.y)),]
+rn<-strsplit(dsub$Row.names, ';')
+y<-as.matrix(dsub[,grepl("Fraction\\.[0-9]+",colnames(dsub))])
+row.names(y)<-paste(sapply(rn, "[", 1),sapply(rn, "[", 3),sapply(rn, "[", 6))
+summary(y)
+y[is.na(y)]<-0
+summary(y)
+svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
+plot(svgPHC)
+library(ggplot2)
+ggsave(file=paste0(inpDr,hdr,"clusterPlot.svg"),plot=svgPHC)#,  width=6, height=6)
+```
