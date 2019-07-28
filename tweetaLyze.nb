@@ -1,0 +1,31 @@
+(*https://www.wolfram.com/wolfram-u/multiparadigm-data-science/wrangle.html*)
+
+twitter = ServiceConnect["Twitter", SaveConnection -> True]
+aniTweets =   twitter["TweetList", "Username" -> "animesh1977",    MaxItems -> 5000, "Elements" -> "FullData"]
+Save["aniTweets",  aniTweets]
+
+RandomSample[aniTweets, 5]
+%[[5]]
+Normal[%]
+StringCases["Multiparadigm Data Science with the ani Language - a new course by  @animesh1977 talks about a different approach to traditional #DataScience",  "@" ~~ u : (LetterCharacter | DigitCharacter |  "_") .. ~~ (WhitespaceCharacter | PunctuationCharacter |    EndOfString) :> u]
+getUserMentions[tweet_Association] := Module[{modifiedTweet = tweet}, AssociateTo[modifiedTweet,   "Usermentions" ->  Flatten[StringCases[tweet["Text"],      "@" ~~ u : (LetterCharacter | DigitCharacter| "_") .. ~~ (WhitespaceCharacter | PunctuationCharacter |        EndOfString) :> u]]]  ]
+aniTweets = Dataset[getUserMentions /@ Normal@aniTweets]
+Save["data", aniTweets]
+cleanText[txt_String] :=  StringTrim[  StringReplace[   DeleteStopwords[    StringDelete[     txt, {"&amp", "&gt", "'s",       Except[{"@", "#", "_"}, PunctuationCharacter], "RT", "RN", "JK",       "w/", "http" ~~ Except[WhitespaceCharacter] .. ~~        WhitespaceCharacter | EndOfString | PunctuationCharacter,       s_ /; ! PrintableASCIIQ[s]}]],    Repeated[WhitespaceCharacter] -> " "]]
+Get["data"]
+twitter = ServiceConnect["Twitter", SaveConnection -> True]
+aniTweets[DateHistogram[#, "Year"] &, "Date"]
+DateHistogram[aniTweets[All, "Date"], "Day",  DateReduction -> "Week"]
+DateHistogram[aniTweets[All, "Date"], "Hour",  DateReduction -> "Day", LabelingFunction -> Above]
+aniTweets[ Histogram[#, PlotRange -> Full,    PlotLabel -> "FavoriteCount"] &, "FavoriteCount"]
+aniTweets[ Histogram[#, PlotRange -> Full,    PlotLabel -> "RetweetCount"] &, "RetweetCount"]
+highFavoriteCount = Floor[aniTweets[Max, "FavoriteCount"], 5]
+highRetweetCount = Floor[aniTweets[Max, "RetweetCount"], 5]
+aniTweets[ Select[#FavoriteCount >= highFavoriteCount || #RetweetCount >=      highRetweetCount &], {"Text", "Hashtags", "FavoriteCount",   "RetweetCount"}]
+aniTweets[All, "Hashtags"]
+aniTweets[Flatten /* Counts /* ReverseSort, "Hashtags"]
+aniTweets[Flatten, "Hashtags"]
+aniTweets[Flatten /* WordCloud, "Hashtags"]
+
+mentionedUsers =  Normal[aniTweets[Flatten /* DeleteDuplicates, "Usermentions"]];
+twitter["UserData", "Username" -> #] & /@ mentionedUsers
