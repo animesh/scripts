@@ -67,15 +67,47 @@ summary(dataFracY)
 hist(as.matrix(dataFracY))
 ```
 
-```{r XY, echo = FALSE}
-#xy<-log2(dataFracX+1)-log2(dataFracY+1)
-xy<-dataFracX-dataFracY
-#xy<-dataFracX/dataFracY
-hist(as.matrix(xy))
-svgPHC<-pheatmap(xy,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
+```{r XdY, echo = FALSE}
+#xDy<-log2(dataFracX+1)-log2(dataFracY+1)
+xDy<-dataFracX-dataFracY
+#xDy<-dataFracX/dataFracY
+hist(as.matrix(xDy))
+svgPHC<-pheatmap(xDy,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
 plot(svgPHC)
-ggsave(file=paste0(inpDr,hdr,"xy.clusterPlot.svg"),plot=svgPHC)#,  width=6, height=6)
+ggsave(file=paste0(inpDr,hdr,"xDy.clusterPlot.svg"),plot=svgPHC)#,  width=6, height=6)
 
 ```
 
+```{r XpY, echo = FALSE}
+xPy<-dataFracX+dataFracY
+hist(as.matrix(xPy))
+svgPHC<-pheatmap(xPy,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
+plot(svgPHC)
+ggsave(file=paste0(inpDr,hdr,"xPy.clusterPlot.svg"),plot=svgPHC)#,  width=6, height=6)
+
+```
+
+
+```{r dataC, echo = FALSE}
+inpD <-"F:/promec/Elite/LARS/2018/november/Rolf final/txt/"
+data0 <- read.delim(paste0(inpD,"proteinGroups.txt"),row.names=1,sep="\t",header = T)
+dataC=merge(data0,data,by=0,all=TRUE)
+```
+
+
+```{r dataC, echo = FALSE}
+dsub=dataC[(grepl("apo",dataC$Fasta.headers))|(grepl("alb",dataC$Fasta.headers))|(grepl("apo",dataC$Fasta.headers.x))|(grepl("alb",dataC$Fasta.headers.x))|(grepl("apo",dataC$Fasta.headers.y))|(grepl("alb",dataC$Fasta.headers.y)),]
+rn<-strsplit(dsub$Row.names, ';')
+y<-as.matrix(dsub[,grepl("Fraction\\.[0-9]+",colnames(dsub))])
+row.names(y)<-paste(sapply(rn, "[", 1),sapply(rn, "[", 3),sapply(rn, "[", 6))
+summary(y)
+y[is.na(y)]<-0
+summary(y)
+svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
+plot(svgPHC)
+
+#dataC=merge(dataCR,dataCW,by=0,all=TRUE)
+#dim(dataC)
+#dataC$Row.names[1]
+```
 
