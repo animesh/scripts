@@ -1,3 +1,36 @@
+#https://github.com/google/deepvariant/blob/r0.8/docs/deepvariant-quick-start.md from https://github.com/google/deepvariant/blob/r0.6/docs/deepvariant-quick-start.md , skipping https://github.com/google/deepvariant/blob/r0.7/docs/deepvariant-quick-start.md
+#install gcloud
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+sudo apt-get install apt-transport-https ca-certificates
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+sudo apt-get update && sudo apt-get install google-cloud-sdk
+gcloud init
+gcloud auth login
+#run in parallel
+sudo apt -y install parallel
+#clone deepvariant
+git clone https://github.com/animesh/deepvariant.git
+cd deepvariant
+#install deepvariant
+./build-prereq.sh
+#ERROR: markdown 3.1.1 has requirement setuptools>=36, but you'll have setuptools 20.7.0 which is incompatible.
+#pip install setuptools-markdown --upgrade --user
+./build_and_test.sh
+./run-prereq.sh
+gsutil cp -R gs://deepvariant/quickstart-testdata .
+mkdir -p quickstart-output
+gsutil cp -R gs://deepvariant/models/DeepVariant/0.8.0 .
+sudo ln -s $PWD/bazel-bin/deepvariant /opt/deepvariant
+ls bazel-bin/deepvariant/
+sudo ln -s /home/animeshs/deepvariant/bazel-bin/deepvariant /opt/deepvariant/bin
+python bazel-bin/deepvariant/make_examples.zip --mode calling  --ref quickstart-testdata/ucsc.hg19.chr20.unittest.fasta --reads quickstart-testdata/NA12878_S1.chr20.10_10p1mb.bam -regions "chr20:10,000,000-10,010,000" --examples quickstart-output/examples.tfrecord.gz
+python ./scripts/run_deepvariant.py --model_type=WGS --ref=quickstart-testdata/ucsc.hg19.chr20.unittest.fasta --reads=quickstart-testdata/NA12878_S1.chr20.10_10p1mb.bam -regions "chr20:10,000,000-10,010,000" --output_vcf=quickstart-output/output.vcf.gz  --output_gvcf=quickstart-output/output.g.vcf.gz --num_shards=1
+python bazel-bin/deepvariant/make_examples.zip --mode calling --ref "quickstart-testdata/ucsc.hg19.chr20.unittest.fasta" --reads "quickstart-testdata/NA12878_S1.chr20.10_10p1mb.bam" --examples "/tmp/deepvariant_tmp_output/make_examples.tfrecord@1.gz" --regions "chr20:10,000,000-10,010,000" --gvcf "/tmp/deepvariant_tmp_output/gvcf.tfrecord@1.gz"
+python ./scripts/run_deepvariant.py --model_type=WGS --ref=quickstart-testdata/ucsc.hg19.chr20.unittest.fasta --reads=quickstart-testdata/NA12878_S1.chr20.10_10p1mb.bam -regions "chr20:10,000,000-10,010,000" --output_vcf=quickstart-output/output.vcf.gz  --output_gvcf=quickstart-output/output.g.vcf.gz --num_shards=1
+#https://github.com/google/deepvariant/issues/199
+sudo apt autoremove
+sudo apt remove containerd.io
+scripts/run_wes_case_study_binaries.sh
 #https://github.com/google/deepvariant/blob/r0.6/docs/deepvariant-quick-start.md
 #source deepvariantSetup.sh
 #cd deepvariant
@@ -27,9 +60,9 @@ FINAL_OUTPUT_VCF="${OUTPUT_DIR}/output.vcf.gz"
 #cd ensembl-vep
 #for i in  ../deepvariant/bam/*.1.vcf ; do echo $i; j=$(basename $i);   j=${j%%.*}; echo $j ; parallel -j24 ../ensembl-tools/scripts/variant_effect_predictor/variant_effect_predictor.pl -i ../deepvariant/bam/$j.{}.vcf --plugin ProteinSeqs,mutated/$j.{}.ref.fasta,mutated/$j.{}.mut.fasta -o mutated/$j.{}. --cache ::: {1..22} X Y   ; done
 #collect variants in a single file with FILENAME in fasta header
-cd mutated
-for i in  *.mut.fasta ;  do  awk '{if(/^>/){print $1,FILENAME}else print}' $i; done >> HeLa.deepvariant.vep.mutated.fasta
-grep "ENSP00000354040.4:p.Ala250GlyfsTer9" -B1 -A1 *fasta
+#cd mutated
+#for i in  *.mut.fasta ;  do  awk '{if(/^>/){print $1,FILENAME}else print}' $i; done >> HeLa.deepvariant.vep.mutated.fasta
+#grep "ENSP00000354040.4:p.Ala250GlyfsTer9" -B1 -A1 *fasta
 #/mnt/f/HeLa/hap.py/bin/hap.py quickstart-testdata/test_nist.b37_chr20_100kbp_at_10mb.vcf.gz SRR2185909.vcf -f quickstart-testdata/test_nist.b37_chr20_100kbp_at_10mb.bed -r quickstart-testdata/ucsc.hg19.chr20.unittest.fasta -o happyeg.out --engine=vcfeval -l chr20:1-10010000
 #python bin/make_examples.zip   --mode calling     --ref "${REF}"     --reads "${BAM}"   --regions "chr20:10,000,000-10,010,000"   --examples "${OUTPUT_DIR}/examples.tfrecord.gz"
 #python bin/call_variants.zip  --outfile "${CALL_VARIANTS_OUTPUT}"  --examples "${OUTPUT_DIR}/examples.tfrecord.gz"  --checkpoint 0.6.0/DeepVariant-inception_v3-0.6.0+cl-191676894.data-wgs_standard/model.ckpt
@@ -44,4 +77,3 @@ grep "ENSP00000354040.4:p.Ala250GlyfsTer9" -B1 -A1 *fasta
 #for i in bam/*.sam.bam ; do echo $i; j=$(basename $i);   j=${j%%.*} ; echo $j ; parallel python bin/make_examples.zip --mode calling   --ref ../hg38chr3bwaidx.fasta  --reads $i --examples $i.hg38.tfrecord.{}.gz --sample_name $j --regions '"chr{}"'  ::: {2..22} X Y   ; done
 #for i in bam/*.sam.bam ; do echo $i; j=$(basename $i);   j=${j%%.*} ; echo $j ; parallel python bin/make_examples.zip --mode calling   --ref ../hg38chr3bwaidx.fasta  --reads $i --examples $i.hg38.tfrecord.{}.gz --sample_name $j --regions '"chr{}"'  ::: {1..22} X Y   ; done
 #bcftools mpileup -Ou -P 1.1e-5 --max-depth 1000 -f ../hg38chr3bwaidx.fasta /mnt/z/ncbi/sra/dbGaP-12668/SRR*.fastq.sam.bam | bcftools call -mv -Oz -o calls.vcf.gz
-#for a single file SRR2185909
