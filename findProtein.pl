@@ -5,11 +5,10 @@ use Text::ParseWords;
 my $f = shift @ARGV;
 unless(-e $f){die "USAGE:perl findProtein.pl proteinGroups.txt";}
 
-my $id = "Protein"; #column name of IDs starts with
-my $pattern = qr/\./; #none of the IDs in above column should contain this
+my $id = "Protein IDs"; #column name of IDs
+my $pattern = qr/\./; #none of the IDs in above column should NOT contain this
 my $idi;
 my $lcnt = 0;
-
 
 print "Uniprot ID(s)";
 open (F1, $f) || die "can't open \"$f\": $!";
@@ -29,7 +28,5 @@ while (my $line = <F1>) {
 }
 close F1;
 
-
 __END__
-
-perl findProtein.pl proteinGroups.txt > proteinGroups.id0.txt
+perl findProtein.pl F:\HeLa\HeLaTFMQ\combined\txt\proteinGroups.txt > F:\HeLa\HeLaTFMQ\combined\txt\proteinGroups.ID0.txt
