@@ -1,12 +1,14 @@
+#ignore MS-DOS/WIN <-> LI/UNIX:
+# git config --global core.autocrlf true
+#ignore file-mode change:
+# git config core.fileMode false
+#[dockerImage](https://github.com/animesh/scripts/blob/master/Dockerfile):
+# docker.io/animesh1977/scripts
 *
 !*.*
-#git config core.fileMode false
-#git config --global core.autocrlf true
-
 .Rproj.user
 *.pdf
 *.asv
 *.csv
 *.txt
-
-
+*.history
