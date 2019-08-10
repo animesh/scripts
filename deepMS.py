@@ -57,55 +57,60 @@ file = home.parent / 'Documents/RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge
 #print(open(str(file), "r").read().splitlines())
 
 out=parseMGF(file)
-X=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ in out.items()]
-X=np.array(X).reshape(-1, 1)
-#X=np.expand_dims(X, axis=0)
-print(X.shape)
-
+mIsoMass=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ in out.items()]
 #import matplotlib.pyplot as plt
-#plt.hist(X)
+#plt.hist(mIsoMass)
 #plt.savefig('hist.png')
-from scipy.stats import skew
-print (skew(X))
+mzRT=[out[k]['rtinseconds'] for k, _ in out.items()]
+plt.hist(mzRT)
+plt.scatter(mzRT,mIsoMass)
+mzRTnp=np.float32(np.array(mzRT).reshape(1, -1))
+mIsoMassnp=np.float32(np.array(mIsoMass).reshape(1, -1))
+print(type(mIsoMassnp))
+#X=np.expand_dims(X, axis=0)
+print(mIsoMassnp.shape,mzRTnp.shape)
 
-#https://stackoverflow.com/a/41134887/1137129
-K=4
-# Import MNIST data
-#from tensorflow.examples.tutorials.mnist import input_data
-#mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
-#Xtr, Ytr = mnist.train.next_batch(55000)  # whole training set
-#Xte, Yte = mnist.test.next_batch(10000)  # whole test set
-# tf Graph Input
-Xtr, Ytr = X.transpose(),X.transpose().astype(int)#.train.next_batch(55000)  # whole training set
-Xte, Yte = X,X.astype(int)#.train.next_batch(55000)  # whole training set
-xtr = tf.placeholder("float", [None, X.shape[0]])
-ytr = tf.placeholder("float", [None, X.shape[1]])
-xte = tf.placeholder("float", [X.shape[0]])
-# Euclidean Distance
-distance = tf.negative(tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(xtr, xte)), reduction_indices=1)))
-# Prediction: Get min distance neighbors
-values, indices = tf.nn.top_k(distance, k=K, sorted=False)
-nearest_neighbors = []
-for i in range(K):
-    nearest_neighbors.append(tf.argmax(ytr[indices[i]], 0))
-neighbors_tensor = tf.stack(nearest_neighbors)
-y, idx, count = tf.unique_with_counts(neighbors_tensor)
-pred = tf.slice(y, begin=[tf.argmax(count, 0)], size=tf.constant([1], dtype=tf.int64))[0]
-accuracy = 0.
-# Initializing the variables
+from scipy.stats import skew
+print(skew(mIsoMass))
+print(min(mzRT))
+
+#https://www.analyticsvidhya.com/blog/2016/10/an-introduction-to-implementing-neural-networks-using-tensorflow/
+seed=mIsoMassnp.shape[1]
+rng = np.random.RandomState(seed)
+input_num_units = seed
+hidden_num_units = seed
+output_num_units = seed
+learning_rate=0.01
+epochs=100
+weights = {
+    'hidden': tf.Variable(tf.random_normal([input_num_units, hidden_num_units], seed=seed)),
+    'output': tf.Variable(tf.random_normal([hidden_num_units, output_num_units], seed=seed))
+}
+biases = {
+    'hidden': tf.Variable(tf.random_normal([hidden_num_units], seed=seed)),
+    'output': tf.Variable(tf.random_normal([output_num_units], seed=seed))
+}
+hidden_layer = tf.add(tf.matmul(mIsoMassnp, weights['hidden']), biases['hidden'])
+hidden_layer = tf.nn.relu(hidden_layer)
+
+output_layer = tf.matmul(hidden_layer, weights['output']) + biases['output']
+cost = tf.reduce_mean(output_layer-mzRTnp)
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 init = tf.initialize_all_variables()
-# Launch the graph
+batch_size=seed
+train=mIsoMassnp
 with tf.Session() as sess:
     sess.run(init)
-    # loop over test data
-    for i in range(len(Xte)):
-        # Get nearest neighbor
-        nn_index = sess.run(pred, feed_dict={xtr: Xtr, ytr: Ytr, xte: Xte[i, :]})
-        # Get nearest neighbor class label and compare it to its true label
-        print("Test", i, "Prediction:", nn_index,
-             "True Class:", np.argmax(Yte[i]))
-        #Calculate accuracy
-        if nn_index == np.argmax(Yte[i]):
-            accuracy += 1. / len(Xte)
-    print("Done!")
-    print("Accuracy:", accuracy)
+    for epoch in range(epochs):
+        avg_cost = 0
+        total_batch = int(train.shape[0]/batch_size)
+        for i in range(total_batch):
+            batch_x, batch_y = batch_creator(batch_size, train_x.shape[0], 'train')
+            _, c = sess.run([optimizer, cost], feed_dict = {x: batch_x, y: batch_y})
+            avg_cost += c / total_batch
+        print("Epoch:", (epoch+1), "cost =", "{:.5f}".format(avg_cost))
+    print("\nTraining complete!")
+    # find predictions on val set
+    pred_temp = tf.equal(tf.argmax(output_layer, 1), tf.argmax(y, 1))
+    accuracy = tf.reduce_mean(tf.cast(pred_temp, "float"))
+    predict = tf.argmax(output_layer, 1)
