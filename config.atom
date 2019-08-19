@@ -1,0 +1,22 @@
+"*":
+  core:
+    audioBeep: false
+    autoHideMenuBar: true
+    telemetryConsent: "limited"
+    themes: [
+      "atom-material-ui"
+      "base16-tomorrow-dark-theme"
+    ]
+  editor:
+    fontSize: 16
+    showIndentGuide: true
+    showInvisibles: true
+    softWrap: true
+  "exception-reporting":
+    userId: "e6797309-506b-4e8c-b5ac-03025e6fc415"
+  minimap:
+    plugins:
+      selection: true
+      selectionDecorationsZIndex: 0
+  welcome:
+    showOnStartup: false

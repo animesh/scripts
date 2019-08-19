@@ -4,6 +4,17 @@
 # git config core.fileMode false
 #[dockerImage](https://github.com/animesh/scripts/blob/master/Dockerfile):
 # docker.io/animesh1977/scripts
+#[aliases](https://youtu.be/f-Br8cud2eI?t=1918)
+#rebase
+#beflog
+#stash
+#log --graph
+#bisect
+#merge
+#push --force-with-lease
+# ln -s /home/animeshs/scripts/config.i3 $HOME/.config/i3/config
+# ln -s /home/animeshs/scripts/config.atom /home/animeshs/.atom/config.cson
+# apm install --packages-file /home/animeshs/scripts/config-packages.atom
 *
 !*.*
 .Rproj.user

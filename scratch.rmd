@@ -11,6 +11,22 @@ IRkernel::installspec()
 #https://link.springer.com/chapter/10.1007/978-3-030-05318-5_9
 #https://github.com/automl/auto-sklearn via reticulate
 #http://www.deeplearningbook.org/contents/monte_carlo.html
+#https://github.com/ColtoCaro/compositionalMS/issues/1
+devtools::install_github('coltocaro/compMS')
+#https://willfondrie.com/2019/02/an-intuitive-look-at-the-xcorr-score-function-in-proteomics/
+library(compMS)
+RES <- compBayes(sampleDat)
+
+View(RES[[1]])
+View(RES[[2]])
+View(RES[[4]])
+View(RES[[5]])
+View(RES[[6]])
+
+catterPlot(RES, byCond = TRUE, avgCond = TRUE)
+
+precisionPlot(RES, avgCond = TRUE)
+
 ```
 
 ```{r umapr}
