@@ -1,0 +1,97 @@
+```{r data}
+fileP<-"L:\\promec\\Animesh\\Lymphoma\\"
+fileN<-"Sel66.txt"
+lym<-read.table(paste0(fileP, fileN),row.names = 1, header=T)
+fileC<-"Code.txt"
+code<-read.table(paste0(fileP, fileC),row.names = 1, header=T)
+summary(lym)
+#install.packages('quantable')
+library(quantable)
+y<-lym
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+colnames(y$data)
+yy<-rbind(y$data,code$Code)
+yyt<-t(yy)
+colnames(yyt) <- gsub(";", "_", colnames(yyt))
+colnames(yyt) <- gsub("-", "__", colnames(yyt))
+summary(yyt)
+#yyt[,67]=as.numeric(yyt[,67]-1)
+colnames(yyt)[67] <- "class"
+summary(yyt)
+plot(yyt[,67])
+```
+
+```{r tree}
+#install.packages("rpart.plot")
+library("rpart.plot")
+library("rpart")
+library("randomForest")
+set.seed(100)
+yyt=as.data.frame(yyt)
+colnames(yyt)[67] <- "class"
+yyt[,67]=as.factor(yyt[,67])
+ind=sample(2,nrow(yyt),replace=TRUE,prob=c(0.80,0.20))
+yyt.training=yyt[ind==1,]
+yyt.test=yyt[ind==2,]
+
+tree=rpart(data=yyt.training,class~.,method="class",control=rpart.control(minsplit=10,minbucket=5),parms=list(split="information"))
+rpart.plot(tree,main="Classification tree for the yyt data (using 80% of data as training set)",extra=101)
+#library(ggplot2)
+qplot(PTBP2,GALNT2,data=yyt,colour=class,size=I(3))
+```
+
+```{r tree - pred}
+predictions=predict(tree,newdata=yyt.training,type="class")
+actuals=yyt.training$class
+table(actuals,predictions)
+
+predictions=predict(tree,newdata=yyt.test,type="class")
+actuals=yyt.test$class
+confusion.matrix=table(actuals,predictions)
+print(confusion.matrix)
+
+accuracy=sum(diag(confusion.matrix))/sum(confusion.matrix)
+print(accuracy)
+
+tree=rpart(data=yyt,class~.,method="class",control=rpart.control(minsplit=1,minbucket=1,cp=0.000001),parms=list(split="information"))
+rpart.plot(tree,main="Biggest Tree",extra=101)
+
+printcp(tree)
+
+plotcp(tree)
+
+ptree=prune(tree,cp=2.0e-02)
+rpart.plot(ptree,main="Pruned Tree",extra=101)
+qplot(ALDH1B1,PTBP2,data=yyt,colour=class,size=I(3))
+```
+
+```{r randomtree}
+library(randomForest)
+set.seed(100)
+#yyt=as.data.frame(yyt)
+random_forest=randomForest(data=yyt.training,class~.,impurity='gini',ntree=200,replace=TRUE)
+print(random_forest)
+
+plot(random_forest)
+legend("top",cex=0.8,legend=colnames(random_forest$err.rate),lty=c(1,2,3),col=c(1,2,3),horiz=T)
+
+random_forest=randomForest(data=yyt.training,class~.,impurity='gini',ntree=25,replace=TRUE)
+
+predictions=predict(random_forest,newdata=yyt.training,type="class")
+actuals=yyt.training$class
+table(actuals,predictions)
+
+predictions=predict(random_forest,newdata=yyt.test,type="class")
+actuals=yyt.test$class
+confusion.matrix=table(actuals,predictions)
+print(confusion.matrix)
+
+accuracy=sum(diag(confusion.matrix))/sum(confusion.matrix)
+print(accuracy)
+
+sort(importance(random_forest))
+varImpPlot(random_forest)
+#qplot(RCN1,GALNT2,data=yyt,colour=class,size=I(3))
+```

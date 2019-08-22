@@ -1,4 +1,5 @@
 bwa index -p Homo_sapiens.GRCh38.dna.primary_assembly -a bwtsw Homo_sapiens.GRCh38.dna.primary_assembly.fa
+bwa mem -M -t 8 Homo_sapiens.GRCh38.dna.primary_assembly UNG.12.ensembl_havana.CDS.109098327.fa
 #https://github.com/google/deepvariant/blob/r0.8/docs/deepvariant-quick-start.md from https://github.com/google/deepvariant/blob/r0.6/docs/deepvariant-quick-start.md , skipping https://github.com/google/deepvariant/blob/r0.7/docs/deepvariant-quick-start.md
 #pip install tensorflow==1.13.1 --user
 #cleanup

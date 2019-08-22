@@ -1,19 +1,26 @@
-#ignore MS-DOS/WIN <-> LI/UNIX:
-# git config --global core.autocrlf true
-#ignore file-mode change:
-# git config core.fileMode false
 #[dockerImage](https://github.com/animesh/scripts/blob/master/Dockerfile):
 # docker.io/animesh1977/scripts
 #[aliases](https://youtu.be/f-Br8cud2eI?t=1918)
-#rebase
-#beflog
-#stash
-#log --graph
-#bisect
-#merge
-#push --force-with-lease
-# ln -s /home/animeshs/scripts/config.i3 $HOME/.config/i3/config
-# ln -s /home/animeshs/scripts/config.atom /home/animeshs/.atom/config.cson
+# rebase
+# beflog
+# stash
+# log --graph
+# bisect
+# merge
+# push --force-with-lease
+#ignore MS/DOS endings (on windows machines):
+# git config --global core.autocrlf true
+#ignore file-mode change:
+# git config core.fileMode false
+#config setup
+# git clone http://github.com/animesh/scripts
+# cd scripts
+# ln -s $PWD/config.bash $HOME/.bashrc
+# ln -s $PWD/config.i3 $HOME/.config/i3/config
+# ln -s $PWD/config.screen  $HOME/.screenrc
+# ln -s $PWD/config.vim $HOME/.vimrc
+#atom apm list --installed --bare > $HOME/scripts/config-packages.atom
+# ln -s $PWD/config.atom /home/animeshs/.atom/config.cson
 # apm install --packages-file /home/animeshs/scripts/config-packages.atom
 *
 !*.*
@@ -23,3 +30,6 @@
 *.csv
 *.txt
 *.history
+*swp
+*fa
+Homo*
