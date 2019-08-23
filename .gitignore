@@ -19,7 +19,9 @@
 # ln -s $PWD/config.i3 $HOME/.config/i3/config
 # ln -s $PWD/config.screen  $HOME/.screenrc
 # ln -s $PWD/config.vim $HOME/.vimrc
-#atom apm list --installed --bare > $HOME/scripts/config-packages.atom
+#atom
+# apm list --installed --bare > $PWD/config-packages.atom
+# cp $HOME/.atom/config.cson $PWD/config.atom
 # ln -s $PWD/config.atom /home/animeshs/.atom/config.cson
 # apm install --packages-file /home/animeshs/scripts/config-packages.atom
 *

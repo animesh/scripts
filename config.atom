@@ -1,7 +1,12 @@
 "*":
   Hydrogen:
-    gateways: "[{\"name\":\"DMED7596\",\"options\":{\"baseUrl\":\"http://127.0.0.1:8888\",\"token\":\"99c9fb98abefad38de54914a8b041083144253f72667e972\"}},{\"name\":\"SIGMA2\",\"options\":{\"baseUrl\":\"https://proteomics.promec.sigma2.no\",\"token\":\"99c9fb98abefad38de54914a8b041083144253f72667e972\"}}]"
+    gateways: "[{\"name\":\"Intel\",\"options\":{\"baseUrl\":\"http://localhost:8889\",\"token\":\"ab9de3b25eb6890bc6351aa7223bc1e02d0f692b5f36e96b\"}},{\"name\":\"SIGMA2\",\"options\":{\"baseUrl\":\"https://proteomics.promec.sigma2.no\",\"token\":\"99c9fb98abefad38de54914a8b041083144253f72667e972\"}}]"
     languageMappings: "{\"wolfram language\": \"mathematica\"}"
+  "atom-html-preview":
+    enableMathJax: true
+    preserveWhiteSpaces: true
+    scrollToCursor: true
+    triggerOnSave: true
   core:
     audioBeep: false
     autoHideMenuBar: true
@@ -13,13 +18,18 @@
       "base16-tomorrow-dark-theme"
     ]
     uriHandlerRegistration: "always"
+    useTreeSitterParsers: false
   editor:
     fontSize: 16
+    scrollPastEnd: true
     showIndentGuide: true
     showInvisibles: true
     softWrap: true
   "exception-reporting":
     userId: "2b38d283-27b0-4803-aa78-ceae1117b296"
+  kite:
+    showWelcomeNotificationOnStartup: false
+    signaturePopularPatternsVisible: true
   minimap:
     plugins:
       "highlight-selected": true

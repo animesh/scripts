@@ -1,50 +1,11 @@
+#https://matrices.io/deep-neural-network-from-scratch/ using https://www.tensorflow.org/alpha/guide/eager
 import tensorflow as tf
 print(tf.__version__)
 import datetime
 print(datetime.datetime.now())
-mnist = tf.keras.datasets.mnist
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-x_train, x_test = x_train / 255.0, x_test / 255.0
-tf.executing_eagerly()
-tf.test.is_gpu_available()#:with tf.device("/gpu:0"):
-#tf.keras.backend.clear_session()
-
-def create_model():
-  return tf.keras.models.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(10, activation='softmax')
-  ])
-
 import matplotlib.pyplot as plt
 plt.style.use('dark_background')
 plt.plot(range(1,100),range(2,101))
-
-model = create_model()
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
-
-log_dir="logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-
-model.fit(x=x_train,
-          y=y_train,
-          epochs=5,
-          validation_data=(x_test, y_test),
-          callbacks=[tensorboard_callback])
-
-
-
-
-
- #tensorboard --logdir logs/gradient_tape
-
-
-#https://matrices.io/deep-neural-network-from-scratch/ using https://www.tensorflow.org/alpha/guide/eager
-#!sudo pip3 install tf-nightly-2.0-preview #guide https://threader.app/thread/1105139360226140160
-import tensorflow as tf
 
 inp=[0.05,0.10]
 inpw=[[0.15,0.25],[0.20,0.3]]
@@ -61,6 +22,43 @@ y = tf.constant(outputr)
 layer_1 = 1/(1+tf.exp(-(tf.add(tf.matmul([x], w1), bias[0]))))
 layer_2 = 1/(1+tf.exp(-(tf.add(tf.matmul(layer_1, w2), bias[1]))))
 print(layer_2)
+
+#https://threader.app/thread/1105139360226140160
+mnist = tf.keras.datasets.mnist
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
+tf.executing_eagerly()
+tf.test.is_gpu_available()#:with tf.device("/gpu:0"):
+#tf.keras.backend.clear_session()
+
+def create_model():
+  return tf.keras.models.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28)),
+    tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(10, activation='softmax')
+  ])
+
+model = create_model()
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+log_dir="logs\\fit\\" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+model.fit(x=x_train,
+          y=y_train,
+          epochs=5,
+          validation_data=(x_test, y_test),
+          callbacks=[tensorboard_callback])
+
+# Source: https://stackoverflow.com/a/49555937
+import tensorflow as tf
+from tensorboard import main as tb
+tb.logger=log_dir
+
+
 
 @tf.custom_gradient
 def log1pexp(x):

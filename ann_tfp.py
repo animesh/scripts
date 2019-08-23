@@ -2,11 +2,13 @@
 #https://arxiv.org/abs/1705.07057
 #https://medium.com/tensorflow/introducing-tensorflow-probability-dca4c304e245
 #https://github.com/tensorflow/probability/blob/master/tensorflow_probability/examples/jupyter_notebooks/A_Tour_of_TensorFlow_Probability.ipynb
+#pip3 install tensorflow==2.0.0-beta1 #for windows
 #pip3 instapip3 install tf-nightly-2.0-preview --user #2.0.0-dev20190819
 #pip3 install tfp-nightly --user
 import tensorflow as tf
 print(tf.__version__)
 import tensorflow_probability as tfp
+print(tfp.__version__)
 
 mats = tf.random.uniform(shape=[1000, 10, 10])
 vecs = tf.random.uniform(shape=[1000, 10, 1])
@@ -89,3 +91,5 @@ coeffs, linear_response, is_converged, num_iter = tfp.glm.fit(
     model_matrix=features[:, tf.newaxis],
     response=tf.cast(labels,tf.float32),
     model=model)
+
+print(coeffs, linear_response, is_converged, num_iter)
