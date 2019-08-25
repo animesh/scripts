@@ -1,4 +1,15 @@
 (*
+https://blog.wolfram.com/2019/08/22/embracing-uncertainty-better-model-selection-with-bayesian-linear-regression/
+*)
+CloudConnect["sharma.animesh@gmail.com","xxxx"]
+BayesianLinearRegression = ResourceFunction["BayesianLinearRegression"]
+Mean[data]
+plot = ListPlot[data, PlotStyle -> Red]
+fit = N@BayesianLinearRegression[data, {1, x}, x];
+Keys[fit]
+
+
+(*
 https://www.youtube.com/watch?v=k_lYeNuBTE8
 https://www.academia.edu/37221402/TECHNICAL_INCERTO_VOL_1_THE_STATISTICAL_CONSEQUENCES_OF_FAT_TAILS
 time<->ensemble Probabilities are NOT the same
