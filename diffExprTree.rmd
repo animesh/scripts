@@ -2,9 +2,10 @@
 fileP<-"L:\\promec\\Animesh\\Lymphoma\\"
 fileN<-"Sel66.txt"
 lym<-read.table(paste0(fileP, fileN),row.names = 1, header=T)
+summary(lym)
 fileC<-"Code.txt"
 code<-read.table(paste0(fileP, fileC),row.names = 1, header=T)
-summary(lym)
+summary(code)
 #install.packages('quantable')
 library(quantable)
 y<-lym
@@ -12,7 +13,8 @@ y=robustscale(y)
 y$data[is.na(y$data)]<-0
 names(y$data)=sub("X","",names(y$data))
 colnames(y$data)
-yy<-rbind(y$data,code$Code)
+yy<-merge(y$data,code$Code2)
+#yy<-rbind(code$Code2,y$data)
 yyt<-t(yy)
 colnames(yyt) <- gsub(";", "_", colnames(yyt))
 colnames(yyt) <- gsub("-", "__", colnames(yyt))
@@ -38,7 +40,7 @@ yyt.test=yyt[ind==2,]
 
 tree=rpart(data=yyt.training,class~.,method="class",control=rpart.control(minsplit=10,minbucket=5),parms=list(split="information"))
 rpart.plot(tree,main="Classification tree for the yyt data (using 80% of data as training set)",extra=101)
-#library(ggplot2)
+library(ggplot2)
 qplot(PTBP2,GALNT2,data=yyt,colour=class,size=I(3))
 ```
 
