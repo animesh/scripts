@@ -8,11 +8,11 @@ if len(sys.argv) != 2:
 else:
     dirName = sys.argv[1]
     print("Input: ", dirName, "directory, \nlooking for", fileName, "\n\n")
-
-#import re
-#columnName=re.compile("^Ratio H/L*[0-9]$")
-columnName='^(Ratio H/L)(.*)*([0-9])$'
 trainList=list(dirName.rglob(fileName))
+
+columnName='^(Ratio H/L)(.*)*([0-9])$'
+columnNameH='^(Intensity H)(.*)*([0-9])$'
+columnNameL='^(Intensity L)(.*)*([0-9])$'
 
 import pandas as pd
 df=pd.DataFrame()
@@ -21,12 +21,11 @@ for f in trainList:
     print(f)
     proteinGroups['Name']=f
     df=pd.concat([df,proteinGroups],sort=False)
+
+df = df.set_index('Protein IDs')
 print(df.head())
 print(df.columns)
-#df.loc[:,df.columns.str.match('^Ratio H/L*')].head()#+'*'+'[0-9]$')
-#dfPG=df.filter(regex=columnName,axis=1).filter(regex='norm').dropna(axis=1, how="all")
 dfPG=df.filter(regex=columnName,axis=1)
-#dfPG.head()
 dfPG=dfPG.rename(columns = lambda x : str(x)[10:])
 writePGpng=dirName/(fileName+"PG.png")
 dfPGcnt=dfPG.count()
@@ -34,12 +33,22 @@ print(dfPGcnt)
 print("writing output to ... ")
 dfPGcnt[dfPGcnt<max(dfPGcnt)].plot(kind='bar').figure.savefig(writePGpng,bbox_inches = "tight")
 print(writePGpng)
-#dfPG=dfPG.rename(columns = lambda x : str(x)[21:])
-#dfPG.agg(lambda x: x.value_counts(dropna=True).index[0],axis='rows')
-#dfPG.agg(max,axis='rows')
-#dfPG.apply(lambda x: x, axis=1)
 dfPG=1-(1/dfPG.mean(axis = 0, skipna = True))
 writePGcsv=dirName/(fileName+".IR.csv")
-dfPG.to_csv(writePGcsv)
+dfPG.to_csv(writePGcsv,header=False)
 print(writePGcsv)
 #dfPG.hist()
+
+dfPGH=df.filter(regex=columnNameH,axis=1)
+dfPGH=dfPGH.rename(columns = lambda x : str(x)[12:])
+dfPGL=df.filter(regex=columnNameL,axis=1)
+dfPGL=dfPGL.rename(columns = lambda x : str(x)[12:])
+dfPGH2L=(dfPGH+1)/(dfPGL+1)
+writePGtxt=dirName/(fileName+".IRH2L.txt")
+dfPGH2L.to_csv(writePGtxt,index=1,header=True,sep='\t')
+print(writePGtxt)
+
+dfPGH2L=1-(1/dfPGH2L.mean(axis = 0, skipna = True))
+writePGcsv=dirName/(fileName+".IRH2L.csv")
+dfPGH2L.to_csv(writePGcsv,header=False)
+print(writePGcsv)
