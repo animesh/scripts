@@ -3,6 +3,8 @@
 FROM	quay.io/uninett/deep-learning-tools:20190821-df15ac1
 # Install system packages
 USER 	root
+RUN conda update -n base conda
+RUN conda install -c conda-forge rdkit --yes
 #reverting java and clang as image >20GB
 RUN 	apt-get update && apt-get install -y apt-utils vim psmisc openssh-server git-core libpython-dev libblocksruntime-dev python3-pip zsh tmux autojump jq parallel libomp-dev libopenblas-base libsndfile1
 RUN 	pip install librosa colorama faiss-gpu ann-solo scipy vaex bqplot ipyvolume pythreejs

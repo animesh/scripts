@@ -21,8 +21,7 @@ for f in trainList:
     print(f)
     proteinGroups['Name']=f
     df=pd.concat([df,proteinGroups],sort=False)
-
-df = df.set_index('Protein IDs')
+    dfP
 print(df.head())
 print(df.columns)
 dfPG=df.filter(regex=columnName,axis=1)
@@ -43,10 +42,11 @@ dfPGH=df.filter(regex=columnNameH,axis=1)
 dfPGH=dfPGH.rename(columns = lambda x : str(x)[12:])
 dfPGL=df.filter(regex=columnNameL,axis=1)
 dfPGL=dfPGL.rename(columns = lambda x : str(x)[12:])
-dfPGH2L=(dfPGH+1)/(dfPGL+1)
+dfPGH2L=dfPGH-dfPGL
 writePGtxt=dirName/(fileName+".IRH2L.txt")
-dfPGH2L.to_csv(writePGtxt,index=1,header=True,sep='\t')
+dfPGH2L.to_csv(writePGcsv,header=True,sep='\t')
 print(writePGtxt)
+
 
 dfPGH2L=1-(1/dfPGH2L.mean(axis = 0, skipna = True))
 writePGcsv=dirName/(fileName+".IRH2L.csv")
