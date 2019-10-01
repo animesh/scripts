@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 if len(sys.argv) != 2:
-    dirName = Path("L:/promec/Elite/LARS/2019/august/190820 Camilla wolo/combined/txt")
+    dirName = Path("L:/promec/Qexactive/LARS/2019/spetember/KRISTINE_SONJA/combined/txt")
     fileName='proteinGroups.txt'
     print("\n\nUSAGE: python evidencePep.py <path to folder containing", fileName,
           "file(s)>\n\ntaking default directory\"", dirName, "\"looking for\"", fileName, "\"file(s)\n\n")
@@ -21,11 +21,10 @@ for f in trainList:
     print(f)
     proteinGroups['Name']=f
     df=pd.concat([df,proteinGroups],sort=False)
-    dfP
 print(df.head())
 print(df.columns)
 dfPG=df.filter(regex=columnName,axis=1)
-dfPG=dfPG.rename(columns = lambda x : str(x)[10:])
+#dfPG=dfPG.rename(columns = lambda x : str(x)[10:])
 writePGpng=dirName/(fileName+"PG.png")
 dfPGcnt=dfPG.count()
 print(dfPGcnt)
@@ -42,13 +41,14 @@ dfPGH=df.filter(regex=columnNameH,axis=1)
 dfPGH=dfPGH.rename(columns = lambda x : str(x)[12:])
 dfPGL=df.filter(regex=columnNameL,axis=1)
 dfPGL=dfPGL.rename(columns = lambda x : str(x)[12:])
-dfPGH2L=dfPGH-dfPGL
+#dfPGH2Ldiff=dfPGH-dfPGL
+dfPGH2Lratio=(dfPGH+1)/(1+dfPGL)
 writePGtxt=dirName/(fileName+".IRH2L.txt")
-dfPGH2L.to_csv(writePGcsv,header=True,sep='\t')
+dfPGH2Lratio.to_csv(writePGtxt,header=True,sep='\t')
 print(writePGtxt)
 
 
-dfPGH2L=1-(1/dfPGH2L.mean(axis = 0, skipna = True))
+dfPGH2LratioIR=1-(1/dfPGH2Lratio.mean(axis = 0, skipna = True))
 writePGcsv=dirName/(fileName+".IRH2L.csv")
-dfPGH2L.to_csv(writePGcsv,header=False)
+dfPGH2LratioIR.to_csv(writePGcsv,header=False)
 print(writePGcsv)

@@ -47,8 +47,7 @@ python ./bazel-bin/deepvariant/postprocess_variants.zip --ref quickstart-testdat
 #src/sh/make_hg19.sh
 #export HGREF=hg19.fa
 #python install.py . --with-rtgtools
-hap.py/bin/hap.py quickstart-testdata/test_nist.b37_chr20_100kbp_at_10mb.vcf.gz quickstart-output/examples.vcf -f quickstart-testdata/test_nist.b37_chr20_100kbp_at_10mb.bed -r quickstart-testdata/u
-csc.hg19.chr20.unittest.fasta -o happyeg.out --engine=vcfeval -l chr20:10000000-10010000
+hap.py/bin/hap.py quickstart-testdata/test_nist.b37_chr20_100kbp_at_10mb.vcf.gz quickstart-output/examples.vcf -f quickstart-testdata/test_nist.b37_chr20_100kbp_at_10mb.bed -r quickstart-testdata/ucsc.hg19.chr20.unittest.fasta -o happyeg.out --engine=vcfeval -l chr20:10000000-10010000
 #for loop through entire bam folder and run for chromosome in parallel
 #for i in  bam/vcf/*fastq.sam.bam.hg38.tfrecord.1.gz ; do echo $i; j=$(basename $i);   j=${j%%.*}; echo $j ; parallel -j24 python bin/call_variants.zip --outfile bam/vcf/$j.{}.VO  --examples bam/vcf/$j.fastq.sam.bam.hg38.tfrecord.{}.gz --checkpoint  DeepVariant-inception_v3-0.6.0+cl-191676894.data-wgs_standard/model.ckpt ::: {1..22} X Y   ; done
 #for i in  bam/vcf/*fastq.sam.bam.hg38.tfrecord.1.gz ; do echo $i; j=$(basename $i);   j=${j%%.*}; echo $j ; parallel -j24 python bin/postprocess_variants.zip --ref ../hg38chr3bwaidx.fasta   --infile bam/vcf/$j.{}.VO --outfile bam/vcf/$j.{}.vcf ::: {1..22} X Y   ; done

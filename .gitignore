@@ -19,11 +19,13 @@
 # ln -s $PWD/config.i3 $HOME/.config/i3/config
 # ln -s $PWD/config.screen  $HOME/.screenrc
 # ln -s $PWD/config.vim $HOME/.vimrc
-#atom
+#atom-backup
 # apm list --installed --bare > $PWD/config-packages.atom
 # cp $HOME/.atom/config.cson $PWD/config.atom
-# ln -s $PWD/config.atom /home/animeshs/.atom/config.cson
-# apm install --packages-file /home/animeshs/scripts/config-packages.atom
+#atom-install
+# cd scripts
+# $HOME/AppData/Local/atom-nightly/bin/apm-nightly install --packages-file config-packages.atom
+# cp config.atom $HOME/.atom/config.cson
 *
 !*.*
 .Rproj.user

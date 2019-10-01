@@ -89,7 +89,9 @@ if($utr){
 }
 
 __END__
-#USAGE: perl extractGTFseqMutate.pl fastaFile GTFfile Gene mutateAminoAcid lengthUTR
+#USAGE: perl extractGTFseqMutate.pl fastaFile GTFfile Gene mutateAminoAcid lengthUTR, example:
+perl extractGTFseqMutate.pl Homo_sapiens.GRCh38.dna.primary_assembly.fa Homo_sapiens.GRCh38.97.gtf  TP53 V 100 2>0 > TLTP53.fasta
+
 #fastaFile: download ftp://ftp.ensembl.org/pub/release-96/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz and gunzip
 wget ftp://ftp.ensembl.org/pub/release-97/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 #GTFfile: download ftp://ftp.ensembl.org/pub/release-96/gtf/homo_sapiens/Homo_sapiens.GRCh38.96.gtf.gz and gunzip
@@ -97,6 +99,4 @@ wget ftp://ftp.ensembl.org/pub/release-97/gtf/homo_sapiens/Homo_sapiens.GRCh38.9
 #Gene: UNG https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000076248;r=12:109097574-109110992
 #mutateAminoAcid: V for Valine to A=>Alanine  https://en.wikipedia.org/wiki/Alanine_scanning
 #lengthUTR: 100 https://www.ensembl.org/Homo_sapiens/Location/View?db=core;g=ENSG00000076248;r=12:109097474-109111002
-
-cd /home/animeshs/promec/promec/Animesh/scripts
-perl extractGTFseqMutate.pl HHomo_sapiens.GRCh38.dna.primary_assembly.fa Homo_sapiens.GRCh38.97.gtf  UNG V 100 2>0 > TLUNG
+#result written in fasta format > TLTP53.fasta

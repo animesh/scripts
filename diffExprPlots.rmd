@@ -1,8 +1,45 @@
 ```{r data, echo = FALSE}
-inpD <-"L:/promec/Animesh/Odrun/"
+inpD <-"L:/promec/Animesh/Lisa/"
 #data <- read.delim(paste0(inpD,"proteinGroupsTotalTtestMedian.txt"),sep="\t",header = T)
-data <- read.delim(paste0(inpD,"combined/txt/proteinGroups.txt"),sep="\t",header = T)
+data <- read.delim(paste0(inpD,"proteinG140anno.txt"),sep="\t",header = T)
 summary(data)
+hdr="log2diff"
+```
+
+```{r sel-data-rows, echo = FALSE}
+data_apop <- data[grep("Apoptosis", data$C..KEGG.name),] 
+data_selr <- data[grep("Apoptosis", data$C..KEGG.name),] 
+data_selr <- data[grep("Jak-STAT signaling pathway", data$C..KEGG.name),] 
+data_jaks <- data[grep("Jak-STAT signaling pathway", data$C..KEGG.name),] 
+data_mapk <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
+data_selr <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
+data_selr<-rbind.data.frame(data_apop,data_apop,data_mapk)
+summary(data_selr)
+```
+
+```{r sel-data-cols, echo = FALSE}
+y<-as.matrix(data_selr[1:18])
+```
+
+```{r clust-plot, echo = FALSE}
+#install.packages('pheatmap')
+library(pheatmap)
+#?pheatmap
+rn<-sub(";","",data_selr$T..T..Gene.names)
+#rn<-strsplit(rn, "apolipoprotein")
+rn<-strsplit(rn, " ")
+row.names(y)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(y), "_")
+colnames(y)<-paste(sapply(cn, "[", 1))
+summary(y)
+#svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
+svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
+#library(ggplot2)
+#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
+plot(svgPHC)
+ggsave(file=paste0(inpD,hdr,"clusterPlot.JakSTAT.svg"),plot=svgPHC)#,  width=6, height=6)
+ggsave(file=paste0(inpD,hdr,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  width=6, height=6)
+ggsave(file=paste0(inpD,hdr,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  width=6, height=6)
 ```
 
 ```{r select-hdr-log2, echo = FALSE}

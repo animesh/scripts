@@ -7,6 +7,55 @@ IRkernel::installspec()
 #https://rmarkdown.rstudio.com/authoring_shiny.html
 ```
 
+```{r pClean}
+#https://github.com/AimeeD90/pClean_release
+install.packages('digest', repos='http://cran.us.r-project.org')
+devtools::install_github("AimeeD90/pClean_release")
+#remotes::install_github("AimeeD90/pClean_release")
+library(pClean)
+mgffile<-system.file("extdata/", "tte.frac1.mgf",package="pClean")
+pCleanGear(mgf=mgffile,outdir="pClean",mem=2,cpu=0,mionFilter=TRUE,labelMethod="iTRAQ8plex",repFilter=TRUE,labelFilter=TRUE,low=TRUE,high=TRUE,isoReduction=TRUE,chargeDeconv=TRUE,largerThanPrecursor=TRUE,ionsMerge=TRUE,network=TRUE,debug=FALSE)
+mgffile<-system.file("extdata/", "120426_Jurkat_highLC_Frac1.mgf",package="pClean")
+
+pCleanGear(mgf=mgffile,outdir="jurkat/result",mem=2,cpu=0,mionFilter=TRUE,isoReduction=TRUE,chargeDeconv=TRUE,largerThanPrecursor=TRUE,ionsMerge=TRUE,network=TRUE,debug=FALSE)
+
+```
+
+```{r imputeMQstyle}
+## https://datascienceplus.com/proteomics-data-analysis-2-3-data-filtering-and-missing-value-imputation/ Data imputation function
+impute_data = function(df, width = 0.3, downshift = 1.8) {
+  # df = data frame containing filtered 
+  # Assumes missing data (in df) follows a narrowed and downshifted normal distribution
+
+  LOG2.names = grep("^LOG2", names(df), value = TRUE)
+  impute.names = sub("^LOG2", "impute", LOG2.names)
+
+  # Create new columns indicating whether the values are imputed
+  df[impute.names] = lapply(LOG2.names, function(x) !is.finite(df[, x]))
+
+  # Imputation
+  set.seed(1)
+  df[LOG2.names] = lapply(LOG2.names,
+                          function(x) {
+                            temp = df[[x]]
+                            temp[!is.finite(temp)] = NA
+
+                            temp.sd = width * sd(temp[df$KEEP], na.rm = TRUE)   # shrink sd width
+                            temp.mean = mean(temp[df$KEEP], na.rm = TRUE) - 
+                              downshift * sd(temp[df$KEEP], na.rm = TRUE)   # shift mean of imputed values
+
+                            n.missing = sum(is.na(temp))
+                            temp[is.na(temp)] = rnorm(n.missing, mean = temp.mean, sd = temp.sd)                          
+                            return(temp)
+                          })
+  return(df)
+}
+
+
+## Apply imputation
+df.FNI = impute_data(df.FN)
+```
+
 ```{r ggfortify}
 install.packages('ggfortify')
 library('ggfortify')
