@@ -1,11 +1,11 @@
-fo='L:\promec\Animesh\Camilla\Combo.xlsx';
+fo='L:\promec\Animesh\Lisa\20190515 Log2FC monocytes, JJN3, MCCAR, NB4 collected for IPA and heatmap, LMR copy.xlsx';
 testtype=' WSRT';
 [data,id,~]=xlsread(fo);
 IDX=1;
 idoff=1; %from id start at +idoff
 idx=1;
-edx=18;
-jmp=3;
+edx=12;
+jmp=3;a
 idnm=id(:,IDX);
 data(:,all(isnan(data), 1)) = [];
 data(data == 0) = NaN;
