@@ -1,29 +1,137 @@
 ```{r data}
-inpF<-"L:/promec/Animesh/MK/proteinGroups.txt"
+inpF<-"L:/promec/Qexactive/LARS/2019/spetember/Camilla Wolo/combined/txt/proteinGroups.txt"
 data<-read.table(inpF,header=T,sep="\t",row.names = 1)
 summary(data)
 ```
 
 ```{r label}
-inpL<-"L:/promec/Animesh/MK/Class.txt"
-label<-read.table(inpL,header=T,row.names=1,sep="\t", colClasses=c(rep("factor",3)))
+inpL<-"L:/promec/Qexactive/LARS/2019/spetember/Camilla Wolo/combined/txt/Groups.txt"
+label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
 #colnames(label)=sub("\\-[0-9]+","",colnames(label))
 #colnames(label)
 summary(label)
+rownames(label)<-gsub("/"," ",rownames(label))
+rownames(label)<-gsub(" ",".",rownames(label))
+rownames(label)
 ```
 
 ```{r select}
-yyt=as.matrix(data[,201:230])
-yyt[is.na(yyt)]<-0
-yyt<-log2(yyt)
-yyt[is.infinite(yyt)]<-0
-#yyt<-yyt[,-(which(colSums(yyt) == 0))] 
-yyt<-yyt[-(which(rowSums(yyt) == 0)),] 
-summary(yyt)
-colnames(yyt)<-sub("LFQ.intensity.","",colnames(yyt))
-colnames(yyt)
-yyt<-yyt[,rownames(label)]
-colnames(yyt)
+#yyt=as.matrix(data[,201:230])
+hdr="Ratio."
+dataSel=as.matrix(data[,grep("normalized",colnames(data))])
+dataSel=as.matrix(dataSel[,grep("pass",colnames(dataSel))])
+colnames(dataSel)<-sub(,hdr,colnames(dataSel))
+colnames(dataSel)
+summary(dataSel)
+```
+
+```{r log-tranform}
+dataSellog2<-log2(dataSel)
+summary(dataSellog2)
+```
+
+```{r groups}
+dataSellog2grp<-dataSellog2[,-grep("H.M.",colnames(dataSellog2))]
+dataSellog2grp7<-dataSellog2grp[,grep("_7_",colnames(dataSellog2grp))]
+summary(dataSellog2grp7)
+dataSellog2grp11<-dataSellog2grp[,grep("_11_",colnames(dataSellog2grp))]
+summary(dataSellog2grp11)
+```
+
+```{r t-test, echo = FALSE}
+dataSellog2grpTtest<-dataSellog2grp7
+
+pValNA = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){NaN} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})
+hist(pValNA)
+pVal1 = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){1} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})
+hist(pVal1)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBH1 = p.adjust(pVal1,method = "BH")
+hist(pValBH1)
+
+plot(pValBH1-pValBHna,pVal1-pValNA)
+
+logFC = rowMeans(dataSellog2grpTtest[,c(1:6)])#-rowMeans(yyt[,c(6,5,4,3,2,1)])
+hist(logFC)
+plot(logFC,-log10(pVal1))
+plot(logFC,-log10(pValNA))
+plot(logFC,-log10(pValBHna),col="orange")
+
+logFCmedian = matrixStats::rowMedians(dataSellog2grpTtest[,c(1:6)])#-rowMeans(yyt[,c(6,5,4,3,2,1)])
+hist(logFCmedian)
+
+ttest.results7 = data.frame(logFC=logFC,logFCmedian=logFCmedian,P.Value = pValNA, adj.pval.BH = pValBHna) 
+#ttest.results$PSMcount = psm.count.table[ttest.results$gene,"count"]
+#ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
+#head(ttest.results)
+write.csv(ttest.results7,file=paste0(inpF,hdr,"tTestBHgrp7.csv"))
+```
+
+```{r volcanoPlot}
+library(ggplot2)
+ttest.results<-ttest.results7
+dsub=subset(ttest.results,ttest.results$P.Value<0.05&abs(ttest.results$logFC)>0.58)
+rn<-strsplit(rownames(dsub), ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval.BH),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (NRF2/sNRF2NT)")  + ylab("-Log10 P-value") + ggtitle("Differentially Expressed Protein groups") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+#install.packages("svglite")
+library(svglite)
+ggsave(file=paste0(inpF,hdr,"volcanoPlotgrp7.svg"),plot=g)#,  width=6, height=6)
+```
+
+```{r t-test, echo = FALSE}
+dataSellog2grpTtest<-dataSellog2grp11
+
+pValNA = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){NaN} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})
+hist(pValNA)
+pVal1 = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){1} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})
+hist(pVal1)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBH1 = p.adjust(pVal1,method = "BH")
+hist(pValBH1)
+
+plot(pValBH1-pValBHna,pVal1-pValNA)
+
+logFC = rowMeans(dataSellog2grpTtest[,c(1:6)])#-rowMeans(yyt[,c(6,5,4,3,2,1)])
+hist(logFC)
+plot(logFC,-log10(pVal1))
+plot(logFC,-log10(pValNA))
+plot(logFC,-log10(pValBHna),col="orange")
+
+logFCmedian = matrixStats::rowMedians(dataSellog2grpTtest[,c(1:6)])#-rowMeans(yyt[,c(6,5,4,3,2,1)])
+hist(logFCmedian)
+
+ttest.results11 = data.frame(logFC=logFC,logFCmedian=logFCmedian,P.Value = pValNA, adj.pval.BH = pValBHna) 
+#ttest.results$PSMcount = psm.count.table[ttest.results$gene,"count"]
+#ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
+#head(ttest.results)
+write.csv(ttest.results11,file=paste0(inpF,hdr,"tTestBHgrp11.csv"))
+```
+
+```{r volcanoPlot}
+ttest.results<-ttest.results11
+dsub=subset(ttest.results,ttest.results$P.Value<0.05&abs(ttest.results$logFC)>0.58)
+rn<-strsplit(rownames(dsub), ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval.BH),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (p62/sp62NT)")  + ylab("-Log10 P-value") + ggtitle("Differentially Expressed Protein groups") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+#install.packages("svglite")
+ggsave(file=paste0(inpF,hdr,"volcanoPlotgrp11.svg"),plot=g)#,  width=6, height=6)
+```
+
+
+```{r remNA}
+#yyt[is.na(yyt)]<-1 #for equal ratio
+dataSellog2remNA<-dataSellog2
+dataSellog2remNA[is.na(dataSellog2remNA)]<-0
+#y<-yyt[,-(which(colSums(yyt) == 0))] 
+dataSellog2remNA<-dataSellog2remNA[-(which(rowSums(dataSellog2remNA) == 0)),] 
+summary(dataSellog2remNA)
+#yyt<-yyt[,rownames(label)]
+#colnames(dataSellog2remNA)
 #yyt[,9]=as.factor(yyt[,9])
 ```
 
@@ -31,18 +139,19 @@ colnames(yyt)
 #install.packages('pheatmap')
 library(pheatmap)
 #?pheatmap
-y<-as.matrix(yyt)
-summary(y)
-svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,annotation_col = label,show_rownames=F)
+svgPHC<-pheatmap(yyt,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,annotation_col = label,show_rownames=F)
 #ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
 plot(svgPHC)
 ```
 
+
 ```{r scale}
 #install.packages('quantable')
 library(quantable)
-y=robustscale(y)
+y=robustscale(yyt)
 y$data[is.na(y$data)]<-0
+y$data<-y$data[-(which(rowSums(y$data) == 0)),] 
+summary(y$data)
 #names(y$data)=sub("X","",names(y$data))
 pheatmap(y$data,scale="row",clustering_distance_rows = "manhattan",clustering_distance_cols = "manhattan",fontsize_row=6,annotation_col = label,show_rownames=F)
 ```

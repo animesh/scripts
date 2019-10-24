@@ -1,17 +1,18 @@
-import matplotlib.pyplot as plt
-plt.style.use('dark_background')
-plt.plot(inpw[0],hidw[0])
-
-#check setup
-import os
-print(os.getuid())
-import pwd
-print(pwd.getpwuid(os.getuid()))
+##!/usr/bin/env python
 from platform import python_version
 print(python_version())
 from pathlib import Path
 home=Path.home()
 print(home)
+#plotting
+import matplotlib.pyplot as plt
+plt.style.use('dark_background')
+
+#check setup
+import os
+print(os.getenv())
+import pwd
+print(pwd.getpwuid(os.getuid()))
 
 #https://www.tensorflow.org/probability/api_docs/python/tfp/mcmc/SimpleStepSizeAdaptation
 import tensorflow as tf
@@ -2068,3 +2069,39 @@ for step in range(N):
   k_val = step/float(N)
   summ = sess.run(summaries, feed_dict={k: k_val})
   writer.add_summary(summ, global_step=step)
+
+
+#https://threader.app/thread/1105139360226140160
+import tensorflow as tf
+print(tf.__version__)
+import datetime
+print(datetime.datetime.now())
+tf.keras.backend.clear_session()
+mnist = tf.keras.datasets.mnist
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
+print("Eager:",tf.executing_eagerly())
+print("GPU:",tf.test.is_gpu_available())#:with tf.device("/gpu:0"):
+#tf.keras.backend.clear_session()
+
+def create_model():
+  return tf.keras.models.Sequential([
+    tf.keras.layers.Flatten(input_shape=(28, 28)),
+    tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(10, activation='softmax')
+  ])
+
+model = create_model()
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+log_dir="..\\notebooks\logs\\" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+model.fit(x=x_train,
+          y=y_train,
+          epochs=5,
+          validation_data=(x_test, y_test),
+          callbacks=[tensorboard_callback])
