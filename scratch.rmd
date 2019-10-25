@@ -1,3 +1,14 @@
+
+```{r gene-set enrichment with regularized regression}
+#https://usethis.r-lib.org/articles/articles/usethis-setup.html
+#usethis::edit_r_environ()
+#Sys.getenv("GITHUB_PAT")
+#https://github.com/TaoDFang/gerr
+#library(devtools)
+#install_github("TaoDFang/gerr")
+library("gerr")
+```
+
 ```{r kernel, echo = FALSE}
 #https://bookdown.org/yihui/rmarkdown/
 setRepositories(graphics = getOption("menu.graphics"),ind = NULL, addURLs = character())
