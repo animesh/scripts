@@ -7,6 +7,31 @@
 #library(devtools)
 #install_github("TaoDFang/gerr")
 library("gerr")
+#https://yulab-smu.github.io/clusterProfiler-book/chapter3.html#input-data
+#BiocManager::install("clusterProfiler")
+#BiocManager::install("GSEABase")
+library(clusterProfiler)
+#http://data.wikipathways.org/current/gmt/
+wp2gene <- read.gmt("L:/promec/Animesh/Lisa/wikipathways-20191010-gmt-Homo_sapiens.gmt")
+library(magrittr)
+wp2gene <- wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
+wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE
+wpid2name <- wp2gene %>% dplyr::select(wpid, name) #TERM2NAME
+gene=c("4312",  "8318"  ,"10874", "55143" ,"55388" ,"991")
+ewp <- enricher(gene, TERM2GENE = wpid2gene, TERM2NAME = wpid2name)
+head(ewp)
+ewp2 <- GSEA(gene, TERM2GENE = wpid2gene, TERM2NAME = wpid2name, verbose=FALSE)
+head(ewp2)
+install.packages("msigdbr")
+library("msigdbr")
+msigdbr_show_species()
+m_df = msigdbr(species = "Homo sapiens")
+head(m_df)
+#https://bioconductor.org/packages/release/data/annotation/html/org.Hs.eg.db.html
+BiocManager::install("org.Hs.eg.db")
+library(org.Hs.eg.db)
+select(org.Hs.eg.db, Rkeys(org.Hs.egUNIPROT)[1:5], "ENTREZID", "UNIPROT")
+select(org.Hs.eg.db, gene, "UNIPROT", "ENTREZID")
 ```
 
 ```{r kernel, echo = FALSE}

@@ -2,31 +2,79 @@
 inpD <-"L:/promec/Animesh/Lisa/"
 #data <- read.delim(paste0(inpD,"proteinGroupsTotalTtestMedian.txt"),sep="\t",header = T)
 data <- read.delim(paste0(inpD,"CamillaWSRTdataMedianUniprotGOmin2pv25p.txt"),sep="\t",header = T)
-rownames(data)<-paste0(data$T..T..Uniprot,data$T..T..Line)
+rownames(data)<-paste0(data$T..T..Uniprot,data$T..T..Line,data$T..T..Gene.names)
 summary(data)
-hdr="log2diff"
+```
+
+```{r map-ID}
+dataS<-data[(data$ONO_.WSRT<0.3 & data$CCAR_.WSRT<0.3) | (data$ONO_.WSRT<0.3 & data$B_.WSRT<0.3) | (data$B_.WSRT<0.3 & data$CCAR_.WSRT<0.3) | (data$ONO_.WSRT<0.3 & data$NB_.WSRT<0.3) | (data$NB_.WSRT<0.3 & data$CCAR_.WSRT<0.3) | (data$NB_.WSRT<0.3 & data$B_.WSRT<0.3) ,]
+#uniP<-c("        P07237        ","P28331","Q12931")
+#select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
+#select(org.Hs.eg.db, uniP, "GENENAME", "UNIPROT")
+#select(org.Hs.eg.db, uniP, "SYMBOL", "UNIPROT")
 ```
 
 ```{r sel-data-rows, echo = FALSE}
-data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+dataSel <- dataS[grep("stat", data$C..Gene.ontology..GO.,ignore.case=TRUE),] 
+#dataSel<-data[,grep("_x.y_",colnames(data))]
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+#data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_jak <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_mapk <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_jaks <- data[grep("jak", data$C..KEGG.name),] 
+#data_mapk <- data[grep("mapk signaling pathway", data$C..KEGG.name),]
+#data_selr <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
+#data_selr<-rbind.data.frame(data_apop,data_apop,data_mapk)
+rownames(dataSel)<-paste0(rownames(dataSel),"_STAT")
+dataSelSTAT<-dataSel
+summary(dataSelSTAT)
+```
+
+```{r sel-data-rows, echo = FALSE}
+dataSel <- dataS[grep("mapk", data$C..Gene.ontology..GO.,ignore.case=TRUE),] 
+#dataSel<-data[,grep("_x.y_",colnames(data))]
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+#data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_jak <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_mapk <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_jaks <- data[grep("jak", data$C..KEGG.name),] 
+#data_mapk <- data[grep("mapk signaling pathway", data$C..KEGG.name),]
+#data_selr <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
+#data_selr<-rbind.data.frame(data_apop,data_apop,data_mapk)
+rownames(dataSel)<-paste0(rownames(dataSel),"_MAPK")
+dataSelMAPK<-dataSel
+summary(dataSelMAPK)
+```
+
+```{r sel-data-rows, echo = FALSE}
+data_apop <- dataS[grep("apopto", data$C..Gene.ontology..GO.,ignore.case=TRUE),] 
 #dataSel<-data[,grep("_x.y_",colnames(data))]
 dataSel<-data_apop[,grep("_x.y_",colnames(data_apop))]
 dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
-
-data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-data_jak <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-data_mapk <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-data_jaks <- data[grep("jak", data$C..KEGG.name),] 
-data_mapk <- data[grep("mapk signaling pathway", data$C..KEGG.name),]
-data_selr <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
-data_selr<-rbind.data.frame(data_apop,data_apop,data_mapk)
-summary(data_selr)
+#data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_jak <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_mapk <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_jaks <- data[grep("jak", data$C..KEGG.name),] 
+#data_mapk <- data[grep("mapk signaling pathway", data$C..KEGG.name),]
+#data_selr <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
+#data_selr<-rbind.data.frame(data_apop,data_apop,data_mapk)
+rownames(dataSel)<-paste0(rownames(dataSel),"_Apopto")
+dataSelApoptosis<-dataSel
+summary(dataSelApoptosis)
 ```
 
+
 ```{r sel-data-cols, echo = FALSE}
-data_selr<-dataSel
+data_selr<-rbind.data.frame(dataSelApoptosis,dataSelMAPK,dataSelSTAT)
+#data_selr<-dataSel
 data_selr[is.na(data_selr)]<-0
+data_selr<-data_selr[-(which(rowSums(data_selr) == 0)),] 
+summary(data_selr)
 ```
 
 ```{r clust-plot, echo = FALSE}
@@ -36,17 +84,17 @@ library(pheatmap)
 #rn<-sub(";","",data_selr$T..T..Gene.names)
 rn<-sub(";","",rownames(data_selr))
 #rn<-strsplit(rn, "apolipoprotein")
-rn<-strsplit(rn, " ")
+#rn<-strsplit(rn, " ")
 row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
 cn<-strsplit(colnames(data_selr), "_")
 colnames(data_selr)<-paste(sapply(cn, "[", 1))
 summary(data_selr)
 #svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
-svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
-#library(ggplot2)
+svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,,cluster_rows=FALSE)#,annotation_col = label,show_rownames=F)
+library(ggplot2)
 #ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
 #plot(svgPHC)
-#ggsave(file=paste0(inpD,hdr,"clusterPlot.JakSTAT.svg"),plot=svgPHC)#,  width=6, height=6)
+ggsave(file=paste0(inpD,"clusterPlot.ApoptoMAPKSTAT.svg"),plot=svgPHC)#,  width=6, height=6)
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  width=6, height=6)
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  width=6, height=6)
 ```
