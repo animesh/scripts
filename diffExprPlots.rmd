@@ -2,58 +2,72 @@
 inpD <-"L:/promec/Animesh/Lisa/"
 #data <- read.delim(paste0(inpD,"proteinGroupsTotalTtestMedian.txt"),sep="\t",header = T)
 data <- read.delim(paste0(inpD,"CamillaWSRTdataMedianUniprotGOmin2pv25p.txt"),sep="\t",header = T)
-rownames(data)<-paste0(data$T..T..Uniprot,data$T..T..Line,data$T..T..Gene.names)
+rownames(data)<-paste(data$T..T..Uniprot,data$T..T..Line,data$T..T..Gene.names,sep = "_")
 summary(data)
 ```
 
-```{r map-ID}
+```{r sel-WSRT}
 dataS<-data[(data$ONO_.WSRT<0.3 & data$CCAR_.WSRT<0.3) | (data$ONO_.WSRT<0.3 & data$B_.WSRT<0.3) | (data$B_.WSRT<0.3 & data$CCAR_.WSRT<0.3) | (data$ONO_.WSRT<0.3 & data$NB_.WSRT<0.3) | (data$NB_.WSRT<0.3 & data$CCAR_.WSRT<0.3) | (data$NB_.WSRT<0.3 & data$B_.WSRT<0.3) ,]
-#uniP<-c("        P07237        ","P28331","Q12931")
-#select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
+hist(rowSums(as.matrix(dataS[,c(1:6)])))
+hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
+```
+
+```{r map-ID}
+library(org.Hs.eg.db)
+uniP<-c("P07237","P28331","Q12931")
+select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
+library(clusterProfiler)
+#http://data.wikipathways.org/current/gmt/
+wp2gene <- read.gmt("L:/promec/Animesh/Lisa/wikipathways-20191010-gmt-Homo_sapiens.gmt")
+library(magrittr)
+wp2gene <- wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
+wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE
+wpid2name <- wp2gene %>% dplyr::select(wpid, name) #TERM2NAME
+wpid2name[grep("apoptosis",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("stat",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("mapk",wpid2name$name,ignore.case = TRUE),]
 #select(org.Hs.eg.db, uniP, "GENENAME", "UNIPROT")
 #select(org.Hs.eg.db, uniP, "SYMBOL", "UNIPROT")
+uniP<-data$T..Uniprot
+uniP <- lapply(uniP, as.character)
+unlist(uniP)
+uniP[[1]]
+uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
+wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
+wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
+uniprots <- Rkeys(org.Hs.egUNIPROT)
+uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
+dataSez<-merge(dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
+dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
+dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
+rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
+
+#dataS<-dataSezWP
 ```
 
 ```{r sel-data-rows, echo = FALSE}
-dataSel <- dataS[grep("stat", data$C..Gene.ontology..GO.,ignore.case=TRUE),] 
-#dataSel<-data[,grep("_x.y_",colnames(data))]
+dataSel <- dataSezWP[grep("stat", dataSezWP$name,ignore.case=TRUE),] 
 dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
-#data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-#data_jak <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-#data_mapk <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-#data_jaks <- data[grep("jak", data$C..KEGG.name),] 
-#data_mapk <- data[grep("mapk signaling pathway", data$C..KEGG.name),]
-#data_selr <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
-#data_selr<-rbind.data.frame(data_apop,data_apop,data_mapk)
 rownames(dataSel)<-paste0(rownames(dataSel),"_STAT")
 dataSelSTAT<-dataSel
 summary(dataSelSTAT)
 ```
 
 ```{r sel-data-rows, echo = FALSE}
-dataSel <- dataS[grep("mapk", data$C..Gene.ontology..GO.,ignore.case=TRUE),] 
-#dataSel<-data[,grep("_x.y_",colnames(data))]
+dataSel <- dataSezWP[grep("mapk", dataSezWP$name,ignore.case=TRUE),] 
 dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
-#data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-#data_jak <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-#data_mapk <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-#data_jaks <- data[grep("jak", data$C..KEGG.name),] 
-#data_mapk <- data[grep("mapk signaling pathway", data$C..KEGG.name),]
-#data_selr <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
-#data_selr<-rbind.data.frame(data_apop,data_apop,data_mapk)
 rownames(dataSel)<-paste0(rownames(dataSel),"_MAPK")
 dataSelMAPK<-dataSel
 summary(dataSelMAPK)
 ```
 
 ```{r sel-data-rows, echo = FALSE}
-data_apop <- dataS[grep("apopto", data$C..Gene.ontology..GO.,ignore.case=TRUE),] 
-#dataSel<-data[,grep("_x.y_",colnames(data))]
-dataSel<-data_apop[,grep("_x.y_",colnames(data_apop))]
+dataSel <- dataSezWP[grep("apoptosis", dataSezWP$name,ignore.case=TRUE),] 
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
 #data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
@@ -73,8 +87,9 @@ summary(dataSelApoptosis)
 data_selr<-rbind.data.frame(dataSelApoptosis,dataSelMAPK,dataSelSTAT)
 #data_selr<-dataSel
 data_selr[is.na(data_selr)]<-0
-data_selr<-data_selr[-(which(rowSums(data_selr) == 0)),] 
+#data_selr<-data_selr[-(which(rowSums(data_selr) == 0)),] 
 summary(data_selr)
+hist(as.matrix(data_selr))
 ```
 
 ```{r clust-plot, echo = FALSE}
