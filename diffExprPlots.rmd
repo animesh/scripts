@@ -1,15 +1,42 @@
 ```{r data, echo = FALSE}
 inpD <-"L:/promec/Animesh/Lisa/"
-#data <- read.delim(paste0(inpD,"proteinGroupsTotalTtestMedian.txt"),sep="\t",header = T)
-data <- read.delim(paste0(inpD,"CamillaWSRTdataMedianUniprotGOmin2pv25p.txt"),sep="\t",header = T)
+inpF<-paste0(inpD,"CamillaWSRTdataMedianUniprotGOmin2pv25p.txt")
+data <- read.delim(inpF,sep="\t",header = T)
+#data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
 rownames(data)<-paste(data$T..T..Uniprot,data$T..T..Line,data$T..T..Gene.names,sep = "_")
 summary(data)
 ```
 
+```{r venn}
+selThr<-0.3
+dataV<-data[,c(1,2,3,6)]
+#dataV<-data[(data$B_.WSRT<selThr),]
+hist(rowSums(as.matrix(dataV)))
+library(eulerr)
+euler(dataV<selThr)$original.values
+plot(euler(dataV<selThr),quantities=TRUE,fill = "transparent",lty = 1:3,labels = list(font = 4), main="Protein Groups WSRT")
+#install.packages('eulerr')
+vplot<-plot(euler(dataV<selThr,shape="ellipse"),quantities=TRUE, main="Protein Groups WSRT")
+library(ggplot2)
+ggsave(file=paste0(inpF,"venn.svg"),plot=vplot)#,  width=6, height=6)
+```
+
+```{r vennDiagram}
+#https://stats.idre.ucla.edu/r/faq/how-can-i-generate-a-venn-diagram-in-r/
+library(limma)
+vennDiagram(dataV<selThr)
+```
+
 ```{r sel-WSRT}
-dataS<-data[(data$ONO_.WSRT<0.3 & data$CCAR_.WSRT<0.3) | (data$ONO_.WSRT<0.3 & data$B_.WSRT<0.3) | (data$B_.WSRT<0.3 & data$CCAR_.WSRT<0.3) | (data$ONO_.WSRT<0.3 & data$NB_.WSRT<0.3) | (data$NB_.WSRT<0.3 & data$CCAR_.WSRT<0.3) | (data$NB_.WSRT<0.3 & data$B_.WSRT<0.3) ,]
-hist(rowSums(as.matrix(dataS[,c(1:6)])))
+dataS<-data[(data$ONO_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$ONO_.WSRT<selThr & data$B_.WSRT<selThr) | (data$B_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$ONO_.WSRT<selThr & data$NB_.WSRT<selThr) | (data$NB_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$NB_.WSRT<selThr & data$B_.WSRT<selThr) ,]
 hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
+vennDiagram(dataS[,c(1,2,3,6)]<selThr)
+```
+
+```{r sel-WSRT-onevar}
+dataS<-data[(data$ONO_.WSRT<selThr) | (data$B_.WSRT<selThr) | (data$CCAR_.WSRT<selThr) | (data$NB_.WSRT<selThr),]
+hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
+vennDiagram(dataS[,c(1,2,3,6)]<selThr)
 ```
 
 ```{r map-ID}
@@ -41,12 +68,12 @@ dataSez<-merge(dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
 dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
 dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
 rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
-
 #dataS<-dataSezWP
 ```
 
 ```{r sel-data-rows, echo = FALSE}
 dataSel <- dataSezWP[grep("stat", dataSezWP$name,ignore.case=TRUE),] 
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="STAT",counts.col = "red")
 dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
@@ -57,6 +84,7 @@ summary(dataSelSTAT)
 
 ```{r sel-data-rows, echo = FALSE}
 dataSel <- dataSezWP[grep("mapk", dataSezWP$name,ignore.case=TRUE),] 
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="MAPK",counts.col = "red")
 dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
@@ -67,6 +95,7 @@ summary(dataSelMAPK)
 
 ```{r sel-data-rows, echo = FALSE}
 dataSel <- dataSezWP[grep("apoptosis", dataSezWP$name,ignore.case=TRUE),] 
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="Apoptosis",counts.col = "red")
 dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
 dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]

@@ -1,64 +1,54 @@
-pathD<-"L:/promec/Animesh/Tobias/txt/"
-inpF<-file.path(pathD,"proteinGroups.txt")
-data<-read.table(inpF,header=T,sep="\t",row.names = 1)
-summary(data)
-
-inpL<-file.path(pathD,"Groups.txt")
-label<-read.table(inpL,header=T,sep="\t")
-colnames(label)
-summary(label)
-
-log2ratioHL<-log2(as.matrix(data[82:95]))
-dim(log2ratioHL)
-summary(log2ratioHL)
-hist(log2ratioHL)
-
-log2ratioHLnorm<-log2(as.matrix(data[96:109]))
-dim(log2ratioHLnorm)
-summary(log2ratioHLnorm)
-hist(log2ratioHLnorm)
-plot(log2ratioHLnorm)
-
-pdf(paste(inpF,".ratioHistTechRepAll.pdf", sep=""))
-for(i in 1:dim(log2ratioHL)[2]){
-  #hist(log2ratioHLnorm[,i],xlab=colnames(log2ratioHLnorm)[i])
-  log2rH <- hist(log2ratioHL[,i],xlab=colnames(log2ratioHL)[i],breaks=30)
-  log2rnH <- hist(log2ratioHLnorm[,i],xlab=colnames(log2ratioHLnorm)[i],breaks=30)
-  plot( log2rnH, col=rgb(0,0,1,0.8), xlim=c(-10,10),xlab=colnames(log2ratioHLnorm)[i])
-  plot( log2rH, col=rgb(1,0,0,0.8), xlim=c(-10,10), xlab=colnames(log2ratioHL)[i],add=T)  # second
+print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file>")
+args = commandArgs(trailingOnly=TRUE)
+#read
+if(length(args)==0){inpF<-file.path("L:/promec/Qexactive/LARS/2019/oktober/HEIDI_NANO/combined/txt/proteinGroups.txt");print(paste("No proteinGroups.txt file supplied, using",inpF))} else if (length(args)==1){inpF<-args[1];print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))}
+data<-read.table(inpF,header=T,sep="\t")
+dim(data)
+#clean
+data = data[!data$Reverse=="+",]
+data = data[!data$Potential.contaminant=="+",]
+data = data[!data$Only.identified.by.site=="+",]
+print("Removed Reverse,Potential.contaminant and Only.identified.by.site")
+dim(data)
+row.names(data)<-data$Fasta.headers
+print("Converted Fasta.headers to rownames")
+#summary(data)
+#select
+selection="LFQ.intensity"
+log2LFQ<-log2(as.matrix(data[,grep(selection,colnames(data))]))
+print(paste("Selected and log2 transformed columns",selection))
+log2LFQ[log2LFQ==-Inf]=0
+colnames(log2LFQ)=sub(selection,"",colnames(log2LFQ))
+dim(log2LFQ)
+summary(log2LFQ)
+#rowsum(s)
+Sums<-rowSums(log2LFQ)
+#extract-uniprot-id(s)
+Uniprot<-sapply(strsplit(row.names(log2LFQ),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"|",fixed=TRUE),`[`, 2)
+#write-csv
+outF=paste(inpF,selection,"log2","csv",sep = ".")
+write.csv(cbind(log2LFQ,Sums,uniprot),outF)
+print(paste("Log2 transform of",selection,"columns written to",outF))
+#plot
+outP<-paste(inpF,selection,"pdf",sep = ".")
+pdf(outP)
+for(i in 1:dim(log2LFQ)[2]){
+  log2lfq <- hist(log2LFQ[,i],xlab=colnames(log2LFQ)[i],breaks=max(log2LFQ))
 }
+#pca
+plot(princomp(log2LFQ))
+biplot(prcomp(log2LFQ))
+heatmap(log2LFQ)
+#impute-plot
+scale=4
+set.seed(scale)
+imputeConst<-rnorm(1,mean=mean(log2LFQ)-scale,sd=sd(log2LFQ)/scale)
+print(paste("Imputation constant:",imputeConst))
+log2LFQ[log2LFQ==0]<-imputeConst
+summary(log2LFQ)
+plot(princomp(log2LFQ),main=imputeConst)
+biplot(prcomp(as.matrix(log2LFQ),scale=TRUE),cex=c(0.5, 0.4), xlab=NULL,arrow.len = 0)
+heatmap(log2LFQ, scale = "row")
 dev.off()
-
-namesCL=c("SUDHL5","JURKAT")
-for(nameCL in namesCL){
-log2rH <- hist(log2ratioHL[, grep(nameCL, colnames(log2ratioHL))],breaks=30)
-log2rnH <- hist(log2ratioHLnorm[, grep(nameCL, colnames(log2ratioHLnorm))],breaks=30)
-plot( log2rnH, col=rgb(0,0,1,0.8), xlim=c(-10,10),xlab=nameCL)
-plot( log2rH, col=rgb(1,0,0,0.8), xlim=c(-10,10), add=T)  # second
-}
-
-row.names(y)<-row.names.data.frame(data)
-y[is.na(y)]<-0
-colnames(y)=sub("LFQ.intensity.H.","",colnames(y))
-#colnames(y)=sub(".Sample","",colnames(y))
-summary(y)
-
-log2ratio<-rbind(log2ratioHL,log2ratioHLnorm)
-library(ggplot2)
-ggplot(aes(log2ratio) + geom_density(alpha = 0.2))
-
-replicate<-as.factor(label$Bio)
-class<-as.factor(label$Cell)
-
-dataNorm<-y
-set.seed(1)
-dataNorm[dataNorm==0]<-rnorm(1,mean=mean(y),sd=sd(y))
-summary(dataNorm)
-
-#TukeyHSD(aov(dataNorm["B7G7S4",]~class),"class", ordered = TRUE)[["class"]][10:12]
-chkANOVA<-apply(dataNorm,1,function(x){TukeyHSD(aov(x~class),"class")})
-chkANOVAnames<-t(sapply(row.names(dataNorm),function(x){chkANOVA[[x]]$`class`[10:12]}))
-chkANOVAnames<-apply(chkANOVAnames,2,function(x){p.adjust(x,"BH")})
-colnames(chkANOVAnames)<-c("SUDHL5","JURKAT")
-Uniprot<-sapply(strsplit(row.names(chkANOVAnames),";"), `[`, 1)
-write.csv(cbind(chkANOVAnames,Uniprot),file.path(pathD,"chkANOVAnames.csv"))
+print(paste("Histogram, PCA, Heatmap of Log2 transform of",selection,"column(s) written to",outP))
