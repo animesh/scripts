@@ -1,5 +1,6 @@
 #https://matrices.io/deep-neural-network-from-scratch/ using https://www.tensorflow.org/alpha/guide/eager
 #pip3 install tensorflow==2.0.0-rc0
+#https://youtu.be/5ECD8J3dvDQ?t=455
 import tensorflow as tf
 print(tf.__version__)
 import datetime

@@ -1,3 +1,18 @@
+```{r clust-NA}
+#https://cran.r-project.org/web/packages/biclustermd/index.html
+devtools::install_github("jreisner/biclustermd")
+library(biclustermd)
+plot(dataSelSTAT)
+bc<-biclustermd(dataSelSTAT)
+data_selr0asNA<-data_selr
+data_selr0asNA[data_selr0asNA==0]<-NA
+summary(data_selr0asNA)
+bc<-biclustermd(data_selr0asNA)
+autoplot(bc)
+rep_dat_bc <- rep_biclustermd(data_selr0asNA, nrep = 50, col_clusters = 4, row_clusters = 4)
+plot(rep_dat_bc$rep_sse)
+autoplot(rep_dat_bc$best_bc)
+```
 
 ```{r gene-set enrichment with regularized regression}
 #https://usethis.r-lib.org/articles/articles/usethis-setup.html

@@ -1,3 +1,16 @@
+#https://polynote.org/docs/01-installation.html
+#wget https://github.com/polynote/polynote/releases/download/0.2.10/polynote-dist-2.12.tar.gz
+#tar xvzf polynote-dist-2.12.tar.gz
+#sudo apt install default-jdk
+#export JAVA_HOME=/usr/lib/jvm/default-java/
+#wget http://apache.uib.no/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz
+#export SPARK_HOME=/home/animeshs/spark-2.4.4-bin-hadoop2.7/
+#export PATH="$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin"
+#spark-submit
+#pip3 install jep jedi pyspark virtualenv --user
+#./polynote/polynote.py
+#http://127.0.0.1:8192/
+
 ##!/usr/bin/env python
 from platform import python_version
 print(python_version())
