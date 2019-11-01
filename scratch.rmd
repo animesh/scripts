@@ -14,6 +14,531 @@ plot(rep_dat_bc$rep_sse)
 autoplot(rep_dat_bc$best_bc)
 ```
 
+```{r CrossICC}
+#https://github.com/bioinformatist/CrossICC#via-github-latest
+devtools::install_github("bioinformatist/CrossICC")
+library(CrossICC)
+CrossICC.obj <- CrossICC(demo.platforms, skip.mfs = TRUE, max.iter = 100, 
+                         cross = "cluster", fdr.cutoff = 0.1, 
+                         ebayes.cutoff = 0.1, filter.cutoff = 0.1)
+```
+
+```{r MBQN-NA}
+#https://github.com/arianeschad/MBQN/wiki
+devtools::install_github("arianeschad/MBQN")
+library("MBQN")
+# mtx <- matrix(c(5,2,3,NA,4,1,4,2,3,4,6,NA),ncol=3)
+set.seed(1234)
+inpF<-"L:/promec/Qexactive/LARS/2019/spetember/Camilla Wolo/combined/txt/proteinGroups.txt"
+data<-read.table(inpF,header=T,sep="\t",row.names = 1)
+nri_max <- as.numeric(names(which.max(res$nri)))
+df <- lapply(seq_len(ncol(featureAnnotations)),function(j) featureAnnotations[[j]][[nri_max]])
+names(df)<- names(featureAnnotations)
+
+# truncate long name strings
+df$proteinName <-  paste(strtrim(df$proteinName,80),"...")
+df$proteinDescription <- paste(strtrim(df$proteinDescription,80),"...")
+
+colnames(mtx) <- gsub("LFQ intensity","",colnames(mtx))
+mbqn.mtx <- mbqn(mtx,FUN = median)
+qn.mtx <- mbqn(mtx,FUN = NULL)
+
+# Boxplot of QN intensity features, highlight RI/NRI Features
+if(length(ylim)==0) {
+  ylim <- c(floor(min(range(mbqn.mtx, na.rm = TRUE))),ceiling(max(range(mbqn.mtx, na.rm = TRUE))))
+  ylim.qn <- c(floor(min(range(qn.mtx, na.rm = TRUE))),ceiling(max(range(mbqn.mtx, na.rm = TRUE))))
+}
+#colnames(qn.mtx) <- colnames(mbqn.mtx) <- ix
+
+plot.new()
+mbqnBoxplot(mtx = qn.mtx,main = paste("QN"),
+            ylab = "LFQ intensity",
+            ylim = ylim, xlab = "",las =2,
+            irow = c(as.numeric(names(res$nri))), y.intersp = 0.5)
+plot.new()
+
+# select a qn feature:
+is.full.feature <- which((apply(is.na(mtx),1,sum))==0)[1]
+df <- data.frame(QN.feature = qn.mtx[is.full.feature,])
+names(df) <- paste("QN feature", is.full.feature)
+mbqnBoxplot(mtx = mbqn.mtx, main = "MBQN with QN-feature",
+            irow = c(as.numeric(names(res$nri)),is.full.feature),
+            xlab= "", las =2,
+            ylab = "LFQ intensity",
+            vals = df,
+            ylim = ylim, y.intersp = 0.5)
+
+# QN of data and balance only NRI/RI features
+plot.new()
+df <- data.frame(qn.mtx[as.numeric(names(res$nri)),])
+if(ncol(df)==1) df <- t(df)
+rownames(df) <- paste("QN feature",names(res$nri))
+df2 <- data.frame(mtx[as.numeric(names(res$nri)),])
+if(ncol(df2)==1) df2 <- t(df2)
+rownames(df2) <- paste("unnormal. feature",names(res$nri))
+colnames(df) <- colnames(df2)
+df <- rbind(df,df2)
+df <- as.data.frame(t(df))
+
+mtx.nri <- mbqnNRI(mtx,FUN = median,low_thr = 0.5, verbose = FALSE)
+mbqnBoxplot(mtx = mtx.nri,
+            irow = as.numeric(names(res$nri)),
+            ylim = ylim.qn, xlab= "", las=2,
+            ylab = "LFQ intensity",
+            vals = df,lwd = 1.,
+            main = "QN with RI/NRI balanced",
+            cex.axis = 1, cex.lab = .9, cex = .9, y.intersp = 0.5)
+# dev.off()
+```
+
+```{r lionessR-NA}
+#https://cran.r-project.org/web/packages/biclustermd/index.html
+devtools::install_github("mararie/lionessR")
+library(lionessR)
+plot(dataSelSTAT)
+bc<-biclustermd(dataSelSTAT)
+data_selr0asNA<-data_selr
+data_selr0asNA[data_selr0asNA==0]<-NA
+summary(data_selr0asNA)
+bc<-biclustermd(data_selr0asNA)
+autoplot(bc)
+rep_dat_bc <- rep_biclustermd(data_selr0asNA, nrep = 50, col_clusters = 4, row_clusters = 4)
+plot(rep_dat_bc$rep_sse)
+autoplot(rep_dat_bc$best_bc)
+```
+
+```{r KnowSeq}
+#https://cran.r-project.org/web/packages/biclustermd/index.html
+BiocManager::install("KnowSeq")
+```
+
+```{r clust-NA}
+#https://bioconductor.org/packages/release/bioc/vignettes/MetaVolcanoR/inst/doc/MetaVolcano.html
+BiocManager::install("MetaVolcanoR")
+library(MetaVolcanoR)
+data(diffexplist)
+class(diffexplist)
+meta_degs_rem <- rem_mv(diffexp=diffexplist,
+            pcriteria="pvalue",
+            foldchangecol='Log2FC', 
+            genenamecol='Symbol',
+            geneidcol=NULL,
+            collaps=FALSE,
+            llcol='CI.L',
+            rlcol='CI.R',
+            vcol=NULL, 
+            cvar=TRUE,
+            metathr=0.01,
+            jobname="MetaVolcano",
+            outputfolder=".", 
+            draw='HTML',
+            ncores=1)
+
+head(meta_degs_rem@metaresult, 3)
+meta_degs_rem@MetaVolcano
+draw_forest(remres=meta_degs_rem,
+        gene="MMP9",
+        genecol="Symbol", 
+        foldchangecol="Log2FC",
+        llcol="CI.L", 
+        rlcol="CI.R",
+        jobname="MetaVolcano",
+        outputfolder=".",
+        draw="HTML")
+meta_degs_vote <- votecount_mv(diffexp=diffexplist,
+                   pcriteria='pvalue',
+                   foldchangecol='Log2FC',
+                   genenamecol='Symbol',
+                   geneidcol=NULL,
+                   pvalue=0.05,
+                   foldchange=0, 
+                   metathr=0.01,
+                   collaps=FALSE,
+                   jobname="MetaVolcano", 
+                   outputfolder=".",
+                   draw='HTML')
+
+head(meta_degs_vote@metaresult, 3)
+##   Symbol deg_1 deg_2 deg_3 deg_4 deg_5 ndeg ddeg idx        degvcount
+## 1  ABCC3     1     1     1     1     1    5    5  25   2.Up-regulated
+## 2  ABHD5    -1    -1    -1    -1    -1    5   -5 -25 0.Down-regulated
+## 3  ACACB    -1    -1    -1    -1    -1    5   -5 -25 0.Down-regulated
+meta_degs_vote@degfreq
+meta_degs_vote@MetaVolcano
+meta_degs_comb <- combining_mv(diffexp=diffexplist,
+                   pcriteria='pvalue', 
+                   foldchangecol='Log2FC',
+                   genenamecol='Symbol',
+                   geneidcol=NULL,
+                   metafc='Mean',
+                   metathr=0.01, 
+                   collaps=TRUE,
+                   jobname="MetaVolcano",
+                   outputfolder=".",
+                   draw='HTML')
+
+head(meta_degs_comb@metaresult, 3)
+##   Symbol        metap     metafc       idx
+## 1   MMP9 9.002947e-15  1.9693517  27.66076
+## 2 ACVR1C 3.548802e-20 -1.2544105 -24.39818
+## 3    ANG 5.674270e-26 -0.9364936 -23.64280
+meta_degs_comb@MetaVolcano
+```
+
+```{r permutation-filtering}
+#https://bioconductor.org/packages/release/bioc/vignettes/PERFect/inst/doc/MethodIllustration.html
+devtools::install_github("cxquy91/PERFect")
+library(PERFect)
+library(ggplot2)
+library(knitr)
+library(kableExtra)
+set.seed(12341)
+```
+
+```{r permutation-filtering}
+#https://bioconductor.org/packages/release/bioc/vignettes/MSstatsSampleSize/inst/doc/MSstatsSampleSize.html
+BiocManager::install("MSstatsSampleSize")
+# OV_SRM_train <- read.csv(file = "OV_SRM_train.csv")
+# # assign the column 'Protein' as row names
+# rownames(OV_SRM_train) <- OV_SRM_train$Protein 
+# # remove the column 'Protein
+# OV_SRM_train <- OV_SRM_train[, colnames(OV_SRM_train)!="Protein"]
+head(OV_SRM_train)
+variance_estimation <- estimateVar(data = OV_SRM_train, 
+                                   annotation = OV_SRM_train_annotation)
+#>  Preparing variance analysis...
+#>  Variance analysis completed.
+
+# the mean protein abundance in each condition
+head(variance_estimation$mu)
+meanSDplot(variance_estimation)
+simulated_datasets <- simulateDataset(data = OV_SRM_train,
+                                      annotation = OV_SRM_train_annotation,
+                                      num_simulations = 10, # simulate 10 times
+                                      expected_FC = "data", 
+                                      list_diff_proteins =  NULL,
+                                      select_simulated_proteins = "proportion",
+                                      protein_proportion = 1.0,
+                                      protein_number = 1000,
+                                      samples_per_group = 50, # 50 samples per condition
+                                      simulate_validation = FALSE, 
+                                      valid_samples_per_group = 50)
+simulated_datasets$num_proteins
+#> [1] 67
+
+# a vector with the number of simulated samples in each condition
+simulated_datasets$num_samples
+#>        control ovarian cancer 
+#>             50             50
+
+# the list of simulated protein abundance matrices
+# Each element of the list represents one simulation
+head(simulated_datasets$simulation_train_Xs[[1]]) # first simulation
+unique(OV_SRM_train_annotation$Condition)
+#> [1] control        ovarian cancer
+#> Levels: benign ovarian cancer control
+expected_FC <- c(1, 1.5)
+names(expected_FC) <- c("control", "ovarian cancer")
+set.seed(1212)
+# Here I randomly select some proteins as differential to show how the function works
+# The user should prepare this list of differential proteins by themselves
+diff_proteins <- sample(rownames(OV_SRM_train), 20)
+simualted_datasets_predefined_FC <- simulateDataset(data = OV_SRM_train,
+                                      annotation = OV_SRM_train_annotation,
+                                      num_simulations = 10, # simulate 10 times
+                                      expected_FC = expected_FC,
+                                      list_diff_proteins =  diff_proteins,
+                                      select_simulated_proteins = "proportion",
+                                      protein_proportion = 1.0,
+                                      protein_number = 1000,
+                                      samples_per_group = 50, # 50 samples per condition
+                                      simulate_validation = FALSE,
+                                      valid_samples_per_group = 50)
+#
+#### sample size classification ####
+# simulate different sample sizes
+# 1) 10 biological replicats per group
+# 1) 25 biological replicats per group
+# 2) 50 biological replicats per group
+# 3) 100 biological replicats per group
+# 4) 200 biological replicats per group
+list_samples_per_group <- c(10, 25, 50, 100, 200)
+
+# save the simulation results under each sample size
+multiple_sample_sizes <- list()
+
+for(i in seq_along(list_samples_per_group)){
+    # run simulation for each sample size
+    simulated_datasets <- simulateDataset(data = OV_SRM_train,
+                                      annotation = OV_SRM_train_annotation,
+                                      num_simulations = 10, # simulate 10 times
+                                      expected_FC = "data", 
+                                      list_diff_proteins =  NULL,
+                                      select_simulated_proteins = "proportion",
+                                      protein_proportion = 1.0,
+                                      protein_number = 1000,
+                                      samples_per_group = list_samples_per_group[i],
+                                      simulate_valid = FALSE, 
+                                      valid_samples_per_group = 50)
+
+    # run classification performance estimation for each sample size
+    res <- designSampleSizeClassification(simulations = simualted_datasets,
+                                          parallel = TRUE)
+    
+    # save results
+    multiple_sample_sizes[[i]] <- res
+}
+
+## make the plots
+designSampleSizeClassificationPlots(multiple_sample_sizes,
+                                    list_samples_per_group,
+                                    ylimUp_predictive_accuracy = 0.8,
+                                    ylimDown_predictive_accuracy = 0.6)
+designSampleSizePCAplot(simulated_datasets)
+
+```
+
+```{r MSstats}
+devtools::install_github("MeenaChoi/MSstats")
+#https://bioconductor.org/packages/release/bioc/vignettes/MSstatsSampleSize/inst/doc/MSstatsSampleSize.html
+BiocManager::install("MSstatsSampleSize")
+```
+
+```{r MMUPHin}
+BiocManager::install("MMUPHin")
+fit_adjust_batch <- adjust_batch(feature_abd = CRC_abd,
+                                 batch = "studyID",
+                                 covariates = "study_condition",
+                                 data = CRC_meta,
+                                 control = list(verbose = FALSE))
+CRC_abd_adj <- fit_adjust_batch$feature_abd_adj
+fit_lm_meta <- lm_meta(feature_abd = CRC_abd,
+                       batch = "studyID",
+                       exposure = "study_condition",
+                       covariates = c("gender", "age", "BMI"),
+                       data = CRC_meta,
+```
+
+```{r proDA-NA}
+#https://github.com/const-ae/proDA
+devtools::install_github("const-ae/proDA")
+library(proDA)
+intensity_colnames <- grep("^LFQ\\.intensity\\.", colnames(data), value=TRUE)
+head(intensity_colnames)
+abundance_matrix <- as.matrix(data[, intensity_colnames])
+colnames(abundance_matrix) <- sub("^LFQ\\.intensity\\.", "", intensity_colnames)
+rownames(abundance_matrix) <- data$Protein.IDs
+abundance_matrix[46:48, 1:6]
+abundance_matrix[abundance_matrix == 0] <- NA
+abundance_matrix <- log2(abundance_matrix)
+abundance_matrix[46:48, 1:6]
+barplot(colSums(is.na(abundance_matrix)),
+        ylab = "# missing values",
+        xlab = "Sample 1 to 36")
+boxplot(abundance_matrix,
+        ylab = "Intensity Distribution",
+        xlab = "Sample 1 to 36")
+normalized_abundance_matrix <- median_normalization(abundance_matrix)
+da <- dist_approx(normalized_abundance_matrix)
+sel <- c(1:3,  # CG1407
+         4:6,  # CG59163
+         7:9)# CG6618
+
+plot_mat <- as.matrix(da$mean)[sel, sel]
+# Remove diagonal elements, so that the colorscale is not distorted
+plot_mat[diag(9) == 1] <- NA
+# 95% conf interval is approx `sd * 1.96`
+uncertainty <- matrix(paste0(" ± ",round(as.matrix(da$sd * 1.96)[sel, sel], 1)), nrow=9)
+pheatmap::pheatmap(plot_mat, 
+                   cluster_rows = FALSE, cluster_cols = FALSE,
+                   display_numbers= uncertainty,
+                   number_color = "black")
+sample_info_df <- data.frame(name = colnames(normalized_abundance_matrix),
+                             stringsAsFactors = FALSE)
+sample_info_df$condition <- substr(sample_info_df$name, 1, nchar(sample_info_df$name)  - 3)
+sample_info_df$replicate <- as.numeric(
+  substr(sample_info_df$name, nchar(sample_info_df$name)  - 1, 20)
+)
+sample_info_df
+fit <- proDA(normalized_abundance_matrix, design = ~ condition, 
+             col_data = sample_info_df, reference_level = "S2R")
+fit
+fit$feature_parameters
+pheatmap::pheatmap(dist_approx(fit[1:20, 1:3], by_sample = FALSE)$mean)
+test_res <- test_diff(fit, "conditionCG1407")
+test_res
+#conditionCG1407 - (conditionCG6017 + conditionCG5880) / 2 would test for the difference between CG1407 and the average of CG6017 and CG5880
+```
+
+```{r ReactomeGSA}
+#https://github.com/reactome/ReactomeGSA/blob/master/vignettes/using-reactomegsa.Rmd
+devtools::install_github("reactome/ReactomeGSA")
+library(ReactomeGSA)
+devtools::install_github("reactome/ReactomeGSA.data")
+library(ReactomeGSA.data)
+data("griss_melanoma_proteomics")
+class(griss_melanoma_proteomics)
+head(griss_melanoma_proteomics$samples)
+# Create a new request object using 'Camera' for the gene set analysis
+my_request <-ReactomeAnalysisRequest(method = "Camera")
+my_request
+# set the maximum number of allowed missing values to 50%
+my_request <- set_parameters(request = my_request, max_missing_values = 0.5)
+my_request
+my_request <- add_dataset(request = my_request, 
+                          expression_values = griss_melanoma_proteomics, 
+                          name = "Proteomics", 
+                          type = "proteomics_int",
+                          comparison_factor = "condition", 
+                          comparison_group_1 = "MOCK", 
+                          comparison_group_2 = "MCM",
+                          additional_factors = c("cell.type", "patient.id"))
+my_request
+result <- perform_reactome_analysis(request = my_request)
+proteomics_fc <- get_result(result, type = "fold_changes", name = "Proteomics")
+head(proteomics_fc)
+combined_pathways <- pathways(result)
+head(combined_pathways)
+```
+
+```{r scPCA}
+#https://github.com/PhilBoileau/scPCA/blob/master/vignettes/scpca_intro.Rmd
+remotes::install_github("PhilBoileau/scPCA")
+library(scPCA)
+set.seed(1742)
+data(toy_df)
+pca_sim <- prcomp(toy_df[, 1:30])
+library(tibble)
+df <- as_tibble(list("PC1" = pca_sim$x[, 1],
+                     "PC2" = pca_sim$x[, 2],
+                     "label" = as.character(toy_df[, 31])))
+library(ggplot2)
+p_pca <- ggplot(df, aes(x = PC1, y = PC2, colour = label)) +
+  ggtitle("PCA on Simulated Data") +
+  geom_point(alpha = 0.5) +
+  theme_minimal()
+p_pca
+
+cpca_sim <- scPCA(target = toy_df[, 1:30],
+                  background = background_df,
+                  penalties = 0,
+                  n_centers = 4)
+library(dplyr)
+cpca_df <- cpca_sim$x %>%
+  as_tibble() %>%
+  mutate(label = toy_df[, 31] %>% as.character)
+colnames(cpca_df) <- c("cPC1", "cPC2", "label")
+# plot the results
+p_cpca <- ggplot(cpca_df, aes(x = cPC1, y = cPC2, colour = label)) +
+  geom_point(alpha = 0.5) +
+  ggtitle("cPCA of Simulated Data") +
+  theme_minimal()
+p_cpca
+
+scpca_sim <- scPCA(target = toy_df[, 1:30],
+                   background = background_df,
+                   n_centers = 4)
+scpca_df <- scpca_sim$x %>%
+  as_tibble() %>%
+  mutate(label = toy_df[, 31] %>% as.character)
+colnames(scpca_df) <- c("scPC1", "scPC2", "label")
+p_scpca <- ggplot(scpca_df, aes(x = scPC1, y = scPC2, colour = label)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal()
+p_scpca
+load_diff_df <- bind_rows(
+  cpca_sim$rotation %>% as.data.frame,
+  scpca_sim$rotation %>% as.data.frame) %>%
+  mutate(
+    sparse = c(rep("0", 30), rep("1", 30)),
+    coef = rep(1:30, 2)
+  )
+colnames(load_diff_df) <- c("comp1", "comp2", "sparse", "coef")
+p1 <- load_diff_df %>%
+  ggplot(aes(y = comp1, x = coef, fill = sparse)) +
+  geom_bar(stat = "identity") +
+  xlab("") +
+  ylab("") +
+  ylim(-1, 1) +
+  ggtitle("First Component") +
+  scale_fill_discrete(name = "Method", labels = c("cPCA", "scPCA")) +
+  theme_minimal()
+p2 <- load_diff_df %>%
+  ggplot(aes(y = comp2, x = coef, fill = sparse)) +
+  geom_bar(stat = "identity") +
+  xlab("") +
+  ylab("") +
+  ylim(-1, 1) +
+  ggtitle("Second Component") +
+  scale_fill_discrete(name = "Method", labels = c("cPCA", "scPCA")) +
+  theme_minimal()
+library(ggpubr)
+# build full plot via ggpubr
+annotate_figure(ggarrange(p1, p2, nrow = 1, ncol = 2,common.legend = TRUE, legend = "right"), top = "Leading Loadings Vectors Comparison",left = "Loading Weights", bottom ="Variable Index")
+```
+
+```{r signatureSearch}
+#https://bioconductor.org/packages/release/bioc/vignettes/signatureSearch/inst/doc/signatureSearch.html
+devtools::install_github("yduan004/signatureSearch")
+library(signatureSearch)
+#dependency 'gCMAP' is not available
+```
+
+```{r waddR}
+#https://bioconductor.org/packages/release/bioc/vignettes/waddR/inst/doc/wasserstein_singlecell.html
+devtools::install_github("goncalves-lab/waddR")
+library("waddR")
+
+set.seed(24)
+x <- rnorm(100, mean=0, sd=1)
+y <- rnorm(100, mean=2, sd=1)
+wasserstein_metric(x, y)
+#> [1] 2.028542
+wasserstein_metric(x, y)**2
+#> [1] 4.114983
+squared_wass_approx(x, y)
+squared_wass_decomp(x, y)
+
+
+url.base <- "https://github.com/goncalves-lab/waddR-data/blob/master/data/"
+sce.blood.url <- paste0(url.base, "sce_blood.RDa?raw=true")
+sce.decidua.url <- paste0(url.base, "sce_decidua.RDa?raw=true")
+
+getCachedPath <- function(url, rname){
+    bfc <- BiocFileCache() # fire up cache
+    res <- bfcquery(bfc, url, field="fpath", exact=TRUE)
+    if (bfccount(res) == 0L)
+        cachedFilePath <- bfcadd(bfc, rname=rname, fpath=url)
+    else
+        cachedFilePath <- bfcpath(bfc, res[["rid"]])
+    cachedFilePath
+}
+
+load(getCachedPath(sce.blood.url, "sce.blood"))
+load(getCachedPath(sce.decidua.url, "sce.decidua"))
+wsres <- wasserstein.sc(sce.blood, sce.decidua, "OS")
+head(wsres, n=10L)
+
+```
+
+```{r signatureSearch}
+#https://bioconductor.org/packages/release/bioc/vignettes/signatureSearch/inst/doc/signatureSearch.html
+devtools::install_github("yduan004/signatureSearch")
+library(signatureSearch)
+#dependency 'gCMAP' is not available
+```
+
+```{r controlling false discoveries}
+#https://www.biorxiv.org/content/10.1101/458786v1
+#https://bioconductor.org/packages/release/data/experiment/vignettes/benchmarkfdrData2019/inst/doc/benchmarkfdrData2019.html#4_exploratory_analysis
+
+devtools::install_github("yduan004/signatureSearch")
+library(signatureSearch)
+#dependency 'gCMAP' is not available
+```
+
+
+
 ```{r gene-set enrichment with regularized regression}
 #https://usethis.r-lib.org/articles/articles/usethis-setup.html
 #usethis::edit_r_environ()

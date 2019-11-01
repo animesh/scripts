@@ -11,6 +11,32 @@
 #./polynote/polynote.py
 #http://127.0.0.1:8192/
 
+#Causal Inference Week 1 Course Overview https://www.coursera.org/learn/causal-inference/lecture/dugVq
+#https://www.inference.vc/the-secular-bayesian-using-belief-distributions-without-really-believing/
+#https://fairmlbook.org/causal.html
+#https://github.com/adebayoj/fairml
+#python3 -m pip install https://github.com/adebayoj/fairml/archive/master.zip --user
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from fairml import audit_model
+from fairml import plot_generic_dependence_dictionary
+propublica_data = pd.read_csv(
+    filepath_or_buffer="./doc/example_notebooks/"
+    "propublica_data_for_fairml.csv")
+compas_rating = propublica_data.score_factor.values
+propublica_data = propublica_data.drop("score_factor", 1)
+clf = LogisticRegression(penalty='l2', C=0.01)
+clf.fit(propublica_data.values, compas_rating)
+total, _ = audit_model(clf.predict, propublica_data)
+print(total)
+fig = plot_dependencies(
+    total.get_compress_dictionary_into_key_median(),
+    reverse_values=False,
+    title="FairML feature dependence"
+)
+plt.savefig("fairml_ldp.eps", transparent=False, bbox_inches='tight')
+
 ##!/usr/bin/env python
 from platform import python_version
 print(python_version())
@@ -27,6 +53,42 @@ print(os.getenv())
 import pwd
 print(pwd.getpwuid(os.getuid()))
 
+#sudo pip install --upgrade pip
+#sudo python3 -m pip install --upgrade pip
+#sudo python3 -m pip install --upgrade tensorflow
+#sudo python3 -m pip install --upgrade tfp-nightly
+#https://medium.com/tensorflow/introducing-tensorflow-probability-dca4c304e245
+import tensorflow as tf
+from tensorflow_probability import edward2 as ed
+def model(features):
+  # Set up fixed effects and other parameters.
+  intercept = tf.get_variable("intercept", [])
+  service_effects = tf.get_variable("service_effects", [])
+  student_stddev_unconstrained = tf.get_variable(
+      "student_stddev_pre", [])
+  instructor_stddev_unconstrained = tf.get_variable(
+      "instructor_stddev_pre", [])
+  # Set up random effects.
+  student_effects = ed.MultivariateNormalDiag(
+      loc=tf.zeros(num_students),
+      scale_identity_multiplier=tf.exp(
+          student_stddev_unconstrained),
+      name="student_effects")
+  instructor_effects = ed.MultivariateNormalDiag(
+      loc=tf.zeros(num_instructors),
+      scale_identity_multiplier=tf.exp(
+          instructor_stddev_unconstrained),
+      name="instructor_effects")
+  # Set up likelihood given fixed and random effects.
+  ratings = ed.Normal(
+      loc=(service_effects * features["service"] +
+           tf.gather(student_effects, features["students"]) +
+           tf.gather(instructor_effects, features["instructors"]) +
+           intercept),
+      scale=1.,
+      name="ratings")
+  return ratings
+model([1,2,3,4])
 #https://www.tensorflow.org/probability/api_docs/python/tfp/mcmc/SimpleStepSizeAdaptation
 import tensorflow as tf
 print("TensorFlow version: {}".format(tf.__version__))
