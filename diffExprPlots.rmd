@@ -8,7 +8,7 @@ summary(data)
 ```
 
 ```{r venn}
-selThr<-0.3
+selThr<-0.6
 dataV<-data[,c(1,2,3,6)]
 #dataV<-data[(data$B_.WSRT<selThr),]
 hist(rowSums(as.matrix(dataV)))
@@ -53,6 +53,9 @@ wpid2name <- wp2gene %>% dplyr::select(wpid, name) #TERM2NAME
 wpid2name[grep("apoptosis",wpid2name$name,ignore.case = TRUE),]
 wpid2name[grep("stat",wpid2name$name,ignore.case = TRUE),]
 wpid2name[grep("mapk",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("akt",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("mtor",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("pi3k",wpid2name$name,ignore.case = TRUE),]
 #select(org.Hs.eg.db, uniP, "GENENAME", "UNIPROT")
 #select(org.Hs.eg.db, uniP, "SYMBOL", "UNIPROT")
 uniP<-data$T..Uniprot
@@ -67,11 +70,12 @@ uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
 dataSez<-merge(dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
 dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
 dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
-rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
+#rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
+rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
 #dataS<-dataSezWP
 ```
 
-```{r sel-data-rows, echo = FALSE}
+```{r stat, echo = FALSE}
 dataSel <- dataSezWP[grep("stat", dataSezWP$name,ignore.case=TRUE),] 
 vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="STAT",counts.col = "red")
 dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
@@ -82,7 +86,7 @@ dataSelSTAT<-dataSel
 summary(dataSelSTAT)
 ```
 
-```{r sel-data-rows, echo = FALSE}
+```{r mapk, echo = FALSE}
 dataSel <- dataSezWP[grep("mapk", dataSezWP$name,ignore.case=TRUE),] 
 vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="MAPK",counts.col = "red")
 dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
@@ -93,7 +97,33 @@ dataSelMAPK<-dataSel
 summary(dataSelMAPK)
 ```
 
-```{r sel-data-rows, echo = FALSE}
+```{r ampk, echo = FALSE}
+dataSel <- dataSezWP[grep("ampk", dataSezWP$name,ignore.case=TRUE),] 
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="AMPK",counts.col = "red")
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste0(rownames(dataSel),"_AMPK")
+dataSelAMPK<-dataSel
+summary(dataSelAMPK)
+```
+
+```{r PI3K/AKT/mTOR, echo = FALSE}
+dataSelPI3K <- dataSezWP[(grep("PI3K", dataSezWP$name,ignore.case=TRUE)),]
+dataSelAKT <- dataSezWP[(grep("AKT", dataSezWP$name,ignore.case=TRUE)),]
+dataSelmTOR <- dataSezWP[(grep("mTOR", dataSezWP$name,ignore.case=TRUE)),] 
+#dataSel <- dataSezWP[(grep("AKT", dataSezWP$name,ignore.case=TRUE))|(grep("PI3K", dataSezWP$name,ignore.case=TRUE))|(grep("mTOR", dataSezWP$name,ignore.case=TRUE)),] 
+dataSel<-rbind(dataSelPI3K,dataSelAKT,dataSelmTOR)
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="PI3K/AKT/mTOR",counts.col = "red")
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste0(rownames(dataSel),"_PI3K/AKT/mTOR")
+dataSel_PI3KAKTmTOR<-dataSel
+summary(dataSel_PI3KAKTmTOR)
+```
+
+```{r Apoptosis, echo = FALSE}
 dataSel <- dataSezWP[grep("apoptosis", dataSezWP$name,ignore.case=TRUE),] 
 vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="Apoptosis",counts.col = "red")
 dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
@@ -113,12 +143,13 @@ summary(dataSelApoptosis)
 
 
 ```{r sel-data-cols, echo = FALSE}
-data_selr<-rbind.data.frame(dataSelApoptosis,dataSelMAPK,dataSelSTAT)
+data_selr<-rbind.data.frame(dataSelApoptosis,dataSelMAPK,dataSelSTAT,dataSelAMPK,dataSel_PI3KAKTmTOR)
 #data_selr<-dataSel
 data_selr[is.na(data_selr)]<-0
 #data_selr<-data_selr[-(which(rowSums(data_selr) == 0)),] 
 summary(data_selr)
 hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 5)
 ```
 
 ```{r clust-plot, echo = FALSE}
@@ -134,11 +165,11 @@ cn<-strsplit(colnames(data_selr), "_")
 colnames(data_selr)<-paste(sapply(cn, "[", 1))
 summary(data_selr)
 #svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
-svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,,cluster_rows=FALSE)#,annotation_col = label,show_rownames=F)
+svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,label_row = pathwayN,cluster_rows=FALSE)#,annotation_col = label,show_rownames=F)
 library(ggplot2)
 #ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
 #plot(svgPHC)
-ggsave(file=paste0(inpD,"clusterPlot.ApoptoMAPKSTAT.svg"),plot=svgPHC)#,  width=6, height=6)
+ggsave(file=paste0(inpD,"clusterPlot.ApoptoMAPKSTATAMPKPI3KAKTmTOR.svg"),plot=svgPHC)#,  width=6, height=6)
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  width=6, height=6)
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  width=6, height=6)
 ```
