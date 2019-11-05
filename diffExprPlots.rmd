@@ -143,35 +143,275 @@ summary(dataSelApoptosis)
 
 
 ```{r sel-data-cols, echo = FALSE}
-data_selr<-rbind.data.frame(dataSelApoptosis,dataSelMAPK,dataSelSTAT,dataSelAMPK,dataSel_PI3KAKTmTOR)
+data_selr_s<-rbind.data.frame(dataSelApoptosis)#,dataSelMAPK,dataSelSTAT,dataSelAMPK,dataSel_PI3KAKTmTOR)
+#data_selr[data_selr==0]=NA
+#install.packages("scales")
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+#library(quantable)
+#data_selr_s=robustscale(data_selr,dim=1,center = FALSE)#,scale=TRUE,  preserveScale = FALSE)
+#data_selr_s=data_selr_s$data
+#data_selr$data[is.na(data_selr$data)]<-0
+#y$data<-y$data[-(which(rowSums(y$data) == 0)),] 
 #data_selr<-dataSel
-data_selr[is.na(data_selr)]<-0
+#data_selr<-data_selr$data
 #data_selr<-data_selr[-(which(rowSums(data_selr) == 0)),] 
 summary(data_selr)
 hist(as.matrix(data_selr))
-pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 5)
-```
+#data_selr['pathwayN']<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+#data_selr=subset(data_selr, !duplicated(pathwayN))
+#row.names(data_selr)=data_selr$pathwayN
+data_selr<-as.matrix(data_selr[,-13])
+#pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 5)
+summary(data_selr)
+#hist(as.matrix(data_selr))
+#```
 
-```{r clust-plot, echo = FALSE}
+#```{r clust-plot, echo = FALSE}
 #install.packages('pheatmap')
 library(pheatmap)
 #?pheatmap
 #rn<-sub(";","",data_selr$T..T..Gene.names)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+#data_selr[data_selr==0]=NA
+summary(data_selr)
+hist(data_selr)
 rn<-sub(";","",rownames(data_selr))
 #rn<-strsplit(rn, "apolipoprotein")
 #rn<-strsplit(rn, " ")
 row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
 cn<-strsplit(colnames(data_selr), "_")
 colnames(data_selr)<-paste(sapply(cn, "[", 1))
-summary(data_selr)
 #svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
-svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,label_row = pathwayN,cluster_rows=FALSE)#,annotation_col = label,show_rownames=F)
+#https://stackoverflow.com/a/44400007/1137129
+bk1 <- c(seq(-1,-0.01,by=0.01))
+bk2 <- c(seq(0.01,1,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+#svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,labels_row =  pathwayN,cluster_rows=TRUE,color = colorRampPalette(c( "navy", "white","firebrick"))(50),na_col = "grey")#,annotation_col = label,show_rownames=F)
 library(ggplot2)
 #ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
 #plot(svgPHC)
 ggsave(file=paste0(inpD,"clusterPlot.ApoptoMAPKSTATAMPKPI3KAKTmTOR.svg"),plot=svgPHC)#,  width=6, height=6)
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  width=6, height=6)
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  width=6, height=6)
+```
+
+```{r apohc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelApoptosis
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  
+```
+```{r sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelApoptosis
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  
+```
+```{r mapkhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMAPK
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  
+```
+```{r ampkhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelAMPK
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.AMPK.svg"),plot=svgPHC)#,  
+```
+```{r stathc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelSTAT
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.STAT.svg"),plot=svgPHC)#,  
+```
+```{r pi3kallhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSel_PI3KAKTmTOR
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.PI3Ketc.svg"),plot=svgPHC)#,  
+```
+
+```{r sel-data-cols, echo = FALSE}
+data_selr_s<-rbind.data.frame(dataSelMAPK)
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-1,-0.01,by=0.01))
+bk2 <- c(seq(0.01,1,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  
 ```
 
 

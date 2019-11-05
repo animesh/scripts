@@ -1,7 +1,7 @@
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file>")
 args = commandArgs(trailingOnly=TRUE)
 #read
-if(length(args)==0){inpF<-file.path("L:/promec/Qexactive/LARS/2019/oktober/Strandbakken/191021_s1_s2/txt/proteinGroups.txt");print(paste("No proteinGroups.txt file supplied, using",inpF))} else if (length(args)==1){inpF<-args[1];print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))}
+if(length(args)==0){inpF<-file.path("L:/promec/Qexactive/LARS/2019/oktober/HEIDI_NANO/101929 Eksperiment 2/txt/proteinGroups.txt");print(paste("No proteinGroups.txt file supplied, using",inpF))} else if (length(args)==1){inpF<-args[1];print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))}
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #clean
@@ -22,12 +22,12 @@ LFQglyceraldehyde<-LFQ[grep("glyceraldehyde",row.names(LFQ),ignore.case = TRUE),
 #summary(LFQglyceraldehyde)
 print("Proportion of glyceraldehyde(s)")
 dim(LFQglyceraldehyde)
-colSums(LFQglyceraldehyde)/colSums(LFQ)*100
+if(!is.null(dim(LFQglyceraldehyde))){colSums(LFQglyceraldehyde)/colSums(LFQ)*100}
 LFQactin<-LFQ[grep("actin",row.names(LFQ),ignore.case = TRUE),]
 #summary(LFQactin)
 print("Proportion of actin(s)")
 dim(LFQactin)
-colSums(LFQactin)/colSums(LFQ)*100
+if(!is.null(dim(LFQactin))){colSums(LFQactin)/colSums(LFQ)*100}
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 print(paste("Selected and log2 transformed columns",selection))
