@@ -1,7 +1,7 @@
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file>")
 args = commandArgs(trailingOnly=TRUE)
 #read
-if(length(args)==0){inpF<-file.path("L:/promec/Qexactive/LARS/2019/oktober/HEIDI_NANO/101929 Eksperiment 2/txt/proteinGroups.txt");print(paste("No proteinGroups.txt file supplied, using",inpF))} else if (length(args)==1){inpF<-args[1];print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))}
+if(length(args)==0){inpF<-file.path("L:/promec/Qexactive/LARS/2019/oktober/Kristine Sonja/combined/txt/proteinGroups.txt");print(paste("No proteinGroups.txt file supplied, using",inpF))} else if (length(args)==1){inpF<-args[1];print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))}
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #clean
@@ -14,9 +14,17 @@ row.names(data)<-data$Fasta.headers
 print("Converted Fasta.headers to rownames")
 #summary(data)
 #select
-selection="LFQ.intensity"
+if(length(args)==1){selection="LFQ.intensity";print(paste("No columns to select, using",selection))} else if (length(args)==2){selection<-args[2];print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))}
+selection1="Ratio."
+LFQ1<-as.matrix(data[,grep(selection1,colnames(data))])
+selection2=".normalized."
+LFQ2<-as.matrix(LFQ1[,grep(selection2,colnames(LFQ1))])
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+LFQ<-LFQ2
+LFQ<-apply(LFQ,2, as.numeric)
+rownames(LFQ)<-rownames(data)
 summary(LFQ)
+dim(LFQ)
 #select certain marker proteins and calculate their intensitt proportion
 LFQglyceraldehyde<-LFQ[grep("glyceraldehyde",row.names(LFQ),ignore.case = TRUE),]
 #summary(LFQglyceraldehyde)
@@ -41,6 +49,8 @@ NAs<-rowSums(is.na(log2LFQ))
 CVs<-Stdevs/Means
 summary(log2LFQ)#[7]
 colnames(log2LFQ)=sub(selection,"",colnames(log2LFQ))
+colnames(log2LFQ)=sub(selection1,"",colnames(log2LFQ))
+colnames(log2LFQ)=sub(selection2,"",colnames(log2LFQ))
 log2LFQ[is.na(log2LFQ)]=0
 Sums<-rowSums(log2LFQ)
 dim(log2LFQ)

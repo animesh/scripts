@@ -5,9 +5,24 @@ apply(x,2, median, na.rm = TRUE)
 is.na(apply(x,2, mean, na.rm = TRUE))
 is.nan(apply(x,2, median, na.rm = TRUE))
 ```
+
+```{r design}
+#https://llrs.github.io/experDesign/
+#devtools::install_github("llrs/experDesign")
+library("experDesign")
+metadata <- expand.grid(height = seq(60, 80, 5), 
+                        weight = seq(100, 300, 50),
+                        sex = c("Male","Female"))
+head(metadata, 15)
+d <- design(metadata, 24)
+batch_names(d)
+r <- replicates(metadata, 24, 5)
+r
+```
+
 ```{r clust-NA}
 #https://cran.r-project.org/web/packages/biclustermd/index.html
-devtools::install_github("jreisner/biclustermd")
+#devtools::install_github("jreisner/biclustermd")
 library(biclustermd)
 plot(dataSelSTAT)
 bc<-biclustermd(dataSelSTAT)
@@ -19,6 +34,50 @@ autoplot(bc)
 rep_dat_bc <- rep_biclustermd(data_selr0asNA, nrep = 50, col_clusters = 4, row_clusters = 4)
 plot(rep_dat_bc$rep_sse)
 autoplot(rep_dat_bc$best_bc)
+```
+
+```{r voom}
+#install.packages("BiocManager")
+#BiocManager::install("limma")
+#BiocManager::install("edgeR")
+library(limma)
+library(edgeR)
+countTable = read.table("l:/promec/Animesh/Alessandro/count-table.tsv",header=TRUE,row.names=1)
+condition = factor( c("WT","WT","AAG","AAG"))
+des = model.matrix(~-1+condition)
+colnames(des) = levels(condition)
+cmat <- makeContrasts(WT - AAG, levels=des)
+dge <- DGEList(counts=countTable)
+dge <- calcNormFactors(dge)
+v <- voom(dge,design=des)
+fit <- lmFit(v,design=des)
+fit <- contrasts.fit(fit, cmat)
+fit <- eBayes(fit)
+a <- decideTests(fit,adjust.method="fdr", p.value=0.05, lfc=0)
+sma = summary(a)
+dmm <- dim(countTable)
+res <- topTable(fit,n=dmm[1],coef=1)
+plot(res$logFC,-log10(res$adj.P.Val))
+write.csv(res,file="L:/promec/Animesh/Alessandro/Voom_diffexp.csv")
+```
+
+```{r density-plot}
+#https://github.com/LKremer/ggpointdensity
+#devtools::install_github("LKremer/ggpointdensity")
+library(ggplot2)
+library(dplyr)
+library(viridis)
+library(ggpointdensity)
+dat <- bind_rows(
+  tibble(x = rnorm(7000, sd = 1),
+         y = rnorm(7000, sd = 10),
+         group = "foo"),
+  tibble(x = rnorm(3000, mean = 1, sd = .5),
+         y = rnorm(3000, mean = 7, sd = 5),
+         group = "bar"))
+ggplot(data = dat, mapping = aes(x = x, y = y)) +
+  geom_pointdensity() +
+  scale_color_viridis()
 ```
 
 ```{r CrossICC}
