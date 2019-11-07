@@ -1,7 +1,14 @@
-print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file>")
+print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <SILAC>")
+print("default LFQ")
+#Rscript proteinGroups.r /home/animeshs/promec/promec/Qexactive/LARS/2019/oktober/Kristine\ Sonja/combined/txt/proteinGroups.txt SILAC
 args = commandArgs(trailingOnly=TRUE)
+print(paste("supplied argument(s):", length(args)))
+print(args[1])
+print(args[2])
 #read
-if(length(args)==0){inpF<-file.path("L:/promec/Qexactive/LARS/2019/oktober/Kristine Sonja/combined/txt/proteinGroups.txt");print(paste("No proteinGroups.txt file supplied, using",inpF))} else if (length(args)==1){inpF<-args[1];print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))}
+if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
+print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
+#inpF<-file.path("L:/promec/Qexactive/LARS/2019/oktober/Kristine Sonja/combined/txt/proteinGroups.txt")
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #clean
@@ -14,15 +21,22 @@ row.names(data)<-data$Fasta.headers
 print("Converted Fasta.headers to rownames")
 #summary(data)
 #select
-if(length(args)==1){selection="LFQ.intensity";print(paste("No columns to select, using",selection))} else if (length(args)==2){selection<-args[2];print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))}
-selection1="Ratio."
-LFQ1<-as.matrix(data[,grep(selection1,colnames(data))])
-selection2=".normalized."
-LFQ2<-as.matrix(LFQ1[,grep(selection2,colnames(LFQ1))])
-LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-LFQ<-LFQ2
-LFQ<-apply(LFQ,2, as.numeric)
-rownames(LFQ)<-rownames(data)
+if(length(args)==1){
+  selection="LFQ.intensity";print(paste("No columns to select, using",selection))
+  LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+  colnames(LFQ)=sub(selection,"",colnames(LFQ))
+} else if (args[2]=="SILAC"){
+    selection1="Ratio."
+    LFQ<-as.matrix(data[,grep(selection1,colnames(data))])
+    selection2=".normalized."
+    LFQ<-as.matrix(LFQ[,grep(selection2,colnames(LFQ))])
+    selection<-paste(selection1,selection2)
+    LFQ<-apply(LFQ,2, as.numeric)
+    rownames(LFQ)<-rownames(data)
+    colnames(LFQ)=sub(selection1,"",colnames(LFQ))
+    colnames(LFQ)=sub(selection2,"",colnames(LFQ))
+    print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))
+}
 summary(LFQ)
 dim(LFQ)
 #select certain marker proteins and calculate their intensitt proportion
@@ -48,9 +62,6 @@ Stdevs<-apply(log2LFQ,1, sd, na.rm = TRUE)
 NAs<-rowSums(is.na(log2LFQ))
 CVs<-Stdevs/Means
 summary(log2LFQ)#[7]
-colnames(log2LFQ)=sub(selection,"",colnames(log2LFQ))
-colnames(log2LFQ)=sub(selection1,"",colnames(log2LFQ))
-colnames(log2LFQ)=sub(selection2,"",colnames(log2LFQ))
 log2LFQ[is.na(log2LFQ)]=0
 Sums<-rowSums(log2LFQ)
 dim(log2LFQ)
@@ -68,7 +79,7 @@ outP<-paste(inpF,selection,"pdf",sep = ".")
 pdf(outP)
 i=1
 for(i in 1:dim(log2LFQ)[2]){
-  log2lfq <- hist(log2LFQ[,i],xlab=paste("File:",colnames(log2LFQ)[i],"Missing Values:",NAcols[i]),breaks=max(log2LFQ))
+  log2lfq <- hist(log2LFQ[,i],main=paste("File:",colnames(log2LFQ)[i],"Total Value(s):",dim(log2LFQ)[1],"Missing Value(s):",NAcols[i]),xlab=paste("log2",selection),breaks=max(log2LFQ)-min(log2LFQ),xlim=c(min(log2LFQ), max(log2LFQ)))
 }
 #pca
 plot(princomp(log2LFQ))
