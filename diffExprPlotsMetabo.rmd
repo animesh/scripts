@@ -18,15 +18,17 @@ hist(as.matrix(data))
 ```{r sel-data-cols, echo = FALSE}
 library(scales)
 data_selr<-data
+write.csv(data_selr,paste0(inpF,".parse.R.csv"))
+data_selr<-data_selr[,c(1,2,3,13,14,15,7,8,9,16,17,18,19,20,4,5,6,10,11,12,21,22,23,24,28,29,30,25,26,27)]
+#JJN3-RPMI8226-MC/CAR-HL60-NB4-monocyte-T24-Du145-HEK293
 data_selr=squish(as.matrix(data_selr),c(-3,3))
-#data_selr=squish(as.matrix(data_selr),c(-4,4))#scale
-data_selr[is.na(data_selr)]=0
+#data_selr=squish(as.matrix(data_selr),c(-7,3))#scale
+#data_selr[is.na(data_selr)]=0
 summary(data_selr)
 hist(as.matrix(data_selr))
-summary(data_selr)
 #install.packages('pheatmap')
 library(pheatmap)
-rn<-sub(";","",rownames(data_selr))
+rn<-sub("X.","",rownames(data_selr))
 #rn<-strsplit(rn, "apolipoprotein")
 #rn<-strsplit(rn, " ")
 row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
@@ -34,21 +36,26 @@ cn<-strsplit(colnames(data_selr), "_")
 colnames(data_selr)<-paste(sapply(cn, "[", 1))
 #svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
 #https://stackoverflow.com/a/44400007/1137129
-bk1 <- c(seq(-1,-0.01,by=0.01))
-bk2 <- c(seq(0.01,1,by=0.01))
+#bk1 <- c(seq(-1,-0.01,by=0.01))
+#bk2 <- c(seq(0.01,1,by=0.01))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.0,3,by=0.01))
 bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
-my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
-              "gray", "gray",
-              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
-svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
-#svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=FALSE,color = my_palette,scale="row")#,labels_row =  pathwayN,annotation_col = label,show_rownames=F)
+#my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),              "gray", "gray",              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+my_palette=c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)),
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2))))#colorRampPalette(color=c("darkblue", "white", "darkred"))
+svgPHC<-pheatmap(data_selr,fontsize_row=6,color = my_palette,cluster_rows=FALSE,cluster_cols=FALSE)#labels_row =  svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=FALSE)#labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+#svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=FALSE,color = my_palette,scale="row")#,annotation_col = label,show_rownames=F)
+#svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,scale="row")#,labels_row =  pathwayN,annotation_col = label,show_rownames=F)
+#svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette,scale="row")#,labels_row =  pathwayN,annotation_col = label,show_rownames=F)
 #svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,labels_row =  pathwayN,cluster_rows=TRUE,color = colorRampPalette(c( "navy", "white","firebrick"))(50),na_col = "grey")#,annotation_col = label,show_rownames=F)
 #svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=FALSE,color = my_palette,scale="row")#,labels_row =  pathwayN,annotation_col = label,show_rownames=F)
 #svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,labels_row =  pathwayN,cluster_rows=TRUE,color = colorRampPalette(c( "navy", "white","firebrick"))(50),na_col = "grey")#,annotation_col = label,show_rownames=F)
 library(ggplot2)
-#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
+ggsave(file=paste0(inpD,"clusterPlot.metabolomics.row.NOT.clustered.svg"),plot=svgPHC)#,  #ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
 #plot(svgPHC)
-ggsave(file=paste0(inpD,"clusterPlot.metabolomics.clustered.scaled.svg"),plot=svgPHC)#,  width=6, height=6)
+#ggsave(file=paste0(inpD,"clusterPlot.metabolomics.row.clustered.scaled.svg"),plot=svgPHC)#,  width=6, height=6)
+#ggsave(file=paste0(inpD,"clusterPlot.metabolomics.row.clustered.svg"),plot=svgPHC)#,  width=6, height=6)
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  width=6, height=6)
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  width=6, height=6)
 ```
