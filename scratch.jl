@@ -52,8 +52,8 @@ end
 using Calculus
 Calculus.gradient(x -> 3x^2 + 2x + 1, 5) # (32,)
 
-#Pkg.add("Nemo")
 Pkg.add("Trebuchet")
+Pkg.add("Nemo")
 using Nemo
 R, x = FiniteField(7, 11, "x")
 #(Finite field of degree 11 over F_7,x)
@@ -176,3 +176,4 @@ using Pkg
 Pkg.add("Gadfly")
 using Gadfly
 Gadfly.plot([sin, cos,tan], -20*pi, 20*pi)
+#https://github.com/JuliaOpt/JuMP.jl/blob/master/examples/cannery.jl

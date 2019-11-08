@@ -1,4 +1,5 @@
 ```{r NA or NaN}
+#https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/ Perseus-type, bpca, knn,  QRILC,  MLE, MinDet,  MinProb, min, zero 
 x<-as.matrix(c(NA, NA, NA))
 apply(x,2, mean, na.rm = TRUE)
 apply(x,2, median, na.rm = TRUE)
@@ -34,6 +35,31 @@ autoplot(bc)
 rep_dat_bc <- rep_biclustermd(data_selr0asNA, nrep = 50, col_clusters = 4, row_clusters = 4)
 plot(rep_dat_bc$rep_sse)
 autoplot(rep_dat_bc$best_bc)
+```
+
+```{r pepLFQ}
+#https://github.com/statOmics/MSqRobSumPaper/blob/master/analyses/DEP/analysis.r
+devtools::install_github("statOmics/MSqRob@MSqRob0.7.6")
+#https://github.com/statOmics/MSqRob/blob/master/vignettes/MSqRob.Rmd
+library(MSqRob)
+library(Biobase)
+library(MSnbase)
+library(limma)
+file_peptides_txt <- "L:/promec/Qexactive/LARS/2019/oktober/Kristine Sonja/combined/txt/peptides.txt"
+peptidesFranc <- import2MSnSet(file_peptides_txt, filetype = "MaxQuant", remove_pattern = TRUE)
+head(fData(peptidesFranc))
+pData(peptidesFranc)
+runs <- sampleNames(peptidesFranc)
+runs
+colnames(exprs(peptidesFranc))
+genotype <- factor(c(rep("WT",9),rep("WT2",9),rep("KO",9)), levels=c("WT","WT2","KO"))
+genotype
+n <- nchar(runs)
+biorep <- as.factor(paste0("b_",rep(1:9,each=3)))
+biorep
+exp_annotation <- data.frame(run=runs, genotype=genotype, biorep=biorep)
+exp_annotation
+peptidesFranc2 <- preprocess_MaxQuant(peptidesFranc, accession="Proteins", exp_annotation=exp_annotation, logtransform=TRUE, base=2, normalisation="quantiles", smallestUniqueGroups=TRUE, useful_properties=c("GI number","Protein.names","Sequence"), filter=c("Contaminant","Reverse"), remove_only_site=TRUE, file_proteinGroups=file_proteinGroups,  filter_symbol="+", minIdentified=2)
 ```
 
 ```{r voom}
