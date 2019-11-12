@@ -1,0 +1,11 @@
+#setwd("F:\\mgf\\")
+#data<-scan("F://mgf//171010_Ip_Hela_ugi.raw.intensity0.charge0-comet-human.txt")
+data<-read.table("F://mgf//171010_Ip_Hela_ugi.raw.intensity0.charge0-comet-human.txt",header=T,sep="\t",skip=1,row.names=NULL)
+summary(data)
+mzd=data$charge-data$exp_neutral_mass
+hist(mzd)
+aft<-fft(mzd)
+aft<-fft(fft(aft), inverse = TRUE)/length(aft)
+plot(aft)
+absaft<-abs(aft)
+plot(absaft)

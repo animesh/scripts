@@ -1,8 +1,0 @@
-setwd("D:\\animesh\\projects\\research\\fft")
-#a<-scan("mtub.fas.out")
-a<-scan("mtub.fas.ftP.txt.out")
-afft<-fft(a)
-#aa<-fft(fft(a), inverse = TRUE)/length(a)
-plot(afft)
-absafft<-abs(afft)
-plot(absafft)

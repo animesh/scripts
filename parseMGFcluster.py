@@ -49,10 +49,29 @@ file = pathlib.Path.cwd().parent.rglob('*.MGF')
 file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
 print(file.read_text().split(' '))
 out=parseMGF(file)
-X=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ in out.items()]
-X=np.array(X).reshape(-1, 1)
-print(X.shape)
 
+X=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ in out.items()]
+X_mz1=np.array(X).reshape(-1, 1)
+print(X_mz1.shape)
+
+X=[(out[k]['pep_intensity']) for k, _ in out.items()]
+X_int=np.array(X).reshape(-1, 1)
+print(X_int.shape)
+
+X=[np.float(out[k]['rtinseconds']) for k, _ in out.items()]
+X_rt=np.array(X).reshape(-1, 1)
+print(X_rt.shape)
+
+k=0
+print(out[k],X_int[k],X_mz1[k],X_rt[k])
+
+import matplotlib.pyplot as plt
+print(X_mz1, X_rt)
+plt.scatter(X_rt,X_mz1)
+#plt.scatter(X_rt,X_int)
+from scipy.fftpack import fft
+mz1ft=fft(X_mz1)
+plt.plot(mz1ft)
 #https://github.com/rasbt/python-machine-learning-book/blob/master/code/ch11/ch11.ipynb
 from sklearn.datasets import make_blobs
 X, y = make_blobs(n_samples=150,
