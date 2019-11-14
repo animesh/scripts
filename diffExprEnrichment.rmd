@@ -1,0 +1,714 @@
+```{r data, echo = FALSE}
+inpD <-"L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/"
+inpF<-paste0(inpD,"proteinGroupsLog2LFQctrl.xlsx WSRTun.txt")
+data <- read.delim(inpF,sep="\t",header = T)
+data$T..Uniprot<-(sapply(strsplit(as.character(data$T..Protein.IDs),"[-;]"), "[", 1))
+summary(data)
+```
+
+```{r overlap}
+selThr<-0.3
+dataV<-data[,grep(pattern = "WSRT",colnames(data))]
+cn<-strsplit(colnames(dataV), "_")
+colnames(dataV)<-paste(sapply(cn, "[", 3),sapply(cn, "[", 4))
+library(limma)
+vennDiagram(dataV<selThr)
+#hist(rowSums(as.matrix(dataV)))
+```
+
+```{r overlap-plot}
+library(ggplot2)
+ggsave(file=paste0(inpF,"venn.svg"),plot=vennDiagram(dataV<selThr))#,  width=6, height=6)
+```
+
+```{r sel-WSRT}
+dataS<-data[(data$ONO_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$ONO_.WSRT<selThr & data$B_.WSRT<selThr) | (data$B_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$ONO_.WSRT<selThr & data$NB_.WSRT<selThr) | (data$NB_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$NB_.WSRT<selThr & data$B_.WSRT<selThr) ,]
+hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
+vennDiagram(dataS[,c(1,2,3,6)]<selThr)
+```
+
+
+```{r map-ID}
+dataS<-data
+library(org.Hs.eg.db)
+uniP<-c("P07237","P28331","Q12931")
+select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
+library(clusterProfiler)
+#http://data.wikipathways.org/current/gmt/
+wp2gene <- read.gmt("L:/promec/Animesh/Lisa/wikipathways-20191010-gmt-Homo_sapiens.gmt")
+library(magrittr)
+wp2gene <- wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
+wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE
+wpid2name <- wp2gene %>% dplyr::select(wpid, name) #TERM2NAME
+wpid2name[grep("apoptosis",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("stat",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("mapk",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("akt",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("mtor",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("pi3k",wpid2name$name,ignore.case = TRUE),]
+#select(org.Hs.eg.db, uniP, "GENENAME", "UNIPROT")
+#select(org.Hs.eg.db, uniP, "SYMBOL", "UNIPROT")
+uniP<-data$T..Uniprot
+uniP <- lapply(uniP, as.character)
+unlist(uniP)
+uniP[[1]]
+uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
+wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
+wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
+uniprots <- Rkeys(org.Hs.egUNIPROT)
+uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
+dataSez<-merge(dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
+dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
+dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
+#rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
+rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
+#dataS<-dataSezWP
+```
+
+```{r stat, echo = FALSE}
+dataSel <- dataSezWP[grep("stat", dataSezWP$name,ignore.case=TRUE),] 
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="STAT",counts.col = "red")
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste0(rownames(dataSel),"_STAT")
+dataSelSTAT<-dataSel
+summary(dataSelSTAT)
+```
+
+```{r mapk, echo = FALSE}
+dataSel <- dataSezWP[grep("mapk", dataSezWP$name,ignore.case=TRUE),] 
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="MAPK",counts.col = "red")
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste0(rownames(dataSel),"_MAPK")
+dataSelMAPK<-dataSel
+summary(dataSelMAPK)
+```
+
+```{r ampk, echo = FALSE}
+dataSel <- dataSezWP[grep("ampk", dataSezWP$name,ignore.case=TRUE),] 
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="AMPK",counts.col = "red")
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste0(rownames(dataSel),"_AMPK")
+dataSelAMPK<-dataSel
+summary(dataSelAMPK)
+```
+
+```{r PI3K/AKT/mTOR, echo = FALSE}
+dataSelPI3K <- dataSezWP[(grep("PI3K", dataSezWP$name,ignore.case=TRUE)),]
+dataSelAKT <- dataSezWP[(grep("AKT", dataSezWP$name,ignore.case=TRUE)),]
+dataSelmTOR <- dataSezWP[(grep("mTOR", dataSezWP$name,ignore.case=TRUE)),] 
+dataSel_PI3KAKTmTOR <- dataSezWP[(grep("PI3K-Akt-mTOR", dataSezWP$name,ignore.case=TRUE)),] 
+#dataSel <- dataSezWP[(grep("AKT", dataSezWP$name,ignore.case=TRUE))|(grep("PI3K", dataSezWP$name,ignore.case=TRUE))|(grep("mTOR", dataSezWP$name,ignore.case=TRUE)),] 
+dataSel<-dataSel_PI3KAKTmTOR#rbind(dataSelPI3K,dataSelAKT,dataSelmTOR)
+#pathwayN<-sapply(strsplit(row.names(dataSel),"_"), `[`, 1)
+#dataSel<-cbind.data.frame(dataSel,pathwayN)
+#dataSel=subset(dataSel, !duplicated(pathwayN))
+#dataSel<-as.matrix(dataSel[,-13])
+summary(dataSel)
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="PI3K/AKT/mTOR",counts.col = "red")
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste0(rownames(dataSel),"_PI3K/AKT/mTOR")
+dataSel_PI3KAKTmTOR<-dataSel
+summary(dataSel_PI3KAKTmTOR)
+```
+
+```{r Apoptosis, echo = FALSE}
+dataSel <- dataSezWP[grep("apoptosis", dataSezWP$name,ignore.case=TRUE),] 
+vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="Apoptosis",counts.col = "red")
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+#data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_jak <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_mapk <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
+#data_jaks <- data[grep("jak", data$C..KEGG.name),] 
+#data_mapk <- data[grep("mapk signaling pathway", data$C..KEGG.name),]
+#data_selr <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
+#data_selr<-rbind.data.frame(data_apop,data_apop,data_mapk)
+rownames(dataSel)<-paste0(rownames(dataSel),"_Apopto")
+dataSelApoptosis<-dataSel
+summary(dataSelApoptosis)
+```
+
+
+```{r sel-data-cols, echo = FALSE}
+data_selr_s<-rbind.data.frame(dataSelApoptosis)#,dataSelMAPK,dataSelSTAT,dataSelAMPK,dataSel_PI3KAKTmTOR)
+#data_selr[data_selr==0]=NA
+#install.packages("scales")
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+#library(quantable)
+#data_selr_s=robustscale(data_selr,dim=1,center = FALSE)#,scale=TRUE,  preserveScale = FALSE)
+#data_selr_s=data_selr_s$data
+#data_selr$data[is.na(data_selr$data)]<-0
+#y$data<-y$data[-(which(rowSums(y$data) == 0)),] 
+#data_selr<-dataSel
+#data_selr<-data_selr$data
+#data_selr<-data_selr[-(which(rowSums(data_selr) == 0)),] 
+summary(data_selr)
+hist(as.matrix(data_selr))
+#data_selr['pathwayN']<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+#data_selr=subset(data_selr, !duplicated(pathwayN))
+#row.names(data_selr)=data_selr$pathwayN
+data_selr<-as.matrix(data_selr[,-13])
+#pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 5)
+summary(data_selr)
+#hist(as.matrix(data_selr))
+#```
+
+#```{r clust-plot, echo = FALSE}
+#install.packages('pheatmap')
+library(pheatmap)
+#?pheatmap
+#rn<-sub(";","",data_selr$T..T..Gene.names)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+#data_selr[data_selr==0]=NA
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+#rn<-strsplit(rn, "apolipoprotein")
+#rn<-strsplit(rn, " ")
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+#svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
+#https://stackoverflow.com/a/44400007/1137129
+bk1 <- c(seq(-1,-0.01,by=0.01))
+bk2 <- c(seq(0.01,1,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+#svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,labels_row =  pathwayN,cluster_rows=TRUE,color = colorRampPalette(c( "navy", "white","firebrick"))(50),na_col = "grey")#,annotation_col = label,show_rownames=F)
+library(ggplot2)
+#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
+#plot(svgPHC)
+ggsave(file=paste0(inpD,"clusterPlot.ApoptoMAPKSTATAMPKPI3KAKTmTOR.svg"),plot=svgPHC)#,  width=6, height=6)
+#ggsave(file=paste0(inpD,hdr,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  width=6, height=6)
+#ggsave(file=paste0(inpD,hdr,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  width=6, height=6)
+```
+
+```{r apohc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelApoptosis
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  
+```
+```{r sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelApoptosis
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  
+```
+```{r mapkhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMAPK
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  
+```
+```{r ampkhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelAMPK
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.AMPK.svg"),plot=svgPHC)#,  
+```
+```{r stathc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelSTAT
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.STAT.svg"),plot=svgPHC)#,  
+```
+```{r pi3kallhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSel_PI3KAKTmTOR
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.PI3Ketc.svg"),plot=svgPHC)#,  
+```
+
+```{r sel-data-cols, echo = FALSE}
+data_selr_s<-rbind.data.frame(dataSelMAPK)
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-1,-0.01,by=0.01))
+bk2 <- c(seq(0.01,1,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  
+```
+
+
+```{r select-hdr-log2, echo = FALSE}
+#hdr="LFQ.intensity."
+hdr="Ratio.H.L.6"
+datLog2LFQ=log2(data[,grep(hdr, names(data))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r remove-samples, echo = FALSE}
+samples="ENDOSOME"
+datLog2LFQ=log2(datLog2LFQ[,-grep(samples, names(datLog2LFQ))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r select-grp, echo = FALSE}
+group="PCI"
+datLog2LFQ=log2(datLog2LFQ[,grep(group, names(datLog2LFQ))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r select-grp, echo = FALSE}
+group="PDT"
+datLog2LFQ=log2(datLog2LFQ[,grep(group, names(datLog2LFQ))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r select-grp, echo = FALSE}
+group="bleomycin"
+datLog2LFQ=log2(datLog2LFQ[,grep(group, names(datLog2LFQ))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r clean, echo = FALSE}
+decoyPrefix="REV"
+dataClean<-data[-grep(decoyPrefix, rownames(data)),]
+dfNoRev = data[!data$Reverse=="+",]
+setdiff(rownames(dataClean),rownames(dfNoRev))
+setdiff(rownames(dfNoRev),rownames(dataClean))
+decoyPrefix="REV__"
+dataClean<-data[-grep(decoyPrefix, rownames(data)),]
+setdiff(rownames(dataClean),rownames(dfNoRev))
+setdiff(rownames(dfNoRev),rownames(dataClean))
+contaminantPrefix="CON__"
+#dataClean<-dataClean[-grep(contaminantPrefix, rownames(dataClean)),]
+dataClean=dataClean[!dataClean$Potential.contaminant=="+",]
+#dataClean=dataClean[!dataClean$Only.identified.by.site=="+",]
+summary(dataClean)
+```
+
+
+```{r norm, echo = FALSE}
+hdr="LFQ.intensity."
+dataNorm=log2(dataClean[,grep(hdr, names(dataClean))])
+summary(dataNorm)
+hist(as.matrix(dataNorm))
+```
+
+```{r select, echo = FALSE}
+dataNormFilter<-dataNorm
+dataNormFilter[dataNormFilter==-Inf]=NA
+summary(dataNormFilter)
+selThr<-2
+dataNormFilter$Red = apply(dataNormFilter,1,function(x) sum(is.na(x[3:5])))
+dataNormFilter$White = apply(dataNormFilter,1,function(x) sum(is.na(x[c(1,2,6)])))
+dataNormFilter.Select = dataNormFilter[dataNormFilter$Red<selThr | dataNormFilter$White<selThr,1:6]
+summary(dataNormFilter.Select)
+```
+
+
+```{r euler,echo=F}
+#install.packages('eulerr')
+library(eulerr)
+#install.packages('ggplot2')
+library(ggplot2)
+euler(dataNormFilter[,8:7]<2,shape="ellipse")$original.values
+vplot<-plot(euler(dataNormFilter[,8:7]<selThr,shape="ellipse"),quantities=TRUE, col="black",fill=c("white","red"),main="Identified Protein Groups in Salmon Types")
+plot(vplot)
+#iinstall.packages("ggplot2")
+#library(ggplot2)
+#install.packages("svglite")
+#library(svglite)
+ggsave(file=paste0(inpD,hdr,"venn.svg"),plot=vplot)#,  width=6, height=6)
+```
+
+
+```{r imputeFilter, echo = FALSE}
+dataNormImpFilter<-dataNormFilter.Select
+summary(dataNormImpFilter)
+set.seed(1)
+#dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-3,sd=sd(!is.na(dataNormImpFilter))/3)
+dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-12,sd=sd(!is.na(dataNormImpFilter))/12)
+summary(dataNormImpFilter)
+hist(as.matrix(dataNormImpFilter))
+```
+
+```{r PCA, echo = FALSE}
+dataNormImpCom<-dataNormImpFilter
+plot(princomp(dataNormImpCom))
+#biplot(prcomp(as.matrix(t(dataNormImpCom)),scale = T))
+#biplot(prcomp(dataNormImpCom,scale = F))
+#biplot(prcomp(dataNormImpCom,scale = T),col=c(1,8), cex=c(0.5, 0.4))
+```
+
+```{r t-test, echo = FALSE}
+pVal = apply(dataNormImpFilter, 1, function(x) t.test(as.numeric(x[c(3:5)]),as.numeric(x[c(1,2,6)]),var.equal=T)$p.value)
+logFC = rowMeans(dataNormImpFilter[,c(3:5)])-rowMeans(dataNormImpFilter[,c(1,2,6)])
+ttest.results = data.frame(gene=rownames(dataNormImpFilter),logFC=logFC,P.Value = pVal, adj.pval = p.adjust(pVal,method = "BH")) 
+#ttest.results$PSMcount = psm.count.table[ttest.results$gene,"count"]
+ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
+head(ttest.results)
+write.csv(ttest.results,file=paste0(inpD,hdr,"tTestBH.csv"))
+plot(logFC,-log10(pVal),col="orange",)
+```
+
+
+```{r t-test-plot, echo = FALSE}
+dsub=subset(ttest.results,ttest.results$P.Value<0.05&abs(ttest.results$logFC)>0.58)
+#rn<-do.call(rbind, strsplit(rownames(dsub), '\\.'))
+rn<-strsplit(rownames(dsub), ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+#install.packages('svglite')
+ggsave(file=paste0(inpD,hdr,"volcanoPlot.svg"),plot=g)#,  width=6, height=6)
+```
+
+```{r t-test-fraction-plot, echo = FALSE}
+#dsub=data[grep("apo",data$Fasta.headers),]
+dsub=data[(grepl("apo",data$Fasta.headers))|(grepl("alb",data$Fasta.headers)),]
+dsub=merge(dsub,ttest.results,by="row.names")
+rn<-strsplit(dsub$Row.names, ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+ggsave(file=paste0(inpD,hdr,"volcanoPlot.frac.svg"),plot=g)#,  width=6, height=6)
+```
+
+```{r fraction-clust-plot, echo = FALSE}
+#install.packages('pheatmap')
+library(pheatmap)
+#?pheatmap
+y<-as.matrix(dsub[,grepl("Fraction\\.[0-9]+",colnames(dsub))])
+#yy<-as.matrix(data[grepl("albumin",data$Fasta.headers),])
+
+y[is.na(y)]<-0
+rn<-sub(";","",dsub$Fasta.headers)
+#rn<-strsplit(rn, "apolipoprotein")
+rn<-strsplit(rn, " ")
+row.names(y)<-paste(sapply(rn, "[", 1),sapply(rn, "[", 3),sapply(rn, "[", 6))
+summary(y)
+#svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
+svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
+#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
+plot(svgPHC)
+ggsave(file=paste0(inpD,hdr,"clusterPlot.frac.svg"),plot=svgPHC)#,  width=6, height=6)
+```
+
+
+```{r ROTS, echo = FALSE}
+#iocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormImpFilter#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,2,2,2,1)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpD,hdr,"rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.5)
+plot(results, fdr = 0.2, type = "heatmap")
+```
+
+```{r imputeFilter-ttest, echo = FALSE}
+pairwise.t.test(as.matrix(dataNormImpFilter),c(0,0,1,1,1,0))#[1,3:5],dataNormImpFilter[1,c(1,2,6)])
+```
+
+```{r write-output, echo = FALSE}
+write.table(dataNorm,file=paste0(inpD,"log2data.txt"), sep = "\t")
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+
+```{r impute, echo = FALSE}
+#install.packages('mice')
+library(mice)
+#install.packages('randomForest')
+library(randomForest)
+dataNormImp=mice(dataNorm, method="rf")
+dataNormImpCom <- complete(dataNormImp,1)
+row.names(dataNormImpCom)<-row.names(dataNorm)
+summary(dataNormImpCom)
+```
+
+```{r write-output, echo = FALSE}
+write.csv(dataNormImpCom,file=paste0(inpD,"log2dataImp.csv"))
+#write.csv(factors,file=paste0(inpD,"dataNormImpComFactor.csv"))
+dataNormImpCom <- read.csv(paste0(inpD,"log2dataImp.csv"),row.names=1,header = T)
+#factors<-read.csv(paste0(inpD,"dataNormImpComFactor.csv"))
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+
+
+```{r DEqMS}
+#https://rdrr.io/bioc/DEqMS/f/vignettes/DEqMS-package-vignette.Rmd
+#install.packages("BiocManager")
+#BiocManager::install("DEqMS")
+library(DEqMS)
+dat.log=dataNormImpFilter
+boxplot(dat.log,las=2,main="")
+cond = as.factor(c("w","w","r","r","r","w"))
+design = model.matrix(~0+cond) # 0 means no intercept for the linear model
+colnames(design) = gsub("cond","",colnames(design))
+x <- c("r-w")
+contrast =  makeContrasts(contrasts=x,levels=design)
+fit1 <- lmFit(dat.log, design)
+fit2 <- contrasts.fit(fit1,contrasts = contrast)
+fit3 <- eBayes(fit2)
+df.prot=dataClean[dataNormFilter$Red<selThr | dataNormFilter$White<selThr,]
+library(matrixStats)
+count_columns = "MS.MS.count."
+#psm.count.table = data.frame(count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))])))+1
+#rownames(fit3$coefficients)
+fit3$count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))]))+1
+fit4 = spectraCounteBayes(fit3)
+# n=30 limits the boxplot to show only proteins quantified by <= 30 PSMs.
+VarianceBoxplot(fit4,n=30,main=inpD,xlab="PSM count")
+VarianceScatterplot(fit4,main=inpD)
+DEqMS.results = outputResult(fit4,coef_col = 1)
+#if you are not sure which coef_col refers to the specific contrast,type
+head(fit4$coefficients)
+# a quick look on the DEqMS results table
+head(DEqMS.results)
+# Save it into a tabular text file
+write.table(DEqMS.results,paste0(inpD,hdr,"DEqMS.results.txt"),sep = "\t",row.names = F,quote=F)
+#install.packages("ggrepel")
+library(ggrepel)
+# Use ggplot2 allows more flexibility in plotting
+DEqMS.results$log.sca.pval = -log10(DEqMS.results$sca.P.Value)
+ggplot(DEqMS.results, aes(x = logFC, y =log.sca.pval )) + 
+    geom_point(size=0.5 )+
+    theme_bw(base_size = 16) + # change theme
+    xlab(expression("log2(red/white)")) + # x-axis label
+    ylab(expression(" -log10(P-value)")) + # y-axis label
+    geom_vline(xintercept = c(-1,1), colour = "red") + # Add fold change cutoffs
+    geom_hline(yintercept = 2, colour = "red") + # Add significance cutoffs
+    geom_vline(xintercept = 0, colour = "black") + # Add 0 lines
+    scale_colour_gradient(low = "black", high = "black", guide = FALSE)+
+    geom_text_repel(data=subset(DEqMS.results, abs(logFC)>1&log.sca.pval > 2),
+                    aes( logFC, log.sca.pval ,label=gene)) # add gene label
+
+#fit4$p.value = fit4$sca.p
+#volcanoplot(fit4,coef=1, style = "p-value", highlight = 10,names=rownames(fit4$coefficients))
+```
+
+```{r DEqMS-peptides}
+fit3$count = rowMins(as.matrix(df.prot[,grepl("^Peptides\\.[0-9]+", names(df.prot))]))+1
+min(fit3$count)
+
+fit4 = spectraCounteBayes(fit3)
+VarianceBoxplot(fit4, n=20, main = hdr,xlab="peptide count + 1")
+DEqMS.results = outputResult(fit4,coef_col = 1)
+DEqMS.results$Gene.name = df.prot[DEqMS.results$gene,]$Gene.names
+head(DEqMS.results)
+write.table(DEqMS.results,paste0(inpD,hdr,"R-W.DEqMS.pep.results.txt"),sep = "\t",row.names = F,quote=F)
+head(DEqMS.results)
+VarianceBoxplot(fit4,n=20)
+#peptideProfilePlot(dat=df.prot)#,col=2,gene="TGFBR2")
+VarianceScatterplot(fit4, xlab="log2(LFQ)")
+limma.prior = fit4$s2.prior
+abline(h = log(limma.prior),col="green",lwd=3 )
+legend("topright",legend=c("DEqMS prior variance","Limma prior variance"),
+        col=c("red","green"),lwd=3)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+Residualplot(fit4,  xlab="log2(PSM count)",main="DEqMS")
+x = fit3$count
+y = log(limma.prior) - log(fit3$sigma^2)
+plot(log2(x),y,ylim=c(-6,2),ylab="Variance(estimated-observed)", pch=20, cex=0.5,
+     xlab = "log2(PSMcount)",main="Limma")
+#install.packages("LSD")
+library(LSD)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+x = fit3$count
+y = fit3$s2.post
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)", 
+     ylab="log(Variance)",
+     main="Posterior Variance in Limma")
+
+y = fit4$sca.postvar
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
+     ylab="log(Variance)", 
+     main="Posterior Variance in DEqMS")
+
+```
+
+

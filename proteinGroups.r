@@ -8,7 +8,7 @@ print(args[2])
 #read
 if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
-#inpF<-file.path("L:/promec/Qexactive/LARS/2019/oktober/Kristine Sonja/combined/txt/proteinGroups.txt")
+#inpF<-file.path("L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/proteinGroups.txt")
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #clean
@@ -79,7 +79,7 @@ outP<-paste(inpF,selection,"pdf",sep = ".")
 pdf(outP)
 i=1
 for(i in 1:dim(log2LFQ)[2]){
-  log2lfq <- hist(log2LFQ[,i],main=paste("File:",colnames(log2LFQ)[i],"Total Value(s):",dim(log2LFQ)[1],"Missing Value(s):",NAcols[i]),xlab=paste("log2",selection),breaks=max(log2LFQ)-min(log2LFQ),xlim=c(min(log2LFQ), max(log2LFQ)))
+  log2lfq <- hist(log2LFQ[,i],main=paste("File:",colnames(log2LFQ)[i],"\n","Quantified Protein Group(s):",dim(log2LFQ)[1]-as.integer(NAcols[i]),"out of ",dim(log2LFQ)[1],",","Missing Value(s):",NAcols[i]),xlab=paste("log2",selection),breaks=max(log2LFQ)-min(log2LFQ),xlim=c(min(log2LFQ), max(log2LFQ)))
 }
 #pca
 plot(princomp(log2LFQ))

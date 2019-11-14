@@ -8,6 +8,19 @@ is.nan(apply(x,2, median, na.rm = TRUE))
 ```
 
 ```{r design}
+#https://yihui.name/tinytex/
+install.packages('tinytex')
+tinytex::install_tinytex()
+tinytex:::is_tinytex()
+tinytex:::install_yihui_pkgs()
+writeLines(c(
+   '\\documentclass{article}',
+   '\\begin{document}', '$$\\int_{a}^{b} x^2 dx$$', '\\end{document}'
+ ), 'scratch.tex')
+tinytex::pdflatex('scratch.tex')
+```
+
+```{r design}
 #https://llrs.github.io/experDesign/
 #devtools::install_github("llrs/experDesign")
 library("experDesign")

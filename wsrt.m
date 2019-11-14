@@ -1,11 +1,11 @@
-fo='L:\promec\Animesh\Lisa\20190515 Log2FC monocytes, JJN3, MCCAR, NB4 collected for IPA and heatmap, LMR copy.xlsx';
+fo='L:\promec\HF\Lars\2019\november\siri_marit\combined\txt\proteinGroupsLog2LFQctrl100p.xlsx';
 testtype=' WSRT';
 [data,id,~]=xlsread(fo);
 IDX=1;
 idoff=1; %from id start at +idoff
 idx=1;
-edx=12;
-jmp=3;a
+edx=9;
+jmp=3;
 idnm=id(:,IDX);
 data(:,all(isnan(data), 1)) = [];
 data(data == 0) = NaN;
@@ -31,4 +31,4 @@ for j = idx:jmp:edx
 end
 hist(pv)
 ln=ln/ceil((edx-idx+1)/jmp);
-xlswrite(strcat(fo,testtype,'un.xls'),[idnm [hdr;num2cell([ln pv])]])
+xlswrite(strcat(fo,testtype,'pval.xls'),[idnm [hdr;num2cell([ln pv])]])
