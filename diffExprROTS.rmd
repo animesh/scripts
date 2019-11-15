@@ -1,11 +1,11 @@
 ```{r data}
-inpF<-"L:/promec/Qexactive/LARS/2019/spetember/Camilla Wolo/combined/txt/proteinGroups.txt"
+inpF<-"L:/promec/Qexactive/LARS/2019/oktober/Kristine Sonja/txt/proteinGroups.txt"
 data<-read.table(inpF,header=T,sep="\t",row.names = 1)
 summary(data)
 ```
 
 ```{r label}
-inpL<-"L:/promec/Qexactive/LARS/2019/spetember/Camilla Wolo/combined/txt/Groups.txt"
+inpL<-"L:/promec/Qexactive/LARS/2019/oktober/Kristine Sonja/txt/Groups.txt"
 label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
 #colnames(label)=sub("\\-[0-9]+","",colnames(label))
 #colnames(label)
@@ -19,8 +19,8 @@ rownames(label)
 #yyt=as.matrix(data[,201:230])
 hdr="Ratio."
 dataSel=as.matrix(data[,grep("normalized",colnames(data))])
-dataSel=as.matrix(dataSel[,grep("pass",colnames(dataSel))])
-colnames(dataSel)<-sub(,hdr,colnames(dataSel))
+#dataSel=as.matrix(dataSel[,grep("pass",colnames(dataSel))])
+colnames(dataSel)<-sub(hdr,"",colnames(dataSel))
 colnames(dataSel)
 summary(dataSel)
 ```
@@ -31,16 +31,12 @@ summary(dataSellog2)
 ```
 
 ```{r groups}
-dataSellog2grp<-dataSellog2[,-grep("H.M.",colnames(dataSellog2))]
-dataSellog2grp7<-dataSellog2grp[,grep("_7_",colnames(dataSellog2grp))]
-summary(dataSellog2grp7)
-dataSellog2grp11<-dataSellog2grp[,grep("_11_",colnames(dataSellog2grp))]
-summary(dataSellog2grp11)
+dataSellog2grp<-dataSellog2[,-grep("M.L.",colnames(dataSellog2))]
+summary(dataSellog2grp)
 ```
 
 ```{r t-test, echo = FALSE}
-dataSellog2grpTtest<-dataSellog2grp7
-
+dataSellog2grpTtest<-dataSellog2grp
 pValNA = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){NaN} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})
 hist(pValNA)
 pVal1 = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){1} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})

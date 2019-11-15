@@ -1,6 +1,7 @@
 ```{r data, echo = FALSE}
 inpD <-"L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/"
-inpF<-paste0(inpD,"proteinGroupsLog2LFQctrl.xlsx WSRTun.txt")
+#inpF<-paste0(inpD,"proteinGroupsLog2LFQctrl.xlsx WSRTun.txt")
+inpF<-paste0(inpD,"proteinGroupsLog2LFQctrl100pWSRT.txt")
 data <- read.delim(inpF,sep="\t",header = T)
 data$T..Uniprot<-(sapply(strsplit(as.character(data$T..Protein.IDs),"[-;]"), "[", 1))
 summary(data)
@@ -52,6 +53,7 @@ uniP<-data$T..Uniprot
 uniP <- lapply(uniP, as.character)
 unlist(uniP)
 uniP[[1]]
+select(org.Hs.eg.db, unlist(uniP[[1]]), "ENTREZID", "UNIPROT")
 uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
 wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
 wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
@@ -63,6 +65,37 @@ dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
 #rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
 rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
 #dataS<-dataSezWP
+```
+
+```{r apim, echo = FALSE}
+dataSel <- data[,grep("apim", colnames(data),ignore.case=TRUE)]
+rownames(dataSel)<-paste0(data$T..Protein.IDs,"_APIM")
+dataSel<-dataSel[,c(6:9)]
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste0(sapply(cn, "[", 3),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="APIM",counts.col = "red")
+summary(dataSel)
+hist(as.matrix(dataSel[,c(2:4)]))
+plot(dataSel)
+```
+
+```{r apim-model, echo = FALSE}
+#https://www.statmethods.net/advstats/glm.html
+#fit <- glm(dataSel$apimpoolet~dataSel$apim1x.y+dataSel$apim2+dataSel$apim3)#,family=binomial())
+library(quantreg)
+qrFit <- rq(dataSel$apimpoolet~dataSel$apim1NA)
+summary(qrFit)
+plot(summary(qrFit),par="x")
+fit <- glm(dataSel$apimpoolet~dataSel$apim1NA+dataSel$apim2+dataSel$apim3)#,family=binomial())
+summary(fit) # display results
+confint(fit) # 95% CI for the coefficients
+exp(coef(fit)) # exponentiated coefficients
+exp(confint(fit)) # 95% CI for exponentiated coefficients
+predVal<-predict(fit, type="response")# predicted values
+cor(predVal,dataSel$apimpoolet)
+cor(dataSel)
+plot(predVal,dataSel$apimpoolet)
+residuals(fit, type="deviance") # residuals
 ```
 
 ```{r stat, echo = FALSE}
