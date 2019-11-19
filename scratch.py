@@ -1,3 +1,129 @@
+#https://www.analyticsvidhya.com/blog/2019/10/mathematics-behind-machine-learning/
+#https://www.analyticsvidhya.com/blog/2019/10/how-to-build-knowledge-graph-text-using-spacy/ , https://www.analyticsvidhya.com/blog/2019/09/introduction-information-extraction-python-spacy/
+import re
+import pandas as pd
+import bs4
+import requests
+import spacy
+from spacy import displacy
+#python3 -m spacy download en_core_web_sm --user
+nlp = spacy.load('en_core_web_sm')
+
+from spacy.matcher import Matcher
+from spacy.tokens import Span
+
+import networkx as nx
+
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+pd.set_option('display.max_colwidth', 200)
+%matplotlib inline
+candidate_sentences = pd.read_csv("/home/animeshs/Downloads/wiki_sentences_v2.csv")
+candidate_sentences.shape
+candidate_sentences['sentence'].sample(10)
+doc = nlp("the drawdown process is governed by astm standard d823")
+
+for tok in doc:
+  print(tok.text, "...", tok.dep_)
+
+#https://www.wandb.com/
+# Install Weights & Biases to track training. First create an account at wandb.com
+!pip install wandb -q --user
+!wandb login
+# Download the dermatology dataset
+!wget https://archive.ics.uci.edu/ml/machine-learning-databases/dermatology/dermatology.data
+# modified from https://github.com/dmlc/xgboost/blob/master/demo/multiclass_classification/train.py
+
+#%%wandb
+
+import wandb
+import numpy as np
+import xgboost as xgb
+
+wandb.init(project="xgboost-dermatology")
+
+# label need to be 0 to num_class -1
+data = np.loadtxt('./dermatology.data', delimiter=',',
+        converters={33: lambda x:int(x == '?'), 34: lambda x:int(x) - 1})
+sz = data.shape
+
+train = data[:int(sz[0] * 0.7), :]
+test = data[int(sz[0] * 0.7):, :]
+
+train_X = train[:, :33]
+train_Y = train[:, 34]
+
+test_X = test[:, :33]
+test_Y = test[:, 34]
+
+xg_train = xgb.DMatrix(train_X, label=train_Y)
+xg_test = xgb.DMatrix(test_X, label=test_Y)
+# setup parameters for xgboost
+param = {}
+# use softmax multi-class classification
+param['objective'] = 'multi:softmax'
+# scale weight of positive examples
+param['eta'] = 0.1
+param['max_depth'] = 6
+param['silent'] = 1
+param['nthread'] = 4
+param['num_class'] = 6
+wandb.config.update(param)
+
+watchlist = [(xg_train, 'train'), (xg_test, 'test')]
+num_round = 5
+bst = xgb.train(param, xg_train, num_round, watchlist, callbacks=[wandb.xgboost.wandb_callback()])
+# get prediction
+pred = bst.predict(xg_test)
+error_rate = np.sum(pred != test_Y) / test_Y.shape[0]
+print('Test error using softmax = {}'.format(error_rate))
+wandb.summary['Error Rate'] = error_rate
+
+
+#https://gluon-ts.mxnet.io/?fbclid=IwAR0lmYbqAKpCcfqbaxpeK3AKENcNnVEEESztJKGBjH_SZ8LeauKsTRRq85Q
+from gluonts.dataset import common
+from gluonts.model import deepar
+from gluonts.trainer import Trainer
+
+import pandas as pd
+
+url = "https://raw.githubusercontent.com/numenta/NAB/master/data/realTweets/Twitter_volume_AMZN.csv"
+df = pd.read_csv(url, header=0, index_col=0)
+data = common.ListDataset([{"start": df.index[0],
+                            "target": df.value[:"2015-04-05 00:00:00"]}],
+                          freq="5min")
+
+trainer = Trainer(epochs=10)
+estimator = deepar.DeepAREstimator(freq="5min", prediction_length=12, trainer=trainer)
+predictor = estimator.train(training_data=data)
+
+prediction = next(predictor.predict(data))
+print(prediction.mean)
+prediction.plot(output_file='graph.png')
+
+
+
+#https://machinelearningmastery.com/expectation-maximization-em-algorithm/
+from numpy import hstack
+from numpy.random import normal
+from sklearn.mixture import GaussianMixture
+# generate a sample
+X1 = normal(loc=20, scale=5, size=3000)
+X2 = normal(loc=40, scale=5, size=7000)
+X = hstack((X1, X2))
+# reshape into a table with one column
+X = X.reshape((len(X), 1))
+# fit model
+model = GaussianMixture(n_components=2, init_params='random')
+model.fit(X)
+# predict latent values
+yhat = model.predict(X)
+# check latent value for first few points
+print(yhat[:100])
+# check latent value for last few points
+print(yhat[-100:])
+
 #https://polynote.org/docs/01-installation.html
 #wget https://github.com/polynote/polynote/releases/download/0.2.10/polynote-dist-2.12.tar.gz
 #tar xvzf polynote-dist-2.12.tar.gz

@@ -2,6 +2,7 @@
 #https://arxiv.org/abs/1705.07057
 #https://medium.com/tensorflow/introducing-tensorflow-probability-dca4c304e245
 #https://github.com/tensorflow/probability/blob/master/tensorflow_probability/examples/jupyter_notebooks/A_Tour_of_TensorFlow_Probability.ipynb
+#https://www.analyticsvidhya.com/blog/2019/10/mathematics-behind-machine-learning/
 #pip3 install tensorflow==2.0.0-beta1 #for windows
 #pip3 instapip3 install tf-nightly-2.0-preview --user #2.0.0-dev20190819
 #pip3 install tfp-nightly --user
