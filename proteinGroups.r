@@ -52,6 +52,7 @@ dim(LFQactin)
 if(!is.null(dim(LFQactin))){colSums(LFQactin)/colSums(LFQ)*100}
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
+log2LFQt<-na.omit(log2LFQ)
 print(paste("Selected and log2 transformed columns",selection))
 NAcols<-colSums(is.na(log2LFQ))
 NAcols<-c(NAcols, mean(NAcols),median(NAcols),sum(is.na(NAcols)),sd(NAcols)/mean(NAcols),sum(NAcols),"MissingValue(s)")
@@ -95,6 +96,14 @@ summary(log2LFQ)
 plot(princomp(log2LFQ),main=paste("Imputed value:",imputeConst))
 biplot(prcomp(as.matrix(log2LFQ),scale=TRUE),cex=c(0.5, 0.4), xlab=NULL,arrow.len = 0)
 heatmap(log2LFQ, scale = "row")
+#plot with 0 containing proteinGroups removed
+log2LFQt<-t(log2LFQt)
+log2LFQtPCA<-prcomp(log2LFQt,scale=TRUE)
+log2LFQtPCAsumm<-summary(log2LFQtPCA)
+#plot(prcomp(log2LFQt))
+plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups removed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+op <- par(cex = 0.4)
+legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
+heatmap(log2LFQt)
 dev.off()
 print(paste("Histogram, PCA, Heatmap of Log2 transform of",selection,"column(s) written to",outP))
-

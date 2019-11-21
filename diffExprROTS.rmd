@@ -31,8 +31,10 @@ summary(dataSellog2)
 ```
 
 ```{r groups}
-dataSellog2grp<-dataSellog2[,-grep("M.L.",colnames(dataSellog2))]
+dataSellog2grp<-dataSellog2[,grep("M.L.",colnames(dataSellog2))]
+dataSellog2grp<-dataSellog2grp[,-1]
 summary(dataSellog2grp)
+plot(dataSellog2grp)
 ```
 
 ```{r t-test, echo = FALSE}
@@ -45,9 +47,7 @@ pValBHna = p.adjust(pValNA,method = "BH")
 hist(pValBHna)
 pValBH1 = p.adjust(pVal1,method = "BH")
 hist(pValBH1)
-
 plot(pValBH1-pValBHna,pVal1-pValNA)
-
 logFC = rowMeans(dataSellog2grpTtest[,c(1:6)])#-rowMeans(yyt[,c(6,5,4,3,2,1)])
 hist(logFC)
 plot(logFC,-log10(pVal1))
@@ -57,11 +57,11 @@ plot(logFC,-log10(pValBHna),col="orange")
 logFCmedian = matrixStats::rowMedians(dataSellog2grpTtest[,c(1:6)])#-rowMeans(yyt[,c(6,5,4,3,2,1)])
 hist(logFCmedian)
 
-ttest.results7 = data.frame(logFC=logFC,logFCmedian=logFCmedian,P.Value = pValNA, adj.pval.BH = pValBHna) 
+ttest.results = data.frame(logFC=logFC,logFCmedian=logFCmedian,P.Value = pValNA, adj.pval.BH = pValBHna) 
 #ttest.results$PSMcount = psm.count.table[ttest.results$gene,"count"]
 #ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
 #head(ttest.results)
-write.csv(ttest.results7,file=paste0(inpF,hdr,"tTestBHgrp7.csv"))
+write.csv(ttest.results,file=paste0(inpF,hdr,"tTestBHgrp.csv"))
 ```
 
 ```{r volcanoPlot}
