@@ -7,6 +7,21 @@ data$T..Uniprot<-(sapply(strsplit(as.character(data$Protein.IDs),"[-;]"), "[", 1
 summary(data)
 ```
 
+```{r bio, echo = FALSE}
+#https://www.sciencedirect.com/science/article/pii/S1525157819303976
+#BiocManager::install("GenomicRanges")
+library("GenomicRanges")
+GrANGE<-GRanges(seqnames=Rle(c("chr11")))
+#BiocManager::install("SummarizedExperiment")
+library("SummarizedExperiment")
+#BiocManager::install("Biostrings")
+library("Biostrings")
+#BiocManager::install("GSEBase")
+library("GSEBase")
+#BiocManager::install("GenomicAlignments")
+library("GenomicAlignments")
+```
+
 ```{r bochum-advR}
 sessionInfo()$basePkgs
 #setRepositories(graphics=TRUE)
