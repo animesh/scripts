@@ -1,3 +1,57 @@
+#https://github.com/ruggleslab/blackSheep
+import blacksheep
+import pandas as pd
+values = pd.read_csv('phospho_common_samples_data.csv', index_col=0)
+annotations = pd.read_csv('annotations_common_samples.csv', index_col=0)
+#values = deva.read_in_values('blacksheep_supp/vignettes/brca/phospho_common_samples_data.csv')
+#annotations = deva.read_in_values('brca/annotations_common_samples.csv')
+annotations = blacksheep.binarize_annotations(annotations)
+
+# Run outliers comparative analysis
+outliers, qvalues = blacksheep.deva(
+    values, annotations,
+    save_outlier_table=True,
+    save_qvalues=True,
+    save_comparison_summaries=True
+)
+
+# Pull out results
+qvalues_table = qvalues.df
+vis_table = outliers.frac_table
+
+# Make heatmaps for significant genes
+for col in annotations.columns:
+    axs = blacksheep.plot_heatmap(annotations, qvalues_table, col, vis_table, savefig=True)
+#https://github.com/ruggleslab/blacksheep_supp/blob/dev/vignettes/running_outliers.ipynb
+# Normalize values
+phospho = blacksheep.read_in_values('') #Fill in file here
+protein = blacksheep.read_in_values('') #Fill in file here
+
+
+#https://tensorsignatures.readthedocs.io/en/latest/tutorials.html#getting-started
+#pip install tensorsignatures
+import tensorsignatures as ts
+data_set = ts.TensorSignatureData(seed=573, rank=3, samples=100, dimensions=[3, 5], mutations=1000)
+snv = data_set.snv()
+snv.shape
+snv_collapsed = snv.sum(axis=(0,1,2,3,))
+snv_coding = snv[0,].sum(axis=(0,1,2,4))
+snv_template = snv[1,].sum(axis=(0,1,2,4))
+import matplotlib.pyplot as plt
+import numpy as np
+fig, axes = plt.subplots(3, 3, sharey=True, sharex=True)
+for i, ax in enumerate(np.ravel(axes)):
+   ax.bar(np.arange(96), snv_collapsed[:, i], color=ts.DARK_PALETTE)
+   ax.set_title('Sample {}'.format(i))
+   if i%3==0: ax.set_ylabel('Counts')
+   if i>=6: ax.set_xlabel('Mutation type')
+fig, axes = plt.subplots(1, 2, sharey=True)
+axes[0].bar(np.arange(96), snv_coding, color=ts.DARK_PALETTE)
+axes[0].set_title('Coding strand mutations')
+axes[1].bar(np.arange(96), snv_template, color=ts.DARK_PALETTE)
+axes[1].set_title('Template strand mutations')
+plt.figure(figsize=(16, 3))
+ts.plot_signatures(data_set.S.reshape(3,3,-1,96,3))
 #git clone https://github.com/WarrenWeckesser/heatmapcluster.git
 #cd heatmapcluster
 #python setup.py install

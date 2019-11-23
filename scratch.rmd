@@ -1,12 +1,33 @@
+```{r TS, echo = FALSE}
+#https://robjhyndman.com/hyndsight/tscv/
+#install.packages('forecast', dependencies = TRUE)
+library(forecast)
+modelcv <- CVar(lynx, k=5, lambda=0.15)
+print(modelcv)
+```
+
+
 ```{r data, echo = FALSE}
-inpD <-"/home/animeshs/Downloads/"
+inpD <-"C:/Users/animeshs/Desktop/combined/txt/"
 #inpF<-paste0(inpD,"proteinGroupsLog2LFQctrl.xlsx WSRTun.txt")
 inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T)
-data$T..Uniprot<-(sapply(strsplit(as.character(data$Protein.IDs),"[-;]"), "[", 1))
+#data$T..Uniprot<-(sapply(strsplit(as.character(data$Protein.IDs),"[-;]"), "[", 1))
 summary(data)
 ```
 
+```{r QR, echo = FALSE}
+#https://statisticaloddsandends.wordpress.com/2019/02/01/quantile-regression-in-r/
+#install.packages('quantreg', dependencies = TRUE)
+library(quantreg)
+data<-log2(data)
+rqfit <- rq(Intensity ~ LFQ.intensity.ung_phos_ub, data = data)
+summary(rqfit)
+plot(Intensity ~ LFQ.intensity.ung_phos_ub, data = data, pch = 16, main = "Intensity ~ LFQ.intensity.ung_phos_ub")
+abline(lm(Intensity ~ LFQ.intensity.ung_phos_ub, data = data), col = "red", lty = 2)
+abline(rq(Intensity ~ LFQ.intensity.ung_phos_ub, data = data), col = "blue", lty = 2)
+legend("topright", legend = c("lm", "rq"), col = c("red", "blue"), lty = 2)
+```
 ```{r bio, echo = FALSE}
 #https://www.sciencedirect.com/science/article/pii/S1525157819303976
 #BiocManager::install("GenomicRanges")
