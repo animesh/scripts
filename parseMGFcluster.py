@@ -47,6 +47,7 @@ def parseMGF(mgfData):
 
 file = pathlib.Path.cwd().parent.rglob('*.MGF')
 file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
+file = pathlib.Path('F:/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
 print(file.read_text().split(' '))
 out=parseMGF(file)
 
@@ -72,6 +73,33 @@ plt.scatter(X_rt,X_mz1)
 from scipy.fftpack import fft
 mz1ft=fft(X_mz1)
 plt.plot(mz1ft)
+fft = np.fft.fft(X_mz1)
+plt.scatter(fft,X_mz1)
+T = X_rt[1] - X_rt[0]  # sampling interval
+#rtD=[X_rt[1] - X_rt[0] for
+N = X_mz1.size
+
+# 1/T = frequency
+f = np.linspace(0, 1 / T, N)
+plt.hist(X_mz1)
+plt.hist(np.abs(fft))#[:N // 2] * 1 / N)
+plt.plot(np.abs(fft))#[:N // 2] * 1 / N)
+#plt.ylabel("Amplitude")
+#plt.xlabel("Frequency [Hz]")
+plt.bar(f[:N // 2], np.abs(fft)[:N // 2] * 1 / N, width=1.5)  # 1 / N is a normalization factor
+plt.show()
+
+import scipy.fftpack
+N = 600
+T = 1.0 / 800.0
+x = np.linspace(0.0, N*T, N)
+y = np.sin(50.0 * 2.0*np.pi*x) + 0.5*np.sin(80.0 * 2.0*np.pi*x)
+yf = scipy.fftpack.fft(y)
+xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
+fig, ax = plt.subplots()
+ax.plot(xf, 2.0/N * np.abs(yf[:N//2]))
+plt.show()
+
 #https://github.com/rasbt/python-machine-learning-book/blob/master/code/ch11/ch11.ipynb
 from sklearn.datasets import make_blobs
 X, y = make_blobs(n_samples=150,

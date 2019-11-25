@@ -6,6 +6,32 @@ modelcv <- CVar(lynx, k=5, lambda=0.15)
 print(modelcv)
 ```
 
+```{r fUps, echo = FALSE}
+#https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/ Perseus-type, bpca, knn,  QRILC,  MLE, MinDet,  MinProb, min, zero
+x<-as.matrix(c(NA, NA, NA))
+apply(x,2, mean, na.rm = TRUE)
+apply(x,2, median, na.rm = TRUE)
+is.na(apply(x,2, mean, na.rm = TRUE))
+is.nan(apply(x,2, median, na.rm = TRUE))
+#https://twitter.com/tangming2005/status/1198782278782070784
+x<- list(a=c(1,2,3), b= c(3,4,5), abc = c(6,7,8))
+x$abc
+(1/3)*3==1
+```
+
+```{r TS, echo = FALSE}
+#BiocManager::install("DESeq2")
+library("DESeq2")
+library("dplyr")
+BiocManager::install("airway")
+data("airway", package = "airway")
+dds <- DESeqDataSet(se = airway, design = ~ cell + dex) %>% DESeq
+deRes <- as.data.frame(results(dds))
+#BiocManager::install("IHW")
+library(IHW)
+ihwRes <- ihw(pvalue ~ baseMean,  data = deRes, alpha = 0.1)
+```
+
 
 ```{r data, echo = FALSE}
 inpD <-"C:/Users/animeshs/Desktop/combined/txt/"
@@ -20,14 +46,15 @@ summary(data)
 #https://statisticaloddsandends.wordpress.com/2019/02/01/quantile-regression-in-r/
 #install.packages('quantreg', dependencies = TRUE)
 library(quantreg)
-data<-log2(data)
-rqfit <- rq(Intensity ~ LFQ.intensity.ung_phos_ub, data = data)
+dataLog2<-log2(data[,grep("LFQ.",colnames(data))]+1)
+rqfit <- rq(LFQ.intensity.ung_ub ~ LFQ.intensity.ung_phos_ub, data = dataLog2)
 summary(rqfit)
-plot(Intensity ~ LFQ.intensity.ung_phos_ub, data = data, pch = 16, main = "Intensity ~ LFQ.intensity.ung_phos_ub")
-abline(lm(Intensity ~ LFQ.intensity.ung_phos_ub, data = data), col = "red", lty = 2)
-abline(rq(Intensity ~ LFQ.intensity.ung_phos_ub, data = data), col = "blue", lty = 2)
+plot(LFQ.intensity.ung_ub  ~ LFQ.intensity.ung_phos_ub, data = dataLog2, pch = 16, main = "LFQ.intensity.ung_ub  ~ LFQ.intensity.ung_phos_ub")
+abline(lm(LFQ.intensity.ung_ub  ~ LFQ.intensity.ung_phos_ub, data = dataLog2), col = "red", lty = 2)
+abline(rq(LFQ.intensity.ung_ub  ~ LFQ.intensity.ung_phos_ub, data = data), col = "blue", lty = 2)
 legend("topright", legend = c("lm", "rq"), col = c("red", "blue"), lty = 2)
 ```
+
 ```{r bio, echo = FALSE}
 #https://www.sciencedirect.com/science/article/pii/S1525157819303976
 #BiocManager::install("GenomicRanges")
@@ -178,15 +205,6 @@ plot(valROC)
 #youden=>sp+se is max
 #ROCR
 #supports ML
-```
-
-```{r NA or NaN}
-#https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/ Perseus-type, bpca, knn,  QRILC,  MLE, MinDet,  MinProb, min, zero
-x<-as.matrix(c(NA, NA, NA))
-apply(x,2, mean, na.rm = TRUE)
-apply(x,2, median, na.rm = TRUE)
-is.na(apply(x,2, mean, na.rm = TRUE))
-is.nan(apply(x,2, median, na.rm = TRUE))
 ```
 
 

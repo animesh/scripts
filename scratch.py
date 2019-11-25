@@ -1,3 +1,9 @@
+#walrus operator?https://www.geeksforgeeks.org/walrus-operator-in-python-3-8/
+data = [10, 14, 34, 49, 70, 77]
+prev = 0
+[-prev + (prev := x) for x in data]
+#[10, 4, 20, 15, 21, 7]
+(1/3)*3==1
 #https://github.com/ruggleslab/blackSheep
 import blacksheep
 import pandas as pd
