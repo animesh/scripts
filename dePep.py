@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.7.0\n","USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s) like \"L:/combined/txt\" >")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("C:/Users/animeshs/Desktop/combined/txt/")
+#pathFiles = Path("C:/Users/animeshs/Desktop/KS/combined/txt/")
 fileName='allPeptides.txt'
 trainList=list(pathFiles.rglob(fileName))
 
@@ -33,6 +33,13 @@ if(dfDPcnt.empty==False): dfDPcnt[dfDPcnt>0].plot(kind='pie').figure.savefig(wri
 print(writeDPpng)
 #specific mod(s)
 modName="GlyGly"
+dfDP=dfDP[dfDP['Modification']==modName]
+#dfDP=dfDP[dfDP['Modification'].str.contains('ly')==True]
+writeDPcsv=pathFiles/(fileName+modName+"DP.csv")
+dfDP.to_csv(writeDPcsv)
+print(writeDPcsv)
+#specific mod(s)
+modName="Phosphorylation"
 dfDP=dfDP[dfDP['Modification']==modName]
 #dfDP=dfDP[dfDP['Modification'].str.contains('ly')==True]
 writeDPcsv=pathFiles/(fileName+modName+"DP.csv")

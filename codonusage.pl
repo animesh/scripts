@@ -89,16 +89,16 @@ foreach (keys %seqh){
 }
 
 __END__
-
-perl codonusage.pl /cygdrive/x/Elite/gaute/test/CCDS_nucleotide.20131024.fna /cygdrive/x/Elite/gaute/test/CCDS.20131024.csv > /cygdrive/x/Elite/gaute/test/CCDS.20131024.annot.csv 2>err
-
-https://groups.google.com/a/soe.ucsc.edu/forum/#!original/genome/yKentEyv2vM/qX8r9OwxnzEJ
-Table Browser tool as follows:
-group: Genes and Gene Prediction Tracks
-track: UCSC Genes
-table: knownCanonical
-region: genome
-output format: sequence
-ftp://ftp.ncbi.nlm.nih.gov/pub/CCDS/current_human/CCDS_nucleotide.20131024.fna.gz
-
-email: sharma.animesh@gmail.com
+perl codonusage.pl L:\promec\FastaDB\CCDS_nucleotide.20180614.fna L:\promec\FastaDB\CCDS.20180614.csv > L:\promec\FastaDB\CCDS.20180614.annot.csv 2>err
+wget https://groups.google.com/a/soe.ucsc.edu/forum/#!original/genome/yKentEyv2vM/qX8r9OwxnzEJ
+#Table Browser tool
+#group: Genes and Gene Prediction Tracks
+#track: UCSC Genes
+#table: knownCanonical
+#region: genome
+#output format: sequence
+#FTP
+wget https://ftp.ncbi.nlm.nih.gov/pub/CCDS/current_human/CCDS_nucleotide.20180614.fna.gz
+wget https://ftp.ncbi.nlm.nih.gov/pub/CCDS/current_human/CCDS.20180614.txt
+sed 's/\t/,/g' promec/promec/FastaDB/CCDS.20180614.txt > promec/promec/FastaDB/CCDS.20180614.csv
+#email: sharma.animesh@gmail.com

@@ -8,7 +8,7 @@ print(args[2])
 #read
 if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
-#inpF<-file.path("L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/proteinGroups.txt")
+#inpF<-file.path("C:/Users/animeshs/Desktop/KS/combined/txt/proteinGroups.txt")
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #clean
@@ -107,3 +107,4 @@ legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames
 heatmap(log2LFQt)
 dev.off()
 print(paste("Histogram, PCA, Heatmap of Log2 transform of",selection,"column(s) written to",outP))
+
