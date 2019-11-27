@@ -1,3 +1,8 @@
+#https://www.youtube.com/watch?v=B4p6gvPs-gM
+!cd ../CellBender/examples/remove_background
+!python generate_tiny_10x_pbmc.py
+!$HOME/.local/bin/cellbender remove-background      --input ./tiny_raw_gene_bc_matrices/GRCh38      --output ./tiny_10x_pbmc.h5      --expected-cells 500   --total-droplets-included 5000
+
 #walrus operator?https://www.geeksforgeeks.org/walrus-operator-in-python-3-8/
 data = [10, 14, 34, 49, 70, 77]
 prev = 0

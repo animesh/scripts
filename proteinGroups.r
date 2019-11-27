@@ -8,7 +8,7 @@ print(args[2])
 #read
 if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
-#inpF<-file.path("C:/Users/animeshs/Desktop/KS/combined/txt/proteinGroups.txt")
+inpF<-file.path("L:/promec/Qexactive/LARS/2019/november/Kristian Starheim/combined/txt/proteinGroups.txt")
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #clean
