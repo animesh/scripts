@@ -1,11 +1,11 @@
 ```{r data}
-inpF<-"L:/promec/Qexactive/LARS/2019/oktober/Kristine Sonja/txt/proteinGroups.txt"
+inpF<-"L:/promec/Qexactive/LARS/2019/november/Kristian Starheim/combined/txt/proteinGroups.txt"
 data<-read.table(inpF,header=T,sep="\t",row.names = 1)
 summary(data)
 ```
 
 ```{r label}
-inpL<-"L:/promec/Qexactive/LARS/2019/oktober/Kristine Sonja/txt/Groups.txt"
+inpL<-"L:/promec/Qexactive/LARS/2019/november/Kristian Starheim/combined/txt/Groups_kristian.txt"
 label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
 #colnames(label)=sub("\\-[0-9]+","",colnames(label))
 #colnames(label)
@@ -16,9 +16,8 @@ rownames(label)
 ```
 
 ```{r select}
-#yyt=as.matrix(data[,201:230])
-hdr="Ratio."
-dataSel=as.matrix(data[,grep("normalized",colnames(data))])
+hdr="LFQ.intensity."
+dataSel=as.matrix(data[,grep(hdr,colnames(data))])
 #dataSel=as.matrix(dataSel[,grep("pass",colnames(dataSel))])
 colnames(dataSel)<-sub(hdr,"",colnames(dataSel))
 colnames(dataSel)
@@ -27,7 +26,48 @@ summary(dataSel)
 
 ```{r log-tranform}
 dataSellog2<-log2(dataSel)
+dataSellog2[dataSellog2==-Inf]=NA
 summary(dataSellog2)
+```
+
+```{r t-test, echo = FALSE}
+dataSellog2grpTtest<-dataSellog2[]
+pValNA = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){NaN} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})
+hist(pValNA)
+pVal1 = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){1} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})
+hist(pVal1)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBH1 = p.adjust(pVal1,method = "BH")
+hist(pValBH1)
+plot(pValBH1-pValBHna,pVal1-pValNA)
+logFC = rowMeans(dataSellog2grpTtest[,c(1:6)])#-rowMeans(yyt[,c(6,5,4,3,2,1)])
+hist(logFC)
+plot(logFC,-log10(pVal1))
+plot(logFC,-log10(pValNA))
+plot(logFC,-log10(pValBHna),col="orange")
+
+logFCmedian = matrixStats::rowMedians(dataSellog2grpTtest[,c(1:6)])#-rowMeans(yyt[,c(6,5,4,3,2,1)])
+hist(logFCmedian)
+
+ttest.results = data.frame(logFC=logFC,logFCmedian=logFCmedian,P.Value = pValNA, adj.pval.BH = pValBHna) 
+#ttest.results$PSMcount = psm.count.table[ttest.results$gene,"count"]
+#ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
+#head(ttest.results)
+write.csv(ttest.results,file=paste0(inpF,hdr,"tTestBHgrp.csv"))
+```
+
+```{r volcanoPlot}
+library(ggplot2)
+ttest.results<-ttest.results7
+dsub=subset(ttest.results,ttest.results$P.Value<0.05&abs(ttest.results$logFC)>0.58)
+rn<-strsplit(rownames(dsub), ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval.BH),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (NRF2/sNRF2NT)")  + ylab("-Log10 P-value") + ggtitle("Differentially Expressed Protein groups") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+#install.packages("svglite")
+library(svglite)
+ggsave(file=paste0(inpF,hdr,"volcanoPlotgrp7.svg"),plot=g)#,  width=6, height=6)
 ```
 
 ```{r groups}

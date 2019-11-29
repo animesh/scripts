@@ -40,7 +40,7 @@ protein = blacksheep.read_in_values('') #Fill in file here
 
 
 #https://tensorsignatures.readthedocs.io/en/latest/tutorials.html#getting-started
-#pip install tensorsignatures
+# pip install tensorsignatures==0.4.0
 import tensorsignatures as ts
 data_set = ts.TensorSignatureData(seed=573, rank=3, samples=100, dimensions=[3, 5], mutations=1000)
 snv = data_set.snv()

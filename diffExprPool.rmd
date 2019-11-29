@@ -55,14 +55,14 @@ log2LFQapim[["LFQ14_TK9_apim_poolet"]]
 rqfit <- rq(LFQ14_TK9_apim1 ~ LFQ14_TK9_apim_poolet, data = dataLog2)
 rqfit <- rq(log2LFQapim[["LFQ14_TK9_apim_poolet"]]~log2LFQapim[["LFQ4_TK9_apim1"]])
 summary(rqfit)
-plot(log2LFQapim[["LFQ14_TK9_apim_poolet"]]~log2LFQapim[["LFQ4_TK9_apim1"]], pch = 16, main = "LFQ.intensity.ung_ub  ~ LFQ.intensity.ung_phos_ub")
+plot(log2LFQapim[["LFQ14_TK9_apim_poolet"]]~log2LFQapim[["LFQ4_TK9_apim1"]], pch = 16, main = "log2LFQapim[[LFQ14_TK9_apim_poolet]]~log2LFQapim[[LFQ4_TK9_apim1]]")
 abline(lm(log2LFQapim[["LFQ14_TK9_apim_poolet"]]~log2LFQapim[["LFQ4_TK9_apim1"]]), col = "red", lty = 2)
 abline(rq(log2LFQapim[["LFQ14_TK9_apim_poolet"]]~log2LFQapim[["LFQ4_TK9_apim1"]]), col = "blue", lty = 2)
 legend("topright", legend = c("lm", "rq"), col = c("red", "blue"), lty = 2)
 ```
 
 
-```{r overlap}
+```{r diff}
 dataV<-log2LFQapim
 cn<-strsplit(colnames(dataV), "_")
 colnames(dataV)<-paste(sapply(cn, "[", 3),sapply(cn, "[", 4))
@@ -71,8 +71,14 @@ dataV<-dataV-dataV[["apim poolet"]]
 plot(dataV)
 hist(dataV)
 vennDiagram(dataV-dataV[["apim poolet"]])
+selThr<-(-0.58)
+vennDiagram(dataV<selThr)
 selThr<-0.58
-#hist(rowSums(as.matrix(dataV)))
+vennDiagram(dataV>selThr)
+selThr<-0.58
+vennDiagram(abs(dataV)>selThr)
+hist(rowSums(as.matrix(dataV)))
+hist(data[dataV>selThr,])#protein
 ```
 
 ```{r overlap-plot}

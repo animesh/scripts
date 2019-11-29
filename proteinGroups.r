@@ -1,3 +1,4 @@
+#parse argument(s)
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <SILAC>")
 print("default LFQ")
 #Rscript proteinGroups.r /home/animeshs/promec/promec/Qexactive/LARS/2019/oktober/Kristine\ Sonja/combined/txt/proteinGroups.txt SILAC
@@ -8,7 +9,8 @@ print(args[2])
 #read
 if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
-inpF<-file.path("L:/promec/Qexactive/LARS/2019/november/Kristian Starheim/combined/txt/proteinGroups.txt")
+#read
+#inpF<-file.path("L:/promec/Qexactive/LARS/2019/november/Kristian Starheim/combined/txt/proteinGroups.txt")
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #clean
