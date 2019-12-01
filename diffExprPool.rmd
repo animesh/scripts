@@ -70,6 +70,7 @@ library(limma)
 dataV<-dataV-dataV[["apim poolet"]]
 plot(dataV)
 hist(dataV)
+plot(sort(rowMeans(dataV)))#,rowMedians(dataV))
 vennDiagram(dataV-dataV[["apim poolet"]])
 selThr<-(-0.58)
 vennDiagram(dataV<selThr)
