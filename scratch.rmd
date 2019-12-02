@@ -1,9 +1,32 @@
 ```{r TS, echo = FALSE}
+#http://www.coxdocs.org/doku.php?id=perseus:user:activities:matrixprocessing:wgcna
+install.packages("BiocManager")
+BiocManager::install("DESeq2") 
+BiocManager::install("limma")
+BiocManager::install("EdgeR")
+BiocManager::install(c("AnnotationDbi", "impute", "GO.db", "preprocessCore"))
+install.packages(c("WGCNA", "devtools"))
+devtools::install_github('jdrudolph/PerseusR') 
+library(WGCNA)
+library(PerseusR) 
+```
+
+```{r TS, echo = FALSE}
 #https://robjhyndman.com/hyndsight/tscv/
 #install.packages('forecast', dependencies = TRUE)
 library(forecast)
 modelcv <- CVar(lynx, k=5, lambda=0.15)
 print(modelcv)
+```
+
+```{r markerGene, echo = FALSE}
+#https://github.com/PavlidisLab/markerGeneProfile
+devtools::install_github('oganm/markerGeneProfile')
+```
+
+```{r topoFS, echo = FALSE}
+#https://github.com/CamaraLab/RayleighSelection/blob/master/examples/plot_nerve_example.md
+devtools::install_github("CamaraLab/RayleighSelection")
 ```
 
 ```{r fUps, echo = FALSE}

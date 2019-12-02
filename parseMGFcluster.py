@@ -68,7 +68,7 @@ print(out[k],X_int[k],X_mz1[k],X_rt[k])
 import scipy.spatial.distance
 data = scipy.spatial.distance.pdist(X_mz1, 'cityblock')
 data.size-X_mz1.size*X_mz1.size/2
-binwidth=1
+binwidth=22
 plt.hist(data,bins=np.arange(min(data), max(data) + binwidth, binwidth))
 
 [i*i for i in X_mz1]
