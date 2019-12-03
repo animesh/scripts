@@ -1,14 +1,35 @@
-```{r TS, echo = FALSE}
+```{r perseusR, echo = FALSE}
 #http://www.coxdocs.org/doku.php?id=perseus:user:activities:matrixprocessing:wgcna
-install.packages("BiocManager")
-BiocManager::install("DESeq2") 
-BiocManager::install("limma")
-BiocManager::install("EdgeR")
-BiocManager::install(c("AnnotationDbi", "impute", "GO.db", "preprocessCore"))
-install.packages(c("WGCNA", "devtools"))
-devtools::install_github('jdrudolph/PerseusR') 
-library(WGCNA)
-library(PerseusR) 
+#install.packages("BiocManager")
+#install.packages("Rcpp")
+#BiocManager::install("DESeq2") 
+#BiocManager::install("limma")
+#BiocManager::install("edgeR")
+#BiocManager::install(c("AnnotationDbi", "impute", "GO.db", "preprocessCore"))
+#install.packages(c("WGCNA"))#, "devtools"))
+#devtools::install_github('jdrudolph/PerseusR')
+#library(WGCNA)
+devtools::install_github("IRkernel/IRkernel")
+IRkernel::installspec()
+library(PerseusR)
+tmp <- tempfile(fileext = ".txt")
+write('Column_1\tColumn_2\tColumn_3
+#!{Description}\t\t
+#!{Type}E\tE\tE
+-1.860574\t-0.3910594\t0.2870352
+NaN\t-0.4742951\t0.849998', file=tmp)
+read.perseus(tmp)
+#https://github.com/cox-labs/PerseusR/blob/master/vignettes/Using-Perseus-data-in-R.Rmd
+my_list <- list(main = data.frame(A = 1:5, B = 6:10),
+                annotRows = data.frame(is_control = c(TRUE, FALSE)),
+                annotCols = data.frame(Names = letters[1:5]),
+                descr = c('something',
+                          'something else',
+                          'yet another thing'))
+tmp.file <- tempfile(fileext="txt")
+write.perseus(my_list, con = tmp.file)
+cat(readLines(tmp.file), sep = '\n')
+
 ```
 
 ```{r TS, echo = FALSE}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Parameters>
+  <ParameterGroup Name="Specific" CollapsedDefault="false">
+    <FileParam Type="BaseLibS.Param.FileParam, BaseLibS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Script file">
+      <Value />
+    </FileParam>
+    <StringParam Type="BaseLibS.Param.StringParam, BaseLibS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Additional arguments">
+      <Value />
+    </StringParam>
+  </ParameterGroup>
+  <ParameterGroup Name="Generic" CollapsedDefault="false">
+    <FileParam Type="BaseLibS.Param.FileParam, BaseLibS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Executable">
+      <Value>Rscript</Value>
+    </FileParam>
+    <LabelParam Type="BaseLibS.Param.LabelParam, BaseLibS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Download parameter for preview">
+      <Value />
+    </LabelParam>
+  </ParameterGroup>
+</Parameters>
