@@ -1,3 +1,55 @@
+#cluster https://nbviewer.jupyter.org/github/KrishnaswamyLab/PHATE/blob/master/Python/tutorial/EmbryoidBody.ipynb
+!pip install --user --upgrade phate scprep
+#demo https://www.krishnaswamylab.org/projects/phate/eb-web-tool
+import os
+import scprep
+download_path = os.path.expanduser("~")
+print(download_path)
+if not os.path.isdir(os.path.join(download_path, "scRNAseq", "T0_1A")):
+    # need to download the data
+    scprep.io.download.download_and_extract_zip(
+        "https://data.mendeley.com/datasets/v6n743h5ng"
+        "/1/files/7489a88f-9ef6-4dff-a8f8-1381d046afe3/scRNAseq.zip?dl=1",
+        download_path)
+import pandas as pd
+import numpy as np
+import phate
+import scprep
+sparse=True
+T1 = scprep.io.load_10X(os.path.join(download_path, "scRNAseq", "T0_1A"), sparse=sparse, gene_labels='both')
+T2 = scprep.io.load_10X(os.path.join(download_path, "scRNAseq", "T2_3B"), sparse=sparse, gene_labels='both')
+T3 = scprep.io.load_10X(os.path.join(download_path, "scRNAseq", "T4_5C"), sparse=sparse, gene_labels='both')
+T4 = scprep.io.load_10X(os.path.join(download_path, "scRNAseq", "T6_7D"), sparse=sparse, gene_labels='both')
+T5 = scprep.io.load_10X(os.path.join(download_path, "scRNAseq", "T8_9E"), sparse=sparse, gene_labels='both')
+T1.head()
+scprep.plot.plot_library_size(T1, percentile=20)
+filtered_batches = []
+for batch in [T1, T2, T3, T4, T5]:
+    batch = scprep.filter.filter_library_size(batch, percentile=20, keep_cells='above')
+    batch = scprep.filter.filter_library_size(batch, percentile=75, keep_cells='below')
+    filtered_batches.append(batch)
+del T1, T2, T3, T4, T5 # removes objects from memory
+EBT_counts, sample_labels = scprep.utils.combine_batches(
+    filtered_batches,
+    ["Day 00-03", "Day 06-09", "Day 12-15", "Day 18-21", "Day 24-27"],
+    append_to_cell_names=True
+)
+del filtered_batches # removes objects from memory
+EBT_counts.head()
+EBT_counts = scprep.filter.filter_rare_genes(EBT_counts, min_cells=10)
+EBT_counts = scprep.normalize.library_size_normalize(EBT_counts)
+mito_genes = scprep.select.get_gene_set(EBT_counts, starts_with="MT-") # Get all mitochondrial genes. There are 14, FYI.
+scprep.plot.plot_gene_set_expression(EBT_counts, genes=mito_genes, percentile=90)
+EBT_counts, sample_labels = scprep.filter.filter_gene_set_expression(EBT_counts, sample_labels, genes=mito_genes,percentile=90, keep_cells='below')
+EBT_counts = scprep.transform.sqrt(EBT_counts)
+phate_operator = phate.PHATE(n_jobs=-2)
+Y_phate = phate_operator.fit_transform(EBT_counts)
+scprep.plot.scatter2d(Y_phate, c=sample_labels, figsize=(12,8), cmap="Spectral",ticks=False, label_prefix="PHATE")
+phate_operator.set_params(knn=4, decay=15, t=12)
+# phate_operator = phate.PHATE(knn=4, decay=15, t=12, n_jobs=-2)
+Y_phate = phate_operator.fit_transform(EBT_counts)
+scprep.plot.scatter2d(Y_phate, c=sample_labels, figsize=(12,8), cmap="Spectral",ticks=False, label_prefix="PHATE")
+
 #https://www.youtube.com/watch?v=B4p6gvPs-gM
 !cd ../CellBender/examples/remove_background
 !python generate_tiny_10x_pbmc.py
@@ -8,7 +60,9 @@ data = [10, 14, 34, 49, 70, 77]
 prev = 0
 [-prev + (prev := x) for x in data]
 #[10, 4, 20, 15, 21, 7]
-(1/3)*3==1
+(1/3)*3==1#True
+#https://0.30000000000000004.com/
+(0.1+0.2)==0.3#False
 #https://github.com/ruggleslab/blackSheep
 import blacksheep
 import pandas as pd

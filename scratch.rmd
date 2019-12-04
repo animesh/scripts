@@ -60,7 +60,9 @@ is.nan(apply(x,2, median, na.rm = TRUE))
 #https://twitter.com/tangming2005/status/1198782278782070784
 x<- list(a=c(1,2,3), b= c(3,4,5), abc = c(6,7,8))
 x$abc
-(1/3)*3==1
+(1/3)*3==1#TRUE
+#https://0.30000000000000004.com/
+(0.1+0.2)==0.3#FALSE
 ```
 
 ```{r TS, echo = FALSE}
