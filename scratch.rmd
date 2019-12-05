@@ -29,6 +29,47 @@ my_list <- list(main = data.frame(A = 1:5, B = 6:10),
 tmp.file <- tempfile(fileext="txt")
 write.perseus(my_list, con = tmp.file)
 cat(readLines(tmp.file), sep = '\n')
+# https://groups.google.com/d/msgid/perseus-list/eeb79ffc-a10d-48dc-ab1a-09d1ca279df7%40googlegroups.com?utm_medium=email&utm_source=footer
+# some of protein intensities
+hsp235 = c(31.87997, 31.47218, 31.54176, 31.04798, 31.19131, 31.3741, 31.07182, 31.07157, 31.07896, NA,NA,NA,NA,NA,NA, 27.1649, 26.83219,NA)
+hsp236 = c(26.00793,27.41844, 28.28087,24.80331,27.18064, 27.44735, 27.95082, 29.01148, 28.52835, NA,NA,NA,NA,NA,NA, 27.0477, NA,NA)
+x050 =c(NA,NA,NA,27.80058,28.14258,27.71777,27.75041,27.82857,27.56979, NA,NA,NA,28.10415,28.27142,28.28198,27.95155,28.07148,28.07969)
+# overview
+cbind(hsp235, hsp236, x050)
+# grouping
+grp = rep(c("Treat", "Ctrl"), each = 9)
+# display, could be nicer
+library(ggplot2)
+qplot(grp, hsp236)
+# function to impute new values
+rank.replace = function(x, const) {
+  x.na = is.na(x)
+  if (missing(const)) const = min(x, na.rm = TRUE)
+  x[x.na] = const - runif(sum(x.na))
+  return(x)
+}
+# Start testing
+
+# hsp236 is around the detection floor,
+# so not different using a parametric test
+# set 23 as the ceiling of imputation
+hsp236.rank = rank.replace(hsp236, 23)
+wilcox.test(hsp236.rank ~ grp)
+# set the minimal value as the ceiling
+hsp236.rank = rank.replace(hsp236)
+wilcox.test(hsp236.rank ~ grp)
+# p-values are nearly the same, except randomness
+# due to the stochastic process
+
+# the imputation works well on hsp235 also
+hsp235.rank = rank.replace(hsp235)
+wilcox.test(hsp235.rank ~ grp)
+
+# the imputation works well on x050 also
+# which is not different between as far I can say
+x050.rank = rank.replace(x050)
+wilcox.test(x050.rank ~ grp)
+# p-value will be instable, but not "significant" (I hate that term)
 
 ```
 

@@ -61,6 +61,16 @@ abline(rq(log2LFQapim[["LFQ14_TK9_apim_poolet"]]~log2LFQapim[["LFQ4_TK9_apim1"]]
 legend("topright", legend = c("lm", "rq"), col = c("red", "blue"), lty = 2)
 ```
 
+```{r sort-overlap-plot}
+log2LFQapimSort<-log2LFQapim
+log2LFQapimSort<-log2LFQapimSort[order(log2LFQapimSort$LFQ14_TK9_apim_poolet),]
+summary(log2LFQapimSort)
+plot(log2LFQapimSort$LFQ4_TK9_apim1)
+matplot(log2LFQapimSort)
+log2LFQapimSort<-log2LFQapimSort-log2LFQapimSort[["LFQ14_TK9_apim_poolet"]]
+matplot(log2LFQapimSort)
+```
+
 
 ```{r diff}
 dataV<-log2LFQapim

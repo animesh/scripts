@@ -1,23 +1,23 @@
 ## Setup GENTRL Deep learning enables rapid identification of potent DDR1 kinase inhibitors https://www.nature.com/articles/s41587-019-0224-x
 #https://docs.anaconda.com/anaconda/install/linux/
-! sudo apt-get install python3 libxrender1 libxext6 libgl1-mesa-glx libegl1-mesa libxrandr2 libxrandr2 libxss1 libxcursor1 libxcomposite1 libasound2 libxi6 libxtst6
-! wget https://repo.anaconda.com/archive/Anaconda3-2019.10-Linux-x86_64.sh
-! git clone https://github.com/animesh/GENTRL.git
-! cd GENTRL/
-! python setup.py install
+#! sudo apt-get install python3 libxrender1 libxext6 libgl1-mesa-glx libegl1-mesa libxrandr2 libxrandr2 libxss1 libxcursor1 libxcomposite1 libasound2 libxi6 libxtst6
+#! wget https://repo.anaconda.com/archive/Anaconda3-2019.10-Linux-x86_64.sh
+#! git clone https://github.com/animesh/GENTRL.git
+#! cd GENTRL/
+#! python setup.py install
 #https://www.rdkit.org/docs/Install.html
-! conda create -c rdkit -n my-rdkit-env rdkit
-! conda activate my-rdkit-env
-! pip install sklearn jupyterlab molsets
-! jupyter notebook --no-browser
+#! conda create -c rdkit -n my-rdkit-env rdkit
+#! conda activate my-rdkit-env
+#! pip install sklearn jupyterlab molsets
+#! jupyter notebook --no-browser
 #check setup
 import os
 print(os)
-system("jupyter" "notebook" "list")
+system("jupyter" "notebook" "list")#token
 #pre-train https://github.com/insilicomedicine/GENTRL/blob/master/examples/pretrain.ipynb
 import pandas as pd
 ! wget https://media.githubusercontent.com/media/molecularsets/moses/master/data/dataset_v1.csv
-df = pd.read_csv("/home/animeshs/GENTRL/examples/dataset_v1.csv")
+df = pd.read_csv("dataset_v1.csv")
 df = df[df['SPLIT'] == 'train']
 import gentrl
 import torch
