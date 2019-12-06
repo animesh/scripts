@@ -33,15 +33,15 @@ if(dfDPcnt.empty==False): dfDPcnt[dfDPcnt>0].plot(kind='pie').figure.savefig(wri
 print(writeDPpng)
 #specific mod(s)
 modName="GlyGly"
-dfDP=dfDP[dfDP['Modification']==modName]
-#dfDP=dfDP[dfDP['Modification'].str.contains('ly')==True]
+dfDPmod=dfDP[dfDP['Modification']==modName]
+#dfDPmod=dfDP[dfDP['Modification'].str.contains('ly')==True]
 writeDPcsv=pathFiles/(fileName+modName+"DP.csv")
-dfDP.to_csv(writeDPcsv)
+dfDPmod.to_csv(writeDPcsv)
 print(writeDPcsv)
 #specific mod(s)
 modName="Phosphorylation"
-dfDP=dfDP[dfDP['Modification']==modName]
+dfDPmod=dfDP[dfDP['Modification']==modName]
 #dfDP=dfDP[dfDP['Modification'].str.contains('ly')==True]
 writeDPcsv=pathFiles/(fileName+modName+"DP.csv")
-dfDP.to_csv(writeDPcsv)
+dfDPmod.to_csv(writeDPcsv)
 print(writeDPcsv)
