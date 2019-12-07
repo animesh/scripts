@@ -1,3 +1,19 @@
+#https://en.m.wikipedia.org/wiki/Kelly_criterion
+#! pip install sympy
+from sympy import *
+x,b,p = symbols('x b p')
+y = p*log(1+b*x) + (1-p)*log(1-x)
+solve(diff(y,x), x)#[-(1 - p - b*p)/b]
+
+
+#https://openai.com/blog/deep-double-descent/
+import safety_gym
+import gym
+env = gym.make('Safexp-PointGoal1-v0')
+next_observation, reward, done, info = env.step(action)
+info
+#https://github.com/openai/safety-starter-agents
+
 #cluster https://nbviewer.jupyter.org/github/KrishnaswamyLab/PHATE/blob/master/Python/tutorial/EmbryoidBody.ipynb
 !pip install --user --upgrade phate scprep
 #demo https://www.krishnaswamylab.org/projects/phate/eb-web-tool
