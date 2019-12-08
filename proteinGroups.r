@@ -13,6 +13,10 @@ print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #inpF<-file.path("L:/promec/Qexactive/LARS/2019/november/Kristian Starheim/combined/txt/proteinGroups.txt")
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
+#select raw intensity
+print("Selecting Raw Intensity Values(s)")
+intensity<-as.matrix(data[,grep("Intensity.",colnames(data))])
+colnames(intensity)=sub("Intensity.","",colnames(intensity))
 #clean
 data = data[!data$Reverse=="+",]
 data = data[!data$Potential.contaminant=="+",]
@@ -22,7 +26,7 @@ dim(data)
 row.names(data)<-data$Fasta.headers
 print("Converted Fasta.headers to rownames")
 #summary(data)
-#select
+#select from arg[]
 if(length(args)==1){
   selection="LFQ.intensity";print(paste("No columns to select, using",selection))
   LFQ<-as.matrix(data[,grep(selection,colnames(data))])
@@ -41,12 +45,12 @@ if(length(args)==1){
 }
 summary(LFQ)
 dim(LFQ)
-#select certain marker proteins and calculate their intensitt proportion
-LFQglyceraldehyde<-LFQ[grep("glyceraldehyde",row.names(LFQ),ignore.case = TRUE),]
-#summary(LFQglyceraldehyde)
-print("Proportion of glyceraldehyde(s)")
-dim(LFQglyceraldehyde)
-if(!is.null(dim(LFQglyceraldehyde))){colSums(LFQglyceraldehyde)/colSums(LFQ)*100}
+#select certain marker proteins and calculate their intensity proportion, e.g. using histone as a protein ruler http://www.coxdocs.org/doku.php?id=perseus:user:plugins:proteomicruler
+LFQhistone<-LFQ[grep("histone",row.names(LFQ),ignore.case = TRUE),]
+#summary(LFQhistone)
+print("Proportion of histone(s)")
+dim(LFQhistone)
+if(!is.null(dim(LFQhistone))){colSums(LFQhistone)/colSums(LFQ)*100}
 LFQactin<-LFQ[grep("actin",row.names(LFQ),ignore.case = TRUE),]
 #summary(LFQactin)
 print("Proportion of actin(s)")
@@ -77,10 +81,12 @@ uniprot<-sapply(strsplit(Uniprot,"|",fixed=TRUE),`[`, 2)
 outF=paste(inpF,selection,"log2","csv",sep = ".")
 write.csv(rbind(cbind(log2LFQ,Means,Medians,NAs,CVs,Sums,uniprot),NAcols),outF)
 print(paste("Log2 transform of",selection,"columns written to",outF))
-#plot
+#plot raw intensity histogram
 outP<-paste(inpF,selection,"pdf",sep = ".")
 pdf(outP)
-i=1
+#i=1
+for(i in 1:dim(intensity)[2]){hist(log2(intensity[,i]),main=paste("File:",colnames(intensity)[i]),xlab="log2 raw intensity")}
+#plot LFQ histogram
 for(i in 1:dim(log2LFQ)[2]){
   log2lfq <- hist(log2LFQ[,i],main=paste("File:",colnames(log2LFQ)[i],"\n","Quantified Protein Group(s):",dim(log2LFQ)[1]-as.integer(NAcols[i]),"out of ",dim(log2LFQ)[1],",","Missing Value(s):",NAcols[i]),xlab=paste("log2",selection),breaks=max(log2LFQ)-min(log2LFQ),xlim=c(min(log2LFQ), max(log2LFQ)))
 }

@@ -1,3 +1,5 @@
+#YOLO base https://github.com/Microsoft/vcpkg
+#https://dsbyprateekg.blogspot.com/2019/12/how-can-i-install-and-use-darknet.html
 #https://en.m.wikipedia.org/wiki/Kelly_criterion
 #! pip install sympy
 from sympy import *

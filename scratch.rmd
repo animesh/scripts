@@ -1,4 +1,25 @@
 ```{r perseusR, echo = FALSE}
+#supplementary of the article https://www.tandfonline.com/doi/full/10.1080/00031305.2018.1529622 at  https://www.tandfonline.com/doi/suppl/10.1080/00031305.2018.1529622/suppl_file/utas_a_1529622_sm1508.zip 
+#shiny app here http://fpr-calc.ucl.ac.uk/
+calc.FPR =  function(nsamp,pval,delta,sigma,prior) {
+  df=2*(nsamp-1)
+  tcrit=qt((1-pval/2),df,ncp=0)
+  x0=tcrit
+  y0=dt(x0,df,0)
+  ncp1=delta/sdiff     #non-centrality paramater
+  x1=x0  #tcrit
+  y1=dt(x1,df,ncp=ncp1)
+  p0=2*y0
+  p1=y1
+  LR=y1/(2*y0)
+  FPR=((1-prior)*p0)/(((1-prior)*p0) + prior*p1)
+  output=c(FPR,LR)
+  return(output)
+}
+```
+
+
+```{r perseusR, echo = FALSE}
 #http://www.coxdocs.org/doku.php?id=perseus:user:activities:matrixprocessing:wgcna
 #install.packages("BiocManager")
 #install.packages("Rcpp")

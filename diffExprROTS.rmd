@@ -30,6 +30,32 @@ dataSellog2[dataSellog2==-Inf]=NA
 summary(dataSellog2)
 ```
 
+```{r scale}
+dataSellog2scale<-scale(dataSellog2)
+for(coln in 1:dim(dataSellog2scale)[2]){
+  hist(dataSellog2scale[,coln])
+  print(var(dataSellog2scale[!is.na(dataSellog2scale[,coln]),coln]))
+  print(mean(dataSellog2scale[!is.na(dataSellog2scale[,coln]),coln]))
+}
+```
+
+```{r compare}
+plot(dataSellog2scale,dataSellog2)
+coln=1
+power.t.test(n = dim(dataSellog2scale)[2]/2, delta = 1, sd = var(dataSellog2scale[!is.na(dataSellog2scale[,coln]),coln]),sig.level=0.05,power=NULL,type="two.sample",alternative="two.sided",strict = FALSE)
+```
+
+```{r FPR}
+#http://fpr-calc.ucl.ac.uk/
+#https://www.tandfonline.com/doi/full/10.1080/00031305.2018.1529622
+#https://www.tandfonline.com/doi/suppl/10.1080/00031305.2018.1529622/suppl_file/utas_a_1529622_sm1508.zip
+for(coln in 1:dim(dataSellog2)[2]){
+  hist(dataSellog2[,coln])
+  print(sd(dataSellog2[!is.na(dataSellog2[,coln]),coln]))
+  print(mean(dataSellog2[!is.na(dataSellog2[,coln]),coln]))
+}
+```
+
 ```{r t-test, echo = FALSE}
 dataSellog2grpTtest<-dataSellog2[]
 pValNA = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){NaN} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})
