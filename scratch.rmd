@@ -1,4 +1,21 @@
-```{r perseusR, echo = FALSE}
+```{r paradox, echo = FALSE}
+#https://en.wikipedia.org/wiki/Lindley%27s_paradox
+g1=49581 
+g2=48870
+g2/g1
+g2-g1
+n=g1+g2
+prior=0.5
+#http://www.r-tutor.com/elementary-statistics/probability-distributions/binomial-distribution
+dbinom(g1, size=n, prob=prior)
+pbinom(g1, size=n, prob=prior)
+#https://www.datascienceblog.net/post/basic-statistics/distributions/
+dnorm(g1, prior*n, prior*(1-prior)*n)
+pnorm(g1, prior*n, prior*(1-prior)*n)
+
+```
+
+```{r FDR, echo = FALSE}
 #supplementary of the article https://www.tandfonline.com/doi/full/10.1080/00031305.2018.1529622 at  https://www.tandfonline.com/doi/suppl/10.1080/00031305.2018.1529622/suppl_file/utas_a_1529622_sm1508.zip 
 #shiny app here http://fpr-calc.ucl.ac.uk/
 calc.FPR =  function(nsamp,pval,delta,sigma,prior) {

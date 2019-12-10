@@ -1,3 +1,5 @@
+system("jupyter" "notebook" "list")
+
 #YOLO base https://github.com/Microsoft/vcpkg
 #https://dsbyprateekg.blogspot.com/2019/12/how-can-i-install-and-use-darknet.html
 #https://en.m.wikipedia.org/wiki/Kelly_criterion
@@ -2479,9 +2481,8 @@ model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-log_dir="..\\notebooks\logs\\" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+log_dir="/mnt/f/scripts/logs/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-
 model.fit(x=x_train,
           y=y_train,
           epochs=5,
