@@ -1,5 +1,11 @@
 system("jupyter" "notebook" "list")
 
+#https://peerj.com/preprints/27736.pdf
+from pyopenms import *
+seq = AASequence.fromString("DFPIANGER")
+seq_formula = seq.getFormula()
+print("Peptide", seq, "has molecular formula", seq_formula)
+
 #YOLO base https://github.com/Microsoft/vcpkg
 #https://dsbyprateekg.blogspot.com/2019/12/how-can-i-install-and-use-darknet.html
 #https://en.m.wikipedia.org/wiki/Kelly_criterion

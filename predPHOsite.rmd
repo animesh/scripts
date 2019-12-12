@@ -1,0 +1,711 @@
+```{r funscoR, echo = FALSE}
+#https://evocellnet.github.io/funscoR/
+#devtools::install_github("evocellnet/funscoR")
+library(funscoR)
+library(knitr)
+library(dplyr)
+library(stringr)
+```
+
+```{r std, echo = FALSE}
+phosphoproteome %>%
+  head() %>%
+  kable()
+psp %>%
+  head() %>%
+  kable()
+```
+
+```{r annotation, echo = FALSE}
+data(package = "funscoR")$results %>% 
+  as.data.frame() %>% 
+  filter(str_detect(Item, "feature")) %>% 
+  select(Item) %>%
+  kable()
+feature_ptmdb_age %>%
+  head() %>%
+  kable()
+annotated_phos <- annotate_sites(phosphoproteome)
+```
+
+```{r feature, echo = FALSE}
+ST_features <- preprocess_features(annotated_phos, "ST")
+Y_features <- preprocess_features(annotated_phos, "Y")
+```
+
+```{r model, echo = FALSE}
+ST_model <- train_funscore(ST_features, "ST", psp, ncores = 24)
+Y_model <- train_funscore(Y_features, "Y", psp, ncores = 24)
+```
+
+```{r predict, echo = FALSE}
+ST_scores <- predict_funscore(ST_features, ST_model, ncores = 24)
+Y_scores <- predict_funscore(Y_features, Y_model, ncores = 24)
+
+## gather all predictions
+all_scores <- bind_rows(ST_scores, Y_scores) %>%
+  mutate(probabilities = log_scaling(probabilities))
+```
+
+```{r shiny, echo = FALSE}
+#https://rmarkdown.rstudio.com/authoring_shiny.html
+#install.packages('shiny')
+library(shiny)
+dN_shiny <- dataNorm
+#ctrl-shift-K
+#rmarkdown::run
+#shiny::renderUI
+```
+
+```{r slider, echo=FALSE}
+
+inputPanel(
+  sliderInput("bins", "#bins:", min = 1, max = 100, value = 30),
+  textInput("dens", "Density:", "auto",value = 0.6),
+  selectInput("expression", label = "Sample:",choices = colnames(dN_shiny), selected = colnames(dN_shiny)[1]))
+renderText({paste("Inputs:", input$bins,input$dens,input$expression)})
+```
+
+```{r plot, echo = FALSE}
+renderPlot({
+  hist(dN_shiny[,as.numeric(which(colnames(dN_shiny) == input$expression))],breaks = as.numeric(input$bins),probability = TRUE,col="orange")
+  lines(density(dN_shiny[,as.numeric(which(colnames(dN_shiny) == input$expression))], adjust = as.numeric(input$dens)),col="blue")
+  })
+
+```
+
+```{r UWOT, echo = FALSE}
+#devtools::load_all()
+#install.packages('devtools')
+#library('devtools')
+#install_github("jlmelville/uwot")
+library()
+iris_umap <- umap(iris, n_neighbors = 50, learning_rate = 0.5, init = "random")
+
+# Load mnist from somewhere, e.g.
+# devtools::install_github("jlmelville/snedata")
+# mnist <- snedata::download_mnist()
+mnist_umap <- umap(mnist, n_neighbors = 15, min_dist = 0.001, verbose = TRUE)
+
+# Use a specific number of threads
+mnist_umap <- umap(mnist, n_neighbors = 15, min_dist = 0.001, verbose = TRUE, n_threads = 8)
+
+# Use a different metric
+mnist_umap_cosine <- umap(mnist ,n_neighbors = 15, metric = "cosine", min_dist = 0.001, verbose = TRUE, n_threads = 8)
+
+# Supervised dimension reduction
+mnist_umap_s <- umap(mnist, n_neighbors = 15, min_dist = 0.001, verbose = TRUE, n_threads = 8,
+                     y = mnist$Label, target_weight = 0.5)
+
+# Add new points to an existing embedding
+mnist_train <- head(mnist, 60000)
+mnist_test <- tail(mnist, 10000)
+
+# You must set ret_model = TRUE to return extra data we need
+# coordinates are in mnist_train_umap$embedding
+mnist_train_umap <- umap(mnist_train, verbose = TRUE, ret_model = TRUE)
+mnist_test_umap <- umap_transform(mnist_test, mnist_train_umap, verbose = TRUE)
+
+# Save the nearest neighbor data
+mnist_nn <- umap(mnist, ret_nn = TRUE)
+# coordinates are now in mnist_nn$embedding
+
+# Re-use the nearest neighor data and save a lot of time
+mnist_nn_spca <- umap(mnist, nn_method = mnist_nn$nn, init = spca)
+
+# No problem to have ret_nn = TRUE and ret_model = TRUE at the same time
+
+# Calculate Petal and Sepal neighbors separately (uses intersection of the resulting sets):
+iris_umap <- umap(iris, metric = list("euclidean" = c("Sepal.Length", "Sepal.Width"),
+                                      "euclidean" = c("Petal.Length", "Petal.Width")))
+# Can also use individual factor columns
+iris_umap <- umap(iris, metric = list("euclidean" = c("Sepal.Length", "Sepal.Width"),
+                                      "euclidean" = c("Petal.Length", "Petal.Width"),
+                                      "categorical" = "Species"))
+
+# MNIST with PCA reduction to 50 dimensions can speed up calculation without
+# affecting results much
+mnist_umap <- umap(mnist, pca = 50)
+
+```
+
+
+```{r clusterProfiler, echo = FALSE}
+#BiocManager::install("STRINGdb")
+library(STRINGdb)
+string_db <- STRINGdb$new( version="11", species=9606,score_threshold=0, input_directory="" )
+UniprotStrings<-as.data.frame(Uniprot)
+example1_mapped <- string_db$map( UniprotStrings, "Uniprot", removeUnmappedRows = TRUE )
+hits<-example1_mapped$STRING_id
+enrichmentGO <- string_db$get_enrichment( hits, category = "Process", methodMT = "fdr", iea = TRUE )
+enrichmentKEGG <- string_db$get_enrichment( hits, category = "KEGG", methodMT = "fdr", iea = TRUE )
+head(enrichmentGO, n=7)
+head(enrichmentKEGG, n=7)
+```
+
+
+
+```{r clusterProfiler, echo = FALSE}
+install.packages('BiocManager')
+BiocManager::install('goseq')
+library(goseq)
+supportedOrganisms()
+#https://bioconductor.org/packages/release/bioc/vignettes/clusterProfiler/inst/doc/clusterProfiler.html
+#source("https://bioconductor.org/biocLite.R")
+## biocLite("BiocUpgrade") ## you may need this
+#biocLite("clusterProfiler")
+#biocLite("org.Hs.eg.db")
+library("org.Hs.eg.db")
+#install.packages("colorspace")
+#devtools::install_github('cran/colorspace')
+library("clusterProfiler")
+Uniprot=data[data$`MCCAR Biol Rep 25 WSRT``NB4 Biol Rep 22 WSRT`<0.5,1]
+dataSub=subset(data,`NB4 Biol Rep 22 WSRT`<0.3 & `MCCAR Biol Rep 25 WSRT`<0.3)
+Uniprot<-sapply(strsplit(dataSub$`T: Majority protein IDs`,";"), `[`, 1)
+enrichGO(gene=Uniprot,OrgDb=org.Hs.eg.db,keyType= 'UNIPROT',ont= "CC",pAdjustMethod = "BH",pvalueCutoff  = 0.01,qvalueCutoff  = 0.05)
+UniprotEG<-bitr(Uniprot, fromType="UNIPROT", toType="ENTREZID", OrgDb="org.Hs.eg.db")
+UniprotKEGG<-bitr(Uniprot, fromType="UNIPROT", toType="KEGG", OrgDb="org.Hs.eg.db")
+UniprotKEGG<-bitr_kegg(Uniprot, fromType='uniprot', toType='kegg', organism='hsa')
+kk <- enrichKEGG(gene=UniprotEG$ENTREZID)
+kk@result[["Description"]]
+browseKEGG(kk,kk@result[["ID"]][1])
+```
+
+
+```{r installs}
+install.packages(c("matrixStats", "Hmisc", "splines", "foreach", "doParallel", "fastcluster", "dynamicTreeCut", "survival"))
+source("http://bioconductor.org/biocLite.R")
+biocLite(c("GO.db", "preprocessCore", "impute"))
+orgCodes = c("Hs", "Mm", "Rn", "Pf", "Sc", "Dm", "Bt", "Ce", "Cf", "Dr", "Gg");
+orgExtensions = c(rep(".eg", 4), ".sgd", rep(".eg", 6));
+packageNames = paste("org.", orgCodes, orgExtensions, ".db", sep="");
+
+biocLite(c("GO.db", "KEGG.db", "topGO", packageNames, "hgu133a.db", "hgu95av2.db", "annotate", "hgu133plus2.db", "SNPlocs.Hsapiens.dbSNP.20100427", "minet", "OrderedList"))
+install.packages("BiocManager")
+BiocManager::install("WGCNA")
+library(WGCNA);
+allowWGCNAThreads()
+```
+
+
+```{r data}
+femData <- read.csv("https://raw.githubusercontent.com/iamciera/10wgcna/master/examples/LiverFemale3600.csv")
+names(femData)
+
+#This is just melting the data without the first 8 columns or something
+datExpr0 <- as.data.frame(t(femData[, -c(1:8)]))
+names(datExpr0) = femData$substanceBXH
+rownames(datExpr0) = names(femData)[-c(1:8)]
+
+head(datExpr0[,1:8])
+
+datExpr0 = as.data.frame(t(femData[, -c(1:8)]));
+gsg = goodSamplesGenes(datExpr0, verbose = 3)
+gsg$allOK
+install.packages('flashClust')
+library(flashClust)
+sampleTree = flashClust(dist(datExpr0), method = "average");
+plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5,
+     cex.axis = 1.5, cex.main = 2)
+
+net = blockwiseModules(datExpr0, power = 6,
+                       TOMType = "unsigned", minModuleSize = 30,
+                       reassignThreshold = 0, mergeCutHeight = 0.25,
+                       numericLabels = TRUE, pamRespectsDendro = FALSE,
+                       saveTOMs = TRUE,
+                       saveTOMFileBase = "femaleMouseTOM",
+                       verbose = 3)
+#https://jolars.github.io/eulerr/articles/venn-diagrams.html
+install.packages('eulerr')
+library(eulerr)
+s4 <- list(a = c(1, 2, 3),
+           b = c(1, 2),
+           c = c(1, 4),
+           e = c(5))
+plot(venn(s4))
+plot(euler(s4, shape = "ellipse"), quantities = TRUE)
+
+#https://github.com/jolars/eulerr.co/blob/master/server.R
+
+library(ggplot2)
+
+#heatmap(data$Difference)
+p <- ggplot(data,aes(Difference,X.Log.P.value.))
+p<-p + geom_tile(aes(fill=X.Log.P.value.)) + scale_fill_gradient(low="white", high="darkblue") + xlab("") + ylab("")
+f=paste(file,proc.time()[3],".jpg")
+ggsave(filename=f, plot=p)
+print(p)
+data <- read.delim("Y:/felles/Voin/===Methodology paper===/Supplementary table Ttest BothSided Sample.txt",row.names=22,sep="\t",header = T)
+data <- read.delim("Supplementary table Ttest BothSided",row.names=22,sep="\t",header = T)
+summary(data)
+```
+
+```{r xplot}
+
+library('ggplot2')
+data[1,]
+Significance=data$X.Log.P.value.>-log10(0.05)&abs(data$Difference)>log2(1.5)
+sum(Significance)
+dsub <- subset(data, data$X.Log.P.value.==max(data$X.Log.P.value.)|data$Difference==max(abs(data$Difference)))
+dsub$Gene.names
+plot(data$Difference,data$X.Log.P.value.)
+qplot(Difference,X.Log.P.value.,data=data,color=X.Log.P.value.>-log10(0.05)&abs(Difference)>log2(1.5))
+g = ggplot(data,aes(Difference,X.Log.P.value.))
+gps<-g + geom_point(aes(color=Significance)) + theme_bw(base_size=10) + geom_text(data=dsub,aes(label=Gene.names),hjust=0, vjust=0) + xlab("Log2 Fold Change")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()
+p=paste(file,proc.time()[3],".jpg")
+ggsave(filename=p, plot=gps)
+```
+
+
+
+```{r, echo=FALSE}
+plot(log2(data$A549.Cis.1/100),log2(data$A549.Cis.2/100),col="#FF00FF",cex=0.5,pch=16,lty=1)
+```
+
+```{r sign-test}
+
+set.seed(2016)
+bio <- 3
+prot <- nrow(data)
+wilcox.test(data)
+dataa549cis = t(data[,grepl( "^A549.Cis",names(data))])
+dataa549cis[is.nan(dataa549cis)] <- NA
+dataa549cis = t(c(-1,2,3,4,50))
+results <- apply(dataa549cis, 1, function(dataa549cis) {
+  wilcox.test(dataa549cis)$p.value})
+results
+
+
+results <- apply(dat, 1, function(dat) {
+  wilcox.test(x = dat[1:x])$p.value})
+
+
+results <- apply(data, 1, function(data) {
+  wilcox.test(x = data[,grepl( "^A549.Cis",names(data))])$p.value})
+
+results <- apply(data, 1, function(data) {
+  wilcox.test(x = log2(data[,grepl( "^A549.Cis",names(data))])$p.value}))
+results <- apply(data, 1, function(data) {
+  wilcox.test(x=log2(data$A549.Cis.1/100))$p.value})
+cbind(data, pvals = results)
+
+hist(p.adjust(results,method="BH"))
+hist(p.adjust(results,method="BH"))
+hist(p.adjust(results,method="holm"))
+?p.adjust
+hist(results)
+min(results)
+data=read.delim("C:/Users//animeshs/Google Drive/wilcox_sgn_rnk_wiki.txt",row.names=1)
+wilcox.test(data$x2,data$x1,paired = TRUE, alternative = "less")
+wilcox.test(data$x2,data$x1,paired = TRUE, alternative = "greater")
+wilcox.test(data$x2,data$x1,paired = TRUE)
+wilcox.test(c(1,1,1,1,1))
+0.5^4
+wilcox.test((data$x2-data$x1))$pvalue
+binom.test(3,3)
+sum(data$sgn>0, na.rm=TRUE)
+binom.test(1,3)
+t.test(c(data$x1,data$x2),c(data$abs,data$abs))
+t.test(extra ~ group, data = sleep)
+wilcox.test(extra ~ group, data = sleep)
+
+
+x <- 10; y <- 10; g <- 1000
+mean(c(1,2,3))
+set.seed(1969)
+dat <- matrix(rnorm((x + y) * g), ncol = x + y)
+
+results <- apply(dat, 1, function(dat) {
+  wilcox.test(x = dat[1:x])$p.value})
+
+cbind(dat, pvals = results)
+hist(results,col="orange")
+hist(p.adjust(results,method="BH"))
+
+#write.csv2("Y:/felles/Voin/===Methodology paper===/Supplementary table WCSR_test.txt",results)
+install.packages("rlm")
+library(rlm)
+?rlm
+qqnorm(c(1,2,10,100))
+?qqplot
+
+
+install.packages("outliers")
+library(outliers)
+grubbs.test(c(10,20, 200))
+
+
+
+```
+
+
+
+
+
+```{r MSstat}
+source("http://bioconductor.org/biocLite.R")
+biocLite("MSstats")
+library("MSstats")
+
+
+```
+
+```{r interactive}
+#install.packages("shiny")
+library(shiny)
+runExample("01_hello")
+```
+
+```{r google}
+install.packages("RGoogleAnalytics")
+library("RGoogleAnalytics")
+```
+
+```{r googleVis}
+#install.packages("googleVis")
+#suppressPackageStartupMessages(library(googleVis))
+#http://rpubs.com/gallery/googleVis
+T <- gvisTable(Exports, options = list(width = 200, height = 280))
+G <- gvisGeoChart(Exports, locationvar = "Country", colorvar = "Profit",
+    options = list(width = 360, height = 280, dataMode = "regions"))
+TG <- gvisMerge(T, G, horizontal = TRUE, tableOptions = "bgcolor=\"#CCCCCC\" cellspacing=10")
+
+print(TG, "chart")
+```
+
+**check**
+```{r Hurricane Andrew (1992) storm track with Google Maps}
+AndrewMap <- gvisMap(Andrew, "LatLong", "Tip", options = list(showTip = TRUE,
+    showLine = TRUE, enableScrollWheel = TRUE, mapType = "hybrid", useMapTypeControl = TRUE))
+
+print(AndrewMap, "chart")
+```
+
+**check**
+```{r fig.width=7, fig.height=6}
+## Table with embedded links
+PopTable <- gvisTable(Population, options = list(width = 600, height = 300,
+    page = "enable"))
+
+print(PopTable, "chart")
+```
+
+
+```{r data}
+data <- read.delim("Y:/felles/PROTEOMICS and XRAY/Results/Kristian/a-GEIR/Figurer/Bakgrunnsmateriale/Table 1 og figur 3/20160417_tabell fra Perseus. Slettet RPS10p5.txt")
+data <- read.delim("L:/Results//TObermann/data.txt")
+summary(data)
+d1<-read.delim('Y:/felles/PROTEOMICS and XRAY/Ani/misccb/d1.txt')
+d2<-read.delim('Y:/felles/PROTEOMICS and XRAY/Ani/misccb/d2.txt')
+summary(d1)
+summary(d2)
+d<-merge(d1,d2,by="ID",all=T)
+summary(d)
+library(plyr)
+install.packages('plyr')
+d<-merge(d1,d2)
+d3<-d1
+summary(d)
+d<-merge(d1,d3,by="ID",all=T)
+install.packages("profvis")
+
+```
+
+
+```{r ColumnSel}
+IP0h<-data[, grep("^X.IP..0.h.....IP..PBS.....$", colnames(data))]
+summary(IP0h)
+heatmap(na.omit(as.matrix(IP0h)))
+mapply(t.test,IP0h[,])
+```
+
+```{r model}
+library('nlm')
+plot(log(Fnorm) ~ log(Concentration), data=data)
+yp=(max(data$Fnorm)-data$Fnorm)/(max(data$Fnorm)-min(data$Fnorm))
+yq=1-yp
+glm.out = glm(cbind(yp,yq) ~ log(data$Concentration), family=binomial(logit))
+lines(log(data$Concentration), glm.out$fitted, type="l", col="red")
+summary(glm.out)
+source("http://bioconductor.org/biocLite.R")
+biocLite("clusterProfiler")
+library("clusterProfiler")
+data(gcSample)
+x <- groupGO(gene=gcSample[[1]],organism="human",ont="CC",level=2,readable=TRUE)
+head(summary(x))
+x
+id=read.table("ListOfTWLUniprotNIFEIDtsv.txt")
+x <- groupGO(gene=(as.character(as.matrix(id))),organism="human",ont="CC",level=4,readable=TRUE)
+head(summary(x))
+x <- groupGO(gene=(as.character(as.matrix(id))),organism="human",ont="CC",level=4,readable=TRUE)
+head(summary(x))
+page(summary(x))
+plot(x)
+dline <- read.table("res_line.txt")
+resdataap <- read.table("ap.txt")
+resdataapip <- read.table("apip.txt")
+resdatafl <- read.table("fl.txt")
+
+conc=c(resdataap$ConcPm,resdataapip$ConcPm,resdatafl$ConcPm)
+lethal=c(resdataap$Ap,resdataapip$Ap_Ip,resdatafl$Fl)
+
+
+
+x <- seq(0, 2000, length=201)
+yap <- (dline$AP[1]*x+dline$AP[2])
+yapip <- (dline$AP_IP[1]*x+dline$AP_IP[2])
+yfl <- (dline$FL[1]*x+dline$FL[2])
+
+
+plot(conc,lethal)
+lines(x, yap, type = "l", col="red")
+lines(x, yapip, type = "l", col="green")
+lines(x, yfl, type = "l", col="blue")
+
+
+write.table((cbind(c(x),c(yap))), file = "ap_otp.txt", sep = "\t",col.names = FALSE, row.names = FALSE )
+
+
+write.table((cbind(c(x),c(yapip))), file = "apip_otp.txt", sep = "\t",col.names = FALSE, row.names = FALSE )
+
+write.table((cbind(c(x),c(yfl))), file = "fl_otp.txt", sep = "\t",col.names = FALSE, row.names = FALSE )
+
+map <- read.table("maplot.txt")
+matplot(map)
+
+x <- seq(0, 2000, length=201)
+yap <- (dline$AP[1]*x+dline$AP[2])
+plot(x, yap, type = "l", col="red")
+
+
+plot.new()
+line(dline$AP[2],dline$AP[1])
+
+lmfit <- lm(Ap~ConcPm, data=resdataap, na.action=na.omit)
+summary(lmfit)
+plot(resdataap$ConcPm,resdataap$Ap)
+abline(coef(lmfit))
+
+lmfit <- lm(Ap_Ip~ConcPm, data=resdataapip, na.action=na.omit)
+summary(lmfit)
+plot(resdataapip$ConcPm,resdataapip$Ap_Ip)
+abline(coef(lmfit))
+
+lmfit <- lm(Fl~ConcPm, data=resdatafl, na.action=na.omit)
+summary(lmfit)
+plot(resdatafl$ConcPm,resdatafl$Fl)
+abline(coef(lmfit))
+
+
+
+
+resdataap$ApT <- resdataap$ConcPm/resdataap$Ap
+lmfit <- lm(Ap~ConcPm, data=resdataap, na.action=na.omit)
+plot(resdataap$ConcPm, resdataap$ApT)
+abline(coef(lmfit))
+Bm <- 1/coef(lmfit)[2]
+Kd <- Bm*coef(lmfit)[1]
+Bm
+Kd
+nlsfit <- nls(Ap~Bm*ConcPm/(Kd+ConcPm),data=resdataap, start=list(Kd=Kd, Bm=Bm))
+summary(nlsfit)
+plot(resdataap$ConcPm, resdataap$Ap)
+x <- seq(0, 2000, length=10)
+y2 <- (coef(nlsfit)["Bm"]*x)/(coef(nlsfit)["Kd"]+x)
+y2 <- predict(nlsfit,data.frame(ConcPm=x))
+lines(x, y2)
+y1 <- (Bm*x)/(Kd+x)
+lines(x, y1, lty="dotted", col="red")
+
+
+
+lmfit <- lm(Fl~Conc, data=resdata, na.action=na.omit)
+summary(lmfit)
+plot(resdata$Conc,resdata$Fl)
+abline(coef(lmfit))
+
+
+
+
+
+
+resapc3$Pbtrans <- resapc3$Pf/resapc3$Pb
+lmfit <- lm(Pbtrans~Pf, data=resapc3, na.action=na.omit)
+plot(resapc3$Pf, resapc3$Pbtrans)
+abline(coef(lmfit))
+Bm <- 1/coef(lmfit)[2]
+Kd <- Bm*coef(lmfit)[1]
+Bm
+Kd
+nlsfit <- nls(Pb~Bm*Pf/(Kd+Pf),data=resapc3, start=list(Kd=Kd, Bm=Bm))
+summary(nlsfit)
+plot(resapc3$Pf, resapc3$Pb)
+x <- seq(0, 60, length=120)
+y2 <- (coef(nlsfit)["Bm"]*x)/(coef(nlsfit)["Kd"]+x)
+y2 <- predict(nlsfit,data.frame(conc=x))
+lines(x, y2)
+y1 <- (Bm*x)/(Kd+x)
+lines(x, y1, lty="dotted", col="red")
+
+
+
+resfl$Pbtrans <- resfl$Pf/resfl$Pb
+lmfit <- lm(Pbtrans~Pf, data=resfl, na.action=na.omit)
+plot(resfl$Pf, resfl$Pbtrans)
+abline(coef(lmfit))
+Bm <- 1/coef(lmfit)[2]
+Kd <- Bm*coef(lmfit)[1]
+Bm
+Kd
+nlsfit <- nls(Pb~Bm*Pf/(Kd+Pf),data=resfl, start=list(Kd=Kd, Bm=Bm))
+summary(nlsfit)
+plot(resfl$Pf, resfl$Pb)
+x <- seq(0, 60, length=120)
+y2 <- (coef(nlsfit)["Bm"]*x)/(coef(nlsfit)["Kd"]+x)
+y2 <- predict(nlsfit,data.frame(conc=x))
+lines(x, y2)
+y1 <- (Bm*x)/(Kd+x)
+lines(x, y1, lty="dotted", col="red")
+
+
+
+
+resflc3$Pbtrans <- resflc3$Pf/resflc3$Pb
+lmfit <- lm(Pbtrans~Pf, data=resflc3, na.action=na.omit)
+plot(resflc3$Pf, resflc3$Pbtrans)
+abline(coef(lmfit))
+Bm <- 1/coef(lmfit)[2]
+Kd <- Bm*coef(lmfit)[1]
+Bm
+Kd
+nlsfit <- nls(Pb~Bm*Pf/(Kd+Pf),data=resflc3, start=list(Kd=Kd, Bm=Bm))
+summary(nlsfit)
+plot(resflc3$Pf, resflc3$Pb)
+x <- seq(0, 60, length=120)
+y2 <- (coef(nlsfit)["Bm"]*x)/(coef(nlsfit)["Kd"]+x)
+y2 <- predict(nlsfit,data.frame(conc=x))
+lines(x, y2)
+y1 <- (Bm*x)/(Kd+x)
+lines(x, y1, lty="dotted", col="red")
+
+
+
+
+resm347$Pbtrans <- resm347$Pf/resm347$Pb
+lmfit <- lm(Pbtrans~Pf, data=resm347, na.action=na.omit)
+plot(resm347$Pf, resm347$Pbtrans)
+abline(coef(lmfit))
+Bm <- 1/coef(lmfit)[2]
+Kd <- Bm*coef(lmfit)[1]
+Bm
+Kd
+nlsfit <- nls(Pb~Bm*Pf/(Kd+Pf),data=resm347, start=list(Kd=Kd, Bm=Bm))
+summary(nlsfit)
+plot(resm347$Pf, resm347$Pb)
+x <- seq(0, 60, length=120)
+y2 <- (coef(nlsfit)["Bm"]*x)/(coef(nlsfit)["Kd"]+x)
+y2 <- predict(nlsfit,data.frame(conc=x))
+lines(x, y2)
+y1 <- (Bm*x)/(Kd+x)
+lines(x, y1, lty="dotted", col="red")
+
+
+
+
+
+resm356$Pbtrans <- resm356$Pf/resm356$Pb
+lmfit <- lm(Pbtrans~Pf, data=resm356, na.action=na.omit)
+plot(resm356$Pf, resm356$Pbtrans)
+abline(coef(lmfit))
+Bm <- 1/coef(lmfit)[2]
+Kd <- Bm*coef(lmfit)[1]
+Bm
+Kd
+nlsfit <- nls(Pb~Bm*Pf/(Kd+Pf),data=resm356, start=list(Kd=Kd, Bm=Bm))
+summary(nlsfit)
+plot(resm356$Pf, resm356$Pb)
+x <- seq(0, 60, length=120)
+y2 <- (coef(nlsfit)["Bm"]*x)/(coef(nlsfit)["Kd"]+x)
+y2 <- predict(nlsfit,data.frame(conc=x))
+lines(x, y2)
+y1 <- (Bm*x)/(Kd+x)
+lines(x, y1, lty="dotted", col="red")
+
+
+
+resdm$Pbtrans <- resdm$Pf/resdm$Pb
+lmfit <- lm(Pbtrans~Pf, data=resdm, na.action=na.omit)
+plot(resdm$Pf, resdm$Pbtrans)
+abline(coef(lmfit))
+Bm <- 1/coef(lmfit)[2]
+Kd <- Bm*coef(lmfit)[1]
+Bm
+Kd
+nlsfit <- nls(Pb~Bm*Pf/(Kd+Pf),data=resdm, start=list(Kd=Kd, Bm=Bm))
+summary(nlsfit)
+plot(resdm$Pf, resdm$Pb)
+x <- seq(0, 60, length=120)
+y2 <- (coef(nlsfit)["Bm"]*x)/(coef(nlsfit)["Kd"]+x)
+y2 <- predict(nlsfit,data.frame(conc=x))
+lines(x, y2)
+y1 <- (Bm*x)/(Kd+x)
+lines(x, y1, lty="dotted", col="red")
+
+
+
+
+
+
+
+
+t.test((resap$Pb/(resap$Pb+resap$Pf)),(resfl$Pb/(resfl$Pb+resfl$Pf)))
+t.test((resap$Pb/(resap$Pb+resap$Pf)),(resm347$Pb/(resm347$Pb+resm347$Pf)))
+t.test((resap$Pb/(resap$Pb+resap$Pf)),(resm356$Pb/(resm356$Pb+resm356$Pf)))
+t.test((resap$Pb/(resap$Pb+resap$Pf)),(resdm$Pb/(resdm$Pb+resdm$Pf)))
+
+t.test((resfl$Pb/(resfl$Pb+resfl$Pf)),(resm347$Pb/(resm347$Pb+resm347$Pf)))
+t.test((resfl$Pb/(resfl$Pb+resfl$Pf)),(resm356$Pb/(resm356$Pb+resm356$Pf)))
+t.test((resfl$Pb/(resfl$Pb+resfl$Pf)),(resdm$Pb/(resdm$Pb+resdm$Pf)))
+
+t.test((resm347$Pb/(resm347$Pb+resm347$Pf)),(resm356$Pb/(resm356$Pb+resm356$Pf)))
+t.test((resm347$Pb/(resm347$Pb+resm347$Pf)),(resdm$Pb/(resdm$Pb+resdm$Pf)))
+
+t.test((resm356$Pb/(resm356$Pb+resm356$Pf)),(resdm$Pb/(resdm$Pb+resdm$Pf)))
+
+
+
+
+names(lmfit)
+summary(lmfit)
+plot(lmfit)
+class(lmfit)
+coef(lmfit)
+
+
+
+p = res1$WT
+q = res1$WT_347
+r = res1$WT_356
+s = res1$WT_347_356
+scores = data.frame(p,q,r,s)
+boxplot(scores)
+scores = stack(scores)
+names(scores)
+oneway.test(values ~ ind, data=scores, var.equal=T)
+```
+
+
+```{r VennDetail}
+#https://bioconductor.org/packages/release/bioc/vignettes/VennDetail/inst/doc/VennDetail.html
+#install.packages('BiocManager')
+#BiocManager::install("VennDetail")
+library(VennDetail)
+#ven <- venndetail(list(dat=dataClean$Majority.protein.IDs,daf=df.prot$Majority.protein.IDs))
+#plot(ven)
+#head(dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12)
+#ven <- venndetail(list(Red = dataNorm$LFQ.intensity.19+dataNorm$LFQ.intensity.26+dataNorm$LFQ.intensity.29, White = dataNorm$LFQ.intensity.15+dataNorm$LFQ.intensity.12+dataNorm$LFQ.intensity.30))
+ven <- venndetail(list(Red = dataNormFilter$Red, White = dataNormFilter$White))
+#ven <- venndetail(dataNorm)
+plot(ven)
+plot(ven, type = "vennpie")
+```

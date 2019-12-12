@@ -10,8 +10,12 @@ prior=0.5
 dbinom(g1, size=n, prob=prior)
 pbinom(g1, size=n, prob=prior)
 #https://www.datascienceblog.net/post/basic-statistics/distributions/
+dnorm(g1, mean=prior*n, sd=sqrt(prior*(1-prior)*n))
+pnorm(g1, prior*n, sqrt(prior*(1-prior)*n))
 dnorm(g1, prior*n, prior*(1-prior)*n)
-pnorm(g1, prior*n, prior*(1-prior)*n)
+pnorm(g2, prior*n, prior*(1-prior)*n)
+dnorm(49581, mean=(0.5)*(49581+48870), sd=sqrt((1-0.5)*(0.5)*(49581+48870)))
+dbinom(49581, size=49581+48870, prob=0.5)
 
 ```
 
