@@ -41,10 +41,10 @@ Y_model <- train_funscore(Y_features, "Y", psp, ncores = 24)
 ```{r predict, echo = FALSE}
 ST_scores <- predict_funscore(ST_features, ST_model, ncores = 24)
 Y_scores <- predict_funscore(Y_features, Y_model, ncores = 24)
-
-## gather all predictions
-all_scores <- bind_rows(ST_scores, Y_scores) %>%
-  mutate(probabilities = log_scaling(probabilities))
+plot(ST_scores,Y_scores)
+## gather
+all_scores <- 
+  bind_rows(ST_scores, Y_scores) %>%  mutate(probabilities=log_scaling(probabilities))
 ```
 
 ```{r shiny, echo = FALSE}
