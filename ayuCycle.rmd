@@ -1,0 +1,152 @@
+```{r data}
+library(readxl)
+data<-read_excel("F:/HeLa/ayu/For prediction modeling.xlsx", sheet=1)
+summary(data)
+```
+
+```{r cycle}
+tp<-read_excel("F:/HeLa/ayu/For prediction modeling.xlsx", sheet=3)
+summary(tp)
+```
+
+```{r test}
+#https://cran.r-project.org/web/packages/MetaCycle/vignettes/implementation.html
+# given three phases
+pha <- c(0.9, 0.6, 23.6)
+# their corresponding periods
+per <- c(23.5, 24, 24.5)
+# mean period length
+per_mean <- mean(per)
+# covert to polar coordinate
+polar <- 2*pi*pha/per
+# get averaged ploar coordinate
+polar_mean <- atan2(mean(sin(polar)), mean(cos(polar)))
+# get averaged phase value
+pha_mean <- per_mean*polar_mean/(2*pi)
+pha_mean
+```
+
+```{r test-data}
+pha <- as.numeric(data[1,-1])
+per <- tp$Temp
+plot(pha,per)
+per_mean <- mean(per)
+polar <- 2*pi*pha/per
+polar_mean <- atan2(mean(sin(polar)), mean(cos(polar)))
+pha_mean <- per_mean*polar_mean/(2*pi)
+pha_mean
+```
+
+```{r JTK_CYCLE}
+#download https://openwetware.org/wiki/HughesLab:JTK_Cycle 
+#direct https://s3-us-west-2.amazonaws.com/oww-files-public/8/88/JTKversion3.zip
+#ref https://journals.sagepub.com/doi/10.1177/0748730410379711
+#via https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1004047#s4
+source("L:/promec/Animesh/JTKversion3/JTK_CYCLEv3.1.R")
+```
+
+```{r test-data-JTK_CYCLE}
+#Run_JTK_CYCLE (Example3).R
+jtkdist(10,3)
+periods <- 12:12
+jtk.init(periods,4)
+per_mean <- mean(per)
+polar <- 2*pi*pha/per
+polar_mean <- atan2(mean(sin(polar)), mean(cos(polar)))
+pha_mean <- per_mean*polar_mean/(2*pi)
+pha_mean
+```
+
+```{r MetaCycle}
+#https://github.com/gangwug/MetaCycle.git
+#devtools::install_github('gangwug/MetaCycle')
+library("MetaCycle")
+```
+
+```{r test-data-MetaCycle}
+per_mean <- mean(per)
+polar <- 2*pi*pha/per
+polar_mean <- atan2(mean(sin(polar)), mean(cos(polar)))
+pha_mean <- per_mean*polar_mean/(2*pi)
+pha_mean
+```
+
+```{r data1}
+y=log2(ayurP+1)
+y[is.na(y)]<-0
+library(robustscale)
+y=robustscale(y)
+names(y$data)=sub("X\\.","",names(y$data))
+names(y$data)=sub("\\..*","",names(y$data))
+summary(y$data)
+colnames(y$data)
+pheatmap(y$data,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation")
+pheatmap(y$data,scale="column",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",annotation_col = label)
+```
+
+```{r datacom}
+y<-read.table(paste(pathD,toupper(typeF),"total",".txt",sep = ""),sep = "\t",header = T)
+library(quantable)
+row.names(y)<-y[,1]
+y<-y[,-1]
+summary(y)
+y=merge(ayurP,y,by=0,all = TRUE)
+row.names(y)<-y[,1]
+y<-y[,-1]
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+pheatmap(y$data,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,fontsize_col=6)
+```
+
+Scale:
+
+```{r scale}
+y<-read.table(paste(pathD,toupper(typeF),"total",".txt",sep = ""),sep = "\t",header = T)
+#install.packages('quantable')
+library(quantable)
+row.names(y)<-y[,1]
+y<-y[,-1]
+#y<-as.matrix(unlist(y))
+#y[is.na(y)]<-0
+summary(y)
+typeof(y)
+y=robustscale(y)
+y$data[is.na(y$data)]<-0
+names(y$data)=sub("X","",names(y$data))
+pheatmap(y$data,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)
+```
+
+
+```{r}
+otu <- read.csv("F:/promec/Results/Ani/Ayur/datanormalizationforotutable/Copy of OTU table.csv", stringsAsFactors=F)
+species <- read.csv("C:/Users/animeshs/OneDrive - NTNU/ayurveda/species_div.csv",stringsAsFactors=T)
+species <- read.csv("C:/Users/animeshs/OneDrive - NTNU/ayurveda/species_div_zscore_med.csv",stringsAsFactors=T)
+summary(species$Species)
+species$Escherichia.coli.K12
+```
+
+
+```{r}
+library(rpart)
+fit <- rpart(formula= Species ~ Eubacterium.rectale.ATCC.33656  + Dorea.longicatena.DSM.13814  + Prevotella.maculosa.OT.289 + Helicobacter.pullorum.MIT.98.5489 ,method="class", data=species,  control = rpart.control(cp = 1e-04))
+fit <- rpart(Species ~ ., data=species, method="class", minsplit=2, minbucket=1)
+fit <- rpart(Species ~ Eubacterium.rectale.ATCC.33656  + Escherichia.coli.K12+ Prevotella.maculosa.OT.289 + Helicobacter.pullorum.MIT.98.5489, data=species, method="class", minsplit=2, minbucket=1)
+fit <- rpart(Species ~ Eubacterium.rectale.ATCC.33656  + Prevotella.maculosa.OT.289 , data=species, method="class", minsplit=2, minbucket=1)
+printcp(fit)
+plotcp(fit)
+summary(fit)
+plot(fit)
+text(fit, use.n=TRUE, all=TRUE, cex=.6)
+jpeg(fit, file = "C:/Users/animeshs/OneDrive - NTNU/ayurveda/tree.jpg")
+pdf(fit, file = "C:/Users/animeshs/OneDrive - NTNU/ayurveda/tree.pdf")
+prp(fit)
+plot(1)
+```
+
+#Source <http://rmarkdown.rstudio.com>  **Knit** button for HTML:
+---
+title: "ayuCycle"
+author: "Ani"
+output: html_document
+---
