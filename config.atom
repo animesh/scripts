@@ -34,6 +34,8 @@
     plugins:
       "highlight-selected": true
       "highlight-selectedDecorationsZIndex": 0
+      selection: true
+      selectionDecorationsZIndex: 0
   "remote-ftp":
     connector: {}
   "split-diff":

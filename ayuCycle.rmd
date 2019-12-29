@@ -1,11 +1,12 @@
 ```{r data}
 library(readxl)
-data<-read_excel("F:/HeLa/ayu/For prediction modeling.xlsx", sheet=1)
+inpF<-"/home/animeshs/Downloads/For prediction modeling.xlsx"
+data<-read_excel(inpF, sheet=1)
 summary(data)
 ```
 
 ```{r cycle}
-tp<-read_excel("F:/HeLa/ayu/For prediction modeling.xlsx", sheet=3)
+tp<-read_excel(inpF, sheet=3)
 summary(tp)
 ```
 
@@ -38,11 +39,11 @@ pha_mean
 ```
 
 ```{r JTK_CYCLE}
-#download https://openwetware.org/wiki/HughesLab:JTK_Cycle 
+#download https://openwetware.org/wiki/HughesLab:JTK_Cycle
 #direct https://s3-us-west-2.amazonaws.com/oww-files-public/8/88/JTKversion3.zip
 #ref https://journals.sagepub.com/doi/10.1177/0748730410379711
 #via https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1004047#s4
-source("L:/promec/Animesh/JTKversion3/JTK_CYCLEv3.1.R")
+source("/home/animeshs/Downloads/JTK_CYCLEv3.1.R")
 ```
 
 ```{r test-data-JTK_CYCLE}
@@ -74,7 +75,8 @@ pha_mean
 ```{r data1}
 y=log2(ayurP+1)
 y[is.na(y)]<-0
-library(robustscale)
+install.packages('quantable')
+library(quantable)
 y=robustscale(y)
 names(y$data)=sub("X\\.","",names(y$data))
 names(y$data)=sub("\\..*","",names(y$data))
