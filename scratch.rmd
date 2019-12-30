@@ -1,3 +1,10 @@
+```{r diceR, echo = FALSE}
+#https://cran.r-project.org/web/packages/diceR/vignettes/overview.html
+install.packages("diceR")
+library(glmnet)
+```
+
+
 ```{r paradox, echo = FALSE}
 #https://en.wikipedia.org/wiki/Lindley%27s_paradox
 g1=49581 
