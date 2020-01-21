@@ -1,7 +1,7 @@
 #https://matrices.io/deep-neural-network-from-scratch/ using https://www.tensorflow.org/alpha/guide/eager
 #pip3 install tensorflow==2.0.0-rc0
 #https://youtu.be/5ECD8J3dvDQ?t=455
-#
+
 import  os
 os.path.expanduser("~")
 import datetime
@@ -37,13 +37,12 @@ dfLFQlog2=np.log2(dfLFQ+1) #really weird scaling
 print(pt.fit(dfLFQlog2))
 dfLFQtf=pt.transform(dfLFQlog2)
 print(pt.lambdas_)
-#dfLFQ = maui.utils.scale(dfLFQ)
+dfLFQlog2tf = maui.utils.scale(dfLFQlog2)
 from keras import backend as K
 import tensorflow as tf
 #K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=12, inter_op_parallelism_threads=12)))
 maui_model = maui.Maui(n_hidden=[1100], n_latent=70, epochs=400)
 z = maui_model.fit_transform({'mRNA': dfLFQlog2tf})
-
 maui_model.hist.plot()
 maui_model.cluster(ami_y = z)
 
