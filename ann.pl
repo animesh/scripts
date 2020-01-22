@@ -3,21 +3,21 @@
 #parameters, parameters n, m, η α, an limit on E and maximum number of epochs
 
 #the window size
-$n=5;
+$n=shift @ARGV;
 #hidden node size
-$m=3;
+$m=shift @ARGV;
 #output
 $o=3;
 #slide of the window
 $slide=1;
 #number of iteration, maximum number of epochs
-$iter=100;
+$iter=shift @ARGV;
 #threshold, an limit on E 
-$threshold=0.1;
+$threshold=shift @ARGV;
 #learning rate,  η
-$eta=0.4;
+$eta=shift @ARGV;
 #momentum,α 
-$alpha=0.5;
+$alpha=shift @ARGV;
 #hidden layer construct
 $hlayers=1;
 $hidnodez=$m;
@@ -26,26 +26,38 @@ for($c1=0;$c1<$hlayers;$c1++){
 	@HL[$c1]=$hidnodez;
 }
 
-
-
-
 #Making hashmap for normalized Hydrophobicity
-@aa=qw/A    R    N    D    C    Q    E    G    H    I    L    K    M    F    P    S    T    W    Y    V/;
-@hval=qw/1.8 -4.5 -3.5 -3.5  2.5 -3.5 -3.5 -0.4 -3.2  4.5  3.8 -3.9  1.9  2.8 -1.6 -0.8 -0.7 -0.9 -1.3  4.2/;
-for($c=0;$c<=$#aa;$c++){
-	$hvalaa{@aa[$c]}=((@hval[$c]+4.5)/(4.5+4.5));
-}
+$hydro=shift @ARGV;
+open(H,$hyrdo);
+		while($h1=<H>){
+			chomp $h1;
+			$lhy++;
+			if($lhy==1){@aa=split(/\s+/,$tr1)};
+			if($lhy==2){@hval=split(/\s+/,$h1)};
+		}
+#Making training Data hashmap
+$train=shift @ARGV;
+open(T,$train);
+		while($tr1=<T>){
+			chomp $tr1;
+			$try++;
+			if($try%3==1){$name=$tr1};
+			if($try%3==2){$TRAINING_DATA{$name}=$tr1};
+			if($try%3==0){$TRAINING_DATA_P{$name}=$tr1};
+		}
 
-#Making Data hashmap
-$TRAINING_DATA{"1auz - P10727"}= "MSLGIDMNVKESVLCIRLTGELDHHTAETLKQKVTQSLEKDDIRHIVLNLEDLSFMDSSGLGVILGRYKQIKQIGGEMVVCAISPAVKRLFDMSGLFKIIRFEQSEQQALLTLGVAS";
-$TRAINING_DATA_P{"1auz - P10727"}="   eeeeeee  eeeeeee      hhhhhhhhhhhhh      eeeee        hhhhhhhhhhhh       eeeee      hhhhhhh           hhhhhhh     ";
-$TRAINING_DATA{"6tim - P04789"}= "MSKPQPIAAANWKCNGSQQSLSELIDLFNSTSINHDVQCVVASTFVHLAMTKERLSHPKFVIAAQNAIAKSGAFTGEVSLPILKDFGVNWIVLGHSERRAYYGETNEIVADKVAAAVASGFMVIACIGETLQERESGRTAVVVLTQIAAIAKKLKKADWAKVVIAYEPVWAIGTGKVATPQQAQEAHALIRSWVSSKIGADVAGELRILYGGSVNGKNARTLYQQRDVNGFLVGGASLKP";
-$TRAINING_DATA_P{"6tim - P04789"}="      eeeee      hhhhhhhhhhhh        eeeee  hhhhhhhhhh     eeeeee  eee         hhhhhh    eeeee hhhhhh    hhhhhhhhhhhhhh  eeeeee   hhhhh    hhhhhhhhhhhhh   hhhhhheeeeee  hhh       hhhhhhhhhhhhhhhhhh  hhhhhh  eeeeee     hhhhh      eeeeehhhh  ";
 
-$VALIDATION_DATA{"2acy - P41500"}=  "MSMAEGDTLISVDYEIFGKVQGVFFRKYTQAEGKKLGLVGWVQNTDQGTVQGQLQGPASKVRHMQEWLETKGSPKSHIDRASFHNEKVIVKLDYTDFQIVK";
-$VALIDATION_DATA_P{"2acy - P41500"}="        eeeeeeeeeee eeeehhhhhhhhhhh   eeeeee     eeeeeeeehhhhhhhhhhhhh      eeeeeeeeeeee      eeeeee ";
-$VALIDATION_DATA{"3grs - P00390"}=  "MALLPRALSAGAGPSWRRAARAFRGFLLLLPEPAALTRALSRAMACRQEPQPQGPPPAAGAVASYDYLVIGGGSGGLASARRAAELGARAAVVESHKLGGTCVNVGCVPKKVMWNTAVHSEFMHDHADYGFPSCEGKFNWRVIKEKRDAYVSRLNAIYQNNLTKSHIEIIRGHAAFTSDPKPTIEVSGKKYTAPHILIATGGMPSTPHESQIPGASLGITSDGFFQLEELPGRSVIVGAGYIAVEMAGILSALGSKTSLMIRHDKVLRSFDSMISTNCTEELENAGVEVLKFSQVKEVKKTLSGLEVSMVTAVPGRLPVMTMIPDVDCLLWAIGRVPNTKDLSLNKLGIQTDDKGHIIVDEFQNTNVKGIYAVGDVCGKALLTPVAIAAGRKLAHRLFEYKEDSKLDYNNIPTVVFSHPPIGTVGLTEDEAIHKYGIENVKTYSTSFTPMYHAVTKRKTKCVMKMVCANKEEKVVGIHMQGLGCDEMLQGFAVAVKMGATKADFDNTVAIHPTSSEELVTLR";
-$VALIDATION_DATA_P{"3grs - P00390"}="                                                                 eeeee   hhhhhhhhhhhh    eeeeeee   hhhhh  hhhhhhhhhhhhhhhhhhh hhh          hhhhhhhhhhhhhhhhhhhhhhhhh   eeeee          eeee  eeee   eee   eee          hhh   hhhh       hhhhhh   hhhhhhhhhhhhh  eeeee eeeee     hhhhhhhhhhhhh   eee  eeeeeeeee  eeeeeeee       eeeeeeeeeeeee   eeee     hhh                       eee hhhh     hhhhhhhhhhhhhhhh              eee     eeeee  hhhhhhhh hhheeeeeeee  hhhhh      eeeeeeee    eeeeeeeee  hhhhhhhhhhhhh    hhhhh          hhhhh  ";
+#Making Validation Data hashmap
+$vali=shift @ARGV;
+open(V,$vali);
+		while($vr1=<V>){
+			chomp $vr1;
+			$vry++;
+			if($vry%3==1){$name=$vr1};
+			if($vry%3==2){$VALIDATION_DATA{$name}=$vr1};
+			if($vry%3==0){$VALIDATION_DATA_P{$name}=$vr1};
+		}
+
 
 
 #write training to file with output

@@ -1,31 +1,38 @@
+use lib 'lib';
 use Graph;
-	my $g0 = Graph->new;             # A directed graph.
+use Devel::Size qw(size total_size);
 
-	use Graph::Directed;
-	my $g1 = Graph::Directed->new;   # A directed graph.
+my $N = 16384;
 
-	use Graph::Undirected;
-	my $g2 = Graph::Undirected->new; # An undirected graph.
+my $fmt = "%5s %8s %9s\n";
+my $fmr = "%5d %8d %9.1f\n";
 
-	$u1="U1";
-	$v1="V1";
-	$u2="U2";
-	$v2="V2";
+printf $fmt, "V", "S", "S/N";
+my $g0 = Graph->new;
+my $s0 = total_size($g0);
+printf $fmr, 0, $s0, 0;
 
+my $vr;
+for (my $n = 1; $n <= $N; $n *= 2) {
+    my $g0 = Graph->new;
+    $g0->add_vertex($_) for 1..$n;
+    my $s = total_size($g0);
+    $vr = ($s - $s0) / $n;
+    printf $fmr, $n, $s, $vr;
+}
 
-        $g1->add_vertex($u1);
-        $g1->add_vertex($v1);
-        $g1->add_edge($u1,$v1);
-        $g1->add_vertex($u2);
-        $g1->add_vertex($v2);
-        $g1->add_edge($u2,$v1);
-        $g1->add_edge($u2,$u1);
-        $g1->add_edge($u1,$u2);
+printf $fmt, "E", "S", "S/N";
+my $g1 = Graph->new;
+printf $fmr, 0, $s0, 0;
 
-        #$g1->vertices();
-        #$g1->edges();
+my $er;
+for (my $n = 1; $n <= $N; $n *= 2) {
+    my $g1 = Graph->new;
+    $g1->add_edge(0, $_) for 1..$n;
+    my $s = total_size($g1);
+    $er = ($s - $s0 - $n * $vr) / $n;
+    printf $fmr, $n, $s, $er;
+}
 
-	print "The graph is $g1	\n"
-
-
-
+printf "Vertices / MB = %8.1f\n", 1048576/$vr;
+printf "Edges    / MB = %8.1f\n", 1048576/$er;

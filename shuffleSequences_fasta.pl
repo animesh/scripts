@@ -1,41 +1,41 @@
-#!/usr/bin/perl
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
-if (!@ARGV) {
-	print "Usage: $0 forward_reads.fa reverse_reaads.fa outfile.fa\n";
-	print "\tforward_reads.fa / reverse_reads.fa : paired reads to be merged\n";
-	print "\toutfile.fa : outfile to be created\n";
-	system.exit(0);	
+#!/usr/bin/perl
+if(@ARGV!=2){die"USAGE: Input_File Output_File";}
+$file1=shift @ARGV;
+$file2=shift @ARGV;
+open(F2,">$file2");
+	open(F1,$file1);
+	while($l=<F1>){
+	chomp $l;
+	push(@filez,$l);
+	}		
+
+FYS( \@filez );  
+
+sub FYS {
+    my $array = shift;
+    my $i;
+    for ($i = @$array; --$i; ) {
+        my $j = int rand ($i+1);
+        next if $i == $j;
+        @$array[$i,$j] = @$array[$j,$i];
+    }
 }
 
-$filenameA = $ARGV[0];
-$filenameB = $ARGV[1];
-$filenameOut = $ARGV[2];
-
-die "Could not open $filenameA" unless (-e $filenameA);
-die "Could not open $filenameB" unless (-e $filenameB);
-
-open FILEA, "< $filenameA";
-open FILEB, "< $filenameB";
-
-open OUTFILE, "> $filenameOut";
-
-my ($lineA, $lineB);
-
-$lineA = <FILEA>;
-$lineB = <FILEB>;
-
-while(defined $lineA) {
-	print OUTFILE $lineA;
-	$lineA = <FILEA>;
-	while (defined $lineA && $lineA !~ m/>/) { 
-		print OUTFILE $lineA;
-		$lineA = <FILEA>;
-	}
-
-	print OUTFILE $lineB;
-	$lineB = <FILEB>;
-	while (defined $lineB && $lineB !~ m/>/) { 
-		print OUTFILE $lineB;
-		$lineB = <FILEB>;
-	}
+for($c3=0;$c3<=$#filez;$c3++){
+	print F2"@filez[$c3]\n";
 }

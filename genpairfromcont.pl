@@ -7,7 +7,7 @@ while ($line = <F>){
             $line =~ s/>//;
             push(@seqname,$line);
             if ($seq ne ""){
-              push(@seq,uc($seq));
+              push(@seq,$seq);
               $seq = "";
             }
         }
@@ -15,7 +15,7 @@ while ($line = <F>){
             $seq=$seq.$line;
         }
 }
-push(@seq,uc($seq));
+push(@seq,$seq);
 close F;
 
 $sn1=shift @ARGV;chomp $sn1;
@@ -26,9 +26,9 @@ $time=time;
 
 $fas_file=$file.".$time.$sn1$dn1$sn2$dn2.pairedread.fasta";
 open(FT,">$fas_file");
-$pair1=4000;
+$pair1=3000;
 $pair2=8000;
-$lenp=200;
+$lenp=100;
 for($c=0;$c<=$#seq;$c++){
 	$name=$seqname[$c];
 	$name=~s/contig//g;
@@ -37,59 +37,59 @@ for($c=0;$c<=$#seq;$c++){
         $mf=$file;
         $mf=~s/\.//g;
 
-	if($name==$sn1 && $dn1==3){
-	        
-		print FT">SeqF1$sn1$dn1$sn2$dn2 template=Chr1$sn1$dn1$sn2$dn2 dir=F library=Chr_$sn1.$dn1.$sn2.$dn2\n";
-        	print FT substr($seq[$c],$seqlen-$pair1/2,$lenp),"\n";
-
-		print FT">SeqF2$sn1$dn1$sn2$dn2 template=Chr2$sn1$dn1$sn2$dn2 dir=F library=Chr_$sn1.$dn1.$sn2.$dn2\n";
-        	print FT substr($seq[$c],$seqlen-$pair1/2+$lenp,$lenp),"\n";
-
-	}
-
 	if($name==$sn1 && $dn1==5){
-       
-                $str=reverse($seq[$c]);
-                $str=~tr/ATGCN/TACGN/;
-		$lenstr=length($str);
-	         
-		print FT">SeqF1$sn1$dn1$sn2$dn2 template=Chr1$sn1$dn1$sn2$dn2 dir=F library=Chr_$sn1.$dn1.$sn2.$dn2\n";
-                $revstr=substr($str,$lenstr-$pair1/2,$lenp);
-                print FT $revstr,"\n";
-                
-		print FT">SeqF2$sn1$dn1$sn2$dn2 template=Chr2$sn1$dn1$sn2$dn2 dir=F library=Chr_$sn1.$dn1.$sn2.$dn2\n";
-                $revstr=substr($str,$lenstr-$pair1/2+$lenp,$lenp);
-                print FT $revstr,"\n";
+	        print FT">SeqF1$sn1$dn1 template=Chr1$sn1$dn1 dir=F library=Chr_$sn1.$dn1.$sn2.$dn2\n";
+        	print FT substr($seq[$c],$seqlen-$pair1/2+3*$lenp,$lenp),"\n";
 
+		print FT">SeqF2$sn1$dn1 template=Chr2$sn1$dn1 dir=F library=Chr_$sn1.$dn1.$sn2.$dn2\n";
+        	print FT substr($seq[$c],$seqlen-$pair1/2+4*$lenp,$lenp),"\n";
+		
+		$count=0;
+		while($count<10 && $seqlen>($pair1+4*$lenp)){
+			$count++;
+		        print FT">SeqF$count$sn1$dn1 template=Chr$count$sn1$dn1 dir=F library=Chr_$sn1.$dn1.$sn2.$dn2\n";
+        	        print FT substr($seq[$c],$count*$lenp,$lenp),"\n";
+	                print FT">SeqR$count$sn1$dn1 template=Chr$count$sn1$dn1 dir=R library=Chr_$sn1.$dn1.$sn2.$dn2\n";
+        	        $revstr=substr($seq[$c],$count*$lenp+$pair1,$lenp);
+                	$revstr=reverse($revstr);
+	                $revstr=~tr/ATGCN/TACGN/;
+        	        print FT $revstr,"\n";
+		}
 	}
 
-
-	if($name==$sn2 && $dn2==3){
-	
-                print FT">SeqR1$sn1$dn1$sn2$dn2 template=Chr1$sn1$dn1$sn2$dn2 dir=R library=Chr_$sn1.$dn1.$sn2.$dn2\n";
-                print FT substr($seq[$c],$seqlen-$pair1/2,$lenp),"\n";
-
-                print FT">SeqR2$sn1$dn1$sn2$dn2 template=Chr2$sn1$dn1$sn2$dn2 dir=R library=Chr_$sn1.$dn1.$sn2.$dn2\n";
-                print FT substr($seq[$c],$seqlen-$pair1/2+$lenp,$lenp),"\n";
-
-
+	if($name==$sn1 && $dn1==3){
+	print "$name\n";
 	}
 
 	if($name==$sn2 && $dn2==5){
-	        
-		print FT">SeqR1$sn1$dn1$sn2$dn2 template=Chr1$sn1$dn1$sn2$dn2 dir=R library=Chr_$sn1.$dn1.$sn2.$dn2\n";
-                $revstr=substr($seq[$c],$pair1/2,$lenp);
-                $revstr=reverse($revstr);
-                $revstr=~tr/ATGCN/TACGN/;
-                print FT $revstr,"\n";
-
-	        print FT">SeqR2$sn1$dn1$sn2$dn2 template=Chr2$sn1$dn1$sn2$dn2 dir=R library=Chr_$sn1.$dn1.$sn2.$dn2\n";
-                $revstr=substr($seq[$c],$pair1/2+$lenp,$lenp);
-                $revstr=reverse($revstr);
-                $revstr=~tr/ATGCN/TACGN/;
-                print FT $revstr,"\n";
-
+	print "$name\n";
 	}
+
+	if($name==$sn2 && $dn2==3){
+	        print FT">SeqR1$sn2$dn2 template=Chr1$sn2$dn2 dir=R library=Chr_$sn1.$dn1.$sn2.$dn2\n";
+                $revstr=substr($seq[$c],$pair1/2+3*$lenp,$lenp);
+                $revstr=reverse($revstr);
+                $revstr=~tr/ATGCN/TACGN/;
+                print FT $revstr,"\n";
+
+	        print FT">SeqR2$sn2$dn2 template=Chr2$sn2$dn2 dir=R library=Chr_$sn1.$dn1.$sn2.$dn2\n";
+                $revstr=substr($seq[$c],$pair1/2+4*$lenp,$lenp);
+                $revstr=reverse($revstr);
+                $revstr=~tr/ATGCN/TACGN/;
+                print FT $revstr,"\n";
+
+		$count=0;
+		while($count<10 && $seqlen>($pair1+4*$lenp)){
+			$count++;
+		        print FT">SeqF$count$sn2$dn2 template=Chr$count$sn2$dn2 dir=F library=Chr_$sn1.$dn1.$sn2.$dn2\n";
+        	        print FT substr($seq[$c],$count*$lenp,$lenp),"\n";
+	                print FT">SeqR$count$sn2$dn2 template=Chr$count$sn2$dn2 dir=R library=Chr_$sn1.$dn1.$sn2.$dn2\n";
+        	        $revstr=substr($seq[$c],$count*$lenp+$pair1,$lenp);
+                	$revstr=reverse($revstr);
+	                $revstr=~tr/ATGCN/TACGN/;
+        	        print FT $revstr,"\n";
+		}
+		}
 
 	#$seq{}
 }

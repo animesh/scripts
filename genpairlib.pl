@@ -23,7 +23,7 @@ $libname=shift @ARGV;
 $dist=shift @ARGV;
 
 $fas_file=$file.".$time.$libname.$dist.pairedread.fasta";
-open(FT,">$fas_file");
+open(FT,">$fas_file")||die "cant open  :$!";
 $lenp=100;
 for($c=0;$c<=$#seq;$c++){
 	$name=$seqname[$c];
@@ -37,16 +37,14 @@ for($c=0;$c<=$#seq;$c++){
 		$count=0;
 		while($count<2 && $seqlen>($dist+2*$lenp)){
 			$count++;
-			$tempname=$libname.$dist.$lenp.$c.$count;
-			$seqnameF=$tempname."F";
-			$seqnameR=$tempname."R";
-		        print FT">$seqnameF template=$tempname dir=F library=$libname\n";
+		        print FT">SeqF$c$count$libname$dist template=$c$count$libname$dist dir=F library=$libname\n";
         	        print FT substr($seq[$c],$count*$lenp,$lenp),"\n";
-		        print FT">$seqnameR template=$tempname dir=R library=$libname\n";
+		        print FT">SeqR$c$count$libname$dist template=$c$count$libname$dist dir=R library=$libname\n";
         	        $revstr=substr($seq[$c],$count*$lenp+$dist,$lenp);
                 	$revstr=reverse($revstr);
 	                $revstr=~tr/ATGCN/TACGN/;
         	        print FT $revstr,"\n";
+			print "$count\t$c\n$revstr\n";
 		}
 }
 

@@ -13,6 +13,8 @@ print(tfp.__version__)
 
 mats = tf.random.uniform(shape=[1000, 10, 10])
 vecs = tf.random.uniform(shape=[1000, 10, 1])
+vecs.shape
+
 
 import numpy as np
 def for_loop_solve():
@@ -94,64 +96,3 @@ coeffs, linear_response, is_converged, num_iter = tfp.glm.fit(
     model=model)
 
 print(coeffs, linear_response, is_converged, num_iter)
-
-#https://github.com/tensorflow/probability/blob/master/tensorflow_probability/examples/jupyter_notebooks/Probabilistic_Layers_Regression.ipynb
-# Build model.
-model = tf.keras.Sequential([
-  tf.keras.layers.Dense(1),
-  tfp.layers.DistributionLambda(lambda t: tfd.Normal(loc=t, scale=1)),
-])
-
-# Do inference.
-
-negloglik = lambda y, rv_y: -rv_y.log_prob(y)
-model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.01), loss=negloglik)
-
-w0 = 0.125
-b0 = 5.
-x_range = [-20, 60]
-def load_dataset(n=150, n_tst=150):
-  np.random.seed(43)
-  def s(x):
-    g = (x - x_range[0]) / (x_range[1] - x_range[0])
-    return 3 * (0.25 + g**2.)
-  x = (x_range[1] - x_range[0]) * np.random.rand(n) + x_range[0]
-  eps = np.random.randn(n) * s(x)
-  y = (w0 * x * (1. + np.sin(x)) + b0) + eps
-  x = x[..., np.newaxis]
-  x_tst = np.linspace(*x_range, num=n_tst).astype(np.float32)
-  x_tst = x_tst[..., np.newaxis]
-  return y, x, x_tst
-
-y, x, x_tst = load_dataset()
-model.fit(x, y, epochs=1000, verbose=False);
-
-# Profit.
-[print(np.squeeze(w.numpy())) for w in model.weights];
-yhat = model(x_tst)
-assert isinstance(yhat, tfd.Distribution)
-
-import matplotlib.pyplot as plt
-#@title Figure 1: No uncertainty.
-w = np.squeeze(model.layers[-2].kernel.numpy())
-b = np.squeeze(model.layers[-2].bias.numpy())
-
-plt.figure(figsize=[6, 1.5])  # inches
-#plt.figure(figsize=[8, 5])  # inches
-plt.plot(x, y, 'b.', label='observed');
-plt.plot(x_tst, yhat.mean(),'r', label='mean', linewidth=4);
-plt.ylim(-0.,17);
-plt.yticks(np.linspace(0, 15, 4)[1:]);
-plt.xticks(np.linspace(*x_range, num=9));
-
-ax=plt.gca();
-ax.xaxis.set_ticks_position('bottom')
-ax.yaxis.set_ticks_position('left')
-ax.spines['left'].set_position(('data', 0))
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-#ax.spines['left'].set_smart_bounds(True)
-#ax.spines['bottom'].set_smart_bounds(True)
-plt.legend(loc='center left', fancybox=True, framealpha=0., bbox_to_anchor=(1.05, 0.5))
-
-plt.savefig('/tmp/fig1.png', bbox_inches='tight', dpi=300)
