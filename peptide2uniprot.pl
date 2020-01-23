@@ -18,7 +18,8 @@ while(my $l1=<F1>){
 		for(my $c=0;$c<=$#tmp2;$c++){
 			my @tmp4=split(/\./,$tmp2[$c]);
 			$seqn{$tmp4[0]}++;
-			$pep{$tmp[0]}=$tmp4[0];
+			#$pep{$tmp[0]}=$tmp4[0];
+			$pep{$tmp[0]}.="$tmp2[$c];";
 		}
 	}
 }
@@ -53,3 +54,4 @@ while(my $l1=<F2>){
 close F2;
 
 __END__
+perl peptide2uniprot.pl F:\HeLa\txt\peptides.txt
