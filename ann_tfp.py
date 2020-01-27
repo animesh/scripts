@@ -1,31 +1,15 @@
-#Example: Masked Autoregressive Flow
-#https://arxiv.org/abs/1705.07057
-#https://medium.com/tensorflow/introducing-tensorflow-probability-dca4c304e245
-#https://github.com/tensorflow/probability/blob/master/tensorflow_probability/examples/jupyter_notebooks/A_Tour_of_TensorFlow_Probability.ipynb
-#https://www.analyticsvidhya.com/blog/2019/10/mathematics-behind-machine-learning/
-#pip3 install tensorflow==2.0.0-beta1 #for windows
-#pip3 instapip3 install tf-nightly-2.0-preview --user #2.0.0-dev20190819
-#pip3 install tfp-nightly --user
 import tensorflow as tf
 print(tf.__version__)
-import tensorflow_probability as tfp
-print(tfp.__version__)
 
 mats = tf.random.uniform(shape=[1000, 10, 10])
 vecs = tf.random.uniform(shape=[1000, 10, 1])
-vecs.shape
-
+print(vecs.shape,mats.shape,tf.linalg.solve(mats, vecs))
 
 import numpy as np
 def for_loop_solve():
   return np.array(
     [tf.linalg.solve(mats[i, ...], vecs[i, ...]) for i in range(1000)])
-
-def vectorized_solve():
-  return tf.linalg.solve(mats, vecs)
-
 for_loop_solve()
-print(vectorized_solve())
 
 a = tf.constant(np.pi)
 b = tf.constant(np.e)
@@ -33,14 +17,24 @@ with tf.GradientTape() as tape:
   tape.watch([a, b])
   c = .5 * (a**2 + b**2)
 grads = tape.gradient(c, [a, b])
-print(grads[0])
-print(grads[1])
+print(grads[0],a,grads[1],b)
+
+#https://www.tensorflow.org/probability/api_docs/python/tfp/stats/correlation
+x = tf.random.normal(shape=(100, 2, 3))
+y = tf.random.normal(shape=(100, 2, 3))
+corr = tfp.stats.correlation(x, y, sample_axis=0, event_axis=None)
+corr_matrix = tfp.stats.correlation(x, y, sample_axis=0, event_axis=-1)
+
+import matplotlib.pyplot as plt
+plt.hist(corr)
+
+import tensorflow_probability as tfp
+print(tfp.__version__)
 
 tfd = tfp.distributions
 normal = tfd.Normal(loc=0., scale=1.)
 print(normal.log_prob(0.))
 
-#pip3 install pandas==0.24 --user
 import seaborn as sns
 samples = normal.sample(1000)
 sns.distplot(samples)
