@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.7.0\n","USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s) like \"L:/combined/txt\" >")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("C:/Users/animeshs/Desktop/KS/combined/txt/")
+#pathFiles = Path("L:/promec/Qexactive/LARS/2020/JANUARY/HEIDI/txt")
 fileName='allPeptides.txt'
 trainList=list(pathFiles.rglob(fileName))
 
@@ -34,6 +34,8 @@ print(writeDPpng)
 #specific mod(s)
 modName="GlyGly"
 dfDPmod=dfDP[dfDP['Modification']==modName]
+print(modName,dfDPmod['Base Raw File'].value_counts())
+#dfDPmod.groupby('Base Raw File').count().sum()
 #dfDPmod=dfDP[dfDP['Modification'].str.contains('ly')==True]
 writeDPcsv=pathFiles/(fileName+modName+"DP.csv")
 dfDPmod.to_csv(writeDPcsv)
