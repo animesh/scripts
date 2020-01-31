@@ -29,7 +29,7 @@ print(writeDPcsv)
 dfDPcnt=dfDP['Modification'].value_counts()
 print(dfDPcnt)
 writeDPpng=pathFiles/(fileName+"DP.png")
-if(dfDPcnt.empty==False): dfDPcnt[dfDPcnt>0].plot(kind='pie').figure.savefig(writeDPpng,dpi=100,bbox_inches = "tight")
+if(dfDPcnt.empty==False): dfDPcnt[dfDPcnt>0].plot(kind='pie').figure.savefig(writeDPpng.absolute(),dpi=100,bbox_inches = "tight")
 print(writeDPpng)
 #specific mod(s)
 modName="GlyGly"

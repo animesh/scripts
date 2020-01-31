@@ -6,20 +6,22 @@ library("BSgenome")
 library("MutationalPatterns")
 head(available.genomes())
 #https://bioconductor.org/packages/release/data/annotation/html/BSgenome.Hsapiens.NCBI.GRCh38.html
-BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
+#BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
 refGenome<-"BSgenome.Hsapiens.NCBI.GRCh38"
 library(refGenome, character.only = TRUE)
+save.image("F:/HeLa/vcfR.session.RData")
 ```
 
 ```{r data}
-inpD<-"F:/HeLa/deepvariant/bam/vcf"
-rownames(label)<-gsub("/"," ",rownames(label))
-rownames(label)<-gsub(" ",".",rownames(label))
-rownames(label)
-vcfFiles <- list.files(inpD, pattern = ".vcf", full.names = TRUE)
-sampleNames <- vcfFiles
+#inpD<-"F:/HeLa/deepvariant/bam/vcf"
+inpD<-"F:/HeLa/vcf/"
+#vcfFiles <- list.files(inpD, pattern = "R\\*\\.vcf$", full.names = TRUE)
+vcfFiles <- Sys.glob(file.path(inpD, "SR*.vcf")) 
+#rownames(sampleNames)<-gsub("/"," ",rownames(vcfFiles))
+sampleNames<-gsub("/","_",vcfFiles)
+sampleNames<-gsub(":","_",sampleNames)
 vcfs <- read_vcfs_as_granges(vcfFiles, sampleNames, refGenome)
-warnings()#->email
+#warnings()#->email
 summary(vcfs)
 ```
 
@@ -36,35 +38,61 @@ typeOccurrences <- mut_type_occurrences(vcfs, refGenome)
 ```
 
 ```{r plot}
+plot_spectrum(typeOccurrences)
 p1 <- plot_spectrum(typeOccurrences)
 p2 <- plot_spectrum(typeOccurrences, CT = TRUE)
 p3 <- plot_spectrum(typeOccurrences, CT = TRUE, legend = FALSE)
-hdr="LFQ.intensity."
-dataSel=as.matrix(data[,grep(hdr,colnames(data))])
-#dataSel=as.matrix(dataSel[,grep("pass",colnames(dataSel))])
-colnames(dataSel)<-sub(hdr,"",colnames(dataSel))
-colnames(dataSel)
+dataSel<-as.matrix(typeOccurrences["",grep("SRR2185899",colnames(typeOccurrences))])
+#colnames(dataSel)<-sub("F:/HeLa/deepvariant/bam/vcf/","",colnames(dataSel))
+#colnames(dataSel)
 summary(dataSel)
 ```
 
 ```{r grid}
 library("gridExtra")
 grid.arrange(p1, p2, p3, ncol=3, widths=c(3,3,1.75))
-p4 <- plot_spectrum(typeOccurrences, by = tissue, CT = TRUE, legend = TRUE)
+p4 <- plot_spectrum(typeOccurrences, CT = TRUE, legend = TRUE)
 palette <- c("pink", "orange", "blue", "lightblue", "green", "red", "purple")
 p5 <- plot_spectrum(typeOccurrences, CT=TRUE, legend=TRUE, colors=palette)
 grid.arrange(p4, p5, ncol=2, widths=c(4,2.3))
 ```
 
 ```{r prof96}
-#Make a 96 trinucleodide mutation count matrix:
+#Make a 96 trinucleodide mutation count matrix: C>A C>G C>T T>A T>C T>G
 mutMat <- mut_matrix(vcf_list = vcfs, ref_genome = refGenome)
 head(mutMat)
+#plot_96_profile(typeOccurrences)
 plot_96_profile(mutMat[,c(1,7)])
-#C>A C>G C>T T>A T>C T>G
 plot_96_profile(mutMat[,c(1,7)], condensed = TRUE)
 ```
 
+```{r estimate, echo = FALSE}
+#https://www.nature.com/articles/s41467-019-11037-8#code-availability
+mutMatEst = mutMat + 0.0001 
+estimate = nmf(mutMatEst, rank=2:6, method="brunet", nrun=1000, seed=123456)  
+plot(estimate)
+```
+
+```{r cosmic, echo = FALSE}
+#wget https://cancer.sanger.ac.uk/cancergenome/assets/signatures_probabilities.txt
+#sp_url <- paste("http://cancer.sanger.ac.uk/cancergenome/assets/", "signatures_probabilities.txt", sep = "")
+sp_url <- "F:/HeLa/signatures_probabilities.txt"
+cancer_signatures = read.table(sp_url, sep = "\t", header = TRUE) 
+new_order = match(row.names(mutMat), cancer_signatures$Somatic.Mutation.Type) 
+cancer_signatures_ro = cancer_signatures[as.vector(new_order),]  
+row.names(cancer_signatures_ro) = cancer_signatures_ro$Somatic.Mutation.Type  
+cancer_signatures_ro = as.matrix(cancer_signatures_ro[,4:33])
+```
+
+```{r mutation_cosmic_overlap, echo = FALSE}
+mutMatRO<-mutMat
+mutMatRO[,1:ncol(mutMatRO)] = apply(mutMatRO[,1:ncol(mutMatRO)], 2, function(x) as.numeric(as.character(x)))
+cancer_signatures_ro_mm<-cancer_signatures_ro
+cancer_signatures_ro_mm[,1:ncol(cancer_signatures_ro_mm)] = apply(cancer_signatures_ro_mm[,1:ncol(cancer_signatures_ro_mm)], 2, function(x) as.numeric(as.character(x)))  
+fit_res <- fit_to_signatures(mutMatRO, as.matrix(cancer_signatures_ro_mm))
+plot_contribution(fit_res$contribution,cancer_signatures_ro_mm[,1:ncol(cancer_signatures_ro_mm)],coord_flip = FALSE,mode = "relative")
+```
+ 
 ```{r t-test, echo = FALSE}
 dataSellog2grpTtest<-dataSellog2[]
 pValNA = apply(dataSellog2grpTtest, 1, function(x) if(sum(!is.na(x[c(1:6)]))<2){NaN} else{t.test(as.numeric(x[c(1:6)]),na.rm=T)$p.value})
@@ -147,15 +175,6 @@ yyt.pca=prcomp(t(yyt),center=TRUE,scale.=TRUE)
 autoplot(yyt.pca,data=t(yyt),colour=as.numeric(label$Location))
 autoplot(yyt.pca,data=t(yyt),colour=as.numeric(label$Treatment))
 #biplot(yyt.pca)
-```
-
-```{r clean, echo = FALSE}
-decoyPrefix="REV__"
-dfNoRev<-data[-grep(decoyPrefix, rownames(data)),]
-dataClean = data[!data$Reverse=="+",]
-setdiff(rownames(dataClean),rownames(dfNoRev))
-setdiff(rownames(dfNoRev),rownames(dataClean))
-summary(dataClean)
 ```
 
 
@@ -241,3 +260,13 @@ sort(importance(random_forest))
 varImpPlot(random_forest)
 #qplot(RCN1,GALNT2,data=yyt,colour=class,size=I(3))
 ```
+
+```{r clean, echo = FALSE}
+decoyPrefix="REV__"
+dfNoRev<-data[-grep(decoyPrefix, rownames(data)),]
+dataClean = data[!data$Reverse=="+",]
+setdiff(rownames(dataClean),rownames(dfNoRev))
+setdiff(rownames(dfNoRev),rownames(dataClean))
+summary(dataClean)
+```
+

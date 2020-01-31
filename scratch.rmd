@@ -1,3 +1,10 @@
+```{r perturbationNetwork, echo = FALSE}
+#Deciphering the Signaling Network Landscape of Breast Cancer Improves Drug Sensitivity Prediction https://www.biorxiv.org/content/10.1101/2020.01.21.907691v1
+#https://github.com/saezlab/CNORode
+#https://www.bioconductor.org/packages/release/bioc/vignettes/CNORode/inst/doc/CNORode-vignette.pdf
+BiocManager::install("CNORode")
+```
+
 ```{r diceR, echo = FALSE}
 #https://cran.r-project.org/web/packages/diceR/vignettes/overview.html
 install.packages("diceR")
