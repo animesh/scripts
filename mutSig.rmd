@@ -9,17 +9,19 @@ head(available.genomes())
 #BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
 refGenome<-"BSgenome.Hsapiens.NCBI.GRCh38"
 library(refGenome, character.only = TRUE)
-save.image("F:/HeLa/vcfR.session.RData")
+load("F:/HeLa/vcfR.session.RData")
+save.image("F:/HeLa/vcfR.session.2.RData")
 ```
 
 ```{r data}
 #inpD<-"F:/HeLa/deepvariant/bam/vcf"
 inpD<-"F:/HeLa/vcf/"
-#vcfFiles <- list.files(inpD, pattern = "R\\*\\.vcf$", full.names = TRUE)
-vcfFiles <- Sys.glob(file.path(inpD, "SR*.vcf")) 
+#vcfFiles <- list.files(inpD, pattern = "R*.vcf$", full.names = TRUE)
+vcfFiles <- c(Sys.glob(file.path(inpD, "SRR??????.[1-9,Y,X].vcf")), Sys.glob(file.path(inpD, "SRR??????.[1-9][1-9].vcf")), Sys.glob(file.path(inpD, "SRR???????.[1-9][1-9].vcf")), Sys.glob(file.path(inpD, "SRR???????.[1-9][1-9].vcf")))
 #rownames(sampleNames)<-gsub("/"," ",rownames(vcfFiles))
 sampleNames<-gsub("/","_",vcfFiles)
 sampleNames<-gsub(":","_",sampleNames)
+sampleNames<-paste(seq(1,length(sampleNames)),sampleNames,sep = "_")
 vcfs <- read_vcfs_as_granges(vcfFiles, sampleNames, refGenome)
 #warnings()#->email
 summary(vcfs)
@@ -35,6 +37,7 @@ head(context, 12)
 typeContext = type_context(vcfs[[1]], refGenome)
 lapply(typeContext, head, 12)
 typeOccurrences <- mut_type_occurrences(vcfs, refGenome)
+write.csv(typeOccurrences,"F:/HeLa/typeOccurrences.csv")
 ```
 
 ```{r plot}
@@ -64,6 +67,7 @@ head(mutMat)
 #plot_96_profile(typeOccurrences)
 plot_96_profile(mutMat[,c(1,7)])
 plot_96_profile(mutMat[,c(1,7)], condensed = TRUE)
+write.csv(mutMat,"F:/HeLa/mutMat.vcf.csv")
 ```
 
 ```{r estimate, echo = FALSE}

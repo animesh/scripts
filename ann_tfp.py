@@ -1,8 +1,38 @@
 import tensorflow as tf
 print(tf.__version__)
+#https://stackoverflow.com/a/40219528/1137129
+tf.random.set_seed(42)
+#vecs=tf.random.uniform(shape=[n],minval=0,maxval=n,dtype=tf.dtypes.int64)
+#https://laurentlessard.com/bookproofs/mismatched-socks/
+n=1000
+j=0
+k=[]
+while j < n:
+    vecs=tf.range(0,j, delta=1, dtype=tf.dtypes.int64, name='range')
+    vecs=tf.concat([vecs, vecs],-1)
+    vecs=tf.random.shuffle(vecs)
+    print(vecs)
 
-mats = tf.random.uniform(shape=[1000, 10, 10])
-vecs = tf.random.uniform(shape=[1000, 10, 1])
+    i=0
+    a = { i : 0 for i in vecs.numpy() }
+    while i < len(vecs):
+        if a[vecs[i].numpy()]>0:
+            print(i,vecs[i].numpy())
+            k.append(i)
+            break
+        a[vecs[i].numpy()]+=1
+        i += 1
+    j+=1
+# Open a file
+from pathlib import Path
+(Path.cwd()/"k.txt")
+
+import matplotlib.pyplot as plt
+plt.hist(k)
+plt.plot(k)
+
+vecs = tf.random.uniform(shape=[n, 10, 1])
+mats = tf.random.uniform(shape=[n, 10, 10])
 print(vecs.shape,mats.shape,tf.linalg.solve(mats, vecs))
 
 import numpy as np
@@ -25,7 +55,6 @@ y = tf.random.normal(shape=(100, 2, 3))
 corr = tfp.stats.correlation(x, y, sample_axis=0, event_axis=None)
 corr_matrix = tfp.stats.correlation(x, y, sample_axis=0, event_axis=-1)
 
-import matplotlib.pyplot as plt
 plt.hist(corr)
 
 import tensorflow_probability as tfp

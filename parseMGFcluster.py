@@ -47,7 +47,7 @@ def parseMGF(mgfData):
 
 file = pathlib.Path.cwd().parent.rglob('*.MGF')
 file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
-file = pathlib.Path('F:/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
+file = pathlib.Path('/mnt/f/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
 print(file.read_text().split(' '))
 out=parseMGF(file)
 
