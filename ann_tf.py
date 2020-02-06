@@ -1,3 +1,42 @@
+#https://blog.tensorflow.org/2020/01/hyperparameter-tuning-with-keras-tuner.html
+import kerastuner as kt
+
+tuner = kt.Hyperband(
+    build_model,
+    objective='val_accuracy',
+    max_epochs=30,
+    hyperband_iterations=2)
+
+from sklearn import ensemble
+from sklearn import linear_model
+
+def build_model(hp):
+    model_type = hp.Choice('model_type', ['random_forest', 'ridge'])
+    if model_type == 'random_forest':
+        with hp.conditional_scope('model_type', 'random_forest'):
+            model = ensemble.RandomForestClassifier(
+                n_estimators=hp.Int('n_estimators', 10, 50, step=10),
+                max_depth=hp.Int('max_depth', 3, 10))
+    elif model_type == 'ridge':
+        with hp.conditional_scope('model_type', 'ridge'):
+            model = linear_model.RidgeClassifier(
+                alpha=hp.Float('alpha', 1e-3, 1, sampling='log'))
+    else:
+        raise ValueError('Unrecognized model_type')
+    return model
+
+#https://github.com/keras-team/keras-tuner
+tmp_dir="."
+tuner = kt.tuners.Sklearn(
+        oracle=kt.oracles.BayesianOptimization(
+            objective=kt.Objective('score', 'max'),
+            max_trials=10),
+        hypermodel=build_model,
+        directory=tmp_dir)
+X, y = [[1,2,3,4,6],[4,8,12,16,20]]
+tuner.search(X+1.0, y+1.0)
+tuner.search_space_summary()
+
 #https://matrices.io/deep-neural-network-from-scratch/ using https://www.tensorflow.org/alpha/guide/eager
 #pip3 install tensorflow==2.0.0-rc0
 #https://youtu.be/5ECD8J3dvDQ?t=455

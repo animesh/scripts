@@ -47,7 +47,7 @@ def parseMGF(mgfData):
 
 file = pathlib.Path.cwd().parent.rglob('*.MGF')
 file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
-file = pathlib.Path('/mnt/f/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
+file = pathlib.Path('F:/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
 print(file.read_text().split(' '))
 out=parseMGF(file)
 
@@ -69,19 +69,27 @@ import scipy.spatial.distance
 data = scipy.spatial.distance.pdist(X_mz1, 'cityblock')
 data.size-X_mz1.size*X_mz1.size/2
 binwidth=22
-plt.hist(data,bins=np.arange(min(data), max(data) + binwidth, binwidth))
-
-[i*i for i in X_mz1]
+#[i*i for i in X_mz1]
 
 import matplotlib.pyplot as plt
+plt.hist(data,bins=np.arange(min(data), max(data) + binwidth, binwidth))
+
 print(X_mz1, X_rt)
 plt.scatter(X_rt,X_mz1)
 #plt.scatter(X_rt,X_int)
-from scipy.fftpack import fft
-mz1ft=fft(X_mz1)
-plt.plot(mz1ft)
-fft = np.fft.fft(X_mz1)
-plt.scatter(fft,X_mz1)
+#from scipy.fftpack import fft
+mz1fft=np.fft.fft(X_mz1)
+mz1fftabs=np.abs(mz1fft)
+plt.plot(mz1fftabs)
+#fft = np.fft.fft(X_mz1)
+plt.scatter(mz1fftabs,X_mz1)
+#https://youtu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
+freq=np.linspace(0,len(mz1fftabs),len(mz1fftabs))#RT at SR?
+plt.scatter(freq,mz1fftabs)
+import librosa
+sig=librosa.core.stft(X_mz1.reshape(2,-1),100,10)
+sgram=np.abs(sig)
+librosa.display.specshow(sgram)
 T = X_rt[1] - X_rt[0]  # sampling interval
 #rtD=[X_rt[1] - X_rt[0] for
 N = X_mz1.size

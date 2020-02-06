@@ -1,3 +1,43 @@
+#https://www.tensorflow.org/neural_structured_learning/tutorials/graph_keras_lstm_imdb
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+import matplotlib.pyplot as plt
+import numpy as np
+import neural_structured_learning as nsl
+import tensorflow as tf
+tf.compat.v1.enable_v2_behavior()
+import tensorflow_hub as hub
+# Resets notebook state
+tf.keras.backend.clear_session()
+print("Version: ", tf.__version__)
+print("Eager mode: ", tf.executing_eagerly())
+print("Hub version: ", hub.__version__)
+print("GPU is", "available" if tf.test.is_gpu_available() else "NOT AVAILABLE")
+imdb = tf.keras.datasets.imdb
+(pp_train_data, pp_train_labels)= (imdb.load_data(num_words=10000))
+print('Training entries: {}, labels: {}'.format(len(pp_train_data),len(pp_train_labels)))
+training_samples_count = len(pp_train_data)
+
+def build_reverse_word_index():
+  # A dictionary mapping words to an integer index
+  word_index = imdb.get_word_index()
+  # The first indices are reserved
+  word_index = {k: (v + 3) for k, v in word_index.items()}
+  word_index['<PAD>'] = 0
+  word_index['<START>'] = 1
+  word_index['<UNK>'] = 2  # unknown
+  word_index['<UNUSED>'] = 3
+  return dict((value, key) for (key, value) in word_index.items())
+
+reverse_word_index = build_reverse_word_index()
+
+def decode_review(text):
+  return ' '.join([reverse_word_index.get(i, '?') for i in text])
+
+decode_review(pp_train_data[0])
+
 system("jupyter" "notebook" "list")
 
 #https://www.machinelearningplus.com/time-series/time-series-analysis-python/
@@ -44,6 +84,28 @@ from pyopenms import *
 seq = AASequence.fromString("DFPIANGER")
 seq_formula = seq.getFormula()
 print("Peptide", seq, "has molecular formula", seq_formula)
+
+
+tsg = TheoreticalSpectrumGenerator()
+spec1 = MSSpectrum()
+spec2 = MSSpectrum()
+peptide = AASequence.fromString("DFPIANGER")
+# standard behavior is adding b- and y-ions of charge 1
+p = Param()
+p.setValue(b"add_b_ions", b"false", b"Add peaks of b-ions to the spectrum")
+tsg.setParameters(p)
+tsg.getSpectrum(spec1, peptide, 1, 1)
+p.setValue(b"add_b_ions", b"true", b"Add peaks of a-ions to the spectrum")
+p.setValue(b"add_metainfo", b"true", "")
+tsg.setParameters(p)
+tsg.getSpectrum(spec2, peptide, 1, 2)
+print("Spectrum 1 has", spec1.size(), "peaks.")
+print("Spectrum 2 has", spec2.size(), "peaks.")
+
+# Iterate over annotated ions and their masses
+for ion, peak in zip(spec2.getStringDataArrays()[0], spec2):
+    print(ion, peak.getMZ())
+
 
 #YOLO base https://github.com/Microsoft/vcpkg
 #https://dsbyprateekg.blogspot.com/2019/12/how-can-i-install-and-use-darknet.html
