@@ -1,6 +1,22 @@
-#http://userweb.eng.gla.ac.uk/umer.ijaz/bioinformatics/BWA_tutorial.pdf
-bwa index -p Homo_sapiens.GRCh38.dna.primary_assembly -a bwtsw Homo_sapiens.GRCh38.dna.primary_assembly.fa
-bwa mem -M -t 8 Homo_sapiens.GRCh38.dna.primary_assembly UNG.12.ensembl_havana.CDS.109098327.fa |  samtools sort -@8 -o UNG.12.ensembl_havana.CDS.109098327.fa -
+#https://www.htslib.org/doc/samtools.html
+wget ftp://ftp.ebi.ac.uk/pub/databases/ena/wgs/public/jj/JJOD01.fasta.gz
+gunzip JJOD01.fasta.gz
+grep "^>" JJOD01.fasta  | awk -F '.' '{print $3}' | sort  | uniq -c | awk '{sum+=$1;print sum}' #OUTPUT 138
+samtools faidx JJOD01.fasta
+wc JJOD01.fasta.fai #OUTPUT 138
+bwa mem -M -t 12 JJOD01.fasta Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.fq Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r2.fq > Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam
+samtools view -bS ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam | samtools sort -o file.bam
+
+gcloud auth login
+gsutil cp -R  gs://deepvariant/binaries/DeepVariant/0.9.0/DeepVariant-0.9.0 .
+cd DeepVariant-0.9.0/
+./run-prereq.sh
+rm /home/animeshs/.local/lib/python2.7/site-packages/tensorflow_*
+sudo rm -rf /usr/local/lib/python2.7/dist-packages/tensor*
+python2.7 -m pip install tensorflow==1.13.1 --user
+export PATH=$PATH:/home/animeshs/.local/bin
+python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam --examples examples.tfrecord.gz  --sample_name pseudomonas
+python call_variants.zip --outfile ../fastq/Aas-gDNA1-W1-PaE_S7_L001_R.merged.clean.unpaired.fa.bam.cvo.gz --examples ../fastq/Aas-gDNA1-W1-PaE_S7_L001_R.merged.clean.unpaired.fa.bam.examples.tfrecord.gz --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt
 #https://github.com/google/deepvariant/blob/r0.8/docs/deepvariant-quick-start.md from https://github.com/google/deepvariant/blob/r0.6/docs/deepvariant-quick-start.md , skipping https://github.com/google/deepvariant/blob/r0.7/docs/deepvariant-quick-start.md
 #pip install tensorflow==1.13.1 --user
 #cleanup
