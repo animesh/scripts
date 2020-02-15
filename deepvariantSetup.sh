@@ -9,10 +9,12 @@ samtools view -bS ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_0
 
 ln -s ../Aas-gDNA1-*/*.r?.fq .
 for i in *.r1.fq ; do echo $i; j=$(basename $i);   k=${j%%.*} ; j=$k.fastq.split.r2.fq ; echo $j ; bwa mem -M -t 12 ../JJOD01.fasta $i $j > $k.sam ; samtools view -bS $k.sam | samtools sort -o $k.bam ; samtools index $k.bam ; done
+for i in ../fastqP/Aas-gDNA1-*.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
+for i in ../fastqP/*examples.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
+
 
 
 ln -s ../Aas-gDNA1-*/*unpaired.fa .
-
 for i in *.fa ; do echo $i; k=$(basename $i); echo  $k ; bwa mem -M -t 12 ../JJOD01.fasta $i > $k.sam ; samtools
 view -bS $k.sam | samtools sort -o $k.bam ; samtools index $k.bam ; done
 
@@ -20,8 +22,9 @@ gsutil cp -R gs://deepvariant/models/DeepVariant/0.9.0 .
 
 for i in *.r1.fq ; do echo $i; j=$(basename $i);   k=${j%%.*} ; j=$k.fastq.split.r2.fq ; echo $j ; bwa mem -M -t 12 ../JJOD01.fasta $i $j > $k.sam ; samtools view -bS $k.sam | samtools sort -o $k.bam ; samtools index $k.bam ; done
  2031  ls -ltrh
- 
+
 python call_variants.zip --outfile ../fastq/Aas-gDNA1-W1-PaE_S7_L001_R.merged.clean.unpaired.fa.bam.examples.tfrecord.gz.cvo.gz --examples ../fastq/Aas-gDNA1-W1-PaE_S7_L001_R.merged.clean.unpaired.fa.bam.examples.tfrecord.gz --checkpoint ./0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt
+python call_variants.zip --outfile call_variants_output.tfrecord.gz   --examples Aas-gDNA1-S4-PaE_S4_L001_R1_001.bam.examples.tfrecord.gz --checkpoint  0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt
 
 
 
@@ -39,6 +42,14 @@ for i in *.fa ; do echo $i; k=$(basename $i); echo  $k ; bwa mem -M -t 12 ../JJO
 
 for i in *.r1.fq ; do echo $i; j=$(basename $i);   k=${j%%.*} ; j=$k.fastq.split.r2.fq ; echo $j ; bwa mem -M -t 12 ../JJOD01.fasta $i $j > $k.sam ; samtools view -bS $k.sam | samtools sort -o $k.bam ; samtools index $k.bam ; done
 
+for i in ../fastqP/Aas-gDNA1-*.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
+
+for i in ../fastqP/Aas-gDNA1-*.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
+
+for i in ../fastqP/*W*.nosample.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_out.tfrecord.gz   --examples $i --checkpoint  0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
+
+
+
 samtools view -bS ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam | samtools sort -o file.bam
 ls -ltrh
 samtools index file.bam
@@ -46,7 +57,7 @@ ls -ltrh
 python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads file.bam --examples examples.tfrecord.gz  --sample_name Pseudo1
 python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam --examples examples.tfrecord.gz  --sample_name pseudo
 python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam --examples examples.tfrecord.gz  --sample_name pseudom
-cp file.bam ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam 
+cp file.bam ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam
 cp file.bam.bai ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam.bai
 python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam --examples examples.tfrecord.gz  --sample_name pseudomonas
 python call_variants.zip --outfile file.cvo.gz --examples  examples.tfrecord.gz --checkpoint ./0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt
@@ -55,7 +66,7 @@ python postprocess_variants.zip --ref ../JJOD01.fasta --infile file.cvo.gz --out
 python call_variants.zip --outfile file.cvo.gz --examples  ../fastqP/Aas-gDNA1-W2-PaE_S8_L001_R1_001.bam.examples.tfrecord.gz --checkpoint ./0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt
 python postprocess_variants.zip --ref ../JJOD01.fasta --infile file.cvo.gz --outfile  file.vcf.gz
 python postprocess_variants.zip --ref ../JJOD01.fasta --infile file.cvo.gz --outfile  file.vcf
- 
+
 animeshs@DMED7596:~/Pseudomonas/DeepVariant-0.9.0$ cp file.bam ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam
 animeshs@DMED7596:~/Pseudomonas/DeepVariant-0.9.0$ cp file.bam.bai ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam.bai
 animeshs@DMED7596:~/Pseudomonas/DeepVariant-0.9.0$ python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam --examples examples.tfrecord.gz  --sample_name pseudomonas
@@ -65,7 +76,7 @@ min_base_quality_mode: ENFORCED_BY_CLIENT
 
 I0207 16:14:35.650413 140097430558144 make_examples.py:1324] Preparing inputs
 I0207 16:14:35.652965 140097430558144 genomics_reader.py:223] Reading ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam with NativeSamReader
-I0207 16:14:35.714081 140097430558144 make_examples.py:1248] Common contigs are 
+I0207 16:14:35.714081 140097430558144 make_examples.py:1248] Common contigs are
 gcloud auth login
 gsutil cp -R  gs://deepvariant/binaries/DeepVariant/0.9.0/DeepVariant-0.9.0 .
 cd DeepVariant-0.9.0/
@@ -163,5 +174,3 @@ $HOME/ensembl-tools/scripts/variant_effect_predictor/variant_effect_predictor.pl
 #cd mutated
 #for i in  *.mut.fasta ;  do  awk '{if(/^>/){print $1,FILENAME}else print}' $i; done >> HeLa.deepvariant.vep.mutated.fasta
 #grep "ENSP00000354040.4:p.Ala250GlyfsTer9" -B1 -A1 *fasta
-
-

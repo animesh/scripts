@@ -1,0 +1,44 @@
+```{r SpectrumAI, echo = FALSE}
+#https://github.com/yafeng/SpectrumAI
+BiocManager::install(c("MSnbase", "protViz"))
+```
+
+```{r pkgs, echo = FALSE}
+#https://cran.r-project.org/web/packages/diceR/vignettes/overview.html
+install.packages("diceR")
+library(glmnet)
+```
+
+
+```{r setup, echo = FALSE}
+inpD <-"F:/mgf/"
+inpF<-"20150512_BSA_The-PEG-envelope.raw.profile.MGF"#paste0(inpD,"20150512_BSA_The-PEG-envelope.raw.profile.MGF")
+setwd(inpD)  #set your working directory
+mzml_path = inpD # set file path to which raw files are located
+infile_name = inpF  # PSM table file name
+outfile_name = paste0(inpF,".out")  #set corresponding output file name
+Frag.ions.tolerance= 0.02 # 0.02 Da tolerance for MS2 fragment ions mass accuracy.
+relative=FALSE  # set TRUE if ppm value is used for Frag.ions.tolerance```
+```
+
+
+```{r script}
+#https://github.com/yafeng/SpectrumAI/blob/master/SpectrumAI.R
+#!/usr/bin/env Rscript
+library(protViz)
+library(MSnbase)
+library(stringr)
+#The df.psm dataframe should have at least the following columns with exactly same names (the order can be different): "SpectraFile", "ScanNum", "Peptide",  "sub_pos" 
+df.psm=read.table(infile_name,sep="\t",header=T,comment.char = "",quote = "")
+df.output = InspectSpectrum(df.psm)
+write.table(df.output,outfile_name,sep="\t",quote=F,row.names=F)
+
+df.sub = df.output[df.output$status == "checked",]
+saav_psm_passed = df.sub[df.sub$flanking_ions_support=="YES",]$PrecursorError.ppm.
+saav_psm_failed = df.sub[df.sub$flanking_ions_support=="NO",]$PrecursorError.ppm.
+
+pdf("precursorError.histogram.plot.pdf",width = 10, height = 7)
+par(mfrow=c(1,2))
+hist(saav_psm_passed,breaks=20,xlab="precMassError (ppm)",main="SpectrumAI curated")
+hist(saav_psm_failed,breaks=20,xlab="precMassError (ppm)",main="SpectrumAI discarded")
+```

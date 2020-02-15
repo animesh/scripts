@@ -28,7 +28,6 @@ wget --header="Host: storage.googleapis.com" --header="User-Agent: Mozilla/5.0 (
 unzip alphafold_casp13_weights.zip
 python3 -m alphafold_casp13.contacts --config_path=873731/0/config.json --checkpoint_path=873731/0/tf_graph_data/tf_graph_data.ckpt --output_path=chkout --eval_sstable=T1019s2/T1019s2.tfrec --stats_file=873731/stats_train_s35.json
 
-
 ## links
 
 * [AlphaFold](https://deepmind.com/blog/article/AlphaFold-Using-AI-for-scientific-discovery)
