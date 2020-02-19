@@ -1,3 +1,14 @@
+```{r patchwork, echo = FALSE}
+#https://patchwork.data-imaginist.com/
+#devtools::install_github("thomasp85/patchwork")
+library(ggplot2)
+library(patchwork)
+data<-as.data.frame(data)
+p1 <- ggplot(data) + geom_point(aes(data), hsp235)
+p2 <- ggplot(data$hsp236)# + geom_boxplot(aes(data))
+p1 + p2
+```
+
 ```{r perturbationNetwork, echo = FALSE}
 #Deciphering the Signaling Network Landscape of Breast Cancer Improves Drug Sensitivity Prediction https://www.biorxiv.org/content/10.1101/2020.01.21.907691v1
 #https://github.com/saezlab/CNORode
@@ -30,7 +41,6 @@ dnorm(g1, prior*n, prior*(1-prior)*n)
 pnorm(g2, prior*n, prior*(1-prior)*n)
 dnorm(49581, mean=(0.5)*(49581+48870), sd=sqrt((1-0.5)*(0.5)*(49581+48870)))
 dbinom(49581, size=49581+48870, prob=0.5)
-
 ```
 
 ```{r FDR, echo = FALSE}
@@ -91,7 +101,7 @@ hsp235 = c(31.87997, 31.47218, 31.54176, 31.04798, 31.19131, 31.3741, 31.07182, 
 hsp236 = c(26.00793,27.41844, 28.28087,24.80331,27.18064, 27.44735, 27.95082, 29.01148, 28.52835, NA,NA,NA,NA,NA,NA, 27.0477, NA,NA)
 x050 =c(NA,NA,NA,27.80058,28.14258,27.71777,27.75041,27.82857,27.56979, NA,NA,NA,28.10415,28.27142,28.28198,27.95155,28.07148,28.07969)
 # overview
-cbind(hsp235, hsp236, x050)
+data<-cbind(hsp235, hsp236, x050)
 # grouping
 grp = rep(c("Treat", "Ctrl"), each = 9)
 # display, could be nicer

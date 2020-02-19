@@ -1,11 +1,6 @@
 #https://blog.tensorflow.org/2020/01/hyperparameter-tuning-with-keras-tuner.html
 import kerastuner as kt
 
-tuner = kt.Hyperband(
-    build_model,
-    objective='val_accuracy',
-    max_epochs=30,
-    hyperband_iterations=2)
 
 from sklearn import ensemble
 from sklearn import linear_model
@@ -27,6 +22,11 @@ def build_model(hp):
 
 #https://github.com/keras-team/keras-tuner
 tmp_dir="."
+tuner = kt.Hyperband(
+    build_model,
+    objective='val_accuracy',
+    max_epochs=30,
+    hyperband_iterations=2)
 tuner = kt.tuners.Sklearn(
         oracle=kt.oracles.BayesianOptimization(
             objective=kt.Objective('score', 'max'),

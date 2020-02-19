@@ -9,14 +9,19 @@ samtools view -bS ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_0
 
 ln -s ../Aas-gDNA1-*/*.r?.fq .
 for i in *.r1.fq ; do echo $i; j=$(basename $i);   k=${j%%.*} ; j=$k.fastq.split.r2.fq ; echo $j ; bwa mem -M -t 12 ../JJOD01.fasta $i $j > $k.sam ; samtools view -bS $k.sam | samtools sort -o $k.bam ; samtools index $k.bam ; done
+
+cd $HOME/Pseudomonas/DeepVariant-0.9.0
 for i in ../fastqP/Aas-gDNA1-*.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
+#python call_variants.zip --outfile call_variants_out2.tfrecord.gz   --examples ../fastqP/Aas-gDNA1-S4-PaE_S4_L001_R1_001.bam.examples.tfrecord.gz --checkpoint  0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt
+#python postprocess_variants.zip --ref ../JJOD01.fasta --infile call_variants_out2.tfrecord.gz --outfile  file.vcf
 for i in ../fastqP/*examples.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
+#for i in ../fastqP/*call_variants_output.tfrecord.gz ; do echo $i ; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $i.post_process.vcf; done
+for i in ../fastqP/*call_variants_output.tfrecord.gz ; do echo $i ; j=$(basename $i); k=${j%%.*} ; echo $k; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $k.vcf; done
 
-
-
-ln -s ../Aas-gDNA1-*/*unpaired.fa .
+ln -s ../Aas-gDNA1-*/*unpaired.fa ../fastq/.
 for i in *.fa ; do echo $i; k=$(basename $i); echo  $k ; bwa mem -M -t 12 ../JJOD01.fasta $i > $k.sam ; samtools
 view -bS $k.sam | samtools sort -o $k.bam ; samtools index $k.bam ; done
+for i in ../fastqP/Aas-gDNA1-*.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
 
 gsutil cp -R gs://deepvariant/models/DeepVariant/0.9.0 .
 
@@ -65,7 +70,7 @@ python postprocess_variants.zip --ref ../JJOD01.fasta --infile file.cvo.gz --out
 python postprocess_variants.zip --ref ../JJOD01.fasta --infile file.cvo.gz --outfile  file.vcf.gz
 python call_variants.zip --outfile file.cvo.gz --examples  ../fastqP/Aas-gDNA1-W2-PaE_S8_L001_R1_001.bam.examples.tfrecord.gz --checkpoint ./0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt
 python postprocess_variants.zip --ref ../JJOD01.fasta --infile file.cvo.gz --outfile  file.vcf.gz
-python postprocess_variants.zip --ref ../JJOD01.fasta --infile file.cvo.gz --outfile  file.vcf
+for i in ../fastqP/*examples.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; donef
 
 animeshs@DMED7596:~/Pseudomonas/DeepVariant-0.9.0$ cp file.bam ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam
 animeshs@DMED7596:~/Pseudomonas/DeepVariant-0.9.0$ cp file.bam.bai ../Aas-gDNA1-O2-PaE_S6_L001_R.s1/Aas-gDNA1-O2-PaE_S6_L001_R1_001.fastq.split.r1.sam.bam.bai
