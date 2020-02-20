@@ -37,6 +37,7 @@ find ../fastq/ -iname "*.bam" | parallel -j 12 "python make_examples.zip --mode 
 
 find ../fastq/ -iname "*.examples.tfrecord.gz" | parallel -j 12 "python call_variants.zip --outfile {}.examples.tfrecord.cvo.gz --examples {} --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt"
 
+for i in ../fastq/*examples.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
 
 
 thout an index
