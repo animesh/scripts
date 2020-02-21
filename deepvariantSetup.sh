@@ -39,6 +39,7 @@ find ../fastq/ -iname "*.examples.tfrecord.gz" | parallel -j 12 "python call_var
 
 for i in ../fastq/*examples.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
 
+for i in ../fastq/*call_variants_output.tfrecord.gz ; do echo $i ; j=$(basename $i); k=${j%%.*} ; echo $k; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $k.vcf; done
 
 thout an index
 Aas-gDNA1-O2-PaE_S6_L001_R.s1/

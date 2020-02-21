@@ -45,10 +45,11 @@ def parseMGF(mgfData):
                             print("Error in parsing line "+line)
     return out
 
-file = pathlib.Path.cwd().parent.rglob('*.MGF')
-file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
-file = pathlib.Path('F:/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
-print(file.read_text().split(' '))
+#file = pathlib.Path.cwd().parent.rglob('*.MGF')
+file = pathlib.Path.cwd() / 'mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF'
+#file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
+#file = pathlib.Path('F:/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
+#print(file.read_text().split(' '))
 out=parseMGF(file)
 
 X=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ in out.items()]
@@ -65,6 +66,27 @@ print(X_rt.shape)
 
 k=0
 print(out[k],X_int[k],X_mz1[k],X_rt[k])
+data = pd.DataFrame(data=np.column_stack((X_mz1,X_int)),columns=['mz1','intensity'])#{'mz1':[X_mz1], 'intensity':[X_int]})
+data.plot('mz1','intensity', kind='scatter')
+labels = pd.Series(np.round(X_rt).flatten(), index=data.index, name='labels')
+
+#https://github.com/liliblu/hypercluster
+import pandas as pd
+from sklearn.datasets import make_blobs
+import hypercluster
+
+data, labels = make_blobs()
+data = pd.DataFrame(data)
+labels = pd.Series(labels, index=data.index, name='labels')
+
+# With a single clustering algorithm
+clusterer = hypercluster.AutoClusterer()
+clusterer.fit(data).evaluate(
+  methods = hypercluster.constants.need_ground_truth+hypercluster.constants.inherent_metrics,
+  gold_standard = labels
+  )
+clusterer.visualize_evaluations()
+
 import scipy.spatial.distance
 data = scipy.spatial.distance.pdist(X_mz1, 'cityblock')
 data.size-X_mz1.size*X_mz1.size/2
