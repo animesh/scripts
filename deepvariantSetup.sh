@@ -169,7 +169,12 @@ git clone https://github.com/Ensembl/ensembl-tools.git
 cd ensembl-tools/scripts/variant_effect_predictor
 git checkout release/88
 git pull
+ssh massturbinator
+cd $HOME/ensembl-tools/scripts/variant_effect_predictor/
 export PERL5LIB=$HOME/ensembl-vep:$PERL5LIB
+perl INSTALL.pl
+apt-cache search perl | grep archive
+perl INSTALL.pl --NO_HTSLIB
 sudo apt install libdbd-mysql-perl
 #example file
 ./variant_effect_predictor.pl -i ../../../deepvariant/quickstart-output/examples.vcf --plugin ProteinSeqs,ref.fasta,mut.fasta -o mutated --cache
@@ -181,3 +186,21 @@ $HOME/ensembl-tools/scripts/variant_effect_predictor/variant_effect_predictor.pl
 #cd mutated
 #for i in  *.mut.fasta ;  do  awk '{if(/^>/){print $1,FILENAME}else print}' $i; done >> HeLa.deepvariant.vep.mutated.fasta
 #grep "ENSP00000354040.4:p.Ala250GlyfsTer9" -B1 -A1 *fasta
+cd DeepVariant-0.9.0/
+2001  for i in ../fastqP/*W1*call_variants_output.tfrecord.gz ; do echo $i ; j=$(basename $i); k=${j%%.*} ; echo $k; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $k.vcf; done
+for i in ../fastqP/*W1*examples.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
+for i in ../fastqP/Aas-gDNA1*W1*.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
+for i in ../fastqP/Aas-gDNA1-W1-PaE_S7_L001_R1_001.bam.nosample.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
+for i in ../fastqP/*O2*call_variants_output.tfrecord.gz ; do echo $i ; j=$(basename $i); k=${j%%.*} ; echo $k; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $k.vcf; done
+for i in ../fastqP/Aas-gDNA1-O2-PaE_S6_L001_R1_001.bam.nosample.tfrecord.gz ; do echo $i ; j=$(basename $i); k=${j%%.*} ; echo $k; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $k.vcf; done
+for i in ../fastqP/Aas-gDNA1-O2-PaE_S6_L001_R1_001.bam.nosample.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
+for i in ../fastqP/Aas-gDNA1-O2-PaE_S6_L001_R1_001.bam.nosample.tfrecord.gz ; do echo $i ; j=$(basename $i); k=${j%%.*} ; echo $k; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $k.vcf; done
+for i in ../fastqP/Aas-gDNA1-O2-PaE_S6_L001_R1_001.bam.nosample.tfrecord.gz.call_variants_output.tfrecord.gz ; do echo $i ; j=$(basename $i); k=${j%%.*} ; echo $k; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $k.vcf; done
+for i in ../fastq/Aas-gDNA1-O1-PaE_S5_L001_R.merged.clean.unpaired.fa.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
+for i in ../fastq/Aas-gDNA1-?1-PaE_S5_L001_R.merged.clean.unpaired.fa.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
+for i in ../fastq/Aas-gDNA1-O1-PaE_??_L001_R.merged.clean.unpaired.fa.bam.nosample.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
+for i in ../fastq/Aas-gDNA1-O1-PaE_??_L001_R.merged.clean.unpaired.fa.bam.nosample.tfrecord.gz.call_variants_output.tfrecord.gz ; do echo $i ; j=$(basename $i); k=${j%%.*} ; echo $k; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $k.vcf; done
+for i in ../fastq/Aas-gDNA1-W2-PaE_??_L001_R.merged.clean.unpaired.fa.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
+for i in ../fastq/Aas-gDNA1-W2-PaE_*L001_R.merged.clean.unpaired.fa.bam ; do echo $i ; python make_examples.zip --mode calling  --ref ../JJOD01.fasta --reads $i --examples $i.nosample.tfrecord.gz ; done
+for i in ../fastq/Aas-gDNA1-W2-PaE_*_L001_R.merged.clean.unpaired.fa.bam.nosample.tfrecord.gz ; do echo $i ; python call_variants.zip --outfile $i.call_variants_output.tfrecord.gz  --examples $i --checkpoint 0.9.0/DeepVariant-inception_v3-0.9.0+data-wgs_standard/model.ckpt ; done
+for i in ../fastq/Aas-gDNA1-W2-PaE_*_L001_R.merged.clean.unpaired.fa.bam.nosample.tfrecord.gz.call_variants_output.tfrecord.gz ; do echo $i ; j=$(basename $i); k=${j%%.*} ; echo $k; python postprocess_variants.zip --ref ../JJOD01.fasta --infile $i --outfile  $k.vcf; done
