@@ -10,27 +10,30 @@ print(args[2])
 if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #read
-#inpF<-file.path("L:/promec/HF/Lars/2020/february/Martin/combined/txt/proteinGroups.txt")
+#inpF<-file.path("L:/promec/Qexactive/LARS/2020/February/Nathan Shotgun/combined/txt/proteinGroups.txt")
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #select raw intensity
 print("Selecting Raw Intensity Values(s)")
 intensity<-as.matrix(data[,grep("Intensity.",colnames(data))])
-colnames(intensity)=sub("Intensity.","",colnames(intensity))
+protNum<-1:ncol(intensity)
+colnames(intensity)=paste(protNum,sub("Intensity.","",colnames(intensity)),sep="_")
 #clean
 data = data[!data$Reverse=="+",]
 data = data[!data$Potential.contaminant=="+",]
 data = data[!data$Only.identified.by.site=="+",]
 print("Removed Reverse,Potential.contaminant and Only.identified.by.site")
 dim(data)
-row.names(data)<-data$Fasta.headers
+protNum<-1:nrow(data)
+row.names(data)<-paste(protNum,data$Fasta.headers,protNum,sep=";")
 print("Converted Fasta.headers to rownames")
 #summary(data)
 #select from arg[]
 if(length(args)==1){
   selection="LFQ.intensity";print(paste("No columns to select, using",selection))
   LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-  colnames(LFQ)=sub(selection,"",colnames(LFQ))
+  protNum<-1:ncol(LFQ)
+  colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
 } else if (args[2]=="SILAC"){
     selection1="Ratio."
     LFQ<-as.matrix(data[,grep(selection1,colnames(data))])
@@ -41,6 +44,8 @@ if(length(args)==1){
     rownames(LFQ)<-rownames(data)
     colnames(LFQ)=sub(selection1,"",colnames(LFQ))
     colnames(LFQ)=sub(selection2,"",colnames(LFQ))
+    protNum<-1:ncol(LFQ)
+    colnames(LFQ)=paste(protNum,colnames(LFQ),protNum,sep="_")
     print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))
 }
 summary(LFQ)
@@ -76,7 +81,7 @@ if(dim(log2LFQ)[2]>0){
   summary(log2LFQ)
   #rowsum(s)
   #extract-uniprot-id(s)
-  Uniprot<-sapply(strsplit(row.names(log2LFQ),";"), `[`, 1)
+  Uniprot<-sapply(strsplit(row.names(log2LFQ),";"), `[`, 2)
   uniprot<-sapply(strsplit(Uniprot,"|",fixed=TRUE),`[`, 2)
   #write-csv
   outF=paste(inpF,selection,"log2","csv",sep = ".")
@@ -95,15 +100,21 @@ if(dim(log2LFQ)[2]>0){
   plot(princomp(log2LFQ))
   biplot(prcomp(log2LFQ))
   heatmap(log2LFQ)
+  hist(log2LFQ,main=paste("Mean:",mean(log2LFQ),"SD:",sd(log2LFQ)),breaks=round(max(log2LFQ)))
   #impute-plot
-  scale=2
+  scale=3
   set.seed(scale)
-  log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ)-scale,sd=sd(log2LFQ)/scale), dim(log2LFQ)[1],dim(log2LFQ)[2])
-  hist(log2LFQimp)
+  log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ)-scale,sd=sd(log2LFQ)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
+  hist(log2LFQimp,main=paste("Mean:",mean(log2LFQimp),"SD:",sd(log2LFQimp)),breaks=round(max(log2LFQ)))
   print(paste("Imputation constant:",mean(log2LFQimp),"sd:",sd(log2LFQimp)))
+  hist(log2LFQ,breaks=round(max(log2LFQ)), col=rgb(0,1,0,0.5))
+  hist(log2LFQimp,breaks=round(max(log2LFQ)),col=rgb(0,0,1,0.5), add=T)
   log2LFQ[log2LFQ==0]<-log2LFQimp[log2LFQ==0]
+  outF<-paste(inpF,selection,"log2","Imputation",mean(log2LFQimp),"sd",sd(log2LFQimp),"csv",sep = ".")
+  write.csv(rbind(cbind(log2LFQ,Means,Medians,NAs,CVs,Sums,uniprot),NAcols),outF)
+  print(paste("Log2 transform of",selection,"columns written to",outF))
   summary(log2LFQ)
-  hist(log2LFQ)
+  hist(log2LFQ,breaks=round(max(log2LFQ)),col=rgb(1,0,0,0.5), add=T)
   plot(princomp(log2LFQ),main=paste("Imputed value:",mean(log2LFQimp),"sd:",sd(log2LFQimp)))
   biplot(prcomp(as.matrix(log2LFQ),scale=TRUE),cex=c(0.5, 0.4), xlab=NULL,arrow.len = 0)
   heatmap(log2LFQ, scale = "row")
@@ -112,9 +123,16 @@ if(dim(log2LFQ)[2]>0){
     log2LFQt<-t(log2LFQt)
     log2LFQtPCA<-prcomp(log2LFQt,scale=TRUE)
     log2LFQtPCAsumm<-summary(log2LFQtPCA)
-  #plot(prcomp(log2LFQt))
+    #plot(prcomp(log2LFQt))
     plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups removed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
-  op <- par(cex = 0.4)
+    op <- par(cex = 0.4)
+    legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
+    log2LFQt<-t(log2LFQ)
+    log2LFQtPCA<-prcomp(log2LFQt,scale=TRUE)
+    log2LFQtPCAsumm<-summary(log2LFQtPCA)
+    plot(prcomp(log2LFQt))
+    plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+    op <- par(cex = 0.4)
     legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
     heatmap(log2LFQt)
   }
