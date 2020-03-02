@@ -88,13 +88,41 @@ clusterer.fit(data).evaluate(
 clusterer.visualize_evaluations()
 
 import scipy.spatial.distance
-data = scipy.spatial.distance.pdist(X_mz1, 'cityblock')
-data.size-X_mz1.size*X_mz1.size/2
-binwidth=22
+dataD = scipy.spatial.distance.pdist(X_mz1, 'cityblock')
+dataD.size-X_mz1.size*X_mz1.size/2
+plt.hist(dataD,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
+binwidth=44
+tol=0.5
+np.count_nonzero((binwidth-tol < dataD) & (dataD < binwidth+tol))
+binA=[np.count_nonzero((binwidth-tol < dataD) & (dataD < binwidth+tol)) for binwidth in range(dataD.size)]
+plt.hist(binA,bins=44)
+X_int=np.array(X).reshape(-1, 1)
+print(X_int.shape)
+#np.digitize(dataD, binwidth)
 #[i*i for i in X_mz1]
 
 import matplotlib.pyplot as plt
-plt.hist(data,bins=np.arange(min(data), max(data) + binwidth, binwidth))
+a=np.histogram(dataD*1000,bins='auto')
+len(a)#[0])
+aD=a[0][0:len(a[0])]
+len(np.array(a).reshape(-1, 1))
+a[1].shape[0]
+plt.plot(a[0][0:100])#,a[1][10:20])
+a=np.arange(min(dataD), max(dataD) + binwidth, binwidth)
+plt.hist(np.random.rand(1000))
+plt.hist(np.random.randn(1000))
+np.random.randint(10)
+a=a+np.random.rand(len(a))
+plt.hist(a)#,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
+aD = scipy.spatial.distance.pdist(np.array(a).reshape(-1, 1), 'cityblock')
+#aD = dataD
+plt.hist(aD,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
+#aDD=scipy.spatial.distance.pdist(np.array(aD).reshape(-1, 1), 'cityblock')
+aDD=np.histogram(aD,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
+#max(np.histogram(aDD,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))[0])
+aDD[1][np.argmax(aDD[0])]
+plt.hist(aDD)#,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
+plt.hist(dataD,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
 
 print(X_mz1, X_rt)
 plt.scatter(X_rt,X_mz1)

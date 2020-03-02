@@ -1,3 +1,15 @@
+```{r UpSetR, echo = FALSE}
+#https://asntech.shinyapps.io/intervene/
+#https://github.com/hms-dbmi/UpSetR
+#install.packages("UpSetR")
+#devtools::install_github("hms-dbmi/UpSetR")
+#A view of UpSetR mimicking the plot published by Lex & Gehlenborg http://www.nature.com/nmeth/journal/v11/n8/abs/nmeth.3033.html
+library(UpSetR)
+mutations <- read.csv( system.file("extdata", "mutations.csv", package = "UpSetR"), header=T, sep = ",")
+upset(mutations, sets = c("PTEN", "TP53", "EGFR", "PIK3R1", "RB1"), sets.bar.color = "#56B4E9", order.by = "freq", empty.intersections = "on")
+upset(mutations, attribute.plots=list(gridrows = 100, ncols = 1, plots = list(list(plot=histogram, x="RB1",queries=T),list(plot = scatter_plot, y = "RB1", x = "cnt", queries = T))), sets = c("PTEN", "TP53", "EGFR", "PIK3R1", "RB1"), queries = list(list(query = intersects, params = list("TP53"), active = T), list(query = intersects, params = list("EGFR"))))
+```
+
 ```{r patchwork, echo = FALSE}
 #https://patchwork.data-imaginist.com/
 #devtools::install_github("thomasp85/patchwork")
