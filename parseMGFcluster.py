@@ -66,36 +66,178 @@ print(X_rt.shape)
 
 k=0
 print(out[k],X_int[k],X_mz1[k],X_rt[k])
+
+import pandas as pd
 data = pd.DataFrame(data=np.column_stack((X_mz1,X_int)),columns=['mz1','intensity'])#{'mz1':[X_mz1], 'intensity':[X_int]})
 data.plot('mz1','intensity', kind='scatter')
-labels = pd.Series(np.round(X_rt).flatten(), index=data.index, name='labels')
-
-#https://github.com/liliblu/hypercluster
-import pandas as pd
-from sklearn.datasets import make_blobs
-import hypercluster
-
-data, labels = make_blobs()
-data = pd.DataFrame(data)
-labels = pd.Series(labels, index=data.index, name='labels')
-
-# With a single clustering algorithm
-clusterer = hypercluster.AutoClusterer()
-clusterer.fit(data).evaluate(
-  methods = hypercluster.constants.need_ground_truth+hypercluster.constants.inherent_metrics,
-  gold_standard = labels
-  )
-clusterer.visualize_evaluations()
 
 import scipy.spatial.distance
 dataD = scipy.spatial.distance.pdist(X_mz1, 'cityblock')
 dataD.size-X_mz1.size*X_mz1.size/2
-plt.hist(dataD,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
+
+import matplotlib.pyplot as plt
 binwidth=44
-tol=0.5
+tol=0.05
+plt.hist(dataD,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
 np.count_nonzero((binwidth-tol < dataD) & (dataD < binwidth+tol))
-binA=[np.count_nonzero((binwidth-tol < dataD) & (dataD < binwidth+tol)) for binwidth in range(dataD.size)]
-plt.hist(binA,bins=44)
+#binA=[np.count_nonzero((binwidth-tol < dataD) & (dataD < binwidth+tol)) for binwidth in range(dataD.size)]
+binA=[np.count_nonzero((binwidth-tol < dataD) & (dataD < binwidth+tol)) for binwidth in range(1000)]
+plt.hist(binA,bins=1000)
+plt.scatter(range(30),binA[:30])
+binS=np.sort(dataD)
+plt.hist(binS,bins=1000)
+stB=1000000
+spB=2*stB#binS.size
+plt.scatter(range(stB,spB),binS[stB:spB])
+binSs=binS[stB:spB]
+plt.scatter(range(len(binSs)),binSs)
+plt.hist(binSs,bins=30)
+
+x=np.linspace(-int(2*np.pi*10),int(2*np.pi*10),100)
+#x=np.linspace(0.0, 600/800, 600)
+curV = np.sin(50.0*2.0*np.pi*x)
+curV = np.sin(x)
+plt.plot(curV)
+mz1fft=np.fft.fft(curV)
+mz1fftabs=np.abs(mz1fft)
+np.max(mz1fftabs)
+np.argmax(mz1fftabs[1:])#/np.pi
+plt.semilogy(mz1fftabs[32:])
+
+plt.plot()
+
+mz1fft=np.fft.fft(binS)
+mz1fftabs=np.abs(mz1fft)
+mz1fftabs.size
+plt.semilogy(mz1fftabs[int(10E3):int(10E4)])
+#fft = np.fft.fft(X_mz1)
+plt.scatter(mz1fftabs,binSs)
+#https://youtu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
+freq=np.linspace(0,len(mz1fftabs),len(mz1fftabs))#RT at SR?
+plt.scatter(freq,mz1fftabs)
+
+
+from sklearn.mixture import GaussianMixture as GMM
+gmm_model=GMM(n_components=10,covariance_type='tied').fit(np.array(binA).reshape(-1, 1))
+gmm_predictions=gmm_model.predict(np.array(binA).reshape(-1, 1))
+
+#https://raw.githubusercontent.com/CNIC-Proteomics/SHIFTS/master/SourceCode/SlopeCalculation.pygithub.com/CNIC-Proteomics/SHIFTS/blob/master/SourceCode/SlopeCalculation.py
+def bInt(mz1,delta):
+    histDic={}
+    deltaBin=float(delta)
+    for mz1D in mz1:
+        intD = int(mz1D / deltaBin) * deltaBin + deltaBin / 2
+        truncateDmass1 = round(intD, 1)
+        #truncateDmass1 = float("%.1f" % intD)
+        #truncateDmass1 = int(intD)
+        #print(intD,truncateDmass1)
+        if truncateDmass1 not in histDic: histDic[truncateDmass1] = 1
+        else: histDic[truncateDmass1] += 1
+    return histDic
+testBin=np.linspace(40, 50, num=1000)
+plt.hist(testBin)
+range(len(testBin))
+histDic1=bInt(testBin,0.1)
+len(histDic1)
+plt.hist(histDic1)
+histDic2=[np.count_nonzero((binwidth-tol < testBin) & (testBin < binwidth+tol)) for binwidth in range(100)]
+len(histDic2)
+
+histDicT=bInt(binSs,0.1)
+len(histDicT)
+plt.hist(histDicT.values(),bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
+
+from scipy.stats.stats import linregress
+for value in binSs[:6]:
+    print(value)
+for index in range(0, len(binSs) - 6):
+    s, intercept, r, p, std_error = linregress(binSs[index:index + 7], binSs[index:index + 7])
+    print(s, intercept, r, p, std_error,"\n")
+for value in histDicT:
+    temp = histDicT[value]
+    print(value,temp)#,histDicT[0],histDicT[1],histDicT[2])
+import itertools
+slope1=[]
+for index in range(0, len(histDicT) - 6):
+        tempD=dict(itertools.islice(histDicT.items(), index,index + 7))
+        #print(list(tempD.values()))
+        s, intercept, r, p, std_error = linregress(list(tempD.keys()), list(tempD.values()))
+        #print(index,tempD,s, intercept, r, p, std_error)
+        slope1.append(s)
+plt.hist(slope1)
+slope2=[]
+for index1 in range(0, len(histDicT) - 13):
+    tempD=dict(itertools.islice(histDicT.items(), index1 + 3,index1 + 10))
+    #print(index1,len(tempD),len(slope1[index1 + 1:index1 + 8]))
+    s1, intercept1, r1, p1, std_error1 = linregress(list(tempD.values()), slope1[index1 + 1:index1 + 8])
+    slope2.append(s1)
+
+outL=slop(histDicT)
+print(outL)
+def slop(bin):
+    outputlist = [["Bin", "\t", "Frequency", "\t", "Slope1", "\t", "Slope2", "\t", "peak-Width", "\t", "peak-Apex", "\t","intercept_mass", "\n"]]
+    slope1 = [0]
+    for index in range(0, len(bin) - 6):
+        tempD=dict(itertools.islice(bin.items(), index,index + 7))
+        s, intercept, r, p, std_error = linregress(list(tempD.keys()), list(tempD.values()))
+        slope1.append(s)
+    slope2 = []
+    for index1 in range(0, len(bin) - 13):
+        tempD=dict(itertools.islice(bin.items(), index1 + 3,index1 + 10))
+        #print(index1,len(tempD),len(slope1[index1 + 1:index1 + 8]))
+        s1, intercept1, r1, p1, std_error1 = linregress(list(tempD.values()), slope1[index1 + 1:index1 + 8])
+        slope2.append(s1)
+    apex = []
+    peak = []
+    interceptList = [0]
+    if len(bin) % 2 == 0:
+        minus1 = 6
+        minus2 = 3
+    else:
+        minus1 = 7
+        minus2 = 3
+    for index3 in range(len(bin) - minus1):
+        if slope1[index3] > 0.0 and slope1[index3 + 1] < 0.0:
+            apex.append("1")
+        else:
+            apex.append("0")
+    for index4 in range(len(bin) - 13):
+        if slope2[index4] < 0:
+            peak.append("1")
+        else:
+            peak.append("0")
+    slope1 = [0] * 2 + slope1 + [0] * 3
+    slope2 = [0] * 6 + slope2 + [0] * 6
+    apex = [0] * 3 + apex + [0] * (len(bin) - (len(apex) + 3))
+    peak = [0] * 6 + peak + [0] * 6
+    for index6 in range(len(bin) - 6):
+        if (abs(slope1[index6 + 1]) + abs(slope1[index6 + 2])) == 0.0:
+            intercept_mass = float("inf")
+            interceptList.append(intercept_mass)
+        else:
+            tempD=dict(itertools.islice(bin.items(), index6,index6))
+            intercept_mass = list(tempD.values()) + (float(binwidth) * abs(slope1[index6 + 1])) / (
+                abs(slope1[index6 + 1]) + abs(slope1[index6 + 2]))
+            interceptList.append(intercept_mass)
+    interceptList = interceptList + [0] * (len(bin) - len(interceptList))
+    plot_x = []
+    plot_y = []
+    for index5 in range(len(bin)-13):
+        tempD=dict(itertools.islice(bin.items(), index5,index5))
+        outputlist.append([str(list(tempD.values())), "\t", str(slope1[index5]), "\t", str(slope1[index5]), "\t", str(slope2[index5]),"\t", str(peak[index5]), "\t", str(apex[index5]), "\t", str(interceptList[index5]), "\n"])
+    return outputlist
+
+
+from sklearn.cluster import KMeans
+kmeans_model=KMeans(n_clusters=3)
+kmeans_model.fit(np.array(binA).reshape(-1, 1))
+labels = kmeans_model.predict(np.array(binA).reshape(-1, 1))
+centroids = kmeans_model.cluster_centers_
+colors = map(lambda x: colmap[x+1], labels)
+plt.scatter(labels, binA)#, color=colors, alpha=0.5, edgecolor='k')
+for idx, centroid in enumerate(centroids):
+    plt.scatter(*centroid, color=colmap[idx+1])
+
 X_int=np.array(X).reshape(-1, 1)
 print(X_int.shape)
 #np.digitize(dataD, binwidth)
@@ -326,3 +468,21 @@ for data in rand_loader:
     input = data
     output = two_layer_nn(input)
     print("input", input.size(),"output", output.size())
+
+
+#https://github.com/liliblu/hypercluster
+labels = pd.Series(np.round(X_rt).flatten(), index=data.index, name='labels')
+from sklearn.datasets import make_blobs
+import hypercluster
+
+data, labels = make_blobs()
+data = pd.DataFrame(data)
+labels = pd.Series(labels, index=data.index, name='labels')
+
+# With a single clustering algorithm
+clusterer = hypercluster.AutoClusterer()
+clusterer.fit(data).evaluate(
+  methods = hypercluster.constants.need_ground_truth+hypercluster.constants.inherent_metrics,
+  gold_standard = labels
+  )
+clusterer.visualize_evaluations()
