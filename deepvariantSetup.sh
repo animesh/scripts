@@ -186,3 +186,17 @@ $HOME/ensembl-tools/scripts/variant_effect_predictor/variant_effect_predictor.pl
 #cd mutated
 #for i in  *.mut.fasta ;  do  awk '{if(/^>/){print $1,FILENAME}else print}' $i; done >> HeLa.deepvariant.vep.mutated.fasta
 #grep "ENSP00000354040.4:p.Ala250GlyfsTer9" -B1 -A1 *fasta
+
+#visualize using https://nextstrain.org/docs/tutorials/tb
+#python3 -m pip install nextstrain-cli
+python -m pip install nextstrain-cli #for windows
+nextstrain version
+#nextstrain.cli 1.16.1
+nextstrain check-setup #checks Docker
+#nextstrain-cli is up to date!
+nextstrain update
+#Your images are up to date!
+#https://nextstrain.org/docs/tutorials/tb
+git clone https://github.com/nextstrain/tb.git
+cd tb
+nextstrain shell .

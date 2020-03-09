@@ -1,3 +1,118 @@
+```{r parametric-time-warping, echo = FALSE}
+#https://www.bioconductor.org/packages/release/bioc/vignettes/RankProd/inst/doc/RankProd.pdf
+#BiocManager::install("RankProd")
+library(RankProd)
+data(arab)
+#Dilution <- ReadAffy()
+#data<-exprs(rma(Dilution))
+colnames(arab)
+arab.cl
+arab.sub <- arab[,which(arab.origin==1)]
+arab.cl.sub <- arab.cl[which(arab.origin==1)]
+arab.origin.sub <- arab.origin[which(arab.origin==1)]
+RP.out <- RankProducts(arab.sub,arab.cl.sub, logged=TRUE, na.rm=FALSE,plot=FALSE, rand=123)
+RP.out <- RankProducts(arab.sub,arab.cl.sub,gene.names=arab.gnames,rand=123)
+RP.out <- RP.advance(arab.sub, arab.cl.sub, arab.origin.sub,logged = TRUE, na.rm = FALSE, gene.names = arab.gnames, plot = FALSE,rand = 123)
+RP.out=RP.advance(arab.sub,arab.cl.sub,arab.origin.sub,gene.names=arab.gnames,rand=123)
+RP.out <- RP(arab.sub,arab.cl.sub,gene.names=arab.gnames,rand=123)
+RP.out=RPadvance(arab.sub,arab.cl.sub,arab.origin.sub,gene.names=arab.gnames, rand=123)
+plotRP(RP.out, cutoff=0.05)
+topGene(RP.out,cutoff=0.05,method="pfp",logged=TRUE,logbase=2,gene.names=arab.gnames)
+topGene(RP.out,cutoff=0.05,method="pval",logged=TRUE,logbase=2,gene.names=arab.gnames)
+topGene(RP.out,num.gene=50,gene.names=arab.gnames)
+```
+
+```{r parametric-time-warping, echo = FALSE}
+#https://github.com/rwehrens/ptw/blob/master/ptwVignette/stickPTW.pdf
+install.packages("ptw")
+library(ptw)
+```
+
+```{r partial-least-squares/principal-component-regression, echo = FALSE}
+#https://cran.r-project.org/web/packages/pls/vignettes/pls-manual.pdf
+library(devtools)
+#install_github("bhmevik/pls")
+library(pls)
+data(yarn)
+data(oliveoil)
+data(gasoline)
+gasTrain <- gasoline[1:50,]
+gasTest <- gasoline[51:60,]
+gas1 <- plsr(octane ~ NIR, ncomp = 10, data = gasTrain, validation = "LOO")
+summary(gas1)
+plot(RMSEP(gas1), legendpos = "topright")
+plot(gas1, ncomp = 2, asp = 1, line = TRUE)
+plot(gas1, plottype = "scores", comps = 1:3)
+explvar(gas1)
+predict(gas1, ncomp = 2, newdata = gasTest)
+RMSEP(gas1, newdata = gasTest)
+dens1 <- plsr(density ~ NIR, ncomp = 5, data = yarn)
+plsr(sensory ~ chemical, data = oliveoil)
+gas2 <- plsr(octane ~ msc(NIR), ncomp = 10, data = gasTrain)
+gas2.cv <- crossval(gas2, segments = 10)
+plot(MSEP(gas2.cv), legendpos="topright")
+summary(gas2.cv, what = "validation")
+plot(gas1, plottype = "coef", ncomp=1:3, legendpos = "bottomleft",labels = "numbers", xlab = "nm")
+```
+
+```{r biomarker, echo = FALSE}
+#https://openpub.fmach.it/retrieve/handle/10449/21657/4348/
+#BiocManager::install("BioMark")
+#install.packages("scatterplot3d")
+library("BioMark")
+library("scatterplot3d")
+data("SpikePos")
+scatterplot3d(SpikePos$annotation$rt, SpikePos$annotation$mz, sqrt(SpikePos$data[1,]), mar = c(4, 3, 0, 3) + 0.1, type = "h", highlight.3d = TRUE, angle = 110, box = FALSE, xlab = "Retention time (s)", ylab = "m/z", zlab = "sqrt(Intensity)")
+simdata <- gen.data(ncontrol = 10, nvar = 800, group.diff = 1.5)
+dim(simdata$X)
+coldiffs <- sapply(1:100, function(i, x) colMeans(x[11:20, , i]) - colMeans(x[1:10, , i]), simdata$X)
+rowMeans(coldiffs)[1:10]
+mycov <- matrix(0, 800, 800)
+mycov[row(mycov) <= 50 & col(mycov) <= 50] <- 0.3
+mycov[row(mycov) > 50 & col(mycov) > 50] <- 0.7
+diag(mycov) <- 1
+simdata2 <- gen.data(ncontrol = 10, nvar = 800, group.diff = 1.5,cormat = mycov)
+simdata3 <- gen.data(ncontrol = 10, nvar = ncol(SpikePos$data), group.diff = 1.5, cormat = cov(SpikePos$data[1:10, ]))
+grp1.HC <- get.biom(X = SpikePos$data[1:20,], Y = SpikePos$class[1:20], fmethod = c("studentt", "pls", "vip"), type = "HC")
+summary(grp1.HC)
+selection(grp1.HC) 
+grp1.HCsel <- HCthresh(coef(grp1.HC)$studentt[[1]], plot = TRUE)
+real.markers <- which(SpikePos$annotation$found.in.standards > 0)
+grp1.troc <- ROC(1/coef(grp1.HC)$studentt[[1]], real.markers)
+grp1.HC.troc <- roc.value(selection(grp1.HC)$studentt[[1]], real.markers, totalN = ncol(SpikePos$data))
+plot(grp1.troc, type = "l", main = "Student t")
+points(grp1.HC.troc, col = "red", pch = 19, cex = 1.5)
+```
+
+```{r self-organizing-maps, echo = FALSE}
+#https://cran.r-project.org/web/packages/kohonen/kohonen.pdf
+#install.packages("kohonen")
+library(kohonen)
+data(degelder)
+mydata <- list(patterns = degelder$patterns,
+CellVol = log(degelder$properties[,"cell.vol"]))
+## custom distance function
+require(Rcpp)
+sourceCpp(system.file("Distances", "wcc.cpp", package = "kohonen"))
+set.seed(7)
+powsom <- supersom(data = mydata, grid = somgrid(6, 4, "hexagonal"),
+dist.fcts = c("WCCd", "sumofsquares"),
+keep.data = TRUE)
+summary(powsom)
+```
+
+```{r patchwork, echo = FALSE}
+#https://patchwork.data-imaginist.com/
+#devtools::install_github("thomasp85/patchwork")
+library(ggplot2)
+library(patchwork)
+data<-as.data.frame(data)
+p1 <- ggplot(data) + geom_point(aes(data), hsp235)
+p2 <- ggplot(data$hsp236)# + geom_boxplot(aes(data))
+p1 + p2
+```
+
+
 ```{r UpSetR, echo = FALSE}
 #https://asntech.shinyapps.io/intervene/
 #https://github.com/hms-dbmi/UpSetR

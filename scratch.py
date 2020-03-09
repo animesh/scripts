@@ -1,7 +1,44 @@
+#https://github.com/pyhf/neos
+#pip install neos
+#pip install git+https://github.com/gehring/fax.git
 #https://blog.tensorflow.org/2020/01/hyperparameter-tuning-with-keras-tuner.html
+import jax
+import neos.makers as makers
+import neos.cls as cls
+import numpy as np
+import jax.experimental.stax as stax
+import jax.experimental.optimizers as optimizers
+import jax.random
+import time
+init_random_params, predict = stax.serial(stax.Dense(1024),stax.Relu,stax.Dense(1024),stax.Relu,stax.Dense(2),stax.Softmax)
+hmaker = makers.hists_from_nn_three_blobs(predict)
+nnm = makers.nn_hepdata_like(hmaker)
+loss = cls.cls_maker(nnm, solver_kwargs=dict(pdf_transform=True))
+_, network = init_random_params(jax.random.PRNGKey(2), (-1, 2))
+opt_init, opt_update, opt_params = optimizers.adam(1e-3)
+def update_and_value(i, opt_state, mu):
+    net = opt_params(opt_state)
+    value, grad = jax.value_and_grad(loss)(net, mu)
+    return opt_update(i, grad, opt_state), value, net
+def train_network(N):
+    cls_vals = []
+    _, network = init_random_params(jax.random.PRNGKey(1), (-1, 2))
+    state = opt_init(network)
+    losses = []
+    for i in range(N):
+        start_time = time.time()
+        state, value, network = update_and_value(i,state,1.0)
+        epoch_time = time.time() - start_time
+        losses.append(value)
+        metrics = {"loss": losses}
+        yield network, metrics, epoch_time
+maxN = 20 # make me bigger for better results!
+# Training
+for i, (network, metrics, epoch_time) in enumerate(train_network(maxN)):
+    print(f"epoch {i}:", f'CLs = {metrics["loss"][-1]}, took {epoch_time}s')
+
+#https://github.com/keras-team/keras-tuner
 import kerastuner as kt
-
-
 from sklearn import ensemble
 from sklearn import linear_model
 
