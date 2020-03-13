@@ -32,7 +32,7 @@ def train_network(N):
         losses.append(value)
         metrics = {"loss": losses}
         yield network, metrics, epoch_time
-maxN = 20 # make me bigger for better results!
+maxN = 10 # make me bigger for better results!
 # Training
 for i, (network, metrics, epoch_time) in enumerate(train_network(maxN)):
     print(f"epoch {i}:", f'CLs = {metrics["loss"][-1]}, took {epoch_time}s')

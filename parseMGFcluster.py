@@ -46,9 +46,9 @@ def parseMGF(mgfData):
     return out
 
 #file = pathlib.Path.cwd().parent.rglob('*.MGF')
-file = pathlib.Path.cwd() / 'mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF'
+#file = pathlib.Path.cwd() / 'mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF'
+file = pathlib.Path('F:/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
 #file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
-#file = pathlib.Path('F:/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
 #print(file.read_text().split(' '))
 out=parseMGF(file)
 
@@ -56,125 +56,122 @@ X=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ 
 X_mz1=np.array(X).reshape(-1, 1)
 print(X_mz1.shape)
 
-X=[(out[k]['pep_intensity']) for k, _ in out.items()]
-X_int=np.array(X).reshape(-1, 1)
-print(X_int.shape)
-
-X=[np.float(out[k]['rtinseconds']) for k, _ in out.items()]
-X_rt=np.array(X).reshape(-1, 1)
-print(X_rt.shape)
-
-k=0
-print(out[k],X_int[k],X_mz1[k],X_rt[k])
-
-import pandas as pd
-data = pd.DataFrame(data=np.column_stack((X_mz1,X_int)),columns=['mz1','intensity'])#{'mz1':[X_mz1], 'intensity':[X_int]})
-data.plot('mz1','intensity', kind='scatter')
-
 import scipy.spatial.distance
 dataD = scipy.spatial.distance.pdist(X_mz1, 'cityblock')
 dataD.size-X_mz1.size*X_mz1.size/2
 
 import matplotlib.pyplot as plt
-binwidth=44
-tol=0.05
-plt.hist(dataD,bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
-np.count_nonzero((binwidth-tol < dataD) & (dataD < binwidth+tol))
-#binA=[np.count_nonzero((binwidth-tol < dataD) & (dataD < binwidth+tol)) for binwidth in range(dataD.size)]
-binA=[np.count_nonzero((binwidth-tol < dataD) & (dataD < binwidth+tol)) for binwidth in range(1000)]
-plt.hist(binA,bins=1000)
-plt.scatter(range(30),binA[:30])
+binwidth=0.02
+sample=100
+plt.hist(dataD,bins=np.arange(min(dataD), max(dataD) + binwidth, sample*binwidth))
+
+tol=binwidth/2
+region=44
 binS=np.sort(dataD)
-plt.hist(binS,bins=1000)
+np.count_nonzero((region-tol < binS) & (binS < region+tol))
+plt.hist(binS,bins=sample)
+
 stB=1000000
 spB=2*stB#binS.size
 plt.scatter(range(stB,spB),binS[stB:spB])
 binSs=binS[stB:spB]
 plt.scatter(range(len(binSs)),binSs)
-plt.hist(binSs,bins=30)
+plt.hist(binSs,bins=region)
 
-x=np.linspace(-int(2*np.pi*10),int(2*np.pi*10),100)
-#x=np.linspace(0.0, 600/800, 600)
-curV = np.sin(50.0*2.0*np.pi*x)
-curV = np.sin(x)
-plt.plot(curV)
-mz1fft=np.fft.fft(curV)
-mz1fftabs=np.abs(mz1fft)
-np.max(mz1fftabs)
-np.argmax(mz1fftabs[1:])#/np.pi
-plt.semilogy(mz1fftabs[32:])
+np.count_nonzero((region-tol < binSs) & (binSs < region+tol))
 
-plt.plot()
+#binA=[np.count_nonzero((region-tol < dataD) & (dataD < region+tol)) for binwidth in range(dataD.size)]
+binA=[np.count_nonzero((region-tol < dataD) & (dataD < region+tol)) for region in range(sample)]
+plt.hist(binA,bins=sample)
+plt.plot(binA[:sample])
+plt.scatter(range(sample),np.log2(binA[:sample]))
 
-mz1fft=np.fft.fft(binS)
+mz1fft=np.fft.fft(binA)
+plt.hist(mz1fft,bins=sample)
 mz1fftabs=np.abs(mz1fft)
 mz1fftabs.size
-plt.semilogy(mz1fftabs[int(10E3):int(10E4)])
+plt.hist(mz1fftabs,bins=sample)
+plt.semilogy(mz1fftabs[:sample])
 #fft = np.fft.fft(X_mz1)
-plt.scatter(mz1fftabs,binSs)
+plt.scatter(binSs[:sample],mz1fftabs)
 #https://youtu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
 freq=np.linspace(0,len(mz1fftabs),len(mz1fftabs))#RT at SR?
 plt.scatter(freq,mz1fftabs)
-
-
-from sklearn.mixture import GaussianMixture as GMM
-gmm_model=GMM(n_components=10,covariance_type='tied').fit(np.array(binA).reshape(-1, 1))
-gmm_predictions=gmm_model.predict(np.array(binA).reshape(-1, 1))
 
 #https://raw.githubusercontent.com/CNIC-Proteomics/SHIFTS/master/SourceCode/SlopeCalculation.pygithub.com/CNIC-Proteomics/SHIFTS/blob/master/SourceCode/SlopeCalculation.py
 def bInt(mz1,delta):
     histDic={}
     deltaBin=float(delta)
     for mz1D in mz1:
-        intD = int(mz1D / deltaBin) * deltaBin + deltaBin / 2
-        truncateDmass1 = round(intD, 1)
+        #intD = int(mz1D / deltaBin) * deltaBin + deltaBin / 2
+        #truncateDmass1 = round(intD, 1)
+        #print(intD,truncateDmass1)
+        truncateDmass1 = int(mz1D / deltaBin) * deltaBin + deltaBin / 2
         #truncateDmass1 = float("%.1f" % intD)
         #truncateDmass1 = int(intD)
         #print(intD,truncateDmass1)
         if truncateDmass1 not in histDic: histDic[truncateDmass1] = 1
         else: histDic[truncateDmass1] += 1
     return histDic
-testBin=np.linspace(40, 50, num=1000)
+
+testBin=np.linspace(0, 1, num=10000)
+testBin.size
 plt.hist(testBin)
-range(len(testBin))
+
 histDic1=bInt(testBin,0.1)
+
 len(histDic1)
-plt.hist(histDic1)
+plt.scatter(histDic1.keys(),histDic1.values())
+plt.hist(histDic1.values())
+
 histDic2=[np.count_nonzero((binwidth-tol < testBin) & (testBin < binwidth+tol)) for binwidth in range(100)]
 len(histDic2)
 
-histDicT=bInt(binSs,0.1)
+histDicT=bInt(binSs,0.02)
 len(histDicT)
-plt.hist(histDicT.values(),bins=np.arange(min(dataD), max(dataD) + binwidth, binwidth))
+plt.hist(histDicT.values(),bins=sample)#np.arange(min(dataD), max(dataD) + binwidth, binwidth))
 
 from scipy.stats.stats import linregress
 for value in binSs[:6]:
     print(value)
-for index in range(0, len(binSs) - 6):
+for index in range(0, len(binSs[:sample]) - 6):
     s, intercept, r, p, std_error = linregress(binSs[index:index + 7], binSs[index:index + 7])
     print(s, intercept, r, p, std_error,"\n")
 for value in histDicT:
     temp = histDicT[value]
     print(value,temp)#,histDicT[0],histDicT[1],histDicT[2])
+histDicT=histDic1
+histDicT=bInt(binS,0.02)
 import itertools
 slope1=[]
+slope1pos=[]
 for index in range(0, len(histDicT) - 6):
         tempD=dict(itertools.islice(histDicT.items(), index,index + 7))
         #print(list(tempD.values()))
         s, intercept, r, p, std_error = linregress(list(tempD.keys()), list(tempD.values()))
         #print(index,tempD,s, intercept, r, p, std_error)
         slope1.append(s)
+        slope1pos.append(list(tempD.keys())[0])
+np.histogram(slope1,bins=1000)
 plt.hist(slope1)
+npslope1pos=np.array(slope1pos)
+npslope1=np.array(slope1)
+npthr=100000
+plt.scatter(npslope1pos[npslope1>npthr],npslope1[npslope1>npthr])#,slope2)
 slope2=[]
+slope2pos=[]
 for index1 in range(0, len(histDicT) - 13):
     tempD=dict(itertools.islice(histDicT.items(), index1 + 3,index1 + 10))
     #print(index1,len(tempD),len(slope1[index1 + 1:index1 + 8]))
     s1, intercept1, r1, p1, std_error1 = linregress(list(tempD.values()), slope1[index1 + 1:index1 + 8])
     slope2.append(s1)
-
-outL=slop(histDicT)
+    slope2pos.append(list(tempD.keys())[0])
+plt.hist(slope2)
+plt.plot(slope2pos,slope2)
+outL=slop(histDicT,0.01)
 print(outL)
-def slop(bin):
+plt.hist(outL)
+def slop(bin,binwidth):
     outputlist = [["Bin", "\t", "Frequency", "\t", "Slope1", "\t", "Slope2", "\t", "peak-Width", "\t", "peak-Apex", "\t","intercept_mass", "\n"]]
     slope1 = [0]
     for index in range(0, len(bin) - 6):
@@ -226,6 +223,56 @@ def slop(bin):
         tempD=dict(itertools.islice(bin.items(), index5,index5))
         outputlist.append([str(list(tempD.values())), "\t", str(slope1[index5]), "\t", str(slope1[index5]), "\t", str(slope2[index5]),"\t", str(peak[index5]), "\t", str(apex[index5]), "\t", str(interceptList[index5]), "\n"])
     return outputlist
+
+
+X=[(out[k]['pep_intensity']) for k, _ in out.items()]
+X_int=np.array(X).reshape(-1, 1)
+print(X_int.shape)
+
+X=[np.float(out[k]['rtinseconds']) for k, _ in out.items()]
+X_rt=np.array(X).reshape(-1, 1)
+print(X_rt.shape)
+
+k=0
+print(out[k],X_int[k],X_mz1[k],X_rt[k])
+
+import pandas as pd
+data = pd.DataFrame(data=np.column_stack((X_mz1,X_int)),columns=['mz1','intensity'])#{'mz1':[X_mz1], 'intensity':[X_int]})
+data.plot('mz1','intensity', kind='scatter')
+
+curV=npslope1pos[npslope1>npthr]
+np.gcd.reduce([15, 25, 35])#https://docs.scipy.org/doc/numpy/reference/generated/numpy.gcd.html
+np.gcd.reduce(np.int64(np.round([ 43.1,  43.1,  86.2,  86.2, 129.3])))
+np.gcd.reduce(np.int64(np.round(curV)))
+x=np.linspace(-int(2*np.pi*10),int(2*np.pi*10),100)
+#x=np.linspace(0.0, 600/800, 600)
+curV = np.sin(50.0*2.0*np.pi*x)
+curV = np.sin(x)
+plt.plot(curV)
+mz1fft=np.fft.fft(curV)
+mz1fftabs=np.abs(mz1fft)
+np.max(mz1fftabs)
+np.argmax(mz1fftabs[1:])#/np.pi
+plt.plot(mz1fftabs)
+plt.semilogy(mz1fftabs)
+
+plt.plot()
+
+mz1fft=np.fft.fft(binS)
+mz1fftabs=np.abs(mz1fft)
+mz1fftabs.size
+plt.semilogy(mz1fftabs)#[int(10E3):int(10E4)])
+#fft = np.fft.fft(X_mz1)
+plt.scatter(mz1fftabs,binSs)
+#https://youtu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
+freq=np.linspace(0,len(mz1fftabs),len(mz1fftabs))#RT at SR?
+plt.scatter(freq,mz1fftabs)
+
+
+from sklearn.mixture import GaussianMixture as GMM
+gmm_model=GMM(n_components=10,covariance_type='tied').fit(np.array(binA).reshape(-1, 1))
+gmm_predictions=gmm_model.predict(np.array(binA).reshape(-1, 1))
+
 
 
 from sklearn.cluster import KMeans

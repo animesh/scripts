@@ -137,5 +137,46 @@ print(mean_absolute_error(y_test, y_pred))
 print(np.sqrt(mean_squared_error(y_test, y_pred)))
 print(r2_score(y_test, y_pred))
 
+def build_model(hp):
+    model = keras.Sequential()
+    model.add(keras.layers.Dense(units=64, activation="relu", input_shape=[X_train.shape[1]]))
+    model.add(keras.layers.Dropout(rate=0.3))
+    model.add(keras.layers.Dense(units=32, activation="relu"))
+    model.add(keras.layers.Dropout(rate=0.5))
+
+    model.add(keras.layers.Dense(1))
+
+    model.compile(
+        optimizer=keras.optimizers.Adam(0.0001),
+        loss = 'mse',
+        metrics = ['mse'])
+
+    BATCH_SIZE = 32
+
+    early_stop = keras.callbacks.EarlyStopping(
+      monitor='val_mse',
+      mode="min",
+      patience=10
+    )
+    return model
+
+#https://blog.tensorflow.org/2020/01/hyperparameter-tuning-with-keras-tuner.html
+import kerastuner as kt
+
+tuner = kt.Hyperband(
+    build_model,
+    objective='val_accuracy',
+    max_epochs=30,
+    hyperband_iterations=2)
+
+best_model = tuner.get_best_models(1)[0]
+
+best_hyperparameters = tuner.get_best_hyperparameters(1)[0]
+tuner = kt.tuners.BayesianOptimization(
+  kt.applications.HyperResNet(input_shape=(256, 256, 3), classes=10),
+  objective='val_accuracy',
+  max_trials=50)
+
+
 joblib.dump(transformer, "data_transformer.joblib")
 model.save("missing_value_prediction_model.h5")
