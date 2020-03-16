@@ -1,3 +1,4 @@
+#http://networksciencebook.com/chapter/5#degree-dynamics
 #https://github.com/pyhf/neos
 #pip install neos
 #pip install git+https://github.com/gehring/fax.git
