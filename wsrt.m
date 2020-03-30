@@ -1,10 +1,10 @@
-fo='L:\promec\HF\Lars\2019\november\siri_marit\combined\txt\proteinGroupsLog2LFQctrl100p.xlsx';
+fo='L:\promec\HF\Lars\2020\mars\siri\combined\txt\proteinGroupsLog2diffs.xlsx';
 testtype=' WSRT';
 [data,id,~]=xlsread(fo);
 IDX=1;
 idoff=1; %from id start at +idoff
 idx=1;
-edx=9;
+edx=12;
 jmp=3;
 idnm=id(:,IDX);
 data(:,all(isnan(data), 1)) = [];

@@ -1,15 +1,20 @@
 ```{r data, echo = FALSE}
-inpD <-"L:/promec/Animesh/Lisa/"
-inpF<-paste0(inpD,"CamillaWSRTdataMedianUniprotGOmin2pv25p.txt")
+inpD <-"F://promec/HF/Lars/2020/mars/siri/combined/txt/"
+inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T)
 #data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
-rownames(data)<-paste(data$T..T..Uniprot,data$T..T..Line,data$T..T..Gene.names,sep = "_")
+rownames(data)<-paste(data$T..Uniprot,data$T..Line,data$T..Gene.names,sep = "_")
+#clean
+data = data[!data$C..Reverse=="+",]
+#data = data[!data$C..Potential.contaminant=="+",]
 summary(data)
 ```
 
 ```{r venn}
-selThr<-0.6
-dataV<-data[,c(1,2,3,6)]
+selThr<-0.3
+dataV<-data[,c(13,14,15,16)]
+#,sapply(cn, "[", 2))
+#dataV<-data[,c(13,14,15,16)]
 #dataV<-data[(data$B_.WSRT<selThr),]
 hist(rowSums(as.matrix(dataV)))
 library(eulerr)
@@ -24,6 +29,10 @@ ggsave(file=paste0(inpF,"venn.svg"),plot=vplot)#,  width=6, height=6)
 ```{r vennDiagram}
 #https://stats.idre.ucla.edu/r/faq/how-can-i-generate-a-venn-diagram-in-r/
 library(limma)
+selThr<-0.3
+dataV<-data[,grep(pattern = "WSRT",colnames(data))]
+cn<-strsplit(colnames(dataV), "_")
+colnames(dataV)<-paste(sapply(cn, "[", 3),sapply(cn, "[", 4))
 vennDiagram(dataV<selThr)
 ```
 
