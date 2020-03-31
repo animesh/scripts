@@ -46,8 +46,8 @@ def parseMGF(mgfData):
     return out
 
 #file = pathlib.Path.cwd().parent.rglob('*.MGF')
-#file = pathlib.Path.cwd() / 'mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF'
-file = pathlib.Path('F:/mgf/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
+file = pathlib.Path.cwd() / '../RawRead/20150512_BSA_The-PEG-envelope.raw.profile.MGF'
+#file = pathlib.Path('F:/GD/RawRead/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
 #file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
 #print(file.read_text().split(' '))
 out=parseMGF(file)
@@ -89,7 +89,7 @@ plt.scatter(range(sample),np.log2(binA[:sample]))
 mz1fft=np.fft.fft(binA)
 plt.hist(mz1fft,bins=sample)
 mz1fftabs=np.abs(mz1fft)
-mz1fftabs.size
+mz1fftabs.size--
 plt.hist(mz1fftabs,bins=sample)
 plt.semilogy(mz1fftabs[:sample])
 #fft = np.fft.fft(X_mz1)

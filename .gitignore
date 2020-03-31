@@ -8,10 +8,10 @@
 # bisect
 # merge
 # push --force-with-lease
-#ignore MS/DOS endings (on windows machines):
-# git config --global core.autocrlf true
 #ignore file-mode change:
 # git config core.fileMode false
+#ignore MS/DOS endings (on windows machines):
+# git config --global core.autocrlf true
 #config setup
 # git clone http://github.com/animesh/scripts
 # cd scripts
@@ -24,7 +24,8 @@
 # cp $HOME/.atom/config.cson $PWD/config.atom
 #atom-install
 # cd scripts
-# $HOME/AppData/Local/atom-nightly/bin/apm-nightly install --packages-file config-packages.atom
+# cd $HOME/AppData/Local/atom-nightly/bin/
+# apm-nightly install --packages-file config-packages.atom
 # cp config.atom $HOME/.atom/config.cson
 *
 !*.*

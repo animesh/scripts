@@ -1,5 +1,5 @@
 ```{r data, echo = FALSE}
-inpD <-"F://promec/HF/Lars/2020/mars/siri/combined/txt/"
+inpD <-"C:/Users/animeshs/GD/"
 inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T)
 #data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
@@ -28,11 +28,12 @@ ggsave(file=paste0(inpF,"venn.svg"),plot=vplot)#,  width=6, height=6)
 
 ```{r vennDiagram}
 #https://stats.idre.ucla.edu/r/faq/how-can-i-generate-a-venn-diagram-in-r/
+#BiocManager::install("limma")
 library(limma)
 selThr<-0.3
 dataV<-data[,grep(pattern = "WSRT",colnames(data))]
 cn<-strsplit(colnames(dataV), "_")
-colnames(dataV)<-paste(sapply(cn, "[", 3),sapply(cn, "[", 4))
+colnames(dataV)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
 vennDiagram(dataV<selThr)
 ```
 
@@ -43,18 +44,25 @@ vennDiagram(dataS[,c(1,2,3,6)]<selThr)
 ```
 
 ```{r sel-WSRT-onevar}
-dataS<-data[(data$ONO_.WSRT<selThr) | (data$B_.WSRT<selThr) | (data$CCAR_.WSRT<selThr) | (data$NB_.WSRT<selThr),]
-hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
-vennDiagram(dataS[,c(1,2,3,6)]<selThr)
+dataS<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT<selThr) | (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) | (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) | (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+hist(rowSums(as.matrix(dataS[,c(13,14,15,16)])))
+vennDiagram(dataS[,c(13,14,15,16)]<selThr)
 ```
 
 ```{r map-ID}
+#install.packages("Rcpp")
+#install.packages("BiocManager")
+#library("Rcpp")
+#BiocManager::install("org.Hs.eg.db")
+#BiocManager::install("GO.db")
 library(org.Hs.eg.db)
 uniP<-c("P07237","P28331","Q12931")
 select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
+#BiocManager::install("clusterProfiler")
 library(clusterProfiler)
 #http://data.wikipathways.org/current/gmt/
-wp2gene <- read.gmt("L:/promec/Animesh/Lisa/wikipathways-20191010-gmt-Homo_sapiens.gmt")
+wikiPF<-paste0(inpD,"wikipathways-20200310-gmt-Homo_sapiens.gmt")
+wp2gene <- read.gmt(wikiPF)
 library(magrittr)
 wp2gene <- wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
 wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE
@@ -70,26 +78,38 @@ wpid2name[grep("pi3k",wpid2name$name,ignore.case = TRUE),]
 uniP<-data$T..Uniprot
 uniP <- lapply(uniP, as.character)
 unlist(uniP)
-uniP[[1]]
+uniP[[311]]
+rn<-sub("-","",uniP)
+uniP <- paste(sapply(rn, "[", 1))#[[311]]#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+unlist(uniP)
+uniP[[311]]
+
+colnames(dataV)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
 uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
 wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
 wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
 uniprots <- Rkeys(org.Hs.egUNIPROT)
 uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
 dataSez<-merge(dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
-dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
+#dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
 dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
 #rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
-rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
+rownames(dataSezWP)<-paste(dataSezWP$T..Uniprot,dataSezWP$T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
 #dataS<-dataSezWP
+dataSezWPtest<-dataSezWP[,c(15,16,17,18)]
+cn<-strsplit(colnames(dataSezWPtest), "_")
+colnames(dataSezWPtest)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSezWPtest<selThr,main="dataSezWPtest",counts.col = "red")
 ```
 
 ```{r stat, echo = FALSE}
 dataSel <- dataSezWP[grep("stat", dataSezWP$name,ignore.case=TRUE),] 
-vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="STAT",counts.col = "red")
-dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="STAT",counts.col = "red")
+#dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+#dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+#dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
 rownames(dataSel)<-paste0(rownames(dataSel),"_STAT")
 dataSelSTAT<-dataSel
 summary(dataSelSTAT)
@@ -97,10 +117,9 @@ summary(dataSelSTAT)
 
 ```{r mapk, echo = FALSE}
 dataSel <- dataSezWP[grep("mapk", dataSezWP$name,ignore.case=TRUE),] 
-vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="MAPK",counts.col = "red")
-dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="MAPK",counts.col = "red")
 rownames(dataSel)<-paste0(rownames(dataSel),"_MAPK")
 dataSelMAPK<-dataSel
 summary(dataSelMAPK)
@@ -108,10 +127,9 @@ summary(dataSelMAPK)
 
 ```{r ampk, echo = FALSE}
 dataSel <- dataSezWP[grep("ampk", dataSezWP$name,ignore.case=TRUE),] 
-vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="AMPK",counts.col = "red")
-dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="AMPK",counts.col = "red")
 rownames(dataSel)<-paste0(rownames(dataSel),"_AMPK")
 dataSelAMPK<-dataSel
 summary(dataSelAMPK)
@@ -129,10 +147,9 @@ dataSel<-dataSel_PI3KAKTmTOR#rbind(dataSelPI3K,dataSelAKT,dataSelmTOR)
 #dataSel=subset(dataSel, !duplicated(pathwayN))
 #dataSel<-as.matrix(dataSel[,-13])
 summary(dataSel)
-vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="PI3K/AKT/mTOR",counts.col = "red")
-dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="PI3K/AKT/mTOR",counts.col = "red")
 rownames(dataSel)<-paste0(rownames(dataSel),"_PI3K/AKT/mTOR")
 dataSel_PI3KAKTmTOR<-dataSel
 summary(dataSel_PI3KAKTmTOR)
@@ -140,10 +157,9 @@ summary(dataSel_PI3KAKTmTOR)
 
 ```{r Apoptosis, echo = FALSE}
 dataSel <- dataSezWP[grep("apoptosis", dataSezWP$name,ignore.case=TRUE),] 
-vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="Apoptosis",counts.col = "red")
-dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
-dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="Apoptosis",counts.col = "red")
 #data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
 #data_jak <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
 #data_mapk <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
