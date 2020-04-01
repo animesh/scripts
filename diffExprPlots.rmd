@@ -1,11 +1,11 @@
 ```{r data, echo = FALSE}
 inpD <-"C:/Users/animeshs/GD/"
-inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroups.txt")
+inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
 data <- read.delim(inpF,sep="\t",header = T)
 #data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
-rownames(data)<-paste(data$T..Uniprot,data$T..Line,data$T..Gene.names,sep = "_")
+#rownames(data)<-paste(data$T..Uniprot,data$T..Line,data$T..Gene.names,sep = "_")
 #clean
-data = data[!data$C..Reverse=="+",]
+data = data[!data$T..C..Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
 summary(data)
 ```
@@ -61,8 +61,10 @@ select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
 #BiocManager::install("clusterProfiler")
 library(clusterProfiler)
 #http://data.wikipathways.org/current/gmt/
-wikiPF<-paste0(inpD,"wikipathways-20200310-gmt-Homo_sapiens.gmt")
+wikiF<-"wikipathways-20200310-gmt-Homo_sapiens.gmt"
+wikiPF<-paste0(inpD,wikiF)
 wp2gene <- read.gmt(wikiPF)
+write.table(wp2gene,paste0(inpD,wikiF,".txt"),sep="\t")
 library(magrittr)
 wp2gene <- wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
 wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE
@@ -85,6 +87,7 @@ unlist(uniP)
 uniP[[311]]
 
 colnames(dataV)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
 uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
 wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
 wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
@@ -103,14 +106,34 @@ vennDiagram(dataSezWPtest<selThr,main="dataSezWPtest",counts.col = "red")
 ```
 
 ```{r stat, echo = FALSE}
-dataSel <- dataSezWP[grep("stat", dataSezWP$name,ignore.case=TRUE),] 
+dataSel <- data[grep("stat", data$T..ont,ignore.case=TRUE),] 
 cn<-strsplit(colnames(dataSel), "_")
 colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="STAT",counts.col = "red")
+vennDiagram(dataSel[,c(1:4)]<selThr,main="STAT",counts.col = "red")
 #dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
 #dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
 #dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
 rownames(dataSel)<-paste0(rownames(dataSel),"_STAT")
+dataSelSTAT<-dataSel
+summary(dataSelSTAT)
+```
+
+```{r stat, echo = FALSE}
+dataSel <- data[grep("mapk", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="mapk",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"_mapk")
+dataSelSTAT<-dataSel
+summary(dataSelSTAT)
+```
+
+```{r stat, echo = FALSE}
+dataSel <- data[grep("apoptosis", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="apoptosis",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"apoptosis")
 dataSelSTAT<-dataSel
 summary(dataSelSTAT)
 ```
@@ -136,10 +159,10 @@ summary(dataSelAMPK)
 ```
 
 ```{r PI3K/AKT/mTOR, echo = FALSE}
-dataSelPI3K <- dataSezWP[(grep("PI3K", dataSezWP$name,ignore.case=TRUE)),]
-dataSelAKT <- dataSezWP[(grep("AKT", dataSezWP$name,ignore.case=TRUE)),]
-dataSelmTOR <- dataSezWP[(grep("mTOR", dataSezWP$name,ignore.case=TRUE)),] 
-dataSel_PI3KAKTmTOR <- dataSezWP[(grep("PI3K-Akt-mTOR", dataSezWP$name,ignore.case=TRUE)),] 
+dataSelPI3K <- data[(grep("PI3K", data$T..ont,ignore.case=TRUE)),]
+dataSelAKT <- data[(grep("AKT", data$T..ont,ignore.case=TRUE)),]
+dataSelmTOR <- data[(grep("mTOR", data$T..ont,ignore.case=TRUE)),] 
+dataSel_PI3KAKTmTOR <- data[(grep("PI3K-Akt-mTOR", data$T..ont,ignore.case=TRUE)),] 
 #dataSel <- dataSezWP[(grep("AKT", dataSezWP$name,ignore.case=TRUE))|(grep("PI3K", dataSezWP$name,ignore.case=TRUE))|(grep("mTOR", dataSezWP$name,ignore.case=TRUE)),] 
 dataSel<-dataSel_PI3KAKTmTOR#rbind(dataSelPI3K,dataSelAKT,dataSelmTOR)
 #pathwayN<-sapply(strsplit(row.names(dataSel),"_"), `[`, 1)
@@ -149,7 +172,7 @@ dataSel<-dataSel_PI3KAKTmTOR#rbind(dataSelPI3K,dataSelAKT,dataSelmTOR)
 summary(dataSel)
 cn<-strsplit(colnames(dataSel), "_")
 colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="PI3K/AKT/mTOR",counts.col = "red")
+vennDiagram(dataSel[,c(1:4)]<selThr,main="PI3K/AKT/mTOR",counts.col = "red")
 rownames(dataSel)<-paste0(rownames(dataSel),"_PI3K/AKT/mTOR")
 dataSel_PI3KAKTmTOR<-dataSel
 summary(dataSel_PI3KAKTmTOR)

@@ -1,3 +1,22 @@
+```{r gene2num, echo = FALSE}
+#https://www.gungorbudak.com/blog/2018/08/07/convert-gene-symbols-to-entrez-ids-in-r/
+symbols <- c('AHNAK', 'BOD1L1', 'HSPB1', 'SMARCA4', 'TRIM28')
+select(org.Hs.eg.db, symbols, "ENTREZID", "SYMBOL")
+inpD <-"C:/Users/animeshs/GD/"
+inpF<-paste0(inpD,"gene")
+gene <- read.delim(inpF,sep="\t",header = F)
+gene2num<-select(org.Hs.eg.db, as.character(gene$V1), "ENTREZID", "SYMBOL")
+outF<-paste0(inpD,"gene2num.txt")
+write.table(gene2num,outF,sep = "\t")
+#uniprot
+inpF<-paste0(inpD,"uniprot")
+uniprot <- read.delim(inpF,sep="\t",header = F)
+uni2num<-select(org.Hs.eg.db, as.character(uniprot$V1), "ENTREZID", "UNIPROT")
+outF<-paste0(inpD,"uni2num.txt")
+write.table(uni2num,outF,sep = "\t")
+```
+
+
 ```{r parametric-time-warping, echo = FALSE}
 #https://www.bioconductor.org/packages/release/bioc/vignettes/RankProd/inst/doc/RankProd.pdf
 #BiocManager::install("RankProd")
