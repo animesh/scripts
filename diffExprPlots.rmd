@@ -44,9 +44,9 @@ vennDiagram(dataS[,c(1,2,3,6)]<selThr)
 ```
 
 ```{r sel-WSRT-onevar}
-dataS<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT<selThr) | (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) | (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) | (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
-hist(rowSums(as.matrix(dataS[,c(13,14,15,16)])))
-vennDiagram(dataS[,c(13,14,15,16)]<selThr)
+data<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT<selThr) | (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) | (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) | (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+hist(rowSums(as.matrix(data[,c(1:4)])))
+vennDiagram(data[,c(1:4)]<selThr)
 ```
 
 ```{r map-ID}
@@ -118,44 +118,24 @@ dataSelSTAT<-dataSel
 summary(dataSelSTAT)
 ```
 
-```{r stat, echo = FALSE}
+```{r mapk, echo = FALSE}
 dataSel <- data[grep("mapk", data$T..ont,ignore.case=TRUE),] 
 cn<-strsplit(colnames(dataSel), "_")
 colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
 vennDiagram(dataSel[,c(1:4)]<selThr,main="mapk",counts.col = "red")
 rownames(dataSel)<-paste0(rownames(dataSel),"_mapk")
-dataSelSTAT<-dataSel
-summary(dataSelSTAT)
+dataSelMAPK<-dataSel
+summary(dataSelMAPK)
 ```
 
-```{r stat, echo = FALSE}
+```{r Apoptosis, echo = FALSE}
 dataSel <- data[grep("apoptosis", data$T..ont,ignore.case=TRUE),] 
 cn<-strsplit(colnames(dataSel), "_")
 colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
 vennDiagram(dataSel[,c(1:4)]<selThr,main="apoptosis",counts.col = "red")
 rownames(dataSel)<-paste0(rownames(dataSel),"apoptosis")
-dataSelSTAT<-dataSel
-summary(dataSelSTAT)
-```
-
-```{r mapk, echo = FALSE}
-dataSel <- dataSezWP[grep("mapk", dataSezWP$name,ignore.case=TRUE),] 
-cn<-strsplit(colnames(dataSel), "_")
-colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="MAPK",counts.col = "red")
-rownames(dataSel)<-paste0(rownames(dataSel),"_MAPK")
-dataSelMAPK<-dataSel
-summary(dataSelMAPK)
-```
-
-```{r ampk, echo = FALSE}
-dataSel <- dataSezWP[grep("ampk", dataSezWP$name,ignore.case=TRUE),] 
-cn<-strsplit(colnames(dataSel), "_")
-colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="AMPK",counts.col = "red")
-rownames(dataSel)<-paste0(rownames(dataSel),"_AMPK")
-dataSelAMPK<-dataSel
-summary(dataSelAMPK)
+dataSelApoptosis<-dataSel
+summary(dataSelApoptosis)
 ```
 
 ```{r PI3K/AKT/mTOR, echo = FALSE}
@@ -257,36 +237,83 @@ ggsave(file=paste0(inpD,"clusterPlot.ApoptoMAPKSTATAMPKPI3KAKTmTOR.svg"),plot=sv
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  width=6, height=6)
 ```
 
-```{r apohc-sel-data-cols, echo = FALSE}
+```{r ApoHC-sel-data-cols, echo = FALSE}
 data_selr_s<-dataSelApoptosis
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s))
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
 library(scales)
-data_selr=squish(as.matrix(data_selr_s),c(-3,3))
-data_selr[is.na(data_selr)]=0
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
 summary(data_selr)
-hist(as.matrix(data_selr))
-pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
-data_selr<-cbind.data.frame(data_selr,pathwayN)
-data_selr=subset(data_selr, !duplicated(pathwayN))
-data_selr<-as.matrix(data_selr[,-13])
-summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
 library(pheatmap)
-data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
-summary(data_selr)
-hist(data_selr)
-rn<-sub(";","",rownames(data_selr))
-row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
-cn<-strsplit(colnames(data_selr), "_")
-colnames(data_selr)<-paste(sapply(cn, "[", 1))
-bk1 <- c(seq(-3,-0.01,by=0.01))
-bk2 <- c(seq(0.01,3,by=0.01))
-bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
-my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
-              "gray", "gray",
-              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
-svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
 library(ggplot2)
 ggsave(file=paste0(inpD,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  
 ```
+
+```{r STAThc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelSTAT
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s))
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.STAT.svg"),plot=svgPHC)#,  
+```
+
+```{r MAPKhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMAPK
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s))
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  
+```
+
+```{r PI3KAKTmTORhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSel_PI3KAKTmTOR
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s))
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.PI3KAKTmTOR.svg"),plot=svgPHC)#,  
+```
+
+
 ```{r sel-data-cols, echo = FALSE}
 data_selr_s<-dataSelApoptosis
 library(scales)

@@ -1,6 +1,11 @@
+```{r libloc, echo = FALSE}
+.libPaths( c( .libPaths(), "~/libR") )
+```
+
 ```{r gene2num, echo = FALSE}
 #https://www.gungorbudak.com/blog/2018/08/07/convert-gene-symbols-to-entrez-ids-in-r/
 symbols <- c('AHNAK', 'BOD1L1', 'HSPB1', 'SMARCA4', 'TRIM28')
+library(org.Hs.eg.db)#
 select(org.Hs.eg.db, symbols, "ENTREZID", "SYMBOL")
 inpD <-"C:/Users/animeshs/GD/"
 inpF<-paste0(inpD,"gene")
@@ -94,7 +99,7 @@ simdata2 <- gen.data(ncontrol = 10, nvar = 800, group.diff = 1.5,cormat = mycov)
 simdata3 <- gen.data(ncontrol = 10, nvar = ncol(SpikePos$data), group.diff = 1.5, cormat = cov(SpikePos$data[1:10, ]))
 grp1.HC <- get.biom(X = SpikePos$data[1:20,], Y = SpikePos$class[1:20], fmethod = c("studentt", "pls", "vip"), type = "HC")
 summary(grp1.HC)
-selection(grp1.HC) 
+selection(grp1.HC)
 grp1.HCsel <- HCthresh(coef(grp1.HC)$studentt[[1]], plot = TRUE)
 real.markers <- which(SpikePos$annotation$found.in.standards > 0)
 grp1.troc <- ROC(1/coef(grp1.HC)$studentt[[1]], real.markers)
@@ -171,7 +176,7 @@ library(glmnet)
 
 ```{r paradox, echo = FALSE}
 #https://en.wikipedia.org/wiki/Lindley%27s_paradox
-g1=49581 
+g1=49581
 g2=48870
 g2/g1
 g2-g1
@@ -190,7 +195,7 @@ dbinom(49581, size=49581+48870, prob=0.5)
 ```
 
 ```{r FDR, echo = FALSE}
-#supplementary of the article https://www.tandfonline.com/doi/full/10.1080/00031305.2018.1529622 at  https://www.tandfonline.com/doi/suppl/10.1080/00031305.2018.1529622/suppl_file/utas_a_1529622_sm1508.zip 
+#supplementary of the article https://www.tandfonline.com/doi/full/10.1080/00031305.2018.1529622 at  https://www.tandfonline.com/doi/suppl/10.1080/00031305.2018.1529622/suppl_file/utas_a_1529622_sm1508.zip
 #shiny app here http://fpr-calc.ucl.ac.uk/
 calc.FPR =  function(nsamp,pval,delta,sigma,prior) {
   df=2*(nsamp-1)
@@ -214,7 +219,7 @@ calc.FPR =  function(nsamp,pval,delta,sigma,prior) {
 #http://www.coxdocs.org/doku.php?id=perseus:user:activities:matrixprocessing:wgcna
 #install.packages("BiocManager")
 #install.packages("Rcpp")
-#BiocManager::install("DESeq2") 
+#BiocManager::install("DESeq2")
 #BiocManager::install("limma")
 #BiocManager::install("edgeR")
 #BiocManager::install(c("AnnotationDbi", "impute", "GO.db", "preprocessCore"))
