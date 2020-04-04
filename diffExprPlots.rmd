@@ -158,24 +158,6 @@ dataSel_PI3KAKTmTOR<-dataSel
 summary(dataSel_PI3KAKTmTOR)
 ```
 
-```{r Apoptosis, echo = FALSE}
-dataSel <- dataSezWP[grep("apoptosis", dataSezWP$name,ignore.case=TRUE),] 
-cn<-strsplit(colnames(dataSel), "_")
-colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-vennDiagram(dataSel[,c(15,16,17,18)]<selThr,main="Apoptosis",counts.col = "red")
-#data_apop <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-#data_jak <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-#data_mapk <- data[grep("apoptosis", data$C..Gene.ontology..GO.),] 
-#data_jaks <- data[grep("jak", data$C..KEGG.name),] 
-#data_mapk <- data[grep("mapk signaling pathway", data$C..KEGG.name),]
-#data_selr <- data[grep("MAPK signaling pathway", data$C..KEGG.name),]
-#data_selr<-rbind.data.frame(data_apop,data_apop,data_mapk)
-rownames(dataSel)<-paste0(rownames(dataSel),"_Apopto")
-dataSelApoptosis<-dataSel
-summary(dataSelApoptosis)
-```
-
-
 ```{r sel-data-cols, echo = FALSE}
 data_selr_s<-rbind.data.frame(dataSelApoptosis)#,dataSelMAPK,dataSelSTAT,dataSelAMPK,dataSel_PI3KAKTmTOR)
 #data_selr[data_selr==0]=NA
@@ -239,7 +221,7 @@ ggsave(file=paste0(inpD,"clusterPlot.ApoptoMAPKSTATAMPKPI3KAKTmTOR.svg"),plot=sv
 
 ```{r ApoHC-sel-data-cols, echo = FALSE}
 data_selr_s<-dataSelApoptosis
-row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s))
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
 data_selr<-as.matrix(data_selr_s[,c(7:18)])
 cn<-strsplit(colnames(data_selr), " ")
 colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
@@ -258,7 +240,7 @@ ggsave(file=paste0(inpD,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,
 
 ```{r STAThc-sel-data-cols, echo = FALSE}
 data_selr_s<-dataSelSTAT
-row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s))
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
 data_selr<-as.matrix(data_selr_s[,c(7:18)])
 cn<-strsplit(colnames(data_selr), " ")
 colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
@@ -277,7 +259,7 @@ ggsave(file=paste0(inpD,"clusterPlot.STAT.svg"),plot=svgPHC)#,
 
 ```{r MAPKhc-sel-data-cols, echo = FALSE}
 data_selr_s<-dataSelMAPK
-row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s))
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
 data_selr<-as.matrix(data_selr_s[,c(7:18)])
 cn<-strsplit(colnames(data_selr), " ")
 colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
@@ -296,7 +278,7 @@ ggsave(file=paste0(inpD,"clusterPlot.MAPK.svg"),plot=svgPHC)#,
 
 ```{r PI3KAKTmTORhc-sel-data-cols, echo = FALSE}
 data_selr_s<-dataSel_PI3KAKTmTOR
-row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s))
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
 data_selr<-as.matrix(data_selr_s[,c(7:18)])
 cn<-strsplit(colnames(data_selr), " ")
 colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
