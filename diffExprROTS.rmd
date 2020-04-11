@@ -604,9 +604,32 @@ dim(dataSellog2grpTtest)
 dim(dataSellog2grpTtest)[1]
 dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
 dataSellog2grpTtestNum<-dataSellog2grpTtestNum-dataSellog2grpTtestNum[,1]
+dataSellog2grpTtestNum[dataSellog2grpTtestNum==0]<-NA
 hist(dataSellog2grpTtestNum)
-plot(sort(dataSellog2grpTtestNum[,2],decreasing=T))
-
+dataSellog2grpTtestNum<-dataSellog2grpTtestNum[,-1]
+plot(sort(dataSellog2grpTtestNum[,1],decreasing=T))
+grpBrk<-c(4,7,11,13,17,22)
+dTT<-matrixStats::rowMedians(dataSellog2grpTtestNum[,1:4],na.rm=T)
+dTE<-matrixStats::rowMedians(dataSellog2grpTtestNum[,5:7],na.rm=T)
+dSAE<-matrixStats::rowMedians(dataSellog2grpTtestNum[,8:11],na.rm=T)
+dSAT<-matrixStats::rowMedians(dataSellog2grpTtestNum[,12:13],na.rm=T)
+dAPE<-matrixStats::rowMedians(dataSellog2grpTtestNum[,14:17],na.rm=T)
+dAPT<-matrixStats::rowMedians(dataSellog2grpTtestNum[,18:22],na.rm=T)
+plot(sort(dTT,decreasing=T))
+plot(sort(dTE,decreasing=T))
+dTTsd<-matrixStats::rowSds(dataSellog2grpTtestNum[,1:4],na.rm=T)
+dTEsd<-matrixStats::rowSds(dataSellog2grpTtestNum[,5:7],na.rm=T)
+dSAEsd<-matrixStats::rowSds(dataSellog2grpTtestNum[,8:11],na.rm=T)
+dSATsd<-matrixStats::rowSds(dataSellog2grpTtestNum[,12:13],na.rm=T)
+dAPEsd<-matrixStats::rowSds(dataSellog2grpTtestNum[,14:17],na.rm=T)
+dAPTsd<-matrixStats::rowSds(dataSellog2grpTtestNum[,18:22],na.rm=T)
+plot(sort(dTTsd,decreasing=T))
+plot(sort(dTEsd,decreasing=T))
+plot(dTT)
+arrows(dTT-dTTsd,dTT+dTTsd,dTT-dTTsd,dTT+dTTsd)#,length=0.05, angle=90, code=3)
+plot(dTT-dTTsd,dTT+dTTsd)#,length=0.05, angle=90, code=3)
+plot(dTT,dTTsd)#,length=0.05, angle=90, code=3)
+plot(dTE,dTEsd)#,length=0.05, angle=90, code=3)
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(1:eCol)]))<2){1}
