@@ -5,13 +5,26 @@ inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to An
 library(readxl)
 data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
 
-pn<-gsub("^(.*?);.*", "\\1",data[["T: T: Protein IDs"]])
-pn<-paste(sapply(pn, "[", 1))
 gn<-gsub("^(.*?);.*", "\\1",data[["T: T: Gene names"]])
 gn<-paste(sapply(gn, "[", 1))
+pn<-gsub("^(.*?);.*", "\\1",data[["T: T: Protein IDs"]])
+pn<-paste(sapply(pn, "[", 1))
+pnm<-gsub("^(.*?);.*", "\\1",data[["T: T: Protein names"]])
+pnm<-paste(sapply(pnm, "[", 1))
+sMQ<-gsub("^(.*?);.*", "\\1",data[["N: N: Score"]])
+sMQ<-paste(sapply(sMQ, "[", 1))
+pepMQ<-gsub("^(.*?);.*", "\\1",data[["N: N: Peptides"]])
+pepMQ<-paste(sapply(pepMQ, "[", 1))
 
-row.names(data)<-paste(row.names(data),gn,pn,sep=";")
+row.names(data)<-paste(row.names(data),gn,pn,pnm,sMQ,pepMQ,sep=";")
 summary(data)
+```
+
+```{r write-excel, echo = FALSE}
+#install.packages("writexl")
+library("writexl")
+inpW<-paste0(inpD,"Copy of Log2LFQwithBasicStats - 15.10.18 (cut off 18) Label.write.xlsx")
+write_xlsx(data,inpW)
 ```
 
 ```{r label}
@@ -588,8 +601,10 @@ write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
 dataSellog2grpTtest<-data[,unlist(label[(!is.na(label$`Plasma comparison`)),1])]
 dataSellog2grpTtest
 dataSellog2grpTtest<-as.matrix(dataSellog2grpTtest[,c(20,1,2,22,23,18,19,21,3:8,9:17)])
-dataSellog2grpTtest<-gsub("NaN", 0, dataSellog2grpTtest)
-dataSellog2grpTtest<-gsub("NA", 0, dataSellog2grpTtest)
+dataSellog2grpTtest[,1]<-gsub("NaN", 0, dataSellog2grpTtest[,1])
+dataSellog2grpTtest[,1]<-gsub("NA", 0, dataSellog2grpTtest[,1])
+dataSellog2grpTtest<-gsub("NaN", NA, dataSellog2grpTtest)
+dataSellog2grpTtest<-gsub("NA", NA, dataSellog2grpTtest)
 row.names(dataSellog2grpTtest)<-row.names(data)
 dataSellog2grpTtest
 sCol<-1
@@ -654,15 +669,16 @@ dim(dTTd)[1]
 xxx<-c(-12.8099,-12.8099,NA)
 xxx<-rbind(xxx,xxx)
 t.test(xxx)
-max(xxx),na.rm=T)
+max(xxx,na.rm=T)
+min(xxx,na.rm=T)
 sd(xxx,na.rm=T)
 length(xxx)
 sum(is.na(xxx))
-apply(xxx,1,function(x) if(mean(x)==max(x)){1})
+apply(xxx,1,function(x) if(min(x,na.rm=T)==max(x,na.rm=T)){0})
 max(xxx)
 pValNA = apply(dTTd,1,function(x) 
   if(sum(!is.na(x))<2){1}
-  else if(sd(x,na.rm=T)<=.Machine$double.xmin){1}
+  else if(sd(x,na.rm=T)<=.Machine$double.xmin){0}
   else{t.test(x,na.rm=T)$p.value}
   )
 hist(pValNA)
@@ -671,8 +687,13 @@ hist(pValNAminusLog10)
 library(scales)
 pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
 hist(pValNAminusLog10)
-pValBHna = p.adjust(pValNA,method = "BH")
+pVal<-pValNA
+#pVal[pVal==0]=NA
+pVal[pVal==1]=NA
+#pValBHna = p.adjust(pValNA,method = "BH")
+pValBHna = p.adjust(pVal,method = "BH")
 hist(pValBHna)
+pValBHna[is.na(pValBHna)]<-1
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
 logFCmedian = matrixStats::rowMedians(dTTd,na.rm=T)
@@ -689,8 +710,11 @@ rowName<-paste(sapply(rowName, "[", 3))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 #https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
+dataSellog2grpTtest[,1]
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Plasma=dataSellog2grpTtest[,1],Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dTTd))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"tTestBHvPlasma.xlsx"))
+
 ```
 
 ```{r t-test-TE, echo = FALSE}
@@ -707,15 +731,16 @@ dim(dTTd)[1]
 xxx<-c(-12.8099,-12.8099,NA)
 xxx<-rbind(xxx,xxx)
 t.test(xxx)
-max(xxx),na.rm=T)
+max(xxx,na.rm=T)
+min(xxx,na.rm=T)
 sd(xxx,na.rm=T)
 length(xxx)
 sum(is.na(xxx))
-apply(xxx,1,function(x) if(mean(x)==max(x)){1})
+apply(xxx,1,function(x) if(min(x,na.rm=T)==max(x,na.rm=T)){0})
 max(xxx)
 pValNA = apply(dTTd,1,function(x) 
   if(sum(!is.na(x))<2){1}
-  else if(sd(x,na.rm=T)<=.Machine$double.xmin){1}
+  else if(sd(x,na.rm=T)<=.Machine$double.xmin){0}
   else{t.test(x,na.rm=T)$p.value}
   )
 hist(pValNA)
@@ -724,8 +749,13 @@ hist(pValNAminusLog10)
 library(scales)
 pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
 hist(pValNAminusLog10)
-pValBHna = p.adjust(pValNA,method = "BH")
+pVal<-pValNA
+#pVal[pVal==0]=NA
+pVal[pVal==1]=NA
+#pValBHna = p.adjust(pValNA,method = "BH")
+pValBHna = p.adjust(pVal,method = "BH")
 hist(pValBHna)
+pValBHna[is.na(pValBHna)]<-1
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
 logFCmedian = matrixStats::rowMedians(dTTd,na.rm=T)
@@ -742,167 +772,10 @@ rowName<-paste(sapply(rowName, "[", 3))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 #https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
-```
-
-```{r t-test-SAE, echo = FALSE}
-sCol<-8
-eCol<-11
-dTTd<-dataSellog2grpTtestNum[,sCol:eCol]+.Machine$double.xmin
-row.names(dTTd)<-row.names(data)
-t.test(dTTd[1,],na.rm=T)$p.value
-chkr<-1#nrow(dataSellog2grpTtest)
-dTTd[chkr,]
-sum(!is.na(dTTd[chkr,]))
-dim(dTTd)
-dim(dTTd)[1]
-xxx<-c(-12.8099,-12.8099,NA)
-xxx<-rbind(xxx,xxx)
-t.test(xxx)
-max(xxx),na.rm=T)
-sd(xxx,na.rm=T)
-length(xxx)
-sum(is.na(xxx))
-apply(xxx,1,function(x) if(mean(x)==max(x)){1})
-max(xxx)
-pValNA = apply(dTTd,1,function(x) 
-  if(sum(!is.na(x))<2){1}
-  else if(sd(x,na.rm=T)<=.Machine$double.xmin){1}
-  else{t.test(x,na.rm=T)$p.value}
-  )
-hist(pValNA)
-pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
-hist(pValNAminusLog10)
-library(scales)
-pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
-hist(pValNAminusLog10)
-pValBHna = p.adjust(pValNA,method = "BH")
-hist(pValBHna)
-pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
-hist(pValBHnaMinusLog10)
-logFCmedian = matrixStats::rowMedians(dTTd,na.rm=T)
-hist(logFCmedian)
-logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
-hist(logFCmedianFC)
-logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
-hist(logFCmedianFC)
-log2FCmedianFC=log2(logFCmedianFC)
-hist(log2FCmedianFC)
-rownames(dTTd)
-rowName<-strsplit(rownames(dTTd), ";")
-rowName<-paste(sapply(rowName, "[", 3))
-rowName<-strsplit(rowName, "-")
-rowName<-paste(sapply(rowName, "[", 1))
-#https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
-```
-
-```{r t-test-APE, echo = FALSE}
-sCol<-14
-eCol<-17
-dTTd<-dataSellog2grpTtestNum[,sCol:eCol]+.Machine$double.xmin
-row.names(dTTd)<-row.names(data)
-t.test(dTTd[1,],na.rm=T)$p.value
-chkr<-1#nrow(dataSellog2grpTtest)
-dTTd[chkr,]
-sum(!is.na(dTTd[chkr,]))
-dim(dTTd)
-dim(dTTd)[1]
-xxx<-c(-12.8099,-12.8099,NA)
-xxx<-rbind(xxx,xxx)
-t.test(xxx)
-max(xxx),na.rm=T)
-sd(xxx,na.rm=T)
-length(xxx)
-sum(is.na(xxx))
-apply(xxx,1,function(x) if(mean(x)==max(x)){1})
-max(xxx)
-pValNA = apply(dTTd,1,function(x) 
-  if(sum(!is.na(x))<2){1}
-  else if(sd(x,na.rm=T)<=.Machine$double.xmin){1}
-  else{t.test(x,na.rm=T)$p.value}
-  )
-hist(pValNA)
-pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
-hist(pValNAminusLog10)
-library(scales)
-pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
-hist(pValNAminusLog10)
-pValBHna = p.adjust(pValNA,method = "BH")
-hist(pValBHna)
-pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
-hist(pValBHnaMinusLog10)
-logFCmedian = matrixStats::rowMedians(dTTd,na.rm=T)
-hist(logFCmedian)
-logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
-hist(logFCmedianFC)
-logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
-hist(logFCmedianFC)
-log2FCmedianFC=log2(logFCmedianFC)
-hist(log2FCmedianFC)
-rownames(dTTd)
-rowName<-strsplit(rownames(dTTd), ";")
-rowName<-paste(sapply(rowName, "[", 3))
-rowName<-strsplit(rowName, "-")
-rowName<-paste(sapply(rowName, "[", 1))
-#https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
-```
-
-```{r t-test-APT, echo = FALSE}
-sCol<-18
-eCol<-22
-dTTd<-dataSellog2grpTtestNum[,sCol:eCol]+.Machine$double.xmin
-row.names(dTTd)<-row.names(data)
-t.test(dTTd[1,],na.rm=T)$p.value
-chkr<-1#nrow(dataSellog2grpTtest)
-dTTd[chkr,]
-sum(!is.na(dTTd[chkr,]))
-dim(dTTd)
-dim(dTTd)[1]
-xxx<-c(-12.8099,-12.8099,NA)
-xxx<-rbind(xxx,xxx)
-t.test(xxx)
-max(xxx),na.rm=T)
-sd(xxx,na.rm=T)
-length(xxx)
-sum(is.na(xxx))
-apply(xxx,1,function(x) if(mean(x)==max(x)){1})
-max(xxx)
-pValNA = apply(dTTd,1,function(x) 
-  if(sum(!is.na(x))<2){1}
-  else if(sd(x,na.rm=T)<=.Machine$double.xmin){1}
-  else{t.test(x,na.rm=T)$p.value}
-  )
-hist(pValNA)
-pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
-hist(pValNAminusLog10)
-library(scales)
-pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
-hist(pValNAminusLog10)
-pValBHna = p.adjust(pValNA,method = "BH")
-hist(pValBHna)
-pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
-hist(pValBHnaMinusLog10)
-logFCmedian = matrixStats::rowMedians(dTTd,na.rm=T)
-hist(logFCmedian)
-logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
-hist(logFCmedianFC)
-logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
-hist(logFCmedianFC)
-log2FCmedianFC=log2(logFCmedianFC)
-hist(log2FCmedianFC)
-rownames(dTTd)
-rowName<-strsplit(rownames(dTTd), ";")
-rowName<-paste(sapply(rowName, "[", 3))
-rowName<-strsplit(rowName, "-")
-rowName<-paste(sapply(rowName, "[", 1))
-#https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
+dataSellog2grpTtest[,1]
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Plasma=dataSellog2grpTtest[,1],Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dTTd))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"tTestBHvPlasma.xlsx"))
 ```
 
 ```{r t-test-SAT, echo = FALSE}
@@ -919,15 +792,16 @@ dim(dTTd)[1]
 xxx<-c(-12.8099,-12.8099,NA)
 xxx<-rbind(xxx,xxx)
 t.test(xxx)
-max(xxx),na.rm=T)
+max(xxx,na.rm=T)
+min(xxx,na.rm=T)
 sd(xxx,na.rm=T)
 length(xxx)
 sum(is.na(xxx))
-apply(xxx,1,function(x) if(mean(x)==max(x)){1})
+apply(xxx,1,function(x) if(min(x,na.rm=T)==max(x,na.rm=T)){0})
 max(xxx)
 pValNA = apply(dTTd,1,function(x) 
   if(sum(!is.na(x))<2){1}
-  else if(sd(x,na.rm=T)<=.Machine$double.xmin){1}
+  else if(sd(x,na.rm=T)<=.Machine$double.xmin){0}
   else{t.test(x,na.rm=T)$p.value}
   )
 hist(pValNA)
@@ -936,8 +810,13 @@ hist(pValNAminusLog10)
 library(scales)
 pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
 hist(pValNAminusLog10)
-pValBHna = p.adjust(pValNA,method = "BH")
+pVal<-pValNA
+#pVal[pVal==0]=NA
+pVal[pVal==1]=NA
+#pValBHna = p.adjust(pValNA,method = "BH")
+pValBHna = p.adjust(pVal,method = "BH")
 hist(pValBHna)
+pValBHna[is.na(pValBHna)]<-1
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
 logFCmedian = matrixStats::rowMedians(dTTd,na.rm=T)
@@ -954,8 +833,194 @@ rowName<-paste(sapply(rowName, "[", 3))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 #https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
+dataSellog2grpTtest[,1]
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Plasma=dataSellog2grpTtest[,1],Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dTTd))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"tTestBHvPlasma.xlsx"))
+```
+
+```{r t-test-SAE, echo = FALSE}
+sCol<-8
+eCol<-11
+dTTd<-dataSellog2grpTtestNum[,sCol:eCol]+.Machine$double.xmin
+row.names(dTTd)<-row.names(data)
+t.test(dTTd[1,],na.rm=T)$p.value
+chkr<-1#nrow(dataSellog2grpTtest)
+dTTd[chkr,]
+sum(!is.na(dTTd[chkr,]))
+dim(dTTd)
+dim(dTTd)[1]
+xxx<-c(-12.8099,-12.8099,NA)
+xxx<-rbind(xxx,xxx)
+t.test(xxx)
+max(xxx,na.rm=T)
+min(xxx,na.rm=T)
+sd(xxx,na.rm=T)
+length(xxx)
+sum(is.na(xxx))
+apply(xxx,1,function(x) if(min(x,na.rm=T)==max(x,na.rm=T)){0})
+max(xxx)
+pValNA = apply(dTTd,1,function(x) 
+  if(sum(!is.na(x))<2){1}
+  else if(sd(x,na.rm=T)<=.Machine$double.xmin){0}
+  else{t.test(x,na.rm=T)$p.value}
+  )
+hist(pValNA)
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pVal<-pValNA
+#pVal[pVal==0]=NA
+pVal[pVal==1]=NA
+#pValBHna = p.adjust(pValNA,method = "BH")
+pValBHna = p.adjust(pVal,method = "BH")
+hist(pValBHna)
+pValBHna[is.na(pValBHna)]<-1
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+logFCmedian = matrixStats::rowMedians(dTTd,na.rm=T)
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hist(log2FCmedianFC)
+rownames(dTTd)
+rowName<-strsplit(rownames(dTTd), ";")
+rowName<-paste(sapply(rowName, "[", 3))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+#https://stackoverflow.com/a/44400007/1137129
+dataSellog2grpTtest[,1]
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Plasma=dataSellog2grpTtest[,1],Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dTTd))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"tTestBHvPlasma.xlsx"))
+
+```
+
+```{r t-test-APE, echo = FALSE}
+sCol<-14
+eCol<-17
+dTTd<-dataSellog2grpTtestNum[,sCol:eCol]+.Machine$double.xmin
+row.names(dTTd)<-row.names(data)
+t.test(dTTd[1,],na.rm=T)$p.value
+chkr<-1#nrow(dataSellog2grpTtest)
+dTTd[chkr,]
+sum(!is.na(dTTd[chkr,]))
+dim(dTTd)
+dim(dTTd)[1]
+xxx<-c(-12.8099,-12.8099,NA)
+xxx<-rbind(xxx,xxx)
+t.test(xxx)
+max(xxx,na.rm=T)
+min(xxx,na.rm=T)
+sd(xxx,na.rm=T)
+length(xxx)
+sum(is.na(xxx))
+apply(xxx,1,function(x) if(min(x,na.rm=T)==max(x,na.rm=T)){0})
+max(xxx)
+pValNA = apply(dTTd,1,function(x) 
+  if(sum(!is.na(x))<2){1}
+  else if(sd(x,na.rm=T)<=.Machine$double.xmin){0}
+  else{t.test(x,na.rm=T)$p.value}
+  )
+hist(pValNA)
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pVal<-pValNA
+#pVal[pVal==0]=NA
+pVal[pVal==1]=NA
+#pValBHna = p.adjust(pValNA,method = "BH")
+pValBHna = p.adjust(pVal,method = "BH")
+hist(pValBHna)
+pValBHna[is.na(pValBHna)]<-1
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+logFCmedian = matrixStats::rowMedians(dTTd,na.rm=T)
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hist(log2FCmedianFC)
+rownames(dTTd)
+rowName<-strsplit(rownames(dTTd), ";")
+rowName<-paste(sapply(rowName, "[", 3))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+#https://stackoverflow.com/a/44400007/1137129
+dataSellog2grpTtest[,1]
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Plasma=dataSellog2grpTtest[,1],Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dTTd))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"tTestBHvPlasma.xlsx"))
+```
+
+```{r t-test-APT, echo = FALSE}
+sCol<-18
+eCol<-22
+dTTd<-dataSellog2grpTtestNum[,sCol:eCol]+.Machine$double.xmin
+row.names(dTTd)<-row.names(data)
+t.test(dTTd[1,],na.rm=T)$p.value
+chkr<-1#nrow(dataSellog2grpTtest)
+dTTd[chkr,]
+sum(!is.na(dTTd[chkr,]))
+dim(dTTd)
+dim(dTTd)[1]
+xxx<-c(-12.8099,-12.8099,NA)
+xxx<-rbind(xxx,xxx)
+t.test(xxx)
+max(xxx,na.rm=T)
+min(xxx,na.rm=T)
+sd(xxx,na.rm=T)
+length(xxx)
+sum(is.na(xxx))
+apply(xxx,1,function(x) if(min(x,na.rm=T)==max(x,na.rm=T)){0})
+max(xxx)
+pValNA = apply(dTTd,1,function(x) 
+  if(sum(!is.na(x))<2){1}
+  else if(sd(x,na.rm=T)<=.Machine$double.xmin){0}
+  else{t.test(x,na.rm=T)$p.value}
+  )
+hist(pValNA)
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pVal<-pValNA
+#pVal[pVal==0]=NA
+pVal[pVal==1]=NA
+#pValBHna = p.adjust(pValNA,method = "BH")
+pValBHna = p.adjust(pVal,method = "BH")
+hist(pValBHna)
+pValBHna[is.na(pValBHna)]<-1
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+logFCmedian = matrixStats::rowMedians(dTTd,na.rm=T)
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hist(log2FCmedianFC)
+rownames(dTTd)
+rowName<-strsplit(rownames(dTTd), ";")
+rowName<-paste(sapply(rowName, "[", 3))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+#https://stackoverflow.com/a/44400007/1137129
+dataSellog2grpTtest[,1]
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dTTd,Plasma=dataSellog2grpTtest[,1],Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dTTd))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"tTestBHvPlasma.xlsx"))
 ```
 
 ```{r w-test-AT/E, echo = FALSE}
