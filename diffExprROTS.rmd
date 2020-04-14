@@ -205,17 +205,18 @@ rowName<-paste(sapply(rowName, "[", 1))
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian)
 write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"tTestBHgrp.csv"))
 ```
+
 ```{r w-test-AT/E, echo = FALSE}
 #lc1<-data[,label[label[["Comparisons"]]=="1",1]]
 #dplyr::select(data,unlist(label[(label$Comparisons=="1")&(!is.na(label$Comparisons)),1]))
 dataSellog2grpTtest<-data[,unlist(label[(label$Comparisons=="1")&(!is.na(label$Comparisons)),1])]
-dataSellog2grpTtest
+#dataSellog2grpTtest
 dataSellog2grpTtest<-as.matrix(dataSellog2grpTtest[,c(1,2,6,7,3,4,5)])
 dataSellog2grpTtest<-gsub("NaN", NA, dataSellog2grpTtest)
 dataSellog2grpTtest<-gsub("NA", NA, dataSellog2grpTtest)
 row.names(dataSellog2grpTtest)<-row.names(data)
 #dataSellog2grpTtest<-dataSellog2grpTtest[rowSums(is.na(dataSellog2grpTtest)) != ncol(dataSellog2grpTtest), ]
-dataSellog2grpTtest
+#dataSellog2grpTtest
 sCol<-1
 eCol<-7
 mCol<-4
@@ -226,13 +227,15 @@ dataSellog2grpTtest[chkr,c((mCol+1):eCol)]
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
 dim(dataSellog2grpTtest)
 dim(dataSellog2grpTtest)[1]
-apply(dataSellog2grpTtest[chkr,], 1, function(x) if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1} #if(sum(!is.na(x[c(1:eCol)]))>2){1} #else{t.test(as.numeric(x[c(1:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
-      )
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(1:eCol)]))<2){1}
     else if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1){1}
+    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){1}
     else if(sum(!is.na(x[c(1:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
     else if(sum(!is.na(x[c(1:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
@@ -260,14 +263,15 @@ logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
-rownames(dataSellog2grpTtest)
+#rownames(dataSellog2grpTtest)
 rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
 rowName<-paste(sapply(rowName, "[", 3))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 #https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.xlsx"))
 ```
 
 ```{r w-test-SAE/T, echo = FALSE}
@@ -291,13 +295,15 @@ dataSellog2grpTtest[chkr,c((mCol+1):eCol)]
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
 dim(dataSellog2grpTtest)
 dim(dataSellog2grpTtest)[1]
-apply(dataSellog2grpTtest[chkr,], 1, function(x) if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1} #if(sum(!is.na(x[c(1:eCol)]))>2){1} #else{t.test(as.numeric(x[c(1:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
-      )
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(1:eCol)]))<2){1}
     else if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1){1}
+    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){1}
     else if(sum(!is.na(x[c(1:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
     else if(sum(!is.na(x[c(1:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
@@ -325,14 +331,15 @@ logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
-rownames(dataSellog2grpTtest)
+#rownames(dataSellog2grpTtest)
 rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
 rowName<-paste(sapply(rowName, "[", 3))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 #https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.xlsx"))
 ```
 
 ```{r w-test-APE/T, echo = FALSE}
@@ -356,13 +363,15 @@ dataSellog2grpTtest[chkr,c((mCol+1):eCol)]
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
 dim(dataSellog2grpTtest)
 dim(dataSellog2grpTtest)[1]
-apply(dataSellog2grpTtest[chkr,], 1, function(x) if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1} #if(sum(!is.na(x[c(1:eCol)]))>2){1} #else{t.test(as.numeric(x[c(1:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
-      )
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(1:eCol)]))<2){1}
     else if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1){1}
+    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){1}
     else if(sum(!is.na(x[c(1:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
     else if(sum(!is.na(x[c(1:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
@@ -390,14 +399,15 @@ logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
-rownames(dataSellog2grpTtest)
+#rownames(dataSellog2grpTtest)
 rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
 rowName<-paste(sapply(rowName, "[", 3))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 #https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.xlsx"))
 ```
 
 ```{r w-test-T/SA, echo = FALSE}
@@ -421,13 +431,15 @@ dataSellog2grpTtest[chkr,c((mCol+1):eCol)]
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
 dim(dataSellog2grpTtest)
 dim(dataSellog2grpTtest)[1]
-apply(dataSellog2grpTtest[chkr,], 1, function(x) if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1} #if(sum(!is.na(x[c(1:eCol)]))>2){1} #else{t.test(as.numeric(x[c(1:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
-      )
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(1:eCol)]))<2){1}
     else if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1){1}
+    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){1}
     else if(sum(!is.na(x[c(1:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
     else if(sum(!is.na(x[c(1:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
@@ -455,14 +467,15 @@ logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
-rownames(dataSellog2grpTtest)
+#rownames(dataSellog2grpTtest)
 rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
 rowName<-paste(sapply(rowName, "[", 3))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 #https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.xlsx"))
 ```
 ```{r w-test-SA/AP, echo = FALSE}
 #lc1<-data[,label[label[["Comparisons"]]=="1",1]]
@@ -485,13 +498,15 @@ dataSellog2grpTtest[chkr,c((mCol+1):eCol)]
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
 dim(dataSellog2grpTtest)
 dim(dataSellog2grpTtest)[1]
-apply(dataSellog2grpTtest[chkr,], 1, function(x) if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1} #if(sum(!is.na(x[c(1:eCol)]))>2){1} #else{t.test(as.numeric(x[c(1:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
-      )
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(1:eCol)]))<2){1}
     else if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1){1}
+    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){1}
     else if(sum(!is.na(x[c(1:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
     else if(sum(!is.na(x[c(1:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
@@ -519,14 +534,15 @@ logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
-rownames(dataSellog2grpTtest)
+#rownames(dataSellog2grpTtest)
 rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
 rowName<-paste(sapply(rowName, "[", 3))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 #https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.xlsx"))
 ```
 
 ```{r w-test-T/AP, echo = FALSE}
@@ -550,13 +566,15 @@ dataSellog2grpTtest[chkr,c((mCol+1):eCol)]
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
 dim(dataSellog2grpTtest)
 dim(dataSellog2grpTtest)[1]
-apply(dataSellog2grpTtest[chkr,], 1, function(x) if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1} #if(sum(!is.na(x[c(1:eCol)]))>2){1} #else{t.test(as.numeric(x[c(1:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
-      )
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(1:eCol)]))<2){1}
     else if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1){1}
+    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
     else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){1}
     else if(sum(!is.na(x[c(1:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
     else if(sum(!is.na(x[c(1:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
@@ -584,14 +602,15 @@ logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
-rownames(dataSellog2grpTtest)
+#rownames(dataSellog2grpTtest)
 rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
 rowName<-paste(sapply(rowName, "[", 3))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 #https://stackoverflow.com/a/44400007/1137129
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian)
-write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
+write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.xlsx"))
 ```
 
 ```{r T/SA/AP-PC, echo = FALSE}
@@ -667,10 +686,12 @@ sum(!is.na(dTTd[chkr,]))
 dim(dTTd)
 dim(dTTd)[1]
 xxx<-c(-12.8099,-12.8099,NA)
+which(!is.na(xxx))
 xxx<-rbind(xxx,xxx)
 t.test(xxx)
-max(xxx,na.rm=T)
-min(xxx,na.rm=T)
+quantile(xxx,na.rm=T)
+max(as.numeric(xxx[1]),na.rm=T)
+min(xxx)
 sd(xxx,na.rm=T)
 length(xxx)
 sum(is.na(xxx))
