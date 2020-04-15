@@ -1,5 +1,6 @@
 ```{r libloc, echo = FALSE}
 .libPaths( c( .libPaths(), "~/libR") )
+grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 ```
 
 ```{r gene2num, echo = FALSE}
