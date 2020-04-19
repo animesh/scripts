@@ -1,5 +1,5 @@
 ```{r data, echo = FALSE}
-inpD <-"C:/Users/animeshs/GD/"
+inpD <-"F:/GD/"
 inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
 data <- read.delim(inpF,sep="\t",header = T)
 #data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
@@ -293,6 +293,91 @@ svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRU
 #install.packages("svglite")
 library(ggplot2)
 ggsave(file=paste0(inpD,"clusterPlot.PI3KAKTmTOR.svg"),plot=svgPHC)#,  
+```
+
+
+```{r Apo-uniqe-data-cols, echo = FALSE}
+data_selr_s<-dataSelApoptosis
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(1:4,7:18)])
+data_selr[data_selr==0]=NA
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+data_selr1<-data_selr[data_selr[,1]<selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr1)
+write.csv(data_selr1,file=paste0(inpD,colnames(data_selr)[1],"Unique.Apoptosis.csv"))
+data_selr2<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]<selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr2)
+write.csv(data_selr2,file=paste0(inpD,colnames(data_selr)[2],"Unique.Apoptosis.csv"))
+data_selr3<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]<selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr3)
+write.csv(data_selr3,file=paste0(inpD,colnames(data_selr)[3],"Unique.Apoptosis.csv"))
+data_selr4<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]<selThr,]
+summary(data_selr4)
+write.csv(data_selr4,file=paste0(inpD,colnames(data_selr)[4],"Unique.Apoptosis.csv"))
+```
+
+```{r STAT-unique-data-cols, echo = FALSE}
+data_selr_s<-dataSelSTAT
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(1:4,7:18)])
+data_selr[data_selr==0]=NA
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+data_selr1<-data_selr[data_selr[,1]<selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr1)
+write.csv(data_selr1,file=paste0(inpD,colnames(data_selr)[1],"Unique.STAT.csv"))
+data_selr2<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]<selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr2)
+write.csv(data_selr2,file=paste0(inpD,colnames(data_selr)[2],"Unique.STAT.csv"))
+data_selr3<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]<selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr3)
+write.csv(data_selr3,file=paste0(inpD,colnames(data_selr)[3],"Unique.STAT.csv"))
+data_selr4<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]<selThr,]
+summary(data_selr4)
+write.csv(data_selr4,file=paste0(inpD,colnames(data_selr)[4],"Unique.STAT.csv"))
+```
+
+```{r MAPK-unique-data-cols, echo = FALSE}
+data_selr_s<-dataSelMAPK
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(1:4,7:18)])
+data_selr[data_selr==0]=NA
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+data_selr1<-data_selr[data_selr[,1]<selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr1)
+write.csv(data_selr1,file=paste0(inpD,colnames(data_selr)[1],"Unique.MAPK.csv"))
+data_selr2<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]<selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr2)
+write.csv(data_selr2,file=paste0(inpD,colnames(data_selr)[2],"Unique.MAPK.csv"))
+data_selr3<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]<selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr3)
+write.csv(data_selr3,file=paste0(inpD,colnames(data_selr)[3],"Unique.MAPK.csv"))
+data_selr4<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]<selThr,]
+summary(data_selr4)
+write.csv(data_selr4,file=paste0(inpD,colnames(data_selr)[4],"Unique.MAPK.csv"))
+```
+
+```{r PI3KAKTmTOR-unique-data-cols, echo = FALSE}
+data_selr_s<-dataSel_PI3KAKTmTOR
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(1:4,7:18)])
+data_selr[data_selr==0]=NA
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+data_selr1<-data_selr[data_selr[,1]<selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr1)
+write.csv(data_selr1,file=paste0(inpD,colnames(data_selr)[1],"Unique.PI3KAKTmTOR.csv"))
+data_selr2<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]<selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr2)
+write.csv(data_selr2,file=paste0(inpD,colnames(data_selr)[2],"Unique.PI3KAKTmTOR.csv"))
+data_selr3<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]<selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr3)
+write.csv(data_selr3,file=paste0(inpD,colnames(data_selr)[3],"Unique.PI3KAKTmTOR.csv"))
+data_selr4<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]<selThr,]
+summary(data_selr4)
+write.csv(data_selr4,file=paste0(inpD,colnames(data_selr)[4],"Unique.PI3KAKTmTOR.csv"))
 ```
 
 
