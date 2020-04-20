@@ -51,17 +51,99 @@ library("FUNNEL")
 FUNNEL::FUNNEL.GSEA(hda)
 ```
 
+```{r data}
+inpD<-"F:/GD/"
+inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
+#install.packages("readxl")
+data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
+#dataS<-as.matrix(data[,1:4],rownames=T)
+dataS<-as.matrix(data[,c(1:4,7:18)],rownames=T)
+dataS[dataS==0]=NA
+rn<-sub(";","",unlist(data[37]))
+rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+rn<-strsplit(rn, "-")
+row.names(dataS)<-sapply(rn, "[", 1)
+cn<-strsplit(colnames(dataS), "_")
+colnames(dataS)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+summary(dataS)
+hist(dataS)
+```
+
 ```{r data-AT/E}
 inpD<-"F:/GD/"
-inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsxLFQ.intensity.17wTestBHgrp.xlsx")
+inpF<-paste0(inpD,"6 APIM4Unique.PI3KAKTmTOR.csv")
 #install.packages("readxl")
-library(readxl)
-data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
-dATE<-as.matrix(data$Log2MedianChange,rownames=T)
+data<-read.csv(inpF,header=T,sep=",",row.names = 1)
+dATE<-as.matrix(1/data[,1:4],rownames=T)
 rownames(dATE)<-rownames(data)
-colnames(dATE)<-"AT/E"
 summary(dATE)
 ```
+
+```{r pathview-PI3KAKT}
+#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#BiocManager::install("pathview")
+library(pathview)
+#https://www.kegg.jp/kegg-bin/show_pathway?hsa04151
+pcode<-"04151"
+pspecies<-"hsa"
+sfx<-"fc"
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
+hda=as.matrix(dataS)
+hist(hda)
+apim2<-apply(hda,1,function(x) if(x[1]<selThr){median(x[c(5:7)],na.rm=T)} else{NA})
+apim3<-apply(hda,1,function(x) if(x[2]<selThr){median(x[c(8:10)],na.rm=T)} else{NA})
+apim4<-apply(hda,1,function(x) if(x[3]<selThr){median(x[c(11:13)],na.rm=T)} else{NA})
+apim6<-apply(hda,1,function(x) if(x[4]<selThr){median(x[c(14:16)],na.rm=T)} else{NA})
+hda=cbind(apim2,apim3,apim4,apim6)
+rownames(hda)<-rownames(dataS)
+write.csv(cbind(hda,dataS),paste0(inpF,"hda.csv"))
+#colnames(hda)<-idtype
+#uniprot <- c("A0A183", "A0A5E8", "A0AUZ9","A0AV02")#,"123")
+#gmap <- revmap(org.Hs.egUNIPROT)[uniprot]
+#mappedLkeys(gmap)
+#hda<-cbind(hda,-hda)
+#heatmap(hda)
+#hda[hda==1]<--1
+#hda[hda==0.25]<1
+#hda[hda==0.5]<-0.5
+#hda[hda==0.75]<-0
+hist(hda)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+```
+
+```{r pathview-apoptosis}
+#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#BiocManager::install("pathview")
+library(pathview)
+pcode<-"04210"
+pspecies<-"hsa"
+sfx<-"fc"
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+```
+
+```{r pathview-mapk}
+#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#BiocManager::install("pathview")
+library(pathview)
+pcode<-"04010"
+pspecies<-"hsa"
+sfx<-"fc"
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+```
+
+```{r pathview-jakstat}
+#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#BiocManager::install("pathview")
+library(pathview)
+pcode<-"04630"
+pspecies<-"hsa"
+sfx<-"fc"
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+```
+
 
 ```{r data-SAE/T}
 inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsxLFQ.intensity.16wTestBHgrp.xlsx")
@@ -73,6 +155,33 @@ rownames(dSAET)<-rownames(data)
 colnames(dSAET)<-"SAE/T"
 summary(dSAET)
 ```
+```{r pathview}
+#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#BiocManager::install("pathview")
+library(pathview)
+#https://www.kegg.jp/kegg-bin/show_pathway?hsa04610
+pcode<-"04151"
+pspecies<-"hsa"
+sfx<-"fc"
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
+hda=as.matrix(dATE)
+#colnames(hda)<-idtype
+rowName<-strsplit(rownames(data), "_")
+rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+rownames(hda)<-rowName
+#uniprot <- c("A0A183", "A0A5E8", "A0AUZ9","A0AV02")#,"123")
+#gmap <- revmap(org.Hs.egUNIPROT)[uniprot]
+#mappedLkeys(gmap)
+#hda<-cbind(hda,-hda)
+heatmap(hda)
+hda[hda==0]<-NA
+hist(hda)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+```
+
+
 
 ```{r data-APE/T}
 inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsxLFQ.intensity.19wTestBHgrp.xlsx")
@@ -125,32 +234,6 @@ pdf(file="plot.pdf")
 plot(hda)
 dev.off()
 time()
-```
-
-```{r pathview}
-#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
-#BiocManager::install("pathview")
-library(pathview)
-#https://www.kegg.jp/kegg-bin/show_pathway?hsa04610
-pcode<-"04610"
-pspecies<-"hsa"
-sfx<-"fc"
-idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
-hda=as.matrix(data$Log2MedianChange,rownames=T)
-colnames(hda)<-idtype
-rowName<-strsplit(data$RowGeneUniProtScorePeps, ";")
-rowName<-paste(sapply(rowName, "[", 2))
-rowName<-strsplit(rowName, "-")
-rowName<-paste(sapply(rowName, "[", 1))
-rownames(hda)<-rowName
-#uniprot <- c("A0A183", "A0A5E8", "A0AUZ9","A0AV02")#,"123")
-#gmap <- revmap(org.Hs.egUNIPROT)[uniprot]
-#mappedLkeys(gmap)
-hda<-cbind(hda,-hda)
-heatmap(hda)
-hda[hda==0]<-NA
-hist(hda)
-pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
 ```
 
 ```{r pathview-comb}
