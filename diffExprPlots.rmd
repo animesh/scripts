@@ -10,6 +10,13 @@ data = data[!data$T..C..Reverse=="+",]
 summary(data)
 ```
 
+```{r write-excel, echo = FALSE}
+#install.packages("writexl")
+library("writexl")
+inpW<-paste0(inpF,"write.xlsx")
+write_xlsx(data,inpW)
+```
+
 ```{r venn}
 selThr<-0.3
 dataV<-data[,c(13,14,15,16)]
@@ -37,17 +44,28 @@ colnames(dataV)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
 vennDiagram(dataV<selThr)
 ```
 
+```{r sel-WSRT-onevar}
+dataS<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT<selThr) & (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) & (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) & (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+hist(rowSums(as.matrix(data[,c(1:4)])))
+vennDiagram(dataS[,c(1:4)]<selThr)
+#write.csv(cbind(dataS),paste0(inpF,"sel-WSRT-onevar.csv"))
+write_xlsx(dataS,paste0(inpF,"sel-WSRT-onevar.xlsx"))
+```
+
+```{r sel-WSRT-onevar-x1}
+dataS<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT>selThr) & (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) & (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) & (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+hist(rowSums(as.matrix(data[,c(1:4)])))
+vennDiagram(dataS[,c(1:4)]<selThr)
+#write.csv(cbind(dataS),paste0(inpF,"sel-WSRT-onevar-x1.csv"))
+write_xlsx(dataS,paste0(inpF,"sel-WSRT-onevar-x1.xlsx"))
+```
+
 ```{r sel-WSRT}
 dataS<-data[(data$ONO_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$ONO_.WSRT<selThr & data$B_.WSRT<selThr) | (data$B_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$ONO_.WSRT<selThr & data$NB_.WSRT<selThr) | (data$NB_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$NB_.WSRT<selThr & data$B_.WSRT<selThr) ,]
 hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
 vennDiagram(dataS[,c(1,2,3,6)]<selThr)
 ```
 
-```{r sel-WSRT-onevar}
-data<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT<selThr) | (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) | (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) | (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
-hist(rowSums(as.matrix(data[,c(1:4)])))
-vennDiagram(data[,c(1:4)]<selThr)
-```
 
 ```{r map-ID}
 #install.packages("Rcpp")

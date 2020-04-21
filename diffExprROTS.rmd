@@ -76,7 +76,7 @@ summary(dataNormImpCom)
 ```
 
 ```{r write-output, echo = FALSE}
-write.csv(dataNormImpCom,file=paste0(inpD,"log2dataImp.csv"))
+#write.csv(dataNormImpCom,file=paste0(inpD,"log2dataImp.csv"))
 #write.csv(factors,file=paste0(inpD,"dataNormImpComFactor.csv"))
 dataNormImpCom <- read.csv(paste0(inpD,"log2dataImp.csv"),row.names=1,header = T)
 #factors<-read.csv(paste0(inpD,"dataNormImpComFactor.csv"))
@@ -827,6 +827,7 @@ pValNA = apply(dTTd,1,function(x)
   if(sum(is.na(x))==length(x)){1}
   else if(sum(!is.na(x[-length(x)]))<1&x[length(x)]>0){0}
   else if(sum(!is.na(x[-length(x)]))<1&x[length(x)]<=0){1}
+  else if(sum(!is.na(x[-length(x)]))>1&x[length(x)]==0){0}
   else if(sum(!is.na(x[-length(x)]))==1){1}
   else if(sum(!is.na(x[-length(x)]))>1&sd(x[-length(x)],na.rm=T)<(.Machine$double.xmin)){1}
   else{t.test(x[-length(x)],na.rm=T)$p.value}
@@ -847,6 +848,7 @@ pValBHna[is.na(pValBHna)]<-1
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
 logFCmedian = matrixStats::rowMedians(dTTd[,-ncol(dTTd)],na.rm=T)
+logFCmedian[is.na(logFCmedian)]<-dTTd[is.na(logFCmedian),ncol(dTTd)]
 hist(logFCmedian)
 logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
 hist(logFCmedianFC)
