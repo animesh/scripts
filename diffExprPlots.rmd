@@ -1,20 +1,33 @@
 ```{r data, echo = FALSE}
 inpD <-"F:/GD/"
-inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
-data <- read.delim(inpF,sep="\t",header = T)
+#inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
 #data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
 #rownames(data)<-paste(data$T..Uniprot,data$T..Line,data$T..Gene.names,sep = "_")
 #clean
-data = data[!data$T..C..Reverse=="+",]
+#data = data[!data$T..C..Reverse=="+",]
+data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
 summary(data)
+dim(data)
+```
+
+```{r select-LFQ, echo = FALSE}
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+protNum<-1:ncol(LFQ)
+colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
 ```
 
 ```{r write-excel, echo = FALSE}
 #install.packages("writexl")
 library("writexl")
 inpW<-paste0(inpF,"write.xlsx")
-write_xlsx(data,inpW)
+write_xlsx(as.data.frame(log2LFQ),inpW)
 ```
 
 ```{r venn}
@@ -60,12 +73,58 @@ vennDiagram(dataS[,c(1:4)]<selThr)
 write_xlsx(dataS,paste0(inpF,"sel-WSRT-onevar-x1.xlsx"))
 ```
 
-```{r sel-WSRT}
-dataS<-data[(data$ONO_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$ONO_.WSRT<selThr & data$B_.WSRT<selThr) | (data$B_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$ONO_.WSRT<selThr & data$NB_.WSRT<selThr) | (data$NB_.WSRT<selThr & data$CCAR_.WSRT<selThr) | (data$NB_.WSRT<selThr & data$B_.WSRT<selThr) ,]
-hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
-vennDiagram(dataS[,c(1,2,3,6)]<selThr)
+```{r sel-WSRT-onevar-x1-control}
+dataS<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT>selThr) & (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) & (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) & (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+hda<-as.matrix(dataS[,c(1:4,7:18)],rownames=T)
+hda[hda==0]=NA
+rn<-sub(";","",unlist(dataS[37]))
+rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+rn<-strsplit(rn, "-")
+cn<-strsplit(colnames(hda), "_")
+hist(hda)
+#apim2<-apply(hda,1,function(x) if(x[1]<selThr){median(x[c(5:7)],na.rm=T)} else{NA})
+apim3<-apply(hda,1,function(x) if(x[2]<selThr){median(x[c(8:10)],na.rm=T)} else{NA})
+apim4<-apply(hda,1,function(x) if(x[3]<selThr){median(x[c(11:13)],na.rm=T)} else{NA})
+apim6<-apply(hda,1,function(x) if(x[4]<selThr){median(x[c(14:16)],na.rm=T)} else{NA})
+hdaM=cbind(apim3,apim4,apim6)
+row.names(hdaM)<-sapply(rn, "[", 1)
+colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+summary(hdaM)
+vennDiagram(hdaM<(10*-1))
+vennDiagram(hdaM>(10))
+vennDiagram(hdaM<0)
+vennDiagram(hdaM>0)
 ```
 
+```{r sel-LFQ-onevar-x1-control}
+hda<-as.matrix(log2LFQ[,grep("CTR",colnames(log2LFQ))])
+hist(hda)
+#ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
+ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))<5){median(x[c(2,3,5)],na.rm=T)} else{0})
+sum(ctr2>0)
+ctr3<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))==0){median(x[6:8])} else{0})
+sum(ctr3>0)
+ctr4<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))==0){median(x[9:11])} else{0})
+sum(ctr4>0)
+ctr6<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))==0){median(x[12:14])} else{0})
+sum(ctr6>0)
+hdaM=cbind(ctr2,ctr3,ctr4,ctr6)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaM)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+summary(hdaM)
+vennDiagram(hdaM>0)
+inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control.xlsx")
+write_xlsx(as.data.frame(cbind(uniprot,hdaM,hda,data[,7])),inpW)
+```
+
+```{r sensel}
+data<-read_xlsx(inpW)
+dataS<-data[(data$ctr2==0) & (data$ctr3>0) & (data$ctr4>0) & (data$ctr6>0),]
+inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control-sensel.xlsx")
+write_xlsx(dataS,inpW)
+```
 
 ```{r map-ID}
 #install.packages("Rcpp")
