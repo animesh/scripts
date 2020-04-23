@@ -1,13 +1,14 @@
 ```{r data, echo = FALSE}
 inpD <-"F:/GD/"
-#inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
-inpF<-paste0(inpD,"proteinGroups.txt")
-data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
+#inpD <-"c:/Users/animeshs/GD/"
+inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
+#inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T)#,row.names = 1)
 #data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
 #rownames(data)<-paste(data$T..Uniprot,data$T..Line,data$T..Gene.names,sep = "_")
 #clean
-#data = data[!data$T..C..Reverse=="+",]
-data = data[!data$Reverse=="+",]
+data = data[!data$T..C..Reverse=="+",]
+#data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
 summary(data)
 dim(data)
@@ -25,9 +26,12 @@ log2LFQ[log2LFQ==-Inf]=NA
 
 ```{r write-excel, echo = FALSE}
 #install.packages("writexl")
+#install.packages("readxl")
+library("readxl")
 library("writexl")
 inpW<-paste0(inpF,"write.xlsx")
 write_xlsx(as.data.frame(log2LFQ),inpW)
+write_xlsx(as.data.frame(data),inpW)
 ```
 
 ```{r venn}
@@ -116,12 +120,15 @@ row.names(hdaM)<-uniprot
 summary(hdaM)
 vennDiagram(hdaM>0)
 inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control.xlsx")
-write_xlsx(as.data.frame(cbind(uniprot,hdaM,hda,data[,7])),inpW)
+fasta<-as.character(data[,7])
+gene<-as.character(data[,6])
+protein<-as.character(data[,5])
+write_xlsx(as.data.frame(cbind(uniprot,protein,gene,hdaM,hda,fasta)),inpW)
 ```
 
 ```{r sensel}
-data<-read_xlsx(inpW)
-dataS<-data[(data$ctr2==0) & (data$ctr3>0) & (data$ctr4>0) & (data$ctr6>0),]
+dataS<-read_xlsx(inpW)
+dataS<-dataS[(dataS$ctr2==0) & (dataS$ctr3>0) & (dataS$ctr4>0) & (dataS$ctr6>0),]
 inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control-sensel.xlsx")
 write_xlsx(dataS,inpW)
 ```
@@ -213,6 +220,8 @@ vennDiagram(dataSel[,c(1:4)]<selThr,main="apoptosis",counts.col = "red")
 rownames(dataSel)<-paste0(rownames(dataSel),"apoptosis")
 dataSelApoptosis<-dataSel
 summary(dataSelApoptosis)
+chk<-dataSelApoptosis[dataSelApoptosis$`APIM4 2`>selThr&dataSelApoptosis$`APIM4 3`<selThr&dataSelApoptosis$`APIM4 4`<selThr&dataSelApoptosis$`APIM4 6`<selThr,]
+write_xlsx(chk,paste0(inpF,"apoptosis.sensonly.xlsx"))
 ```
 
 ```{r PI3K/AKT/mTOR, echo = FALSE}
@@ -233,6 +242,8 @@ vennDiagram(dataSel[,c(1:4)]<selThr,main="PI3K/AKT/mTOR",counts.col = "red")
 rownames(dataSel)<-paste0(rownames(dataSel),"_PI3K/AKT/mTOR")
 dataSel_PI3KAKTmTOR<-dataSel
 summary(dataSel_PI3KAKTmTOR)
+chk<-dataSel_PI3KAKTmTOR[dataSel_PI3KAKTmTOR$`APIM4 2`>selThr&dataSel_PI3KAKTmTOR$`APIM4 3`<selThr&dataSel_PI3KAKTmTOR$`APIM4 4`<selThr&dataSel_PI3KAKTmTOR$`APIM4 6`<selThr,]
+write_xlsx(chk,paste0(inpF,"PI3KAKTmTOR.sensonly.xlsx"))
 ```
 
 ```{r sel-data-cols, echo = FALSE}
