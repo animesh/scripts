@@ -1,15 +1,23 @@
 ```{r data, echo = FALSE}
-inpD <-"F:/GD/"
+inpD <-"L:/promec/Animesh/Camilla/"
+#inpD <-"F:/GD/"
 #inpD <-"c:/Users/animeshs/GD/"
-inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
-#inpF<-paste0(inpD,"proteinGroups.txt")
+#inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
+inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T)#,row.names = 1)
 #data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
 #rownames(data)<-paste(data$T..Uniprot,data$T..Line,data$T..Gene.names,sep = "_")
 #clean
-data = data[!data$T..C..Reverse=="+",]
-#data = data[!data$Reverse=="+",]
+#data = data[!data$T..C..Reverse=="+",]
+data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
+protNum<-1:nrow(data)
+fasta<-paste(protNum,data$Fasta.headers,protNum,sep=";")
+gene<-as.character(data$Gene.names)
+protein<-as.character(data$Protein.IDs)
+Uniprot<-sapply(strsplit(fasta,";"), `[`, 2)
+uniprot<-sapply(strsplit(Uniprot,"|",fixed=TRUE),`[`, 2)
+unipro<-sapply(strsplit(uniprot,"-",fixed=TRUE),`[`, 1)
 summary(data)
 dim(data)
 ```
@@ -17,11 +25,15 @@ dim(data)
 ```{r select-LFQ, echo = FALSE}
 selection<-"LFQ.intensity"
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+summary(LFQ)
 protNum<-1:ncol(LFQ)
 colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
-dim(LFQ)
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
+summary(log2LFQ)
+dim(log2LFQ)
+dim(LFQ)
+hist(log2LFQ)
 ```
 
 ```{r write-excel, echo = FALSE}
@@ -29,9 +41,36 @@ log2LFQ[log2LFQ==-Inf]=NA
 #install.packages("readxl")
 library("readxl")
 library("writexl")
-inpW<-paste0(inpF,"write.xlsx")
-write_xlsx(as.data.frame(log2LFQ),inpW)
-write_xlsx(as.data.frame(data),inpW)
+inpW<-paste0(inpF,selection,".log2.xlsx")
+write_xlsx(as.data.frame(cbind(fasta,protein,gene,log2LFQ,unipro)),inpW)
+#write_xlsx(as.data.frame(data),inpW)
+```
+
+
+```{r sel-LFQ-onevar-control}
+colnames(log2LFQ)[c(seq(1,7,2),8,11,12,14,18,20,21,24,25)]
+hda<-as.matrix(log2LFQ[,c(seq(1,7,2),8,11,12,14,18,20,21,24,25)])
+hist(hda)
+colnames(hda)
+#ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
+MB4<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<3){median(x[c(1:3)],na.rm=T)} else{0})
+sum(MB4>0)
+MCCAR<-apply(hda,1,function(x) if(sum(is.na(x[c(4:8)]))<5){median(x[c(4:8)],na.rm=T)} else{0})
+sum(MCCAR>0)
+MONO<-apply(hda,1,function(x) if(sum(is.na(x[c(9:13)]))<5){median(x[c(9:13)],na.rm=T)} else{0})
+sum(MONO>0)
+hdaM=cbind(MB4,MCCAR,MONO)
+summary(hdaM)
+vennDiagram(hdaM>0)
+inpW<-paste0(inpF,"sel-LFQ-onevar-control.xlsx")
+write_xlsx(as.data.frame(cbind(fasta,protein,gene,hdaM,hda,unipro)),inpW)
+```
+
+```{r sensel}
+dataS<-read_xlsx(inpW)
+dataS<-dataS[(dataS$ctr2==0) & (dataS$ctr3>0) & (dataS$ctr4>0) & (dataS$ctr6>0),]
+inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control-sensel.xlsx")
+write_xlsx(dataS,inpW)
 ```
 
 ```{r venn}
@@ -98,39 +137,6 @@ vennDiagram(hdaM<(10*-1))
 vennDiagram(hdaM>(10))
 vennDiagram(hdaM<0)
 vennDiagram(hdaM>0)
-```
-
-```{r sel-LFQ-onevar-x1-control}
-hda<-as.matrix(log2LFQ[,grep("CTR",colnames(log2LFQ))])
-hist(hda)
-#ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
-ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))<5){median(x[c(2,3,5)],na.rm=T)} else{0})
-sum(ctr2>0)
-ctr3<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))==0){median(x[6:8])} else{0})
-sum(ctr3>0)
-ctr4<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))==0){median(x[9:11])} else{0})
-sum(ctr4>0)
-ctr6<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))==0){median(x[12:14])} else{0})
-sum(ctr6>0)
-hdaM=cbind(ctr2,ctr3,ctr4,ctr6)
-Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
-uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
-row.names(hdaM)<-uniprot
-#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-summary(hdaM)
-vennDiagram(hdaM>0)
-inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control.xlsx")
-fasta<-as.character(data[,7])
-gene<-as.character(data[,6])
-protein<-as.character(data[,5])
-write_xlsx(as.data.frame(cbind(uniprot,protein,gene,hdaM,hda,fasta)),inpW)
-```
-
-```{r sensel}
-dataS<-read_xlsx(inpW)
-dataS<-dataS[(dataS$ctr2==0) & (dataS$ctr3>0) & (dataS$ctr4>0) & (dataS$ctr6>0),]
-inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control-sensel.xlsx")
-write_xlsx(dataS,inpW)
 ```
 
 ```{r map-ID}
