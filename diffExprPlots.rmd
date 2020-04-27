@@ -1,3 +1,10 @@
+```{r read-write-excel, echo = FALSE}
+#install.packages("readxl")
+library("readxl")
+#install.packages("writexl")
+library("writexl")
+```
+
 ```{r data, echo = FALSE}
 inpD <-"L:/promec/Animesh/Camilla/"
 #inpD <-"F:/GD/"
@@ -13,7 +20,8 @@ data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
 protNum<-1:nrow(data)
 fasta<-paste(protNum,data$Fasta.headers,protNum,sep=";")
-gene<-as.character(data$Gene.names)
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
 protein<-as.character(data$Protein.IDs)
 Uniprot<-sapply(strsplit(protein,";"), `[`, 1)
 uniprot<-sapply(strsplit(Uniprot,"_",fixed=TRUE),`[`, 1)
@@ -43,11 +51,14 @@ hda<-as.matrix(log2LFQ[,c(seq(1,7,2),8,11,12,14,18,20,21,24,25)])
 hist(hda)
 colnames(hda)
 #ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
-MB4<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<3){median(x[c(1:3)],na.rm=T)} else{0})
+#MB4<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<3){median(x[c(1:3)],na.rm=T)} else{0})
+MB4<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<1){median(x[c(1:3)],na.rm=T)} else{0})
 sum(MB4>0)
-MCCAR<-apply(hda,1,function(x) if(sum(is.na(x[c(4:8)]))<5){median(x[c(4:8)],na.rm=T)} else{0})
+#MCCAR<-apply(hda,1,function(x) if(sum(is.na(x[c(4:8)]))<5){median(x[c(4:8)],na.rm=T)} else{0})
+MCCAR<-apply(hda,1,function(x) if(sum(is.na(x[c(4:8)]))<1){median(x[c(4:8)],na.rm=T)} else{0})
 sum(MCCAR>0)
-MONO<-apply(hda,1,function(x) if(sum(is.na(x[c(9:13)]))<5){median(x[c(9:13)],na.rm=T)} else{0})
+#MONO<-apply(hda,1,function(x) if(sum(is.na(x[c(9:13)]))<5){median(x[c(9:13)],na.rm=T)} else{0})
+MONO<-apply(hda,1,function(x) if(sum(is.na(x[c(9:13)]))<1){median(x[c(9:13)],na.rm=T)} else{0})
 sum(MONO>0)
 hdaM=cbind(MB4,MCCAR,MONO)
 summary(hdaM)
@@ -58,7 +69,7 @@ hdaM<-as.data.frame(hdaM)
 library("limma")
 vennDiagram(hdaM>0)
 row.names(hdaM)<-protein
-hdaM<-cbind(hdaM,unipro)
+hdaM<-cbind(hdaM,gen)
 summary(hdaM)
 ```
 
@@ -70,7 +81,8 @@ data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
 protNum<-1:nrow(data)
 fasta<-paste(protNum,data$Fasta.headers,protNum,sep=";")
-gene<-as.character(data$Gene.names)
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
 protein<-as.character(data$Protein.IDs)
 Uniprot<-sapply(strsplit(protein,";"), `[`, 1)
 uniprot<-sapply(strsplit(Uniprot,"_",fixed=TRUE),`[`, 1)
@@ -99,7 +111,8 @@ hda<-as.matrix(log2LFQ[,c(1:3)])
 hist(hda)
 colnames(hda)
 #ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
-JJN3<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<3){median(x[c(1:3)],na.rm=T)} else{0})
+#JJN3<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<3){median(x[c(1:3)],na.rm=T)} else{0})
+JJN3<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<1){median(x[c(1:3)],na.rm=T)} else{0})
 sum(JJN3>0)
 summary(hda)
 hdaM=cbind(JJN3)
@@ -111,22 +124,88 @@ library("limma")
 vennDiagram(hdaM>0)
 JJN3<-as.data.frame(JJN3)
 row.names(JJN3)<-protein
-JJN3<-cbind(JJN3,unipro)
+JJN3<-cbind(JJN3,gen)
 summary(JJN3)
 ```
 
 ```{r data2-merge}
-dataM<-merge(JJN3,hdaM,by.x="unipro",by.y="unipro",all=TRUE)
+dataM<-merge(JJN3,hdaM,by.x="gen",by.y="gen",all=TRUE)
 summary(dataM)
+inpW<-paste0(inpF,"sel-LFQ-control-combined.xlsx")
+write_xlsx(as.data.frame(cbind(dataM,row.names(dataM))),inpW)
 inpW<-paste0(inpF,"sel-LFQ-control-comb.xlsx")
 write.csv(as.data.frame(dataM),paste0(inpW,".csv"))
 write_xlsx(as.data.frame(dataM),inpW)
 protNum<-1:nrow(dataM)
 row.names(dataM)<-paste(protNum,dataM$unipro,protNum,sep=";")
 dataM<-dataM[,2:ncol(dataM)]
+#install.packages("BiocManager")
+#BiocManager::install("limma")
+library(limma)
 vennDiagram(dataM>0)
 ```
 
+```{r data2-merge-select}
+thrD<-0
+dataS<-dataM[(dataM$JJN3>thrD)&(dataM$MB4>thrD)&(dataM$MCCAR>thrD)&(dataM$MONO==thrD|is.na(dataM$MONO)),2:5]
+hist(rowMeans(as.matrix(dataS)))
+vennDiagram(dataS>0)
+```
+
+```{r data2-merge-allIDs}
+#https://stackoverflow.com/a/4882807/1137129
+combineByName <- function(A,B) {
+    a.names <- names(A)
+    b.names <- names(B)
+    all.names <- union(a.names,b.names)
+    print(paste("Number of columns:",length(all.names)))
+    a.type <- NULL
+    for (i in 1:ncol(A)) {
+        a.type[i] <- typeof(A[,i])
+    }
+    b.type <- NULL
+    for (i in 1:ncol(B)) {
+        b.type[i] <- typeof(B[,i])
+    }
+    a_b.names <- names(A)[!names(A)%in%names(B)]
+    b_a.names <- names(B)[!names(B)%in%names(A)]
+    if (length(a_b.names)>0 | length(b_a.names)>0){
+        print("Columns in data frame A but not in data frame B:")
+        print(a_b.names)
+        print("Columns in data frame B but not in data frame A:")
+        print(b_a.names)
+    } else if(a.names==b.names & a.type==b.type){
+        C <- rbind(A,B)
+        return(C)
+    }
+    C <- list()
+    for(i in 1:length(all.names)) {
+        l.a <- all.names[i]%in%a.names
+        pos.a <- match(all.names[i],a.names)
+        typ.a <- a.type[pos.a]
+        l.b <- all.names[i]%in%b.names
+        pos.b <- match(all.names[i],b.names)
+        typ.b <- b.type[pos.b]
+        if(l.a & l.b) {
+            if(typ.a==typ.b) {
+                vec <- c(A[,pos.a],B[,pos.b])
+            } else {
+                warning(c("Type mismatch in variable named: ",all.names[i],"\n"))
+                vec <- try(c(A[,pos.a],B[,pos.b]))
+            }
+        } else if (l.a) {
+            vec <- c(A[,pos.a],rep(NA,nrow(B)))
+        } else {
+            vec <- c(rep(NA,nrow(A)),B[,pos.b])
+        }
+        C[[i]] <- vec
+    }
+    names(C) <- all.names
+    C <- as.data.frame(C)
+    return(C)
+}
+combD<-combineByName(t(JJN3),t(hdaM))
+```
 
 ```{r sensel}
 dataS<-read_xlsx(inpW)
