@@ -3,19 +3,14 @@
 library("readxl")
 #install.packages("writexl")
 library("writexl")
+outD <-"F:/GD/"
 ```
 
 ```{r data, echo = FALSE}
-inpD <-"L:/promec/Animesh/Camilla/"
-#inpD <-"F:/GD/"
-#inpD <-"c:/Users/animeshs/GD/"
-#inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
-inpF<-paste0(inpD,"proteinGroups.txt")
-data <- read.delim(inpF,sep="\t",header = T)#,row.names = 1)
-#data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
-#rownames(data)<-paste(data$T..Uniprot,data$T..Line,data$T..Gene.names,sep = "_")
+inpD1 <-"L:/promec/Animesh/Camilla/"
+inpF<-"proteinGroups.txt"
+data <- read.delim(paste0(inpD,inpF),sep="\t",header = T)#,row.names = 1)
 #clean
-#data = data[!data$T..C..Reverse=="+",]
 data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
 protNum<-1:nrow(data)
@@ -39,52 +34,46 @@ summary(log2LFQ)
 dim(log2LFQ)
 dim(LFQ)
 hist(log2LFQ)
-#install.packages("writexl")
-#install.packages("readxl")
-library("readxl")
-library("writexl")
-inpW<-paste0(inpF,selection,".log2.xlsx")
-write_xlsx(as.data.frame(cbind(fasta,protein,gene,log2LFQ,unipro)),inpW)
-#write_xlsx(as.data.frame(data),inpW)
 colnames(log2LFQ)[c(seq(1,7,2),8,11,12,14,18,20,21,24,25)]
 hda<-as.matrix(log2LFQ[,c(seq(1,7,2),8,11,12,14,18,20,21,24,25)])
 hist(hda)
 colnames(hda)
 #ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
-#MB4<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<3){median(x[c(1:3)],na.rm=T)} else{0})
-MB4<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<1){median(x[c(1:3)],na.rm=T)} else{0})
+MB4<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<3){median(x[c(1:3)],na.rm=T)} else{0})
+#MB4<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<1){median(x[c(1:3)],na.rm=T)} else{0})
 sum(MB4>0)
-#MCCAR<-apply(hda,1,function(x) if(sum(is.na(x[c(4:8)]))<5){median(x[c(4:8)],na.rm=T)} else{0})
-MCCAR<-apply(hda,1,function(x) if(sum(is.na(x[c(4:8)]))<1){median(x[c(4:8)],na.rm=T)} else{0})
+MCCAR<-apply(hda,1,function(x) if(sum(is.na(x[c(4:8)]))<5){median(x[c(4:8)],na.rm=T)} else{0})#2906 matrix20 session9 
+#MCCAR<-apply(hda,1,function(x) if(sum(is.na(x[c(4:8)]))<1){median(x[c(4:8)],na.rm=T)} else{0})
 sum(MCCAR>0)
-#MONO<-apply(hda,1,function(x) if(sum(is.na(x[c(9:13)]))<5){median(x[c(9:13)],na.rm=T)} else{0})
-MONO<-apply(hda,1,function(x) if(sum(is.na(x[c(9:13)]))<1){median(x[c(9:13)],na.rm=T)} else{0})
+MONO<-apply(hda,1,function(x) if(sum(is.na(x[c(9:13)]))<5){median(x[c(9:13)],na.rm=T)} else{0})
+#MONO<-apply(hda,1,function(x) if(sum(is.na(x[c(9:13)]))<1){median(x[c(9:13)],na.rm=T)} else{0})
 sum(MONO>0)
 hdaM=cbind(MB4,MCCAR,MONO)
 summary(hdaM)
-inpW<-paste0(inpF,"sel-LFQ-onevar-control.xlsx")
+inpW<-paste0(outD,gsub("[^[:alnum:] ]", "",inpD),inpF,"sel-LFQ-onevar-control.xlsx")
 write_xlsx(as.data.frame(cbind(fasta,protein,gene,unipro,hda,hdaM)),inpW)
 write.table(as.data.frame(cbind(fasta,protein,gene,unipro,hda,hdaM)),paste0(inpW,".txt"),sep="\t",quote=T,row.names = F)
 hdaM<-as.data.frame(hdaM)
 library("limma")
 vennDiagram(hdaM>0)
 row.names(hdaM)<-protein
-hdaM<-cbind(hdaM,gen)
+#hdaM<-cbind(hdaM,row.names(hdaM),gen)
+hdaM<-cbind(hdaM,unipro)
 summary(hdaM)
 ```
 
 ```{r data2, echo = FALSE}
-inpD <-"L:/promec/Animesh/Voin/2016-08-26_12-T-samples/"
-inpF<-paste0(inpD,"proteinGroups.txt")
-data <- read.delim(inpF,sep="\t",header = T)#,row.names = 1)
+inpD2 <-"L:/promec/USERS/Voin/2016-07-12_QE_12samples/txt/"
+inpF2<-"proteinGroups.txt"
+data <- read.delim(paste0(inpD2,inpF2),sep="\t",header = T)#,row.names = 1)
 data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
 protNum<-1:nrow(data)
-fasta<-paste(protNum,data$Fasta.headers,protNum,sep=";")
-gene<-toupper(as.character(data$Gene.names))
-gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+fasta<-paste(protNum,data$Protein.IDs,protNum,sep=";")
+gene<-toupper(as.character(sapply(strsplit(fasta,"_"), `[`, 1)))
+gen<-as.character(sapply(strsplit(gene,"\\|"), `[`, 3))
 protein<-as.character(data$Protein.IDs)
-Uniprot<-sapply(strsplit(protein,";"), `[`, 1)
+Uniprot<-as.character(sapply(strsplit(gene,"\\|"), `[`, 2))
 uniprot<-sapply(strsplit(Uniprot,"_",fixed=TRUE),`[`, 1)
 unipro<-as.character(sapply(strsplit(uniprot,"-",fixed=TRUE),`[`, 1))
 summary(data)
@@ -100,45 +89,42 @@ summary(log2LFQ)
 dim(log2LFQ)
 dim(LFQ)
 hist(log2LFQ)
-#install.packages("writexl")
-#install.packages("readxl")
-library("readxl")
 library("writexl")
-inpW<-paste0(inpF,selection,".log2.xlsx")
-write_xlsx(as.data.frame(cbind(fasta,protein,gene,log2LFQ,unipro)),inpW)
-colnames(log2LFQ)[c(1:3)]
-hda<-as.matrix(log2LFQ[,c(1:3)])
+colnames(log2LFQ)[c(1,5,9)]
+hda<-as.matrix(log2LFQ[,c(1,5,9)])
 hist(hda)
 colnames(hda)
-#ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
-#JJN3<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<3){median(x[c(1:3)],na.rm=T)} else{0})
-JJN3<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<1){median(x[c(1:3)],na.rm=T)} else{0})
+JJN3<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<3){median(x[c(1:3)],na.rm=T)} else{0})
+#JJN3<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))<1){median(x[c(1:3)],na.rm=T)} else{0})#4974 matrix85 session9 
 sum(JJN3>0)
 summary(hda)
 hdaM=cbind(JJN3)
 summary(hdaM)
-inpW<-paste0(inpF,"sel-LFQ-onevar-control.xlsx")
+inpW<-paste0(outD,gsub("[^[:alnum:] ]", "",inpD2),inpF2,"sel-LFQ-onevar-control.xlsx")
 write_xlsx(as.data.frame(cbind(fasta,protein,gene,unipro,hda,hdaM)),inpW)
 write.table(as.data.frame(cbind(fasta,protein,gene,unipro,hda,hdaM)),paste0(inpW,".txt"),sep="\t",quote=T,row.names=F)
 library("limma")
 vennDiagram(hdaM>0)
 JJN3<-as.data.frame(JJN3)
 row.names(JJN3)<-protein
-JJN3<-cbind(JJN3,gen)
+#JJN3<-cbind(JJN3,row.names(JJN3),gen)
+JJN3<-cbind(JJN3,unipro)
 summary(JJN3)
 ```
 
 ```{r data2-merge}
-dataM<-merge(JJN3,hdaM,by.x="gen",by.y="gen",all=TRUE)
+dataMid<-"unipro"
+#dataMid<-"gen"
+ncol(JJN3)
+dataM<-merge(JJN3,hdaM,by.x=dataMid,by.y=dataMid,all=TRUE)
 summary(dataM)
-inpW<-paste0(inpF,"sel-LFQ-control-combined.xlsx")
-write_xlsx(as.data.frame(cbind(dataM,row.names(dataM))),inpW)
-inpW<-paste0(inpF,"sel-LFQ-control-comb.xlsx")
-write.csv(as.data.frame(dataM),paste0(inpW,".csv"))
-write_xlsx(as.data.frame(dataM),inpW)
+inpW<-paste0(outD,gsub("[^[:alnum:] ]", "",inpD),inpF,gsub("[^[:alnum:] ]", "",inpD2),inpF2,dataMid)
+write_xlsx(as.data.frame(cbind(dataM,row.names(dataM))),paste0(inpW,".xlsx"))
+write.table(as.data.frame(cbind(dataM,row.names(dataM))),paste0(inpW,".txt"),sep="\t",quote=T,row.names=F)
 protNum<-1:nrow(dataM)
-row.names(dataM)<-paste(protNum,dataM$unipro,protNum,sep=";")
-dataM<-dataM[,2:ncol(dataM)]
+row.names(dataM)<-paste(protNum,dataM$`row.names(JJN3)`,dataM$`row.names(hdaM)`,protNum,sep=";")
+dataM<-dataM[,c(2:ncol(dataM))]
+#dataM<-dataM[,c(2:(ncol(JJN3)-1),(ncol(JJN3)+1):(ncol(dataM)-1))]#gene
 #install.packages("BiocManager")
 #BiocManager::install("limma")
 library(limma)
@@ -147,9 +133,15 @@ vennDiagram(dataM>0)
 
 ```{r data2-merge-select}
 thrD<-0
-dataS<-dataM[(dataM$JJN3>thrD)&(dataM$MB4>thrD)&(dataM$MCCAR>thrD)&(dataM$MONO==thrD|is.na(dataM$MONO)),2:5]
+#dataS<-dataM[(dataM$JJN3>thrD)&(dataM$MB4>thrD)&(dataM$MCCAR>thrD)&(dataM$MONO==thrD|is.na(dataM$MONO)),2:5]
+#dataS<-dataM[(dataM$JJN3==thrD)|(dataM$MB4==thrD)|(dataM$MCCAR==thrD)|(dataM$MONO==thrD),]
+dataS<-dataM
+dataS[is.na(dataS)]<-0
+dataS<-dataS[(dataS$JJN3>thrD)|(dataS$MB4>thrD)|(dataS$MCCAR>thrD)|(dataS$MONO>thrD),]
+dataS[dataS==0]<-NA
 hist(rowMeans(as.matrix(dataS)))
-vennDiagram(dataS>0)
+plot(dataS)
+vennDiagram(dataS>thrD)
 ```
 
 ```{r data2-merge-allIDs}
