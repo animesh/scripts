@@ -3,6 +3,105 @@
 grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 ```
 
+```{r NPARC, echo = FALSE}
+#https://bioconductor.org/packages/release/bioc/vignettes/NPARC/inst/doc/NPARC.html
+#Analysing thermal proteome profiling data
+BiocManager::install("NPARC")
+library("NPARC")
+data("stauro_TPP_data_tidy")
+df <- stauro_TPP_data_tidy
+df %>%   mutate(compoundConcentration = factor(compoundConcentration), 
+         replicate = factor(replicate), 
+         dataset = factor(dataset)) %>%   
+  summary()
+df %<>% filter(uniquePeptideMatches >= 1)
+df %<>% filter(!is.na(relAbundance))
+nullFit <- NPARC:::fitSingleSigmoid(x = stk4$temperature, y = stk4$relAbundance)
+```
+
+```{r systemPipeR, echo = FALSE}
+#https://bioconductor.org/packages/release/bioc/vignettes/systemPipeR/inst/doc/systemPipeR.html
+#install.packages("BiocManager")
+#BiocManager::install("systemPipeR")
+#BiocManager::install("systemPipeRdata")
+library("systemPipeR")  # Loads the package
+library(help = "systemPipeR")  # Lists package info
+vignette("systemPipeR")
+library(systemPipeRdata)
+genWorkenvir(workflow = "rnaseq")# Opens vignette
+```
+
+```{r structToolbox-metabolites+, echo = FALSE}
+#https://bioconductor.org/packages/release/bioc/vignettes/structToolbox/inst/doc/data_analysis_omics_using_the_structtoolbox.html
+BiocManager::install("structToolbox")
+library("structToolbox")
+D = iris_DatasetExperiment()
+D$sample_meta$class = D$sample_meta$Species
+P = PCA(number_components=15)
+M = mean_centre() + PCA(number_components = 4)
+M = model_train(M,D)
+M = model_predict(M,D)
+M = model_apply(M,D)
+C = pca_scores_plot(factor_name='class') # colour by class
+chart_plot(C,M[2])
+```
+
+```{r mitch-GSEA, echo = FALSE}
+#https://bioconductor.org/packages/release/bioc/vignettes/mitch/inst/doc/mitchWorkflow.html
+BiocManager::install("mitch")
+library("mitch")
+download.file("https://reactome.org/download/current/ReactomePathways.gmt.zip",destfile="ReactomePathways.gmt.zip")
+unzip("ReactomePathways.gmt.zip")
+genesets<-gmt_import("ReactomePathways.gmt")
+data(genesetsExample)
+head(genesetsExample,3)
+data(rna,k9a)
+x<-list("rna"=rna,"k9a"=k9a)
+y<-mitch_import(x,"edgeR")
+y<-mitch_import(rna,DEtype="edger")
+rna_mod<-rna
+rna_mod$MyGeneIDs<-rownames(rna_mod)
+rownames(rna_mod)<-seq(nrow(rna_mod))
+head(rna_mod)
+res<-mitch_calc(y,genesetsExample,priority="significance",cores=2)
+head(res$enrichment_result)
+res<-mitch_calc(y,genesetsExample,priority="significance",minsetsize=5,cores=2)
+head(res$enrichment_result)
+res<-mitch_calc(y,genesetsExample,priority="significance",resrows=3,cores=2)
+head(res$enrichment_result)
+mitch_report(res,"myreport.html")
+mitch_plots(res,outfile="mycharts.pdf")
+```
+
+```{r WebGestaltR, echo = FALSE}
+#https://cran.r-project.org/web/packages/WebGestaltR/WebGestaltR.pdf
+install.packages("WebGestaltR")
+library("WebGestaltR")
+help(WebGestaltR)
+#ORA####
+geneFile <- system.file("extdata", "interestingGenes.txt", package="WebGestaltR")
+refFile <- system.file("extdata", "referenceGenes.txt", package="WebGestaltR")
+outputDirectory <- getwd()
+enrichResult <- WebGestaltR(enrichMethod="ORA", organism="hsapiens",
+  enrichDatabase="pathway_KEGG", interestGeneFile=geneFile,
+  interestGeneType="genesymbol", referenceGeneFile=refFile,
+  referenceGeneType="genesymbol", isOutput=TRUE,
+  outputDirectory=outputDirectory, projectName=NULL)
+#GSEA####
+rankFile <- system.file("extdata", "GeneRankList.rnk", package="WebGestaltR")
+outputDirectory <- getwd()
+enrichResult <- WebGestaltR(enrichMethod="GSEA", organism="hsapiens",
+  enrichDatabase="pathway_KEGG", interestGeneFile=rankFile,
+  interestGeneType="genesymbol", sigMethod="top", topThr=10, minNum=5,
+  outputDirectory=outputDirectory)
+#NTA#####
+enrichResult <- WebGestaltR(enrichMethod="NTA", organism="hsapiens",
+  enrichDatabase="network_PPI_BIOGRID", interestGeneFile=geneFile,
+  interestGeneType="genesymbol", sigMethod="top", topThr=10,
+  outputDirectory=getwd(), highlightSeedNum=10,
+  networkConstructionMethod="Network_Retrieval_Prioritization")
+```
+
 ```{r gene2num, echo = FALSE}
 #https://www.gungorbudak.com/blog/2018/08/07/convert-gene-symbols-to-entrez-ids-in-r/
 symbols <- c('AHNAK', 'BOD1L1', 'HSPB1', 'SMARCA4', 'TRIM28')

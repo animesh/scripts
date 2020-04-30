@@ -151,7 +151,7 @@ inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to An
 library(readxl)
 data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
 dSAET<-as.matrix(data$Log2MedianChange,rownames=T)
-rownames(dSAET)<-rownames(data)
+rownames(dSAET)<-data$RowGeneUniProtScorePeps
 colnames(dSAET)<-"SAE/T"
 summary(dSAET)
 ```
@@ -163,11 +163,12 @@ library(pathview)
 pcode<-"04151"
 pspecies<-"hsa"
 sfx<-"fc"
-idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
-hda=as.matrix(dATE)
+idtype<-gene.idtype.list[1]#
+#idtype<-gene.idtype.list[6]#"UNIPROT"
+hda=cbind(dSAET,dSAET)
 #colnames(hda)<-idtype
-rowName<-strsplit(rownames(data), "_")
-rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rownames(dSAET), ";")
+rowName<-paste(sapply(rowName, "[", 2))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
 rownames(hda)<-rowName
@@ -179,6 +180,80 @@ heatmap(hda)
 hda[hda==0]<-NA
 hist(hda)
 pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+```
+
+```{r data-TT/Pc}
+inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsxLFQ.intensity.14tTestBHvPlasma.xlsx")
+#install.packages("readxl")
+library(readxl)
+data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
+dTT<-as.matrix(data$Log2MedianChange,rownames=T)
+rownames(dTT)<-data$RowGeneUniProtScorePeps
+colnames(dTT)<-"TT/Pc"
+summary(dTT)
+hist(dTT)
+```
+
+```{r data-TE/Pc}
+inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsxLFQ.intensity.57tTestBHvPlasma.xlsx")
+#install.packages("readxl")
+library(readxl)
+data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
+dTE<-as.matrix(data$Log2MedianChange,rownames=T)
+rownames(dTE)<-data$RowGeneUniProtScorePeps
+colnames(dTE)<-"TE/Pc"
+summary(dTE)
+hist(dTE)
+```
+
+
+```{r data-SAT/Pc}
+inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsxLFQ.intensity.1213tTestBHvPlasma.xlsx")
+#install.packages("readxl")
+library(readxl)
+data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
+SAT<-as.matrix(data$Log2MedianChange,rownames=T)
+rownames(SAT)<-data$RowGeneUniProtScorePeps
+colnames(SAT)<-"SAT/Pc"
+summary(SAT)
+hist(SAT)
+```
+
+```{r data-SAE/Pc}
+inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsxLFQ.intensity.811tTestBHvPlasma.xlsx")
+#install.packages("readxl")
+library(readxl)
+data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
+SAE<-as.matrix(data$Log2MedianChange,rownames=T)
+rownames(SAE)<-data$RowGeneUniProtScorePeps
+colnames(SAE)<-"SAE/Pc"
+summary(SAE)
+hist(SAE)
+```
+
+
+```{r data-APT/Pc}
+inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsxLFQ.intensity.1822tTestBHvPlasma.xlsx")
+#install.packages("readxl")
+library(readxl)
+data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
+APT<-as.matrix(data$Log2MedianChange,rownames=T)
+rownames(APT)<-data$RowGeneUniProtScorePeps
+colnames(APT)<-"APT/Pc"
+summary(APT)
+hist(APT)
+```
+
+```{r data-APE/Pc}
+inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsxLFQ.intensity.1417tTestBHvPlasma.xlsx")
+#install.packages("readxl")
+library(readxl)
+data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
+APE<-as.matrix(data$Log2MedianChange,rownames=T)
+rownames(APE)<-data$RowGeneUniProtScorePeps
+colnames(APE)<-"APE/Pc"
+summary(APE)
+hist(APE)
 ```
 
 
@@ -236,16 +311,17 @@ dev.off()
 time()
 ```
 
-```{r pathview-comb}
+```{r pathview-comb-Ts/pc}
 #https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
 #BiocManager::install("pathview")
 library(pathview)
+library(writexl)
 #https://www.kegg.jp/kegg-bin/show_pathway?hsa04610
 pcode<-"04610"
 pspecies<-"hsa"
-sfx<-"fc"
+sfx<-"Ts"
 idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
-hda=cbind(dATE,dSAET,dAPET,dTSA,dSAAP,dTAP)
+hda=cbind(dTT,APT,SAT)
 rowName<-strsplit(data$RowGeneUniProtScorePeps, ";")
 rowName<-paste(sapply(rowName, "[", 2))
 rowName<-strsplit(rowName, "-")
@@ -255,6 +331,29 @@ heatmap(hda)
 hda[hda==0]<-NA
 hist(hda)
 pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
-write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,"wTestBHgrpComb.xlsx"))
+write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,sfx,"wTestBHgrpComb.xlsx"))
+```
+
+```{r pathview-comb-Es/pc}
+#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#BiocManager::install("pathview")
+library(pathview)
+library(writexl)
+#https://www.kegg.jp/kegg-bin/show_pathway?hsa04610
+pcode<-"04610"
+pspecies<-"hsa"
+sfx<-"Es"
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
+hda=cbind(dTE,APE,SAE)
+rowName<-strsplit(data$RowGeneUniProtScorePeps, ";")
+rowName<-paste(sapply(rowName, "[", 2))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+rownames(hda)<-rowName
+heatmap(hda)
+hda[hda==0]<-NA
+hist(hda)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,sfx,"wTestBHgrpComb.xlsx"))
 ```
 

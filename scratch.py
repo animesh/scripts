@@ -1,3 +1,17 @@
+#https://github.com/zqfang/GSEApy/
+#git clone https://github.com/zqfang/GSEApy/
+#pip install gseapy
+import gseapy
+names = gseapy.get_library_name()
+print(names[:20])
+gseapy.gsea(data='expression.txt', gene_sets='gene_sets.gmt', cls='test.cls', outdir='test')
+import pandas as pd
+expression_dataframe = pd.DataFrame()
+sample_name = ['A','A','A','B','B','B'] # always only two group,any names you like
+# assign gene_sets parameter with enrichr library name or gmt file on your local computer.
+gseapy.gsea(data=expression_dataframe, gene_sets='KEGG_2016', cls= sample_names, outdir='test')
+
+
 #http://networksciencebook.com/chapter/5#degree-dynamics
 #https://github.com/pyhf/neos
 #pip install neos
