@@ -52,7 +52,8 @@ FUNNEL::FUNNEL.GSEA(hda)
 ```
 
 ```{r data}
-inpD<-"F:/GD/"
+#inpD<-"F:/GD/"
+inpD<-"C:/Users/animeshs/GD/"
 inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
 #install.packages("readxl")
 data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
@@ -345,6 +346,77 @@ pspecies<-"hsa"
 sfx<-"Es"
 idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
 hda=cbind(dTE,APE,SAE)
+rowName<-strsplit(data$RowGeneUniProtScorePeps, ";")
+rowName<-paste(sapply(rowName, "[", 2))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+rownames(hda)<-rowName
+heatmap(hda)
+hda[hda==0]<-NA
+hist(hda)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,sfx,"wTestBHgrpComb.xlsx"))
+```
+
+```{r pathview-comb-T[ET]/pc}
+#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#install.packages("BiocManager")
+#BiocManager::install("pathview")
+library(pathview)
+#install.packages("writexl")
+library(writexl)
+#https://www.kegg.jp/kegg-bin/show_pathway?hsa04610
+pcode<-"04610"
+pspecies<-"hsa"
+sfx<-"TETs"
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
+hda=cbind(dTE,dTT)
+rowName<-strsplit(data$RowGeneUniProtScorePeps, ";")
+rowName<-paste(sapply(rowName, "[", 2))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+rownames(hda)<-rowName
+heatmap(hda)
+hda[hda==0]<-NA
+hist(hda)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,sfx,"wTestBHgrpComb.xlsx"))
+```
+
+```{r pathview-comb-AP[ET]/pc}
+#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#BiocManager::install("pathview")
+library(pathview)
+library(writexl)
+#https://www.kegg.jp/kegg-bin/show_pathway?hsa04610
+pcode<-"04610"
+pspecies<-"hsa"
+sfx<-"APET"
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
+hda=cbind(APE,APT)
+rowName<-strsplit(data$RowGeneUniProtScorePeps, ";")
+rowName<-paste(sapply(rowName, "[", 2))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+rownames(hda)<-rowName
+heatmap(hda)
+hda[hda==0]<-NA
+hist(hda)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,sfx,"wTestBHgrpComb.xlsx"))
+```
+
+```{r pathview-comb-SA[ET]/pc}
+#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#BiocManager::install("pathview")
+library(pathview)
+library(writexl)
+#https://www.kegg.jp/kegg-bin/show_pathway?hsa04610
+pcode<-"04610"
+pspecies<-"hsa"
+sfx<-"SAET"
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
+hda=cbind(SAE,SAT)
 rowName<-strsplit(data$RowGeneUniProtScorePeps, ";")
 rowName<-paste(sapply(rowName, "[", 2))
 rowName<-strsplit(rowName, "-")
