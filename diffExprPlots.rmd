@@ -1,5 +1,6 @@
 ```{r data, echo = FALSE}
-inpD <-"F:/GD/"
+inpD <-"C:/Users/animeshs/GD/"
+#inpD <-"F:/GD/"
 #inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
 inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
@@ -96,37 +97,72 @@ vennDiagram(hdaM<0)
 vennDiagram(hdaM>0)
 ```
 
-```{r sel-LFQ-onevar-x1-control}
+```{r TK12346-control}
+inpD <-"C:/Users/animeshs/GD/"
+#inpD <-"F:/GD/"
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
+#clean
+data = data[!data$Reverse=="+",]
+#data = data[!data$C..Potential.contaminant=="+",]
+summary(data)
+dim(data)
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+protNum<-1:ncol(LFQ)
+colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
 hda<-as.matrix(log2LFQ[,grep("CTR",colnames(log2LFQ))])
-hist(hda)
+hist(as.matrix(hda))
 #ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
-ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))<5){median(x[c(2,3,5)],na.rm=T)} else{0})
+ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))==0){median(x[c(1:5)],na.rm=T)} else{0})
+sum(ctr2>0)
+ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))<5){median(x[c(1:5)],na.rm=T)} else{0})
 sum(ctr2>0)
 ctr3<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))==0){median(x[6:8])} else{0})
 sum(ctr3>0)
+ctr3<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))<3){median(x[6:8],na.rm=T)} else{0})
+sum(ctr3>0)
 ctr4<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))==0){median(x[9:11])} else{0})
 sum(ctr4>0)
+ctr4<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))<3){median(x[9:11],na.rm=T)} else{0})
+sum(ctr4>0)
 ctr6<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))==0){median(x[12:14])} else{0})
+sum(ctr6>0)
+ctr6<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))<3){median(x[12:14],na.rm=T)} else{0})
 sum(ctr6>0)
 hdaM=cbind(ctr2,ctr3,ctr4,ctr6)
 Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
 uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
 row.names(hdaM)<-uniprot
 #colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
 summary(hdaM)
 library("limma")
 vennDiagram(hdaM>0)
 inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control.xlsx")
 write_xlsx(as.data.frame(cbind(uniprot,hdaM,hda,data[,7])),inpW)
+summary(hdaM)
+TK12346ctr<-cbind(hdaM,gen,uniprot)
+row.names(TK12346ctr)<-row.names(data)
+summary(TK12346ctr)
 ```
 
-```{r TK9, echo = FALSE}
-inpD2 <-"L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/"
+```{r JJN3, echo = FALSE}
+inpD2 <-paste0(inpD,"scripts/")
+#inpD2 <-"L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/"
 inpF2<-"proteinGroups.txt"
-data <- read.delim(paste0(inpD2,inpF2),sep="\t",header = T)#,row.names = 1)
+data <- read.delim(paste0(inpD2,inpF2),sep="\t",header = T,row.names = 1)
 data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
 protNum<-1:nrow(data)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaM)<-uniprot
 fasta<-paste(protNum,data$Protein.IDs,protNum,sep=";")
 gene<-toupper(as.character(sapply(strsplit(fasta,"_"), `[`, 1)))
 gen<-as.character(sapply(strsplit(gene,"\\|"), `[`, 3))
@@ -134,6 +170,24 @@ protein<-as.character(data$Protein.IDs)
 Uniprot<-as.character(sapply(strsplit(gene,"\\|"), `[`, 2))
 uniprot<-sapply(strsplit(Uniprot,"_",fixed=TRUE),`[`, 1)
 unipro<-as.character(sapply(strsplit(uniprot,"-",fixed=TRUE),`[`, 1))
+summary(data)
+dim(data)
+```
+
+```{r TK9, echo = FALSE}
+inpD2 <-paste0(inpD,"scripts/")
+#inpD2 <-"L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/"
+inpF2<-"proteinGroups.txt"
+data <- read.delim(paste0(inpD2,inpF2),sep="\t",header = T,row.names = 1)
+data = data[!data$Reverse=="+",]
+#data = data[!data$C..Potential.contaminant=="+",]
+protNum<-1:nrow(data)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+fasta<-paste(protNum,data$Fasta.headers,protNum,sep=";")
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.names)
 summary(data)
 dim(data)
 selection<-"LFQ.intensity"
@@ -147,14 +201,13 @@ summary(log2LFQ)
 dim(log2LFQ)
 dim(LFQ)
 hist(log2LFQ)
-library("writexl")
 colnames(log2LFQ[,grep("ctr",colnames(log2LFQ))])
 hda<-as.matrix(log2LFQ[,grep("ctr",colnames(log2LFQ))])
 hda<-hda[,-grep("pool",colnames(hda))]
 hist(hda)
 colnames(hda)
-#TK9ctr<-apply(hda,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})#3408 matrix62 session1comb 
 TK9ctr<-apply(hda,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+TK9ctr<-apply(hda,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})#3408 matrix62 session1comb 
 sum(TK9ctr>0)
 summary(TK9ctr)
 #TK9apim####
@@ -163,46 +216,43 @@ hdapim<-as.matrix(log2LFQ[,grep("apim",colnames(log2LFQ))])
 hdapim<-hdapim[,-grep("pool",colnames(hdapim))]
 hist(hdapim)
 colnames(hdapim)
-#TK9apim<-apply(hdapim,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
 TK9apim<-apply(hdapim,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+TK9apim<-apply(hdapim,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
 sum(TK9apim>0)
 summary(TK9apim)
 hdaM=cbind(TK9ctr,TK9apim)
 summary(hdaM)
 inpW<-paste0(inpD2,gsub("[^[:alnum:] ]", "",inpD2),inpF2,"TK9.xlsx")
-write_xlsx(as.data.frame(cbind(fasta,protein,gene,unipro,hda,hdapim,hdaM)),inpW)
-write.table(as.data.frame(cbind(fasta,protein,gene,unipro,hda,hdapim,hdaM)),paste0(inpW,".txt"),sep="\t",quote=T,row.names=F)
+write_xlsx(as.data.frame(cbind(fasta,protein,gene,uniprot,hda,hdapim,hdaM)),inpW)
+write.table(as.data.frame(cbind(fasta,protein,gene,uniprot,hda,hdapim,hdaM)),paste0(inpW,".txt"),sep="\t",quote=T,row.names=F)
 library("limma")
 vennDiagram(hdaM>0)
-hdaM<-as.data.frame(hdaM)
-row.names(hdaM)<-protein
-hdaM<-cbind(hdaM,row.names(hdaM),gen)
+hdaM<-cbind(hdaM,gen,uniprot)
 #JJN3<-cbind(JJN3,unipro)
 summary(hdaM)
+TK9<-hdaM
+row.names(TK9)<-row.names(data)
+summary(TK9)
 ```
 
 ```{r merge}
-#dataMid<-"unipro"
-dataMid<-"gen"
-ncol(JJN3)
-dataM<-merge(JJN3,MctrlS,by.x=dataMid,by.y=dataMid,all=TRUE)
+dataMid<-"uniprot"
+#dataMid<-"gen"
+ncol(TK9)
+ncol(TK12346ctr)
+dataM<-merge(TK9,TK12346ctr,by.x=dataMid,by.y=dataMid,all=TRUE)
 summary(dataM)
-inpW<-paste0(outD,gsub("[^[:alnum:] ]", "",inpD),inpF,gsub("[^[:alnum:] ]", "",inpD2),inpF2,dataMid)
+inpW<-paste0(inpD,gsub("[^[:alnum:] ]", "",inpD),inpF,gsub("[^[:alnum:] ]", "",inpD2),inpF2,dataMid)
 write_xlsx(as.data.frame(cbind(dataM,row.names(dataM))),paste0(inpW,".xlsx"))
-write.table(as.data.frame(cbind(dataM,row.names(dataM))),paste0(inpW,".txt"),sep="\t",quote=T,row.names=F)
 protNum<-1:nrow(dataM)
-rn<-paste(protNum,dataM$`row.names(JJN3)`,dataM$`row.names(MctrlS)`,protNum,sep=";")
-gn<-dataM$gen
-#dataM<-dataM[,c(2:ncol(dataM))]
-dataM<-dataM[,c(2:(ncol(JJN3)-1),(ncol(JJN3)+1):(ncol(dataM)-1))]#gene
+rn<-paste(protNum,dataM$gen.x,dataM$gen.y,protNum,sep=";")
+#rn<-paste(protNum,dataM$uniprot.x,dataM$uniprot.y,protNum,sep=";")#gene
+gn<-dataM$gen #gene
+pn<-dataM$uniprot
+dataM<-dataM[,c(2,(ncol(TK9)+2):(ncol(dataM)-1))]
 row.names(dataM)<-rn
-#install.packages("BiocManager")
-#BiocManager::install("limma")
 summary(dataM)
-hist(as.matrix(dataM))
-library(limma)
 vennDiagram(dataM>0)
-dataM<-cbind(dataM,gen)
 ```
 
 ```{r sensel}
