@@ -52,8 +52,8 @@ FUNNEL::FUNNEL.GSEA(hda)
 ```
 
 ```{r data}
-#inpD<-"F:/GD/"
-inpD<-"C:/Users/animeshs/GD/"
+inpD<-"F:/GD/"
+#inpD<-"C:/Users/animeshs/GD/"
 inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
 #install.packages("readxl")
 data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
@@ -359,7 +359,7 @@ write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,sfx,"wT
 ```
 
 ```{r pathview-comb-T[ET]/pc}
-#https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
+#https://www.bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
 #install.packages("BiocManager")
 #BiocManager::install("pathview")
 library(pathview)
@@ -378,8 +378,10 @@ rowName<-paste(sapply(rowName, "[", 1))
 rownames(hda)<-rowName
 heatmap(hda)
 hda[hda==0]<-NA
+library(scales)
+hda=squish(as.matrix(hda),c(-10,10))
 hist(hda)
-pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="orange"),both.dirs=list(gene=T), limit = list(gene = 10), bins = list(gene = 20), na.col="grey",out=sfx)
 write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,sfx,"wTestBHgrpComb.xlsx"))
 ```
 
@@ -401,8 +403,9 @@ rowName<-paste(sapply(rowName, "[", 1))
 rownames(hda)<-rowName
 heatmap(hda)
 hda[hda==0]<-NA
+hda=squish(as.matrix(hda),c(-10,10))
 hist(hda)
-pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="orange"),both.dirs=list(gene=T), limit = list(gene = 10), bins = list(gene = 20), na.col="grey",out=sfx)
 write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,sfx,"wTestBHgrpComb.xlsx"))
 ```
 
@@ -424,8 +427,9 @@ rowName<-paste(sapply(rowName, "[", 1))
 rownames(hda)<-rowName
 heatmap(hda)
 hda[hda==0]<-NA
+hda=squish(as.matrix(hda),c(-10,10))
 hist(hda)
-pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="red"),both.dirs=list(gene=T),na.col="transparent",out=sfx)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="orange"),both.dirs=list(gene=T), limit = list(gene = 10), bins = list(gene = 20), na.col="grey",out=sfx)
 write_xlsx(data.frame(Name=data$RowGeneUniProtScorePeps,hda),paste0(inpF,sfx,"wTestBHgrpComb.xlsx"))
 ```
 

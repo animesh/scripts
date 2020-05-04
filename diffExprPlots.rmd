@@ -240,16 +240,19 @@ dataMid<-"uniprot"
 #dataMid<-"gen"
 ncol(TK9)
 ncol(TK12346ctr)
-dataM<-merge(TK9,TK12346ctr,by.x=dataMid,by.y=dataMid,all=TRUE)
+#dataM<-merge(TK9,TK12346ctr,by.x=dataMid,by.y=dataMid,all=TRUE)
+dataM<-merge(TK9,TK12346ctr,by=0,all=TRUE)
 summary(dataM)
 inpW<-paste0(inpD,gsub("[^[:alnum:] ]", "",inpD),inpF,gsub("[^[:alnum:] ]", "",inpD2),inpF2,dataMid)
 write_xlsx(as.data.frame(cbind(dataM,row.names(dataM))),paste0(inpW,".xlsx"))
 protNum<-1:nrow(dataM)
-rn<-paste(protNum,dataM$gen.x,dataM$gen.y,protNum,sep=";")
+rn<-paste(protNum,dataM$gen.x,dataM$uniprot.x,dataM$gen.y,dataM$uniprot.y,protNum,sep=";")
+#rn<-paste(protNum,dataM$gen.x,dataM$gen.y,protNum,sep=";")
 #rn<-paste(protNum,dataM$uniprot.x,dataM$uniprot.y,protNum,sep=";")#gene
 gn<-dataM$gen #gene
 pn<-dataM$uniprot
-dataM<-dataM[,c(2,(ncol(TK9)+2):(ncol(dataM)-1))]
+#dataM<-dataM[,c(2,(ncol(TK9)+2):(ncol(dataM)-1))]
+dataM<-dataM[,c(2,(ncol(TK9)+3):(ncol(dataM)-2))]
 row.names(dataM)<-rn
 summary(dataM)
 vennDiagram(dataM>0)
