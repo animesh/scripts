@@ -1,6 +1,6 @@
 ```{r data, echo = FALSE}
-inpD <-"C:/Users/animeshs/GD/"
-#inpD <-"F:/GD/"
+#inpD <-"C:/Users/animeshs/GD/"
+inpD <-"F:/GD/"
 #inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
 inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
@@ -98,8 +98,8 @@ vennDiagram(hdaM>0)
 ```
 
 ```{r TK12346-control}
-inpD <-"C:/Users/animeshs/GD/"
-#inpD <-"F:/GD/"
+#inpD <-"C:/Users/animeshs/GD/"
+inpD <-"F:/GD/"
 inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
 #clean
