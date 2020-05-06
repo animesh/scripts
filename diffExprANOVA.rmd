@@ -1,5 +1,15 @@
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+chkrVector<-c(22.39459,20.48316,21.87155,NA,20.34495)
+chkrDF<-as.data.frame(chkrVector)
+chkrDF[,1]
+apply(chkrDF, 2, function(x) t.test(as.numeric(x[c(1:3)]),as.numeric(x[4:5]),na.rm=T,var.equal=T)$p.value)
+t.test(as.numeric(chkrVector[c(1:3)]),as.numeric(chkrVector[4:5]),na.rm=T,var.equal=T)$p.value
+t.test(as.numeric(c(22.39459,20.48316,21.87155)),as.numeric(c(NA,20.34495)),na.rm=T,var.equal=T)$p.value
+t.test(c(22.39459,20.48316,21.87155),c(NA,20.34495),na.rm=T,var.equal=T)$p.value
+t.test(c(22.39459,20.48316,21.87155),c(NA,17.97),na.rm=T,var.equal=T)$p.value
+t.test(c(21.4316,21.77155),c(NA,17.7),na.rm=T,var.equal=T)$p.value
+t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
 ```
 
 ```{r data, echo=FALSE}
@@ -12,6 +22,7 @@ data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
 #clean
 data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
+row.names(data)<-paste(row.names(data),data$Gene.names,data$Protein.names,sep=";;")
 summary(data)
 dim(data)
 selection<-"LFQ.intensity"
@@ -87,10 +98,8 @@ row.names(TK12346ctr)<-row.names(data)
 summary(TK12346ctr)
 ```
 
-```{r AQ3 AQ3 NC154 NC163 NC164 NC165 NC166 TT07 TT08 TT09, echo = FALSE}
+```{r AQ3, echo = FALSE}
 hdr<-"AQ.3|plasma"
-chkr<-56#nrow(dataSellog2grpTtest)
-#dataSellog2grpTtest<-as.data.frame(log2LFQ[chkr,grep(hdr,colnames(log2LFQ))])
 dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
 #dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
 summary(dataSellog2grpTtest)
@@ -98,29 +107,29 @@ row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-5
 mCol<-3
-t.test(as.numeric(dataSellog2grpTtest[1,c(1:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
-#as.numeric(quantile(c(22.39458934,20.48315841,21.87154733),na.rm=T)[5])
-#as.numeric(quantile(c(22.39458934,20.48315841,21.87154733),na.rm=T)[1])-1.5*IQR(c(22.39458934,20.48315841,21.87154733))>max(as.numeric(c(NA,20.34494601)),na.rm=T)
-dataSellog2grpTtest[chkr,c(1:mCol)]
-dataSellog2grpTtest[chkr,c((mCol+1):eCol)]
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
-t.test(as.numeric(dataSellog2grpTtest[chkr,c(1:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
 dim(dataSellog2grpTtest)
 dim(dataSellog2grpTtest)[1]
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
-    if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
-    #else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){1}
-    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(1:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(1:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
-    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(1:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(1:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
-    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(1:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
-    else if(sum(!is.na(x[c(1:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
-    else if((sum(!is.na(x[c((mCol+1):eCol)]))==1)|(sum(!is.na(x[c(1:mCol)]))==1)){NA}
-    else{
-      #print(x)
-      t.test(as.numeric(x[c(1:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value})
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
 warnings()
 hist(pValNA)
 pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
@@ -135,7 +144,7 @@ hist(pValBHna)
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
 dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
-logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(1:mCol)],na.rm=T)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
 logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
 logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
 logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
@@ -148,53 +157,50 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hdr<-gsub("[^[:alnum:] ]", "",hdr)
 hist(log2FCmedianFC,main = hdr)
-#rownames(dataSellog2grpTtest)
 rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
 rowName<-paste(sapply(rowName, "[", 1))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
-#https://stackoverflow.com/a/44400007/1137129
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
-write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"tTestBHgrpOut25pQ.xlsx"))
-#write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,"wTestBHgrp.xlsx"))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
 ```
 
-```{r w-test-SAE/T, echo = FALSE}
-#lc1<-data[,label[label[["Comparisons"]]=="1",1]]
-#dplyr::select(data,unlist(label[(label$Comparisons=="1")&(!is.na(label$Comparisons)),1]))
-dataSellog2grpTtest<-data[,unlist(label[(label$Comparisons=="2")&(!is.na(label$Comparisons)),1])]
-dataSellog2grpTtest
-dataSellog2grpTtest<-as.matrix(dataSellog2grpTtest[,c(1,2,3,4,5,6)])
-dataSellog2grpTtest<-gsub("NaN", NA, dataSellog2grpTtest)
-dataSellog2grpTtest<-gsub("NA", NA, dataSellog2grpTtest)
+```{r AQ5, echo = FALSE}
+hdr<-"AQ.5|plasma"
+dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
+#dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
+summary(dataSellog2grpTtest)
 row.names(dataSellog2grpTtest)<-row.names(data)
-#dataSellog2grpTtest<-dataSellog2grpTtest[rowSums(is.na(dataSellog2grpTtest)) != ncol(dataSellog2grpTtest), ]
-dataSellog2grpTtest
 sCol<-1
-eCol<-6
-mCol<-4
-t.test(as.numeric(dataSellog2grpTtest[1,c(1:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
-chkr<-1#nrow(dataSellog2grpTtest)
-dataSellog2grpTtest[chkr,c(1:mCol)]
-dataSellog2grpTtest[chkr,c((mCol+1):eCol)]
+eCol<-5
+mCol<-3
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
 dim(dataSellog2grpTtest)
 dim(dataSellog2grpTtest)[1]
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
-    if(sum(!is.na(x[c(1:eCol)]))<2){1}
-    else if(sum(!is.na(x[c(1:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){1}
-    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c(1:mCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1){1}
-    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[1])>max(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(1:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&((quantile(as.numeric(x[c((mCol+1):eCol)]),probs=c(.025,.975),na.rm=T)[2])<min(as.numeric(x[c(1:mCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(1:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){1}
-    else if(sum(!is.na(x[c(1:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
-    else if(sum(!is.na(x[c(1:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
-    else{t.test(as.numeric(x[c(1:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value})
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
+warnings()
 hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAdm[chkr,]
 pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
 hist(pValNAminusLog10)
 library(scales)
@@ -205,7 +211,7 @@ hist(pValBHna)
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
 dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
-logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(1:mCol)],na.rm=T)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
 logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
 logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
 logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
@@ -216,16 +222,555 @@ hist(logFCmedianFC)
 logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
-hist(log2FCmedianFC)
-#rownames(dataSellog2grpTtest)
+hdr<-gsub("[^[:alnum:] ]", "",hdr)
+hist(log2FCmedianFC,main = hdr)
 rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
-rowName<-paste(sapply(rowName, "[", 3))
+rowName<-paste(sapply(rowName, "[", 1))
 rowName<-strsplit(rowName, "-")
 rowName<-paste(sapply(rowName, "[", 1))
-#https://stackoverflow.com/a/44400007/1137129
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-#write.csv(ttest.results,file=paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.csv"))
-write_xlsx(ttest.results,paste0(inpF,hdr,sCol,eCol,"wTestBHgrp.xlsx"))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
+```
+
+```{r NC154, echo = FALSE}
+hdr<-"NC.154|plasma"
+dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
+#dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
+summary(dataSellog2grpTtest)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-5
+mCol<-3
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+dim(dataSellog2grpTtest)[1]
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
+warnings()
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAdm[chkr,]
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hdr<-gsub("[^[:alnum:] ]", "",hdr)
+hist(log2FCmedianFC,main = hdr)
+rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
+rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
+```
+
+```{r NC163, echo = FALSE}
+hdr<-"NC.163|plasma"
+dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
+#dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
+summary(dataSellog2grpTtest)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-5
+mCol<-3
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+dim(dataSellog2grpTtest)[1]
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
+warnings()
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAdm[chkr,]
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hdr<-gsub("[^[:alnum:] ]", "",hdr)
+hist(log2FCmedianFC,main = hdr)
+rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
+rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
+```
+
+```{r NC164, echo = FALSE}
+hdr<-"NC.164|plasma"
+dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
+#dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
+summary(dataSellog2grpTtest)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-5
+mCol<-3
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+dim(dataSellog2grpTtest)[1]
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
+warnings()
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAdm[chkr,]
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hdr<-gsub("[^[:alnum:] ]", "",hdr)
+hist(log2FCmedianFC,main = hdr)
+rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
+rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
+```
+
+```{r NC165, echo = FALSE}
+hdr<-"NC.165|plasma"
+dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
+#dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
+summary(dataSellog2grpTtest)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-5
+mCol<-3
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+dim(dataSellog2grpTtest)[1]
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
+warnings()
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAdm[chkr,]
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hdr<-gsub("[^[:alnum:] ]", "",hdr)
+hist(log2FCmedianFC,main = hdr)
+rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
+rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
+```
+
+```{r NC166, echo = FALSE}
+hdr<-"NC.166|plasma"
+dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
+#dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
+summary(dataSellog2grpTtest)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-5
+mCol<-3
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+dim(dataSellog2grpTtest)[1]
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
+warnings()
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAdm[chkr,]
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hdr<-gsub("[^[:alnum:] ]", "",hdr)
+hist(log2FCmedianFC,main = hdr)
+rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
+rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
+```
+
+```{r TT07, echo = FALSE}
+hdr<-"TT.07|plasma"
+dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
+dataSellog2grpTtest<-dataSellog2grpTtest[,c(4:6,1:3)]
+#dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
+summary(dataSellog2grpTtest)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-5
+mCol<-3
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+dim(dataSellog2grpTtest)[1]
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
+warnings()
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAdm[chkr,]
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hdr<-gsub("[^[:alnum:] ]", "",hdr)
+hist(log2FCmedianFC,main = hdr)
+rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
+rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
+```
+
+```{r TT08, echo = FALSE}
+hdr<-"TT.08|plasma"
+dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
+dataSellog2grpTtest<-dataSellog2grpTtest[,c(4:6,1:3)]
+#dataSellog2grpTtest[is.na(dataSellog2grpTtest)]<-0
+#heatmap(dataSellog2grpTtest)
+#dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
+summary(dataSellog2grpTtest)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-2
+eCol<-5
+mCol<-3
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+dim(dataSellog2grpTtest)[1]
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
+warnings()
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAdm[chkr,]
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hdr<-gsub("[^[:alnum:] ]", "",hdr)
+hist(log2FCmedianFC,main = hdr)
+rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
+rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
+```
+
+```{r TT09, echo = FALSE}
+hdr<-"TT.09|plasma"
+dataSellog2grpTtest<-log2LFQ[,grep(hdr,colnames(log2LFQ))]
+dataSellog2grpTtest<-dataSellog2grpTtest[,c(4:6,1:3)]
+#dataSellog2grpTtest<-dataSellog2grpTtest[,-ncol(dataSellog2grpTtest)]
+summary(dataSellog2grpTtest)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-5
+mCol<-3
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-56
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+dim(dataSellog2grpTtest)[1]
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(1.5*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
+  else{NA}
+  )
+warnings()
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAdm[chkr,]
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+hist(logFCmedian)
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+hist(logFCmedianFC)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hdr<-gsub("[^[:alnum:] ]", "",hdr)
+hist(log2FCmedianFC,main = hdr)
+rowName<-strsplit(rownames(dataSellog2grpTtest), ";")
+rowName<-paste(sapply(rowName, "[", 1))
+rowName<-strsplit(rowName, "-")
+rowName<-paste(sapply(rowName, "[", 1))
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
 ```
 
 
