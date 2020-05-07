@@ -97,6 +97,73 @@ vennDiagram(hdaM<0)
 vennDiagram(hdaM>0)
 ```
 
+```{r MiB-control}
+inpD <-"L:/promec/USERS/Voin/2016-01-23_32samples/phores2/txt/"
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
+data = data[!data$Reverse=="+",]
+summary(data)
+dim(data)
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+inpL<-paste0(inpD,"Copy of legend.txt")
+label<-read.table(inpL,sep="\t",row.names = 1,header = T)
+summary(label)
+dHA<-as.matrix(log2LFQ[,grep("HA",colnames(log2LFQ))])
+hist(as.matrix(dHA))
+H460all<-apply(dHA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(H460all>0)
+H460any<-apply(dHA,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
+sum(H460any>0)
+dUA<-as.matrix(log2LFQ[,grep("UA",colnames(log2LFQ))])
+hist(as.matrix(dUA))
+U2OSall<-apply(dUA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(U2OSall>0)
+U2OSany<-apply(dUA,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
+sum(U2OSany>0)
+dAA<-as.matrix(log2LFQ[,grep("AA",colnames(log2LFQ))])
+hist(as.matrix(dAA))
+A549all<-apply(dAA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(A549all>0)
+A549any<-apply(dAA,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
+sum(A549any>0)
+hdaMall=cbind(H460all,U2OSall,A549all)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaMall)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
+summary(hdaMall)
+library("limma")
+vennDiagram(hdaMall>0)
+inpW<-paste0(inpF,"sel-LFQ-control.xlsx")
+write_xlsx(as.data.frame(cbind(uniprot,hdaMall,A549all,U2OSall,H460all,Gene=gen,Fasta=data[,7])),inpW)
+UAHctrAll<-cbind(hdaMall,gen,uniprot)
+row.names(UAHctrAll)<-row.names(data)
+summary(UAHctrAll)
+hdaMany=cbind(H460any,U2OSany,A549any)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaMany)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
+summary(hdaMany)
+library("limma")
+vennDiagram(hdaMany>0)
+inpW<-paste0(inpF,"sel-LFQ-control.xlsx")
+write_xlsx(as.data.frame(cbind(uniprot,hdaMany,A549any,U2OSany,H460any,Gene=gen,Fasta=data[,7])),inpW)
+UAHctrAll<-cbind(hdaMany,gen,uniprot)
+row.names(UAHctrAll)<-row.names(data)
+summary(UAHctrAll)
+```
+
 ```{r TK12346-control}
 #inpD <-"C:/Users/animeshs/GD/"
 inpD <-"F:/GD/"

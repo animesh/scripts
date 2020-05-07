@@ -3,6 +3,57 @@
 grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 ```
 
+```{r ComplexHeatmap, echo = FALSE}
+#https://jokergoo.github.io/2020/05/06/translate-from-pheatmap-to-complexheatmap/
+library(ComplexHeatmap)
+test = matrix(rnorm(200), 20, 10)
+test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
+test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
+test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
+colnames(test) = paste("Test", 1:10, sep = "")
+rownames(test) = paste("Gene", 1:20, sep = "")
+Calling pheatmap() (which is now actually ComplexHeatmap::pheatmap()) generates a similar heatmap as by pheatmap::pheatmap().
+pheatmap(test)  # this is ComplexHeatmap::pheatmap
+```
+
+```{r pepFunk, echo = FALSE}
+#https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btaa289/5830271
+#https://shiny.imetalab.ca/pepFunk/
+#git clone https://github.com/animesh/pepFunk.git
+
+```
+
+```{r projectR, echo = FALSE}
+#https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btaa183/5804979
+#BiocManager::install("projectR")
+#https://github.com/genesofeve/projectR/blob/master/vignettes/projectR.Rmd
+library(projectR)
+data(p.RNAseq6l3c3t)
+# do PCA on RNAseq6l3c3t expression data 
+pc.RNAseq6l3c3t<-prcomp(t(p.RNAseq6l3c3t))
+pcVAR <- round(((pc.RNAseq6l3c3t$sdev)^2/sum(pc.RNAseq6l3c3t$sdev^2))*100,2)
+dPCA <- data.frame(cbind(pc.RNAseq6l3c3t$x,pd.RNAseq6l3c3t))
+#plot pca
+library(ggplot2)
+setCOL <- scale_colour_manual(values = c("blue","black","red"), name="Condition:") 
+setFILL <- scale_fill_manual(values = c("blue","black","red"),guide = FALSE) 
+setPCH <- scale_shape_manual(values=c(23,22,25,25,21,24),name="Cell Line:")
+pPCA <- ggplot(dPCA, aes(x=PC1, y=PC2, colour=ID.cond, shape=ID.line, 
+        fill=ID.cond)) +
+        geom_point(aes(size=days),alpha=.6)+ 
+        setCOL + setPCH  + setFILL +
+        scale_size_area(breaks = c(2,4,6), name="Day") + 
+        theme(legend.position=c(0,0), legend.justification=c(0,0),
+              legend.direction = "horizontal",
+              panel.background = element_rect(fill = "white",colour=NA),
+              legend.background = element_rect(fill = "transparent",colour=NA),
+              plot.title = element_text(vjust = 0,hjust=0,face="bold")) +
+        labs(title = "PCA of hPSC",
+            x=paste("PC1 (",pcVAR[1],"% of varience)",sep=""),
+            y=paste("PC2 (",pcVAR[2],"% of varience)",sep=""))
+plot(pPCA)
+```
+
 ```{r NPARC, echo = FALSE}
 #https://bioconductor.org/packages/release/bioc/vignettes/NPARC/inst/doc/NPARC.html
 #Analysing thermal proteome profiling data
