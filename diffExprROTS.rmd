@@ -1,3 +1,88 @@
+```{r proteinGroups}
+inpD <-"L:/promec/Animesh/Abba/"
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
+data = data[!data$Reverse=="+",]
+summary(data)
+dim(data)
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+dHA<-as.matrix(log2LFQ[,grep("AnneMari",colnames(log2LFQ))])
+hist(as.matrix(dHA))
+LFQall<-apply(dHA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(LFQall>0)
+LFQmid<-apply(dHA,1,function(x) if(sum(is.na(x))<length(x)/2){median(x,na.rm=T)} else{0})
+sum(LFQany>0)
+LFQany<-apply(dHA,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
+sum(LFQany>0)
+hist(as.matrix(LFQany))
+plot(LFQany,LFQmid)
+hdaMall<-cbind(LFQany,LFQall,LFQmid)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaMall)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
+summary(hdaMall)
+library("limma")
+vennDiagram(hdaMall>0)
+inpW<-paste0(inpF,"sel-LFQ.xlsx")
+library(writexl)
+write_xlsx(as.data.frame(cbind(uniprot,hdaMall,Gene=gen,Fasta=data[,7])),inpW)
+```
+
+```{r heatmap}
+#BiocManager::install("ComplexHeatmap")
+#library(ComplexHeatmap)
+hda<-hdaMall
+protNum<-1:nrow(hda)
+row.names(hda)<-paste0(protNum,gen)
+pheatmap::pheatmap(hda)
+ComplexHeatmap::Heatmap(hda)
+dist(t(hda))
+hdaC<-cor(hda,use="pairwise.complete.obs")
+hdaC[is.na(hdaC)]=0
+row.names(hdaC)<-colnames(hdaC)
+pheatmap::pheatmap(hdaC)
+ComplexHeatmap::Heatmap(hdaC)
+```
+
+```{r heatmap-sample-correlation}
+#BiocManager::install("ComplexHeatmap")
+#library(ComplexHeatmap)
+hda<-log2LFQ
+#hda[is.na(hda)]=0
+protNum<-1:nrow(hda)
+row.names(hda)<-paste0(protNum,gen)
+pheatmap::pheatmap(hda)
+ComplexHeatmap::Heatmap(hda)
+#dist(t(hda))
+hdaC<-cor(hda,use="pairwise.complete.obs")
+hdaC[is.na(hdaC)]=0
+selection<-"LFQ.intensity.60313_AnneMari_"
+colnames(hdaC)<-sub(selection,"",colnames(hdaC))
+row.names(hdaC)<-colnames(hdaC)
+inpL<-paste0(inpD,"labels.txt")
+groups<-read.table(inpL,sep="\t",row.names = 1,header = T)
+rownames(groups)<-sub("-","\\.",rownames(groups))
+summary(groups)
+groupsT<-as.data.frame(groups[,grep("Type$",colnames(groups))])
+rownames(groupsT)<-rownames(groups)
+colnames(groupsT)<-"Bead"
+pheatmap::pheatmap(hdaC,fontsize_row=5,fontsize_col=5,annotation_row=groupsT,annotation_col=groupsT)
+groupsR<-as.matrix(groupsT[,-grep("Bio",colnames(groupsT))])
+rownames(groupsR)<-rownames(groupsT)
+groupsC<-as.matrix(groupsT[,grep("Bio",colnames(groupsT))])
+rownames(groupsC)<-rownames(groups)
+pheatmap::pheatmap(hdaC,fontsize_row=6,annotation_row=groupsR)#[["Type"]])annotation_row=groupsR,
+ComplexHeatmap::Heatmap(hdaC)
+```
+
 ```{r data}
 inpD<-"F:/GD/"
 inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsx")
