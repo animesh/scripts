@@ -3,6 +3,17 @@
 grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 ```
 
+```{r review, echo = FALSE}
+#check min-max scaling robustness to outliers
+data<-rnorm(100)
+hist(data)
+data<-c(data,rnorm(100,mean = 1000, sd = 1),rnorm(1,mean = -1000, sd = 1))
+hist(data)
+dataS<-(data-min(data))/(max(data)-min(data))
+hist(dataS)
+#
+```
+
 ```{r ComplexHeatmap, echo = FALSE}
 #https://jokergoo.github.io/2020/05/06/translate-from-pheatmap-to-complexheatmap/
 library(ComplexHeatmap)
