@@ -52,34 +52,44 @@ pheatmap::pheatmap(hdaC)
 ComplexHeatmap::Heatmap(hdaC)
 ```
 
-```{r heatmap-sample-correlation}
-#BiocManager::install("ComplexHeatmap")
-#library(ComplexHeatmap)
-hda<-log2LFQ
-#hda[is.na(hda)]=0
-protNum<-1:nrow(hda)
-row.names(hda)<-paste0(protNum,gen)
-pheatmap::pheatmap(hda)
-ComplexHeatmap::Heatmap(hda)
-#dist(t(hda))
-hdaC<-cor(hda,use="pairwise.complete.obs")
-hdaC[is.na(hdaC)]=0
-selection<-"LFQ.intensity.60313_AnneMari_"
-colnames(hdaC)<-sub(selection,"",colnames(hdaC))
-row.names(hdaC)<-colnames(hdaC)
+```{r label}
 inpL<-paste0(inpD,"labels.txt")
 groups<-read.table(inpL,sep="\t",row.names = 1,header = T)
 rownames(groups)<-sub("-","\\.",rownames(groups))
+groups$rows<-rownames(groups)
 summary(groups)
 groupsT<-as.data.frame(groups[,grep("Type$",colnames(groups))])
 rownames(groupsT)<-rownames(groups)
 colnames(groupsT)<-"Bead"
-pheatmap::pheatmap(hdaC,fontsize_row=5,fontsize_col=5,annotation_row=groupsT,annotation_col=groupsT)
 groupsR<-as.matrix(groupsT[,-grep("Bio",colnames(groupsT))])
 rownames(groupsR)<-rownames(groupsT)
 groupsC<-as.matrix(groupsT[,grep("Bio",colnames(groupsT))])
 rownames(groupsC)<-rownames(groups)
-pheatmap::pheatmap(hdaC,fontsize_row=6,annotation_row=groupsR)#[["Type"]])annotation_row=groupsR,
+#svgPHC<-pheatmap::pheatmap(hdaC,fontsize_row=6,annotation_row=groupsR)
+```
+
+```{r heatmap-sample-correlation}
+#BiocManager::install("ComplexHeatmap")
+#library(ComplexHeatmap)
+hd<-log2LFQ
+colnames(hd)
+selection<-"LFQ.intensity.60313_AnneMari_"
+colnames(hd)<-sub(selection,"",colnames(hd))
+colnames(hd)
+#PLE, PLT, PKE, PKT unlist(groups[(groups$Type=="PLE")&(!is.na(groups$Type)),1])
+#hda<-hd[,unlist(groups[(groups$Type=="PLE")|(groups$Type=="PLT")|(groups$Type=="PKE")|(groups$Type=="PKT"),13])]
+cn<-c(groups[(groups$Type=="PLE")|(groups$Type=="PLT")|(groups$Type=="PKE")|(groups$Type=="PKT"),13])
+hda<-hd[,!(colnames(hd) %in% cn)]
+#hda[is.na(hda)]=0
+protNum<-1:nrow(hda)
+row.names(hda)<-paste0(protNum,gen)
+#dist(t(hda))
+hdaC<-cor(hda,use="pairwise.complete.obs")
+hdaC[is.na(hdaC)]=0
+svgPHC<-pheatmap::pheatmap(hdaC,fontsize_row=5,fontsize_col=5,annotation_row=groupsT,annotation_col=groupsT)
+library(ggplot2)
+cn<-paste(gsub("[^[:alnum:] ]", "",cn), collapse='_' )
+ggsave(file=paste0(inpD,selection,"NOT",cn,clusterPlot.svg,plot=svgPHC) 
 ComplexHeatmap::Heatmap(hdaC)
 ```
 
