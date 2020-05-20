@@ -1,3 +1,237 @@
+#https://github.com/karpathy/micrograd/blob/master/demo.ipynb
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+from micrograd.engine import Value
+from micrograd.nn import Neuron, Layer, MLP
+np.random.seed(1337)
+random.seed(1337)
+from sklearn.datasets import make_moons, make_blobs
+X, y = make_moons(n_samples=100, noise=0.1)
+y = y*2 - 1 # make y be -1 or 1
+# visualize in 2D
+plt.figure(figsize=(5,5))
+plt.scatter(X[:,0], X[:,1], c=y, s=20, cmap='jet')
+# initialize a model
+model = MLP(2, [16, 16, 1]) # 2-layer neural network
+print(model)
+print("number of parameters", len(model.parameters()))
+def loss(batch_size=None):
+
+    # inline DataLoader :)
+    if batch_size is None:
+        Xb, yb = X, y
+    else:
+        ri = np.random.permutation(X.shape[0])[:batch_size]
+        Xb, yb = X[ri], y[ri]
+    inputs = [list(map(Value, xrow)) for xrow in Xb]
+
+    # forward the model to get scores
+    scores = list(map(model, inputs))
+
+    # svm "max-margin" loss
+    losses = [(1 + -yi*scorei).relu() for yi, scorei in zip(yb, scores)]
+    data_loss = sum(losses) * (1.0 / len(losses))
+    # L2 regularization
+    alpha = 1e-4
+    reg_loss = alpha * sum((p*p for p in model.parameters()))
+    total_loss = data_loss + reg_loss
+
+    # also get accuracy
+    accuracy = [(yi > 0) == (scorei.data > 0) for yi, scorei in zip(yb, scores)]
+    return total_loss, sum(accuracy) / len(accuracy)
+
+total_loss, acc = loss()
+print(total_loss, acc)
+# optimization
+for k in range(100):
+
+    # forward
+    total_loss, acc = loss()
+
+    # backward
+    model.zero_grad()
+    total_loss.backward()
+
+    # update (sgd)
+    learning_rate = 1.0 - 0.9*k/100
+    for p in model.parameters():
+        p.data -= learning_rate * p.grad
+
+    if k % 1 == 0:
+        print(f"step {k} loss {total_loss.data}, accuracy {acc*100}%")
+
+# visualize decision boundary
+
+h = 0.25
+x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                     np.arange(y_min, y_max, h))
+Xmesh = np.c_[xx.ravel(), yy.ravel()]
+inputs = [list(map(Value, xrow)) for xrow in Xmesh]
+scores = list(map(model, inputs))
+Z = np.array([s.data > 0 for s in scores])
+Z = Z.reshape(xx.shape)
+
+fig = plt.figure()
+plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral, alpha=0.8)
+plt.scatter(X[:, 0], X[:, 1], c=y, s=40, cmap=plt.cm.Spectral)
+plt.xlim(xx.min(), xx.max())
+plt.ylim(yy.min(), yy.max())
+
+#https://blog.tensorflow.org/2020/01/hyperparameter-tuning-with-keras-tuner.html
+from sklearn import ensemble
+from sklearn import linear_model
+
+def build_model(hp):
+    model_type = hp.Choice('model_type', ['random_forest', 'ridge'])
+    if model_type == 'random_forest':
+        with hp.conditional_scope('model_type', 'random_forest'):
+            model = ensemble.RandomForestClassifier(
+                n_estimators=hp.Int('n_estimators', 10, 50, step=10),
+                max_depth=hp.Int('max_depth', 3, 10))
+    elif model_type == 'ridge':
+        with hp.conditional_scope('model_type', 'ridge'):
+            model = linear_model.RidgeClassifier(
+                alpha=hp.Float('alpha', 1e-3, 1, sampling='log'))
+    else:
+        raise ValueError('Unrecognized model_type')
+    return model
+
+tuner = kt.tuners.Sklearn(
+        oracle=kt.oracles.BayesianOptimization(
+            objective=kt.Objective('score', 'max'),
+            max_trials=10),
+        hypermodel=build_model,
+        directory=tmp_dir)
+X, y = ...
+tuner.search(X, y)
+
+#https://www.springer.com/gp/book/9783030053178
+from hyperopt import hp
+space = hp.choice(’my_conditional’,[(’case 1’, 1 + hp.lognormal(’c1’, 0, 1)),(’case 2’, hp.uniform(’c2’, -10, 10)),(’case 3’, hp.choice(’c3’, [’a’, ’b’, ’c’]))])
+
+from hpsklearn import HyperoptEstimator, svc, knn
+from hyperopt import hp
+# restrict the space to contain only random forest,
+# k-nearest neighbors, and SVC models.
+clf = hp.choice(’my_name’,[random_forest(’my_name.random_forest’),svc(’my_name.svc’),knn(’my_name.knn’)])
+estim = HyperoptEstimator(classifier=clf)
+
+import autosklearn.classification
+cls = autosklearn.classification.AutoSklearnClassifier()
+cls.fit(X_train, y_train)
+predictions = cls.predict(X_test)
+
+#PoSH Auto-sklearn (short for Portfolio Successive Halving,combined with Auto-sklearn)
+from autonet import AutoNetClassification
+cls = AutoNetClassification(min_budget=5, max_budget=20, max_runtime=120)
+cls.fit(X_train, Y_train)
+predictions = cls.predict(X_test)
+#BOHB (Bayesian Optimization and HyperBand)
+
+#automated deep learning; this is discussed in the following chapter on Auto-Net
+#https://nbviewer.jupyter.org/github/autonomio/talos/blob/master/examples/Hyperparameter%20Optimization%20on%20Keras%20with%20Breast%20Cancer%20Data.ipynb
+rom keras.models import Sequential
+from keras.layers import Dropout, Dense
+%matplotlib inline
+import sys
+sys.path.insert(0, '/Users/mikko/Documents/GitHub/talos')
+import talos
+# then we load the dataset
+x, y = talos.templates.datasets.breast_cancer()
+# and normalize every feature to mean 0, std 1
+x = talos.utils.rescale_meanzero(x)
+# then we load the dataset
+x, y = talos.templates.datasets.breast_cancer()
+
+# and normalize every feature to mean 0, std 1
+x = talos.utils.rescale_meanzero(x)
+# then we can go ahead and set the parameter space
+p = {'first_neuron':[9,10,11],
+     'hidden_layers':[0, 1, 2],
+     'batch_size': [30],
+     'epochs': [100],
+     'dropout': [0],
+     'kernel_initializer': ['uniform','normal'],
+     'optimizer': ['Nadam', 'Adam'],
+     'losses': ['binary_crossentropy'],
+     'activation':['relu', 'elu'],
+     'last_activation': ['sigmoid']}
+# and run the experiment
+t = talos.Scan(x=x,
+               y=y,
+               model=breast_cancer_model,
+               params=p,
+               experiment_name='breast_cancer',
+               round_limit=10)
+
+
+
+#https://www.kdnuggets.com/2020/05/5-great-new-features-scikit-learn.html set_config() module, one can enable the global display='diagram' option in your Jupyter
+#pip install --upgrade scikit-learn
+from sklearn.cluster import KMeans #Elkan algorithm now supports sparse matrices
+import numpy as np
+X = np.array([[1, 2], [1, 4], [1, 0],
+              [10, 2], [10, 4], [10, 0]])
+kmeans = KMeans(n_clusters=2, random_state=0).fit(X)
+kmeans.labels_
+kmeans.predict([[0, 0], [12, 3]])
+kmeans.cluster_centers_
+
+gbdt_cst = HistGradientBoostingRegressor(monotonic_cst=[1, 0]).fit(X, y)
+gbdt = HistGradientBoostingRegressor(loss='poisson', learning_rate=.01)
+
+#https://scikit-learn.org/stable/modules/linear_model.html#generalized-linear-regression
+from sklearn.linear_model import TweedieRegressor
+reg = TweedieRegressor(power=1, alpha=0.5, link='log')
+reg.fit([[0, 0], [0, 1], [2, 2]], [0, 1, 2])
+reg.coef_
+reg.intercept_
+
+n_samples, n_features = 1000, 20
+rng = np.random.RandomState(0)
+X, y = make_regression(n_samples, n_features, random_state=rng)
+sample_weight = rng.rand(n_samples)
+X_train, X_test, y_train, y_test, sw_train, sw_test = train_test_split(
+    X, y, sample_weight, random_state=rng)
+reg = Lasso()
+reg.fit(X_train, y_train, sample_weight=sw_train)
+print(reg.score(X_test, y_test, sw_test))
+
+#https://www.kdnuggets.com/2020/05/sparse-matrix-representation-python.html
+import numpy as np
+from scipy import sparse
+X = np.random.uniform(size=(10000, 10000))
+X[X < 0.7] = 0
+X_csr = sparse.csr_matrix(X)
+print(f"Size in bytes of original matrix: {X.nbytes}")
+print(f"Size in bytes of compressed sparse row matrix: {X_csr.data.nbytes + X_csr.indptr.nbytes + X_csr.indices.nbytes}")
+#https://github.com/google-research/tapas
+python tapas/run_task_main.py \
+  --task="SQA" \
+  --input_dir="${sqa_data_dir}" \
+  --output_dir="${output_dir}" \
+  --bert_vocab_file="${tapas_data_dir}/vocab.txt" \
+  --mode="create_data"
+#Afterwards, training can be started by running:
+python tapas/run_task_main.py \
+  --task="SQA" \
+  --output_dir="${output_dir}" \
+  --init_checkpoint="${tapas_data_dir}/model.ckpt" \
+  --bert_config_file="${tapas_data_dir}/bert_config.json" \
+  --mode="train" \
+  --use_tpu
+#This will use the preset hyper-paremters set in hparam_utils.py.
+#It's recommended to start a separate eval job to continuously produce predictions for the checkpoints created by the training job. Alternatively, you can run the eval job after training to only get the final results.
+python tapas/run_task_main.py \
+  --task="SQA" \
+  --output_dir="${output_dir}" \
+  --init_checkpoint="${tapas_data_dir}/model.ckpt" \
+  --bert_config_file="${tapas_data_dir}/bert_config.json" \
+  --mode="predict_and_evaluate"
+
 #https://github.com/zqfang/GSEApy/
 #git clone https://github.com/zqfang/GSEApy/
 #pip install gseapy

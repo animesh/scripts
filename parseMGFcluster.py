@@ -56,6 +56,7 @@ X=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ 
 X_mz1=np.array(X).reshape(-1, 1)
 print(X_mz1.shape)
 
+
 import scipy.spatial.distance
 dataD = scipy.spatial.distance.pdist(X_mz1, 'cityblock')
 dataD.size-X_mz1.size*X_mz1.size/2
