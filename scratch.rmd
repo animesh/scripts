@@ -14,6 +14,36 @@ hist(dataS)
 #
 ```
 
+```{r propR, echo = FALSE}
+#Calculating Proportionality Between Vectors of Compositional Data https://cran.r-project.org/web/packages/propr/propr.pdf
+#devtools::install_github("tpq/propr")
+install.packages("propr")
+library(propr)
+counts <- matrix(rpois(20*50, 100), 20, 50)
+group <- sample(c("A", "B"), size = 20, replace = TRUE)
+test = matrix(rnorm(200), 20, 10)
+test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
+test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
+test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
+colnames(test) = paste("Test", 1:10, sep = "")
+rownames(test) = paste("Gene", 1:20, sep = "")
+pr <- propr(counts, # rows as samples, like it should be
+            metric = "rho", # or "phi", "phs", "cor", "vlr"
+            ivar = "clr", # or can use "iqlr" instead
+            alpha = NA, # use to handle zeros
+            p = 100) # used by updateCutoffs
+updateCutoffs(pr,cutoff = seq(0, 1, .05), # cutoffs at which to estimate FDR
+              ncores = 1) # parallelize here
+pd <- propd(counts,group, # a vector of 2 or more groups
+            alpha = NA, # whether to handle zeros
+            weighted = TRUE, # whether to weigh log-ratios
+            p = 100) # used by updateCutoffs
+setDisjointed(pd)
+setEmergent(pd)
+pd <- updateF(pd,moderated = FALSE, # moderate stats with limma-voom
+              ivar = "clr") # used for moderation
+```
+
 ```{r ComplexHeatmap, echo = FALSE}
 #https://jokergoo.github.io/2020/05/06/translate-from-pheatmap-to-complexheatmap/
 library(ComplexHeatmap)
