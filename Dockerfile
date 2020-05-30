@@ -1,6 +1,6 @@
 #Instruction from https://apps.sigma2.no/docs/custom-docker-image.html
 #Image name from https://github.com/Uninett/helm-charts/blob/master/repos/stable/deep-learning-tools/values.yaml
-FROM	quay.io/uninett/deep-learning-tools:20190821-df15ac1
+FROM	quay.io/uninett/deep-learning-tools:20200421-877c95d
 # Install system packages
 USER 	root
 RUN conda update -n base conda
