@@ -9,7 +9,6 @@ install.packages("diceR")
 library(glmnet)
 ```
 
-
 ```{r setup, echo = FALSE}
 inpD <-"F:/mgf/"
 inpF<-"20150512_BSA_The-PEG-envelope.raw.profile.MGF"#paste0(inpD,"20150512_BSA_The-PEG-envelope.raw.profile.MGF")

@@ -1,7 +1,27 @@
 ```{r libloc, echo = FALSE}
 .libPaths( c( .libPaths(), "~/libR") )
-grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
+#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 ```
+
+```{r LFQbench, echo = FALSE}
+#https://github.com/IFIproteomics/LFQbench
+install.packages("devtools")
+library(devtools)
+install_github("IFIproteomics/LFQbench")
+library(LFQbench)
+```
+
+```{r pkgs, echo = FALSE}
+#https://jokergoo.github.io/2020/05/31/word-cloud-as-heatmap-annotation/
+install.packages("SDMTools")
+library(SDMTools)
+tmp_file = tempfile()
+download.file("https://jokergoo.github.io/word_cloud_annotation_example.RData", 
+    destfile = tmp_file, quiet = TRUE)
+load(tmp_file); file.remove(tmp_file)
+```
+
+
 
 ```{r tidyHeatmap, echo = FALSE}
 #https://github.com/stemangiola/tidyHeatmap
@@ -4063,3 +4083,15 @@ ven <- venndetail(list(Red = dataNormFilter$Red, White = dataNormFilter$White))
 plot(ven)
 plot(ven, type = "vennpie")
 ```
+#https://jokergoo.github.io/2020/05/31/word-cloud-as-heatmap-annotation/
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+$(document).ready(function(){
+	$("pre").not(".r").prepend("<input class='switch_hljs' type='button' value='show/hide output' />");
+	$(".switch_hljs").next().hide();
+	$(".switch_hljs").click(function() {
+		$(this).next().toggle();
+	})
+});
+</script>
