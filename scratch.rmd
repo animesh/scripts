@@ -3,6 +3,48 @@
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 ```
 
+```{r MSnbase}
+#https://www.youtube.com/watch?v=TyRJOrFfQus
+#https://docs.google.com/document/d/1N_L2UTOepitl-uHOjfyS8EtkWFNvcQFyQZhU8nFr2AY/edit
+#https://lgatto.github.io/2020_05_07_MayInstitute/
+install.packages(“microbenchmark”)
+install.packages(“magrittr”)
+install.packages(“pryr”)
+install.packages(“plotly”)
+install.packages(“remotes”)
+install.packages(“BiocManager”)
+BiocManager::install(“MSnbase”)
+BiocManager::install(“msdata”)
+BiocManager::install(“lgatto/MSnbaseBoxCar”)
+BiocManager::install("MSnbase")
+
+library(MSnbase)
+library(magrittr)
+f <- msdata::proteomics(pattern = "201412", full.names = TRUE)
+basename(f)
+system.time(x_dsk <- readMSData(f, mode = "onDisk"))
+sp <- x_dsk[[1]]
+plot(sp)
+chr1 <- chromatogram(x_dsk)
+plot(chr1)
+plot(x_dsk2[[1227]], reporters = TMT6, full = TRUE)
+
+library(MSnbaseBoxCar)
+bcf <- 
+   dir(system.file("extdata", package = "MSnbaseBoxCar"),
+    pattern = "boxcar.mzML", 
+    full.names = TRUE)
+bc <- readMSData(bcf, mode = "onDisk") 
+bc
+p <- plot(bc[1:4])
+bc2 <- bc %>% 
+   bc_groups() %>% 
+   filterBoxCar() %>% 
+   bc_zero_out_box() %>% 
+   combineSpectra(fcol = "bc_groups",
+                  method = boxcarCombine)
+```
+
 ```{r LFQbench, echo = FALSE}
 #https://github.com/IFIproteomics/LFQbench
 install.packages("devtools")

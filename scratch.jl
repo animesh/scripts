@@ -1,3 +1,16 @@
+#setup
+wget https://julialang-s3.julialang.org/bin/linux/x64/1.5/julia-1.5.0-beta1-linux-x86_64.tar.gz
+tar xvzf julia-1.5.0-beta1-linux-x86_64.tar.gz
+julia-1.5.0-beta1/bin/julia
+
+#https://github.com/Evizero/UnicodePlots.jl
+using Pkg
+Pkg.add("UnicodePlots")
+using UnicodePlots
+histogram(randn(1000) .* 0.1, nbins = 15, closed = :left)
+heatmap(collect(0:30) * collect(0:30)', xscale=0.1, yscale=0.1, xoffset=-2.5, colormap=:inferno)
+
+
 #https://probcomp.github.io/Gen/ The, install the Gen package with the Julia package manager. From the Julia REPL, type ] to enter the Pkg REPL mode and then run: pkg> add https://github.com/probcomp/Gen
 #https://probcomp.github.io/Gen/intro-to-modeling/Introduction%20to%20Modeling%20in%20Gen
 using Gen
