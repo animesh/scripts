@@ -246,8 +246,8 @@ summary(UAHctrAll)
 ```
 
 ```{r TK12346-control}
-#inpD <-"C:/Users/animeshs/GD/"
-inpD <-"F:/GD/"
+inpD <-"C:/Users/animeshs/Desktop/GD/"
+#inpD <-"F:/GD/"
 inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
 #clean
@@ -259,27 +259,26 @@ selection<-"LFQ.intensity"
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 protNum<-1:ncol(LFQ)
 colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
-dim(LFQ)
+dim(LFQ)git 
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
+summary(log2LFQ)
 hda<-as.matrix(log2LFQ[,grep("CTR",colnames(log2LFQ))])
 hist(as.matrix(hda))
+summary(hda)
+#ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))==0){median(x[c(2,3,5)],na.rm=T)} else{0})
 #ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
-ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))==0){median(x[c(1:5)],na.rm=T)} else{0})
-sum(ctr2>0)
-ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))<5){median(x[c(1:5)],na.rm=T)} else{0})
+ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))<5){median(x[c(2,3,5)],na.rm=T)} else{0})
+#ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))<5){median(x[c(1:5)],na.rm=T)} else{0}) #in case all 5 replicate values to be considered in median ctr2
 sum(ctr2>0)
 ctr3<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))==0){median(x[6:8])} else{0})
-sum(ctr3>0)
-ctr3<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))<3){median(x[6:8],na.rm=T)} else{0})
+#ctr3<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))<3){median(x[6:8],na.rm=T)} else{0})
 sum(ctr3>0)
 ctr4<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))==0){median(x[9:11])} else{0})
-sum(ctr4>0)
-ctr4<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))<3){median(x[9:11],na.rm=T)} else{0})
+#ctr4<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))<3){median(x[9:11],na.rm=T)} else{0})
 sum(ctr4>0)
 ctr6<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))==0){median(x[12:14])} else{0})
-sum(ctr6>0)
-ctr6<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))<3){median(x[12:14],na.rm=T)} else{0})
+#ctr6<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))<3){median(x[12:14],na.rm=T)} else{0})
 sum(ctr6>0)
 hdaM=cbind(ctr2,ctr3,ctr4,ctr6)
 Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
@@ -292,7 +291,8 @@ protein<-as.character(data$Protein.IDs)
 summary(hdaM)
 library("limma")
 vennDiagram(hdaM>0)
-inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control.xlsx")
+inpW<-paste0(inpF,"sel-LFQ-onevar-x3-control.xlsx")
+#inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control.xlsx")
 write_xlsx(as.data.frame(cbind(uniprot,hdaM,hda,data[,7])),inpW)
 summary(hdaM)
 TK12346ctr<-cbind(hdaM,gen,uniprot)
@@ -407,10 +407,11 @@ vennDiagram(dataM>0)
 ```
 
 ```{r sensel}
+library(readxl)
+inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control-sensel.xlsx")
 data<-read_xlsx(inpW)
 dataS<-data[(data$ctr2==0) & (data$ctr3>0) & (data$ctr4>0) & (data$ctr6>0),]
-inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control-sensel.xlsx")
-write_xlsx(dataS,inpW)
+#write_xlsx(dataS,inpW)
 ```
 
 ```{r map-ID}
@@ -427,6 +428,7 @@ library(clusterProfiler)
 #http://data.wikipathways.org/current/gmt/
 wikiF<-"wikipathways-20200310-gmt-Homo_sapiens.gmt"
 wikiPF<-paste0(inpD,wikiF)
+#BiocManager::install("GSEABase")
 wp2gene <- read.gmt(wikiPF)
 write.table(wp2gene,paste0(inpD,wikiF,".txt"),sep="\t")
 library(magrittr)
@@ -441,32 +443,68 @@ wpid2name[grep("mtor",wpid2name$name,ignore.case = TRUE),]
 wpid2name[grep("pi3k",wpid2name$name,ignore.case = TRUE),]
 #select(org.Hs.eg.db, uniP, "GENENAME", "UNIPROT")
 #select(org.Hs.eg.db, uniP, "SYMBOL", "UNIPROT")
-uniP<-data$T..Uniprot
+#uniP<-data$Majority.protein.IDs
+uniP<-TK12346ctr[,6]
 uniP <- lapply(uniP, as.character)
 unlist(uniP)
 uniP[[311]]
-rn<-sub("-","",uniP)
+rn<-sub("-",";",uniP)
 uniP <- paste(sapply(rn, "[", 1))#[[311]]#,sapply(rn, "[", 3),sapply(rn, "[", 6))
 unlist(uniP)
 uniP[[311]]
 
-colnames(dataV)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+#colnames(dataV)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
 select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
 uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
 wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
 wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
 uniprots <- Rkeys(org.Hs.egUNIPROT)
 uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
-dataSez<-merge(dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
+dataSez<-merge(TK12346ctr, uniprots2entrez, by.x="uniprot", by.y="UNIPROT")
 #dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
 dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
 #rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
 rownames(dataSezWP)<-paste(dataSezWP$T..Uniprot,dataSezWP$T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
 #dataS<-dataSezWP
-dataSezWPtest<-dataSezWP[,c(15,16,17,18)]
+dataSezWPtest<-dataSezWP[,c(3:6)]
 cn<-strsplit(colnames(dataSezWPtest), "_")
-colnames(dataSezWPtest)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-vennDiagram(dataSezWPtest<selThr,main="dataSezWPtest",counts.col = "red")
+colnames(dataSezWPtest)<-paste(sapply(cn, "[", 1))#,sapply(cn, "[", 4))
+dataSezWPtest<-apply(dataSezWPtest, 2, as.numeric)
+summary(dataSezWPtest)
+vennDiagram(dataSezWPtest>0,main="dataSezWPtest",counts.col = "red")
+```
+
+```{r data-wikiPathway-map}
+#inpD<-"F:/GD/"
+inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
+#install.packages("readxl")
+data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
+#dataS<-as.matrix(data[,1:4],rownames=T)
+dataS<-as.matrix(data[,c(1:4,7:18)],rownames=T)
+dataS[dataS==0]=NA
+rn<-sub(";","",unlist(data[37]))
+rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+rn<-strsplit(rn, "-")
+row.names(dataS)<-sapply(rn, "[", 1)
+cn<-strsplit(colnames(dataS), "_")
+colnames(dataS)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+summary(dataS)
+hist(dataS)
+selThr<-0.3
+vennDiagram(dataS[,c(1:4)]<selThr,main="wikiD",counts.col = "red")
+```
+
+```{r autophagy, echo = FALSE}
+dataSel <- data[grep("autophag", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="autophag",counts.col = "red")
+#dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+#dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+#dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste0(rownames(dataSel),"autophag")
+dataSelAutophag<-dataSel
+summary(dataSelAutophag)
 ```
 
 ```{r stat, echo = FALSE}
@@ -523,7 +561,7 @@ summary(dataSel_PI3KAKTmTOR)
 ```
 
 ```{r sel-data-cols, echo = FALSE}
-data_selr_s<-rbind.data.frame(dataSelApoptosis)#,dataSelMAPK,dataSelSTAT,dataSelAMPK,dataSel_PI3KAKTmTOR)
+data_selr_s<-rbind.data.frame(dataSelAutophag)#dataSelApoptosis)#,dataSelMAPK,dataSelSTAT,dataSelAMPK,dataSel_PI3KAKTmTOR)
 #data_selr[data_selr==0]=NA
 #install.packages("scales")
 library(scales)
@@ -583,9 +621,30 @@ ggsave(file=paste0(inpD,"clusterPlot.ApoptoMAPKSTATAMPKPI3KAKTmTOR.svg"),plot=sv
 #ggsave(file=paste0(inpD,hdr,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  width=6, height=6)
 ```
 
+```{r AutophagHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelAutophag
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="autophag",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Autophag.svg"),plot=svgPHC)#,  
+```
+
 ```{r ApoHC-sel-data-cols, echo = FALSE}
 data_selr_s<-dataSelApoptosis
 row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="apo",counts.col = "red")
 data_selr<-as.matrix(data_selr_s[,c(7:18)])
 cn<-strsplit(colnames(data_selr), " ")
 colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
@@ -605,6 +664,7 @@ ggsave(file=paste0(inpD,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,
 ```{r STAThc-sel-data-cols, echo = FALSE}
 data_selr_s<-dataSelSTAT
 row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="stat",counts.col = "red")
 data_selr<-as.matrix(data_selr_s[,c(7:18)])
 cn<-strsplit(colnames(data_selr), " ")
 colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))

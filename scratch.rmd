@@ -3,6 +3,13 @@
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 ```
 
+```{r}
+install.packages('devtools')
+library(devtools)
+install_github('MacoskoLab/liger')
+```
+
+
 ```{r MSnbase}
 #https://www.youtube.com/watch?v=TyRJOrFfQus
 #https://docs.google.com/document/d/1N_L2UTOepitl-uHOjfyS8EtkWFNvcQFyQZhU8nFr2AY/edit
