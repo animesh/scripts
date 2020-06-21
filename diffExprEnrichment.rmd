@@ -1,4 +1,13 @@
 ```{r packages, echo = FALSE}
+#https://www.osc.edu/resources/getting_started/howto/howto_install_local_r_packages
+install.packages("lattice", repos="http://cran.r-project.org", lib="~/local/R_libs/")
+.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
+getwd()
+setwd("C:/Users/animeshs/GD/")
+getwd()
+#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
+#rm(list = ls())
+#detach("package:pathview", unload=TRUE)
 # https://github.com/waldronlab/GSEABenchmarking
 # dplyr complains this required libraries: libudunits2-dev, libmariadb-client-lgpl-dev
 # install.packages("plotly", repos="http://cran.rstudio.com/", dependencies=TRUE)
@@ -46,6 +55,51 @@ if(sum(suc) < length(list.of.bio.packages) )
 # https://academic.oup.com/bib/advance-article/doi/10.1093/bib/bbz158/5722384
 ```
 
+```{r data, echo = FALSE}
+inpD <-"C:/Users/animeshs/GD/"
+#install.packages("readxl", repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
+#library("readxl",lib="C:/Users/animeshs/GD/R_libs")
+#inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx")
+#data<-read_xlsx(inpF)
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T)
+data$Uniprot<-sapply(strsplit(as.character(data$Protein.IDs),"[-;]"), "[", 1)
+summary(data)
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+protNum<-1:ncol(LFQ)
+colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+summary(log2LFQ)
+#install.packages("writexl")#, repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
+library("writexl")#,lib="C:/Users/animeshs/GD/R_libs")
+write_xlsx(as.data.frame(cbind(data$Uniprot,log2LFQ)),paste0(inpF,"uniprot.xlsx"))
+```
+
+```{r data-wikiPathway-map}
+inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
+data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
+#dataS<-as.matrix(data[,1:4],rownames=T)
+dataS<-as.matrix(data[,c(1:4,7:18)],rownames=T)
+dataS[dataS==0]=NA
+rn<-sub(";","",unlist(data[37]))
+rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+rn<-strsplit(rn, "-")
+row.names(dataS)<-sapply(rn, "[", 1)
+cn<-strsplit(colnames(dataS), "_")
+colnames(dataS)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+summary(dataS)
+hist(dataS)
+selThr<-0.3
+#install.packages("BiocManager", repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
+#library("BiocManager",lib="C:/Users/animeshs/GD/R_libs")
+#BiocManager::install("limma",lib="C:/Users/animeshs/GD/R_libs")
+library("limma",lib="C:/Users/animeshs/GD/R_libs")
+vennDiagram(dataS[,c(1:4)]<selThr,main="wikiD",counts.col = "red")
+```
+
 ```{r geneList, echo = FALSE}
 #ORA: ORA’s propensity for type I error rate inflation when genes tend to be co-expressed within sets
 ```
@@ -62,14 +116,6 @@ if(sum(suc) < length(list.of.bio.packages) )
 #GSVA
 ```
 
-```{r data, echo = FALSE}
-inpD <-"/home/animeshs/Downloads/"
-#inpF<-paste0(inpD,"proteinGroupsLog2LFQctrl.xlsx WSRTun.txt")
-inpF<-paste0(inpD,"proteinGroups.txt")
-data <- read.delim(inpF,sep="\t",header = T)
-data$T..Uniprot<-(sapply(strsplit(as.character(data$Protein.IDs),"[-;]"), "[", 1))
-summary(data)
-```
 
 ```{r overlap}
 selThr<-0.3
