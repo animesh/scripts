@@ -74,7 +74,7 @@ log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 summary(log2LFQ)
 #install.packages("writexl")#, repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
-library("writexl")#,lib="C:/Users/animeshs/GD/R_libs")
+library("writexl",lib="C:/Users/animeshs/GD/R_libs")
 write_xlsx(as.data.frame(cbind(data$Uniprot,log2LFQ)),paste0(inpF,"uniprot.xlsx"))
 ```
 
@@ -102,6 +102,38 @@ vennDiagram(dataS[,c(1:4)]<selThr,main="wikiD",counts.col = "red")
 
 ```{r geneList, echo = FALSE}
 #ORA: ORA’s propensity for type I error rate inflation when genes tend to be co-expressed within sets
+list11<-as.data.frame(toupper(c("TPD52", "BCM", "LILRB4", "FADS2", "C11orf58", "GAA", "CGREF1", "TSG101", "ZNRF2", "COG4", "UPF3B")))
+colnames(list11)<-"gene"
+summary(list11)
+```
+
+```{r string-DB, echo = FALSE}
+#https://www.bioconductor.org/packages/release/bioc/vignettes/STRINGdb/inst/doc/STRINGdb.pdf
+#library("BiocManager",lib="C:/Users/animeshs/GD/R_libs")
+#BiocManager::install("STRINGdb",lib="C:/Users/animeshs/GD/R_libs")
+library("STRINGdb",lib="C:/Users/animeshs/GD/R_libs")
+string_db <- STRINGdb$new(species=9606, version="11",score_threshold=0, input_directory="")
+ung2 = string_db$mp( "ung2" )
+pcna = string_db$mp( "pcna" )
+string_db$get_neighbors(c(ung2, pcna))
+string_db$get_interactions(c(ung2, pcna))
+string_db$get_paralogs(pcna)
+string_db$get_homologs_besthits(ung2)
+string_db$get_homologs_besthits(c(ung2,pcna),target_species_id=10090)#,bitscore_threshold=60)
+chkStrSdb<-string_db$map(list11,"gene")#,removeUnmappedRows = TRUE )
+chkStrPlot<-string_db$plot_network(chkStrSdb$STRING_id)#[1:10])
+#example1_mapped_pval05 <- string_db$add_diff_exp_color( subset(example1_mapped, pvalue<0.05), logFcColStr="logFC" )
+#payload_id <- string_db$post_payload( example1_mapped_pval05$STRING_id,colors=example1_mapped_pval05$color )
+#string_db$plot_network( hits, payload_id=payload_id )
+enrichment <- string_db$get_enrichment( hits )
+head(enrichment, n=20)
+#backgroundV <- example1_mapped$STRING_id[1:2000]
+#string_db$set_background(backgroundV)
+#string_db <- STRINGdb$new( score_threshold=200, backgroundV = backgroundV )
+#annotations <- string_db$get_annotations( hits )
+#head(annotations, n=20)
+#clustersList <- string_db$get_clusters(example1_mapped$STRING_id[1:600])
+#par(mfrow=c(2,2)) for(i in seq(1:4)){ string_db$plot_network(clustersList[[i]]) }
 ```
 
 ```{r geneRanked, echo = FALSE}

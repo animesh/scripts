@@ -1,8 +1,12 @@
+#undo last commit
+# git config --global alias.undo-commit 'reset --soft HEAD^'
+# git undo-commit
+#checkout specific file/commit
+# git log --graph #find <sha>
+# checkout <sha> file
 #[dockerImage](https://github.com/animesh/scripts/blob/master/Dockerfile):
 # docker.io/animesh1977/scripts
 #[aliases](https://youtu.be/f-Br8cud2eI?t=1918)
-# log --graph
-# checkout <sha> file
 # rebase
 # beflog
 # stash
