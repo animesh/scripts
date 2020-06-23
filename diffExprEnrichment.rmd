@@ -125,8 +125,21 @@ chkStrPlot<-string_db$plot_network(chkStrSdb$STRING_id)#[1:10])
 #example1_mapped_pval05 <- string_db$add_diff_exp_color( subset(example1_mapped, pvalue<0.05), logFcColStr="logFC" )
 #payload_id <- string_db$post_payload( example1_mapped_pval05$STRING_id,colors=example1_mapped_pval05$color )
 #string_db$plot_network( hits, payload_id=payload_id )
+```
+
+```{r add-gene, echo = FALSE}
+list5<-as.data.frame(toupper(c("SMG5","UPF1","UPF2","VPS28","VPS37B")))
+colnames(list5)<-"gene"
+list16<-rbind(list5,list11)
+summary(list16)
+chkStrSdbX<-string_db$map(list16,"gene")#,removeUnmappedRows = TRUE )
+chkStrPlotX<-string_db$plot_network(chkStrSdbX$STRING_id)#[1:10])
+#example1_mapped_pval05 <- string_db$add_diff_exp_color( subset(example1_mapped, pvalue<0.05), logFcColStr="logFC" )
+#payload_id <- string_db$post_payload( example1_mapped_pval05$STRING_id,colors=example1_mapped_pval05$color )
+#string_db$plot_network( hits, payload_id=payload_id )
+hits <- chkStrSdbX$STRING_id#[1:10]
 enrichment <- string_db$get_enrichment( hits )
-head(enrichment, n=20)
+head(enrichment)#, n=20)
 #backgroundV <- example1_mapped$STRING_id[1:2000]
 #string_db$set_background(backgroundV)
 #string_db <- STRINGdb$new( score_threshold=200, backgroundV = backgroundV )
@@ -135,6 +148,7 @@ head(enrichment, n=20)
 #clustersList <- string_db$get_clusters(example1_mapped$STRING_id[1:600])
 #par(mfrow=c(2,2)) for(i in seq(1:4)){ string_db$plot_network(clustersList[[i]]) }
 ```
+
 
 ```{r geneRanked, echo = FALSE}
 #GSEA [60] or pre-ranked CAMERA [66], apply a VST such as voom [39] to arrive at library-size normalized logCPMs for raw counts

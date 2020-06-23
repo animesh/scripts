@@ -29,7 +29,7 @@ BarChart[%, Ticks -> {Automatic, {{1, "Fair"}, {2, "Unfair"}}}]
 
 
 
-data = SemanticImport["L:\\promec\\Elite\\LARS\\2018\\november\\Rolf final\\Red\\combined\\txt\\proteinGroups.txt",Delimiters -> "\t", HeaderLines -> 1]
+data = SemanticImport["F:\\promec\\Elite\\LARS\\2018\\november\\Rolf final\\Red\\combined\\txt\\proteinGroups.txt",Delimiters -> "\t", HeaderLines -> 1]
 data[All, "Intensity"]
 Plot[%]
 Histogram[data[All, "Intensity", Log2]]
