@@ -140,13 +140,15 @@ chkStrPlotX<-string_db$plot_network(chkStrSdbX$STRING_id)#[1:10])
 hits <- chkStrSdbX$STRING_id#[1:10]
 enrichment <- string_db$get_enrichment( hits )
 head(enrichment)#, n=20)
-#backgroundV <- example1_mapped$STRING_id[1:2000]
-#string_db$set_background(backgroundV)
-#string_db <- STRINGdb$new( score_threshold=200, backgroundV = backgroundV )
-#annotations <- string_db$get_annotations( hits )
-#head(annotations, n=20)
-#clustersList <- string_db$get_clusters(example1_mapped$STRING_id[1:600])
-#par(mfrow=c(2,2)) for(i in seq(1:4)){ string_db$plot_network(clustersList[[i]]) }
+backgroundX <- chkStrSdbX$STRING_id#[1:2000]
+string_db$set_background(backgroundX)
+string_db <- STRINGdb$new(score_threshold=200,backgroundV=backgroundX)
+annotations <- string_db$get_annotations( hits )
+head(annotations, n=20)
+clustersList <- string_db$get_clusters(chkStrSdbX$STRING_id)#[1:600])
+length(clustersList)
+par(mfrow=c(ceiling(sqrt(length(clustersList))),floor(sqrt(length(clustersList))))) 
+for(i in seq(1:length(clustersList))){ string_db$plot_network(clustersList[[i]]) }
 ```
 
 

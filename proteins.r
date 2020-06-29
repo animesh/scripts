@@ -1,51 +1,45 @@
+#Rscript proteins.r "C:/Users/animeshs/GD/Pseudomonas/140605_Pseudomonas_O1_K0K6-(2)_Proteins.txt" SILAC
 #parse argument(s)
-print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <SILAC>")
-print("default LFQ")
-#Rscript proteinGroups.r /home/animeshs/promec/promec/Qexactive/LARS/2019/oktober/Kristine\ Sonja/combined/txt/proteinGroups.txt SILAC
+print("USAGE:Rscript proteins.r \"<complete path to *_Proteins.txt file>\" <SILAC if channel ratios available>")
+print("default LFQ/abundance(scaled)")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args[1])
 print(args[2])
 #read
-if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
-print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
-#read
-#MaxQuant
-#inpF<-file.path("L:/promec/Qexactive/LARS/2020/February/Nathan Shotgun/combined/txt/proteinGroups.txt")
-#ProteomeDiscoverer
-#inpF<-file.path("Z:/PA/_Pseudomonas_ 1/140605_Pseudomonas_O1_K0K6_Proteins.txt")
+inpF<-file.path("C:/Users/animeshs/GD/Pseudomonas/140605_Pseudomonas_O1_K0K6-(2)_Proteins.txt")
+if(length(args)==0){print(paste("No *_Proteins.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
+print(paste("Using *_Proteins.txt file",inpF,"with dimension(s)"))
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #select raw intensity
 print("Selecting Raw Intensity Values(s)")
-if(sum(grep("Intensity.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Intensity.",colnames(data))])}  else if(sum(grep("Abundance.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Abundance.",colnames(data))])}  else{print('Neither Abundance[PD] nor Intensity[MQ] columns detected!')}
-
+if(sum(grep("Abundance.Ratio.F",colnames(data)))>0){intensity<-as.matrix(data[,grep("Abundance.Ratio.F",colnames(data))])}  else if(sum(grep("Abundances.Scaled.F",colnames(data)))>0){intensity<-as.matrix(data[,grep("Abundances.Scaled.F",colnames(data))])}  else{print('Neither Ratio[SILAC] nor Scaled.Intensity[LFQ] columns detected!')}
+#log2
+intensity<-log2(intensity)
+#rename
 protNum<-1:ncol(intensity)
-colnames(intensity)=paste(protNum,sub("Intensity.","",colnames(intensity)),sep="_")
-colnames(intensity)=paste(protNum,sub("Abundance.","",colnames(intensity)),sep="_")
-hist(intensity[,74])
-hist(intensity[,73])
-hist(intensity[,72])
-#clean MQ output
-data = data[!data$Reverse=="+",]
-data = data[!data$Potential.contaminant=="+",]
-data = data[!data$Only.identified.by.site=="+",]
-print("Removed Reverse,Potential.contaminant and Only.identified.by.site")
-dim(data)
+if(sum(grep("Abundance.Ratio.F",colnames(data)))>0){colnames(intensity)=paste(protNum,sub("Abundance.Ratio.F","",colnames(intensity)),sep="_")}  else if(sum(grep("Abundances.Scaled.F",colnames(data)))>0){colnames(intensity)=paste(protNum,sub("Abundances.Scaled.F","",colnames(intensity)),sep="_")}  else{print('Neither Ratio[SILAC] nor Scaled.Intensity[LFQ] columns renamed')}
 protNum<-1:nrow(data)
-row.names(data)<-paste(protNum,data$Fasta.headers,protNum,sep=";")
+row.names(data)<-paste(protNum,data$FASTA.Title.Lines,protNum,sep=";")
 print("Converted Fasta.headers to rownames")
+hist(intensity)
+#clean
+data = data[!data$Contaminant=="True",]
+data = data[!data$Number.of.Decoy.Protein.Combined>0,]
+print("Removed Reverse/Potential.contaminant")
+dim(data)
 #summary(data)
 #select from arg[]
 if(length(args)==1){
-  selection="LFQ.intensity";print(paste("No columns to select, using",selection))
+  selection="Abundances.Scaled.F";print(paste("No columns to select, using",selection))
   LFQ<-as.matrix(data[,grep(selection,colnames(data))])
   protNum<-1:ncol(LFQ)
   colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
 } else if (args[2]=="SILAC"){
-    selection1="Ratio."
+    selection1="Abundance.Ratio.F"
     LFQ<-as.matrix(data[,grep(selection1,colnames(data))])
-    selection2=".normalized."
+    selection2="..F"
     LFQ<-as.matrix(LFQ[,grep(selection2,colnames(LFQ))])
     selection<-paste(selection1,selection2)
     LFQ<-apply(LFQ,2, as.numeric)
@@ -126,7 +120,7 @@ if(dim(log2LFQ)[2]>0){
   plot(princomp(log2LFQ),main=paste("Imputed value:",mean(log2LFQimp),"sd:",sd(log2LFQimp)))
   biplot(prcomp(as.matrix(log2LFQ),scale=TRUE),cex=c(0.5, 0.4), xlab=NULL,arrow.len = 0)
   heatmap(log2LFQ, scale = "row")
-  #plot with 0 containing proteinGroups removed
+  #plot with 0 containing proteins removed
   if(dim(log2LFQt)[1]>0){
     log2LFQt<-t(log2LFQt)
     log2LFQtPCA<-prcomp(log2LFQt,scale=TRUE)

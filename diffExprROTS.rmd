@@ -1,45 +1,48 @@
 ```{r proteinGroups}
-inpD <-"L:/promec/Animesh/Abba/"
-inpF<-paste0(inpD,"proteinGroups.txt")
-data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
-data = data[!data$Reverse=="+",]
+inpD <-"Z:/PA/_Pseudomonas_ 1/"
+inpF<-paste0(inpD,"140605_Pseudomonas_O1_K0K6_Proteins.txt")
+data <- read.delim(inpF,sep="\t",header = T,row.names = 5)
+data = data[!data$Contaminant=="True",]
 summary(data)
 dim(data)
-selection<-"LFQ.intensity"
-LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-dim(LFQ)
-log2LFQ<-log2(LFQ)
-log2LFQ[log2LFQ==-Inf]=NA
-dHA<-as.matrix(log2LFQ[,grep("AnneMari",colnames(log2LFQ))])
+colnames(data)
+selection<-"Abundance.Ratio.log2."
+SILAC<-as.matrix(data[,grep(selection,colnames(data))])
+colnames(SILAC)<-sub(selection,"",colnames(SILAC))
+colnames(SILAC)
+dim(SILAC)
+log2SILAC<-SILAC#log2(SILAC)
+log2SILAC[log2SILAC==-Inf]=NA
+dHA<-as.matrix(log2SILAC[,grep("F",colnames(log2SILAC))])
 hist(as.matrix(dHA))
-LFQall<-apply(dHA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
-sum(LFQall>0)
-LFQmid<-apply(dHA,1,function(x) if(sum(is.na(x))<length(x)/2){median(x,na.rm=T)} else{0})
-sum(LFQany>0)
-LFQany<-apply(dHA,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
-sum(LFQany>0)
-hist(as.matrix(LFQany))
-plot(LFQany,LFQmid)
-hdaMall<-cbind(LFQany,LFQall,LFQmid)
+SILACall<-apply(dHA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(SILACall>0)
+SILACmid<-apply(dHA,1,function(x) if(sum(is.na(x))<length(x)/2){median(x,na.rm=T)} else{0})
+sum(SILACmid>0)
+SILACany<-apply(dHA,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
+sum(SILACany>0)
+hist(as.matrix(SILACany))
+plot(SILACany,SILACmid)
+hdaMall<-cbind(SILACany,SILACall,SILACmid)
 Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
 uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
 row.names(hdaMall)<-uniprot
 #colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-gene<-toupper(as.character(data$Gene.names))
+gene<-toupper(as.character(data$Gene.Symbol))
 gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
-protein<-as.character(data$Protein.IDs)
+protein<-as.character(data$Description)
 summary(hdaMall)
 library("limma")
 vennDiagram(hdaMall>0)
-inpW<-paste0(inpF,"sel-LFQ.xlsx")
+inpW<-paste0(inpF,"sel-SILAC.xlsx")
 library(writexl)
-write_xlsx(as.data.frame(cbind(uniprot,hdaMall,Gene=gen,Fasta=data[,7])),inpW)
+write_xlsx(as.data.frame(cbind(uniprot,hdaMall,Gene=gen,Fasta=data[,6])),inpW)
 ```
 
 ```{r heatmap}
 #BiocManager::install("ComplexHeatmap")
 #library(ComplexHeatmap)
-hda<-hdaMall
+hda<-SILAC
 protNum<-1:nrow(hda)
 row.names(hda)<-paste0(protNum,gen)
 pheatmap::pheatmap(hda)
@@ -49,7 +52,6 @@ hdaC<-cor(hda,use="pairwise.complete.obs")
 hdaC[is.na(hdaC)]=0
 row.names(hdaC)<-colnames(hdaC)
 pheatmap::pheatmap(hdaC)
-ComplexHeatmap::Heatmap(hdaC)
 ```
 
 ```{r label}
@@ -71,9 +73,9 @@ rownames(groupsC)<-rownames(groups)
 ```{r heatmap-sample-correlation}
 #BiocManager::install("ComplexHeatmap")
 #library(ComplexHeatmap)
-hd<-log2LFQ
+hd<-log2SILAC
 colnames(hd)
-selection<-"LFQ.intensity.60313_AnneMari_"
+selection<-"F"
 colnames(hd)<-sub(selection,"",colnames(hd))
 colnames(hd)
 #PLE, PLT, PKE, PKT unlist(groups[(groups$Type=="PLE")&(!is.na(groups$Type)),1])
@@ -95,7 +97,7 @@ ComplexHeatmap::Heatmap(hdaC)
 
 ```{r data}
 inpD<-"F:/GD/"
-inpF<-paste0(inpD,"Log2LFQwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsx")
+inpF<-paste0(inpD,"Log2SILACwithBasicStats - 05.04.20 (676 protein groups) - to Animesh.xlsx")
 #install.packages("readxl")
 library(readxl)
 data<-read_xlsx(inpF)#,header=T,sep="\t",row.names = 1)
@@ -119,12 +121,12 @@ summary(data)
 ```{r write-excel, echo = FALSE}
 #install.packages("writexl")
 library("writexl")
-inpW<-paste0(inpD,"Copy of Log2LFQwithBasicStats - 15.10.18 (cut off 18) Label.write.xlsx")
+inpW<-paste0(inpD,"Copy of Log2SILACwithBasicStats - 15.10.18 (cut off 18) Label.write.xlsx")
 write_xlsx(data,inpW)
 ```
 
 ```{r label}
-inpL<-paste0(inpD,"Copy of Log2LFQwithBasicStats - 15.10.18 (cut off 18) Label.xlsx")
+inpL<-paste0(inpD,"Copy of Log2SILACwithBasicStats - 15.10.18 (cut off 18) Label.xlsx")
 label<-read_xlsx(inpL)#read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
 #colnames(label)=sub("\\-[0-9]+","",colnames(label))
 #colnames(label)
@@ -145,7 +147,7 @@ summary(dataClean)
 ```
 
 ```{r select}
-hdr="LFQ.intensity."
+hdr="SILAC.intensity."
 #dataSel=as.matrix(data[,grep(hdr,colnames(data))])
 dataSel=as.matrix(dataClean[,grep(hdr,colnames(dataClean))])
 #dataSel=as.matrix(dataSel[,grep("pass",colnames(dataSel))])
@@ -1543,7 +1545,7 @@ autoplot(yyt.pca,data=t(yyt),colour=as.numeric(label$Treatment))
 
 
 ```{r norm, echo = FALSE}
-hdr="LFQ.intensity."
+hdr="SILAC.intensity."
 dataNorm=log2(dataClean[,grep(hdr, names(dataClean))])
 summary(dataNorm)
 hist(as.matrix(dataNorm))
@@ -1968,7 +1970,7 @@ write.table(DEqMS.results,paste0(inpD,hdr,"R-W.DEqMS.pep.results.txt"),sep = "\t
 head(DEqMS.results)
 VarianceBoxplot(fit4,n=20)
 #peptideProfilePlot(dat=df.prot)#,col=2,gene="TGFBR2")
-VarianceScatterplot(fit4, xlab="log2(LFQ)")
+VarianceScatterplot(fit4, xlab="log2(SILAC)")
 limma.prior = fit4$s2.prior
 abline(h = log(limma.prior),col="green",lwd=3 )
 legend("topright",legend=c("DEqMS prior variance","Limma prior variance"),
