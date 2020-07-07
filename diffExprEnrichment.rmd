@@ -144,7 +144,7 @@ backgroundX <- chkStrSdbX$STRING_id#[1:2000]
 string_db$set_background(backgroundX)
 string_db <- STRINGdb$new(score_threshold=200,backgroundV=backgroundX)
 annotations <- string_db$get_annotations( hits )
-head(annotations, n=20)
+head(annotations, n=20)es
 clustersList <- string_db$get_clusters(chkStrSdbX$STRING_id)#[1:600])
 length(clustersList)
 par(mfrow=c(ceiling(sqrt(length(clustersList))),floor(sqrt(length(clustersList))))) 

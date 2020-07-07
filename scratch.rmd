@@ -1,6 +1,28 @@
 ```{r libloc, echo = FALSE}
 .libPaths( c( .libPaths(), "~/libR") )
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
+usethis::edit_r_environ()
+
+#https://community.rstudio.com/t/help-regarding-package-installation-renviron-rprofile-r-libs-r-libs-site-and-r-libs-user-oh-my/13888/8
+#R_LIBS_USER in your ~/.Renviron. One <name>=<value> per line.
++#specifiers: %p (expands to the architecture, e.g. x86_64-pc-linux-gnu) and %v (expands to major and minor R version, e.g. 3.5) - see 
+?R_LIBS_USER
+#R_LIBS_USER=~/R/%p-library/%v
+#location of ~/.Renviron
+
+normalizePath("~/.Renviron", mustWork = FALSE)
+
+[1] "/home/hb/.Renviron"
+R_LIBS_USER="C:/Users/Greg/Software/R/%p-library/%v
+Sys.getenv('R_LIBS_USER')
+#Importantly, if this folder does not exist, then R will silently ignore it, despite properly parsing and expanding R_LIBS_USER, e.g.
+dir.exists(Sys.getenv('R_LIBS_USER'))
+.libPaths()[1]
+dir.create(Sys.getenv('R_LIBS_USER'), recursive = TRUE)
+dir.exists(Sys.getenv('R_LIBS_USER'))
+#[1] TRUE
+#Then restart R, and you'll get:
+.libPaths()[1]
 ```
 
 ```{r}

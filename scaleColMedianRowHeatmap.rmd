@@ -1,5 +1,6 @@
 ```{r proteinGroups}
-inpD <-"L:/promec/Qexactive/LARS/2020/mars/Heidi nano/combined/txt/"
+#inpD<-"F:\promec\Qexactive\LARS\2020\mars\Heidi nano\combined\txt"
+inpD <-paste0(getwd(),"/Heidi/")
 inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
 #clean
@@ -27,10 +28,12 @@ gen<-paste(sapply(gen, "[", 1))
 row.names(hda)<-paste0(protNum,gen)
 hdaC<-cor(hda,use="pairwise.complete.obs")
 row.names(hdaC)<-colnames(hdaC)
+#install.packages("pheatmap")
 svgPHC<-pheatmap::pheatmap(hdaC)
-library(ggplot2)
+#install.packages("ggplot2")
+#install.packages("svglite")
 cn<-paste(gsub("[^[:alnum:] ]", "",inpD), collapse='_' )
-ggsave(file=paste0(inpD,selection,cn,"ColCorClusterPlot.svg"),plot=svgPHC) 
+ggplot2::ggsave(file=paste0(inpD,selection,cn,"ColCorClusterPlot.svg"),plot=svgPHC) 
 ```
 
 ```{r heatmap-generow}
@@ -42,7 +45,7 @@ gen<-paste(sapply(gen, "[", 1))
 row.names(hda)<-paste(gen,protNum,sep=";")
 hda[is.na(hda)]=0
 svgPHC<-pheatmap::pheatmap(hda,fontsize_row=1,fontsize_col=5)#,scale="row",clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",annotation_col = label,fontsize_row=5,fontsize_col=5)
-ggsave(file=paste0(inpD,selection,cn,"GeneRowColClusterPlot.svg"),plot=svgPHC) 
+ggplot2::ggsave(file=paste0(inpD,selection,cn,"GeneRowColClusterPlot.svg"),plot=svgPHC) 
 ```
 
 
