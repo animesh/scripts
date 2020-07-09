@@ -1,3 +1,112 @@
+#https://www.kdnuggets.com/2020/07/feature-engineering-sql-python-hybrid-approach.html
+#mysql -uroot -p1234567
+#create database Shutterfly;
+#pip install sqlalchemy
+from sqlalchemy import create_engine
+import pandas as pd
+username = "root"
+password = "1234567"
+port = 3306
+database = "Shutterfly"
+engine = create_engine('mysql+mysqldb://%s:%s@localhost:%i/%s'
+                       %(username, password, port, database))
+#use shutterfly;
+#show tables;
+sql = "SELECT `index`, event2 FROM Online;"
+df = pd.read_sql_query(sql, engine).set_index('index')
+
+# shuffle dataset, preserving index
+df = df.sample(frac=1)
+
+train_frac = 0.9
+test_frac = 1 - train_frac
+
+trn_cutoff = int(len(df) * train_frac)
+
+df_trn = df[:trn_cutoff]
+df_tst = df[trn_cutoff:]
+
+df_trn.to_sql('trn_set', engine, if_exists='replace')
+df_tst.to_sql('tst_set', engine, if_exists='replace')
+
+df_online = pd.read_csv("data/online.csv")
+df_online.to_sql('Online', engine, if_exists='replace')
+
+df_order = pd.read_csv("data/Order.csv")
+df_order.to_sql('Purchase', engine, if_exists='replace')
+#select count(*) from trn_set;
+#select count(*) from tst_set;
+#select count(*) from tst_set;select * from trn_set limit 5;
+USE Shutterfly;
+
+DROP TABLE IF EXISTS features_group_1;
+
+CREATE TABLE IF NOT EXISTS features_group_1
+SELECT o.index
+  ,LEFT(o.dt, 10) AS day
+  ,COUNT(*) AS order_count
+  ,SUM(p.revenue) AS revenue_sum
+  ,MAX(p.revenue) AS revenue_max
+  ,MIN(p.revenue) AS revenue_min
+  ,SUM(p.revenue) / COUNT(*) AS rev_p_order
+  ,COUNT(p.prodcat1) AS prodcat1_count
+  ,COUNT(p.prodcat2) AS prodcat2_count
+  ,DATEDIFF(o.dt, MAX(p.orderdate)) AS days_last_order
+  ,DATEDIFF(o.dt, MAX(CASE WHEN p.prodcat1 IS NOT NULL THEN p.orderdate ELSE NULL END)) AS days_last_prodcat1
+  ,DATEDIFF(o.dt, MAX(CASE WHEN p.prodcat2 IS NOT NULL THEN p.orderdate ELSE NULL END)) AS days_last_prodcat2
+  ,SUM(p.prodcat1 = 1) AS prodcat1_1_count
+  ,SUM(p.prodcat1 = 2) AS prodcat1_2_count
+  ,SUM(p.prodcat1 = 3) AS prodcat1_3_count
+  ,SUM(p.prodcat1 = 4) AS prodcat1_4_count
+  ,SUM(p.prodcat1 = 5) AS prodcat1_5_count
+  ,SUM(p.prodcat1 = 6) AS prodcat1_6_count
+  ,SUM(p.prodcat1 = 7) AS prodcat1_7_count
+FROM Online AS o
+JOIN Purchase AS p
+  ON o.custno = p.custno
+  AND p.orderdate <= o.dt
+GROUP BY o.index;
+
+ALTER TABLE `features_group_1`
+  ADD KEY `ix_features_group_1_index` (`index`);
+#show tables;
+def load_dataset(split="trn_set", limit=None, ignore_categorical=False):
+    sql = """
+    SELECT o.*, f1.*, f2.*, f3.*, f4.*,
+    EXTRACT(MONTH FROM o.dt) AS month
+    FROM %s AS t
+    JOIN Online AS o
+        ON t.index = o.index
+    JOIN features_group_1 AS f1
+        ON t.index = f1.index
+    JOIN features_group_2 AS f2
+        ON t.index = f2.index
+    JOIN features_group_3 AS f3
+        ON t.index = f3.index
+    JOIN features_group_4 AS f4
+        ON t.index = f4.index
+    """%split
+    if limit:
+        sql += " LIMIT %i"%limit
+
+    df = pd.read_sql_query(sql.replace('\n', " ").replace("\t", " "), engine)
+    df.event1 = df.event1.fillna(0)
+    X = df.drop(["index", "event2", "dt", "day", "session", "visitor", "custno"], axis=1)
+    Y = df.event2
+    return X, Y
+#https://gist.githubusercontent.com/shawlu95/73623e2aafb529413dccf89181131b3c/raw/d01ef96ce7ac1e75b34ca39d6fe6bffd6708461b/05_sql_feature_engineering_pull.py
+X_trn, Y_trn = load_dataset("trn_set", limit=5)
+print(X_trn.head().T)
+#If your dataset is deployed on the cloud, you may be able to run distributed query. Most SQL server supports distirbuted query today. In Pandas, you need some extension called Dask DataFrame.
+#If you can afford to pull data real-time, you can create SQL views instead of tables. In this way, every time you pull data in Python, your data will always be up-to-date.
+
+
+
+
+
+
+
+
 #https://docs.datapane.com/tutorials/tut-deploying-a-script
 import pandas as pd
 import altair as alt

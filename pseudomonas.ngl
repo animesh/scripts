@@ -1,0 +1,15 @@
+ngless "1.0"
+input = fastq"(["Aas-gDNA1-O1-PaE_S5_L001_1.fastq", "Aas-gDNA1-O1-PaE_S5_L001_2.fastq", "Aas-gDNA1-O2-PaE_S6_L001_1.fastq", "Aas-gDNA1-O2-PaE_S6_L001_2.fastq", "Aas-gDNA1-S1-PaE_S1_L001_1.fastq", "Aas-gDNA1-S1-PaE_S1_L001_2.fastq", "Aas-gDNA1-S2-PaE_S2_L001_1.fastq", "Aas-gDNA1-S2-PaE_S2_L001_2.fastq", "Aas-gDNA1-S3-PaE_S3_L001_1.fastq", "Aas-gDNA1-S3-PaE_S3_L001_2.fastq", "Aas-gDNA1-S4-PaE_S4_L001_1.fastq", "Aas-gDNA1-S4-PaE_S4_L001_2.fastq", "Aas-gDNA1-W1-PaE_S7_L001_1.fastq", "Aas-gDNA1-W1-PaE_S7_L001_2.fastq", "Aas-gDNA1-W2-PaE_S8_L001_1.fastq", "Aas-gDNA1-W2-PaE_S8_L001_2.fastq"])
+input = preprocess(input) using |read|:
+    read = read[5:]
+    read = substrim(read, min_quality=26)
+    if len(read) < 31:
+        discard
+mapped = map(input, reference='hg19')
+write(count(mapped, features=['gene']), ofile='gene_counts.csv', format={csv})
+#wget https://ngless.embl.de/resources/Modules/igc.ngm/IGC-1.1.tar.gz
+#https://ngless.embl.de/tutorial-gut-metagenomics.html
+#./NGLess-1.1.1-static-Linux64 --download-demo gut-short
+#./NGLess-1.1.1-static-Linux64 gut-short/gut-demo.ngl
+#curl -L -O https://github.com/ngless-toolkit/ngless/releases/download/v1.1.1/NGLess-1.1.1-static-Linux64       │Downloading https://ngless.embl.de/resources References/1.1/hg19.tar.gz[========================================]   100
+#chmod +x NGLess-1.1.1-static-Linux64

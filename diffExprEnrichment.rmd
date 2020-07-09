@@ -1,19 +1,33 @@
-```{r packages, echo = FALSE}
+```{r setup, echo = FALSE}
+#plot
+par(mfrow=c(1,2))
 #https://www.osc.edu/resources/getting_started/howto/howto_install_local_r_packages
-install.packages("lattice", repos="http://cran.r-project.org", lib="~/local/R_libs/")
-.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
+#install.packages("lattice", repos="http://cran.r-project.org", lib="~/local/R_libs/")
+#.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
+.libPaths()
+#install.packages("writexl")
+#install.packages("BiocManager", repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
+#library("BiocManager",lib="C:/Users/animeshs/GD/R_libs")
+#BiocManager::install("limma",lib="C:/Users/animeshs/GD/R_libs")
+#library("limma")#,lib="C:/Users/animeshs/GD/R_libs")
 getwd()
-setwd("C:/Users/animeshs/GD/")
-getwd()
+#setwd("C:/Users/animeshs/GD/")
+#install.packages("readxl", repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
+#library("readxl",lib="C:/Users/animeshs/GD/R_libs")
+#inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx")
+#data<-read_xlsx(inpF)
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 #rm(list = ls())
 #detach("package:pathview", unload=TRUE)
+```
+
+```{r packages, echo = FALSE}
 # https://github.com/waldronlab/GSEABenchmarking
 # dplyr complains this required libraries: libudunits2-dev, libmariadb-client-lgpl-dev
 # install.packages("plotly", repos="http://cran.rstudio.com/", dependencies=TRUE)
 # sometimes need to remove all installed packages: https://www.r-bloggers.com/how-to-remove-all-user-installed-packages-in-r/ 
-list.of.packages <- c("shiny", "shinyAce", "shinyBS", "plotly","RSQLite", "gplots", "ggplot2", "dplyr","tidyverse","plotly", "e1071", "reshape2", "DT", "data.table", "Rcpp","WGCNA","flashClust","statmod","biclust","igraph","Rtsne","visNetwork", "BiocManager")
-list.of.bio.packages  <- c("limma", "DESeq2", "edgeR", "gage", "PGSEA", "fgsea","ReactomePA", "pathview", "PREDA", "impute", "runibic","QUBIC","rhdf5", "STRINGdb", "PREDAsampledata", "sfsmisc", "lokern", "multtest", "hgu133plus2.db", "org.Ag.eg.db","org.At.tair.db","org.Bt.eg.db","org.Ce.eg.db","org.Cf.eg.db","org.Dm.eg.db","org.EcK12.eg.db","org.EcSakai.eg.db","org.Gg.eg.db","org.Hs.eg.db","org.Mm.eg.db","org.Mmu.eg.db","org.Pf.plasmo.db","org.Pt.eg.db","org.Rn.eg.db","org.Sc.sgd.db","org.Ss.eg.db","org.Xl.eg.db")
+#list.of.packages <- c("shiny", "shinyAce", "shinyBS", "plotly","RSQLite", "gplots", "ggplot2", "dplyr","tidyverse","plotly", "e1071", "reshape2", "DT", "data.table", "Rcpp","WGCNA","flashClust","statmod","biclust","igraph","Rtsne","visNetwork", "BiocManager")
+#list.of.bio.packages  <- c("limma", "DESeq2", "edgeR", "gage", "PGSEA", "fgsea","ReactomePA", "pathview", "PREDA", "impute", "runibic","QUBIC","rhdf5", "STRINGdb", "PREDAsampledata", "sfsmisc", "lokern", "multtest", "hgu133plus2.db", "org.Ag.eg.db","org.At.tair.db","org.Bt.eg.db","org.Ce.eg.db","org.Cf.eg.db","org.Dm.eg.db","org.EcK12.eg.db","org.EcSakai.eg.db","org.Gg.eg.db","org.Hs.eg.db","org.Mm.eg.db","org.Mmu.eg.db","org.Pf.plasmo.db","org.Pt.eg.db","org.Rn.eg.db","org.Sc.sgd.db","org.Ss.eg.db","org.Xl.eg.db")
 if(1) {#remove all old packages, to solve problem caused by Bioconductor upgrade
 	# create a list of all installed packages
 	 ip <- as.data.frame(installed.packages())
@@ -56,11 +70,7 @@ if(sum(suc) < length(list.of.bio.packages) )
 ```
 
 ```{r data, echo = FALSE}
-inpD <-"C:/Users/animeshs/GD/"
-#install.packages("readxl", repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
-#library("readxl",lib="C:/Users/animeshs/GD/R_libs")
-#inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx")
-#data<-read_xlsx(inpF)
+inpD <-paste0(getwd(),"/Heidi/")
 inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.delim(inpF,sep="\t",header = T)
 data$Uniprot<-sapply(strsplit(as.character(data$Protein.IDs),"[-;]"), "[", 1)
@@ -73,9 +83,9 @@ dim(LFQ)
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 summary(log2LFQ)
-#install.packages("writexl")#, repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
-library("writexl",lib="C:/Users/animeshs/GD/R_libs")
-write_xlsx(as.data.frame(cbind(data$Uniprot,log2LFQ)),paste0(inpF,"uniprot.xlsx"))
+hist(as.matrix(log2(data[,grep("Intensity",colnames(data))])))
+hist(as.matrix(log2(data[,grep("LFQ",colnames(data))])))
+writexl::write_xlsx(as.data.frame(cbind(data$Uniprot,log2LFQ)),paste0(inpF,"uniprot.xlsx"))
 ```
 
 ```{r data-wikiPathway-map}
@@ -91,13 +101,9 @@ row.names(dataS)<-sapply(rn, "[", 1)
 cn<-strsplit(colnames(dataS), "_")
 colnames(dataS)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
 summary(dataS)
-hist(dataS)
+plot(dataS)
 selThr<-0.3
-#install.packages("BiocManager", repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
-#library("BiocManager",lib="C:/Users/animeshs/GD/R_libs")
-#BiocManager::install("limma",lib="C:/Users/animeshs/GD/R_libs")
-library("limma",lib="C:/Users/animeshs/GD/R_libs")
-vennDiagram(dataS[,c(1:4)]<selThr,main="wikiD",counts.col = "red")
+limma::vennDiagram(dataS[,c(1:4)]<selThr,main="wikiD",counts.col = "red")
 ```
 
 ```{r geneList, echo = FALSE}
@@ -110,8 +116,8 @@ summary(list11)
 ```{r string-DB, echo = FALSE}
 #https://www.bioconductor.org/packages/release/bioc/vignettes/STRINGdb/inst/doc/STRINGdb.pdf
 #library("BiocManager",lib="C:/Users/animeshs/GD/R_libs")
-#BiocManager::install("STRINGdb",lib="C:/Users/animeshs/GD/R_libs")
-library("STRINGdb",lib="C:/Users/animeshs/GD/R_libs")
+#BiocManager::install("STRINGdb")#,lib="C:/Users/animeshs/GD/R_libs")
+library("STRINGdb")#,lib="C:/Users/animeshs/GD/R_libs")
 string_db <- STRINGdb$new(species=9606, version="11",score_threshold=0, input_directory="")
 ung2 = string_db$mp( "ung2" )
 pcna = string_db$mp( "pcna" )
@@ -120,14 +126,14 @@ string_db$get_interactions(c(ung2, pcna))
 string_db$get_paralogs(pcna)
 string_db$get_homologs_besthits(ung2)
 string_db$get_homologs_besthits(c(ung2,pcna),target_species_id=10090)#,bitscore_threshold=60)
+```
+
+```{r add-gene, echo = FALSE}
 chkStrSdb<-string_db$map(list11,"gene")#,removeUnmappedRows = TRUE )
 chkStrPlot<-string_db$plot_network(chkStrSdb$STRING_id)#[1:10])
 #example1_mapped_pval05 <- string_db$add_diff_exp_color( subset(example1_mapped, pvalue<0.05), logFcColStr="logFC" )
 #payload_id <- string_db$post_payload( example1_mapped_pval05$STRING_id,colors=example1_mapped_pval05$color )
 #string_db$plot_network( hits, payload_id=payload_id )
-```
-
-```{r add-gene, echo = FALSE}
 list5<-as.data.frame(toupper(c("SMG5","UPF1","UPF2","VPS28","VPS37B")))
 colnames(list5)<-"gene"
 list16<-rbind(list5,list11)
@@ -147,8 +153,8 @@ annotations <- string_db$get_annotations( hits )
 head(annotations, n=20)es
 clustersList <- string_db$get_clusters(chkStrSdbX$STRING_id)#[1:600])
 length(clustersList)
-par(mfrow=c(ceiling(sqrt(length(clustersList))),floor(sqrt(length(clustersList))))) 
-for(i in seq(1:length(clustersList))){ string_db$plot_network(clustersList[[i]]) }
+#par(mfrow=c(ceiling(sqrt(length(clustersList))),floor(sqrt(length(clustersList))))) 
+#for(i in seq(1:length(clustersList))){ string_db$plot_network(clustersList[[i]]) }
 ```
 
 
