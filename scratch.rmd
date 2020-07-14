@@ -23,12 +23,49 @@ dir.exists(Sys.getenv('R_LIBS_USER'))
 #[1] TRUE
 #Then restart R, and you'll get:
 .libPaths()[1]
-```
-
-```{r}
 install.packages('devtools')
 library(devtools)
 install_github('MacoskoLab/liger')
+```
+
+```{r DEP}
+#http://www.matrixscience.com/blog/using-the-quantitation-summary-to-create-reports-and-charts.html
+#BiocManager::install("DEP")
+library("DEP")
+inpD <-getwd()
+data = read.table(paste0(inpD,"/PXD004163.txt"),stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
+# tweaks to data frame required by DEP
+data$Gene.names = data$Protein.IDs
+data$Majority.protein.IDs = data$Protein.IDs
+colnames(data)[colnames(data) == 'Peptide.counts..all.'] <- 'Peptides'
+colnames(data)[colnames(data) == 'Peptide.counts..unique.'] <- 'Unique.peptides'
+data$Razor...unique.peptide = data$Unique.peptides
+data$Protein.names = data$Fasta.headers
+colnames(data)
+dim(data) 
+data <- filter(data,Potential.contaminant!="+")
+dim(data) 
+data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+LFQ_columns <- grep("Intensity.", colnames(data_unique))
+experimental_design = read.table(paste0(inpD,"/PXD004163_exp_des.txt"),stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
+summary(experimental_design)
+data_se <- make_se(data_unique, LFQ_columns, experimental_design)
+summary(data_se)
+plot_frequency(data_se)
+data_filt <- filter_missval(data_se, thr = 0)
+plot_numbers(data_filt)
+data_norm <- normalize_vsn(data_filt)
+plot_normalization(data_filt, data_norm)
+plot_detect(data_filt)
+data_imp <- impute(data_norm, fun = "MinProb", q = 0.01)
+plot_imputation(data_norm, data_imp)
+data_diff <- test_diff(data_imp, type = "control", control = "siCtrl")
+dep <- add_rejections(data_diff, alpha = 0.05, lfc = log2(1.5))
+plot_pca(dep, x = 1, y = 2, n = 500, point_size = 4)
+plot_cor(dep, significant = TRUE, lower = 0.8, upper = 1, pal = "Reds")
+plot_heatmap(dep, type = "centered", kmeans = TRUE, k = 6, col_limit = 4, show_row_names = FALSE, indicate = c("condition", "replicate"))
+plot_heatmap(dep, type = "contrast", kmeans = TRUE, k = 6, col_limit = 10, show_row_names = FALSE)
+plot_volcano(dep, contrast = "miR_191_vs_siCtrl", label_size = 2, add_names = TRUE)
 ```
 
 

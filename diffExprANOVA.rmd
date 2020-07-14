@@ -33,7 +33,8 @@ t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
 #inpD<-"F:\promec\Qexactive\LARS\2020\mars\Heidi nano\combined\txt"
 inpD <-paste0(getwd(),"/Heidi/")
 inpF<-paste0(inpD,"proteinGroups.txt")
-data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
+data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
+#read.delim(inpF,sep="\t",header = T,row.names = 1)
 #clean
 data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
@@ -60,16 +61,19 @@ writexl::write_xlsx(as.data.frame(cbind(log2LFQ,rownames(data))),inpW)
 ```
 
 ```{r label}
-inpL<-paste0(inpD,"Groups.txt")
-label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
+#inpL<-paste0(inpD,"Groups.txt")
+#label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
+label<-read.table(paste0(getwd(),"/Heidi/annodata.txt"),sep="\t",header=T)
+factor(label$annotation)
 #inpL<-paste0(inpD,"Groups.xlsx")
 #label<-read_xlsx(inpL)
 #colnames(label)=sub("\\-[0-9]+","",colnames(label))
 #colnames(label)
 summary(label)
-rownames(label)<-label[['Name']]
+rownames(label)<-label[['axisLabels']]
+#rownames(label)<-label[['Names']]
 rownames(label)
-table(label)
+#table(label)
 ```
 
 ```{r beads}
@@ -301,6 +305,8 @@ hist(log2FCmedianFC,main = hdr)
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(rownames(dataSellog2grpTtest), ";"), "[", 1)), "-"), "[", 1))
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
 writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.xlsx"))
+#write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.csv"))
+write.table(ttest.results,sep="\t",paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgrpOut25pQ.txt"))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ```
 
@@ -838,6 +844,48 @@ writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgr
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ```
 
+```{r DEP}
+#http://www.matrixscience.com/blog/using-the-quantitation-summary-to-create-reports-and-charts.html
+#BiocManager::install("DEP")
+library("DEP")
+# tweaks to data frame required by DEP
+data$Genes = data$Protein.IDs
+#data$Majority.protein.IDs = data$Protein.IDs
+colnames(data)[colnames(data) == 'Peptide.counts..all.'] <- 'Peptides'
+colnames(data)[colnames(data) == 'Peptide.counts..unique.'] <- 'Unique.peptides'
+data$Razor...unique.peptide = data$Unique.peptides
+data$ID = data$Fasta.headers
+colnames(data)
+dim(data)
+data$Potential.contaminant
+data <- filter(data,Potential.contaminant!="+")
+dim(data) 
+data_unique <- make_unique(data,"Genes", "Proteins", delim = ";")
+LFQ_columns <- grep("LFQ.", colnames(data))
+experimental_design = read.table(paste0(inpD,"/annodataPC2.txt"),stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
+experimental_design$label<-paste0("LFQ.intensity.",experimental_design$ID)
+experimental_design$condition<-experimental_design$annotation
+experimental_design$replicate<-experimental_design$axisLabels
+rownames(experimental_design)<-experimental_design$label
+summary(experimental_design)
+data_se <- make_se(data, LFQ_columns, experimental_design)
+summary(data_se)
+plot_frequency(data_se)
+data_filt <- filter_missval(data_se, thr = 0)
+plot_numbers(data_filt)
+data_norm <- normalize_vsn(data_filt)
+plot_normalization(data_filt, data_norm)
+plot_detect(data_filt)
+data_imp <- impute(data_norm, fun = "MinProb", q = 0.01)
+plot_imputation(data_norm, data_imp)
+data_diff <- test_diff(data_imp, type = "control", control = "plasma")
+dep <- add_rejections(data_diff, alpha = 0.05, lfc = log2(1.5))
+plot_pca(dep, x = 1, y = 2, n = 500, point_size = 4)
+plot_cor(dep, significant = TRUE, lower = 0.8, upper = 1, pal = "Reds")
+plot_heatmap(dep, type = "centered", kmeans = TRUE, k = 6, col_limit = 4, show_row_names = FALSE, indicate = c("condition", "replicate"))
+plot_heatmap(dep, type = "contrast", kmeans = TRUE, k = 6, col_limit = 10, show_row_names = FALSE)
+plot_volcano(dep, contrast = "beadVsplasma", label_size = 2, add_names = TRUE)
+```
 
 ```{r tests}
 plot(as.matrix(log2(data)))
