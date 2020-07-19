@@ -1,3 +1,15 @@
+```{r setup, echo = FALSE}
+#plot
+par(mfrow=c(1,2))
+#.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
+.libPaths()
+setwd("C:/Users/animeshs/GD/scripts")
+getwd()
+#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
+#rm(list = ls())
+#detach("package:pathview", unload=TRUE)
+```
+
 ```{r libloc, echo = FALSE}
 .libPaths( c( .libPaths(), "~/libR") )
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
