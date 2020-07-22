@@ -1,12 +1,12 @@
-set MAXQUANTDIR=L:\MaxQuant_1.5.3.30\MaxQuant
-set DATADIR=L:\Qexactive\LARS\2016\Odrun\Rep3
+set MAXQUANTDIR=C:\Users\animeshs\GD\MaxQuant1.6.15.0
+set DATADIR=Z:\PXD009449
 set PREFIXRAW=
 set PARAMFILE=mqpar.xml
 set SEARCHTEXT=TestFile
 
 DIR /B %DATADIR%\%PREFIXRAW%*.raw > %DATADIR%\tempfile.txt
 
-FOR /F "eol=  tokens=1,2 delims=." %%i in (%DATADIR%\tempfile.txt) do  ( 
+FOR /F "eol=  tokens=1,2 delims=." %%i in (%DATADIR%\tempfile.txt) do  (
 	if not %%i ==   "" (
 		call :Change %%i
 		if exist proc rmdir /S /Q proc
@@ -23,7 +23,7 @@ FOR /F "eol=  tokens=1,2 delims=." %%i in (%DATADIR%\tempfile.txt) do  (
 )
 
 
-GOTO :Source 
+GOTO :Source
 
 :Change
 
@@ -36,16 +36,16 @@ GOTO :Source
 	set OUTPUTLINE=
 
 	if exist %OUTTEXTFILE% del %OUTTEXTFILE%
-	for /f "tokens=1,* delims=¶" %%A in ( '"type %INTEXTFILE%"') do (
+	for /f "tokens=1,* delims=ï¿½" %%A in ( '"type %INTEXTFILE%"') do (
 	SET string=%%A
 	SET modified=!string:%SEARCHTEXT%=%REPLACETEXT%!
 
 	echo !modified! >> %OUTTEXTFILE%
 	)
 
-:Source 
+:Source
 
-:: https://irfanview-forum.de/showthread.php?t=3263 
+:: https://irfanview-forum.de/showthread.php?t=3263
 :: http://stackoverflow.com/questions/5273937/how-to-replace-substrings-in-windows-batch-file
 :: http://www.pcreview.co.uk/forums/delims-t1466398.html
 :: http://www.robvanderwoude.com/for.php

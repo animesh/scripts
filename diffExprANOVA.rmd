@@ -2,7 +2,7 @@
 #plot
 par(mfrow=c(1,2))
 #library/packages
-#.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R-4.0.1/library") )
+.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R-4.0.1/library") )
 .libPaths()
 #[1] "C:/Users/animeshs/GD/R-4.0.1/library"
 #install.packages("lattice", repos="http://cran.r-project.org", lib="~/local/R_libs/")
@@ -13,8 +13,8 @@ par(mfrow=c(1,2))
 #BiocManager::install("limma")
 #install.packages("matrixStats")
 #directory/home
+setwd("C:/Users/animeshs/GD/scripts")
 getwd()
-#setwd("C:/Users/animeshs/GD/")
 chkrVector<-c(22.39459,20.48316,21.87155,NA,20.34495)
 chkrDF<-as.data.frame(chkrVector)
 plot(chkrDF)
@@ -861,6 +861,19 @@ writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,hdr,"wTestBHgr
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ```
 
+```{r NC154/63/4comb}
+#https://github.com/gowerc/diffdf
+#install.packages("devtools")
+#devtools::install_github("gowerc/diffdf")
+#diffdf::diffdf(dataNC154plasmawTest, dataNC154plasmawTest)
+dataNC_154_163<-diffdf::diffdf(dataNC154plasmawTest, dataNC163plasmawTest)
+plot(dataNC_154_163$VarDiff_Log2MedianChange)
+dataNC_164_163<-diffdf::diffdf(dataNC164plasmawTest, dataNC163plasmawTest)
+plot(dataNC_164_163$VarDiff_Log2MedianChange)
+dataNC_154_164<-diffdf::diffdf(dataNC164plasmawTest, dataNC154plasmawTest)
+plot(dataNC_154_164$VarDiff_Log2MedianChange)
+```
+
 ```{r NC154/63/4BH}
 dataV<-data.frame(cbind(NC154=dataNC154plasmawTest$CorrectedPValueBH,NC163=dataNC163plasmawTest$CorrectedPValueBH,NC164=dataNC164plasmawTest$CorrectedPValueBH))
 row.names(dataV)<-row.names(data)
@@ -879,12 +892,22 @@ limma::vennDiagram(dataV<0.1)
 writexl::write_xlsx(cbind(row.names(dataV),dataV),paste0(inpF,selection,"wTestPVvennNC154_63_4.xlsx"))
 ```
 
-```{r NC154/63/4HC}
-dataHC<-cbind(NC154=dataNC154plasmawTest$CorrectedPValueBH,NC163=dataNC163plasmawTest$CorrectedPValueBH,NC164=dataNC164plasmawTest$CorrectedPValueBH)
+```{r NC154/63/4LFQ}
+dataV<-data.frame(cbind(NC154=dataNC154plasmawTest$FoldChanglog2median,NC163=dataNC163plasmawTest$FoldChanglog2median,NC164=dataNC164plasmawTest$FoldChanglog2median))
 row.names(dataV)<-row.names(data)
-limma::vennDiagram(dataV<0.1)
-dataV<-cbind(NC154=dataNC154plasmawTest$welchTtestPval,NC163=dataNC163plasmawTest$welchTtestPval,NC164=dataNC164plasmawTest$welchTtestPval)
-limma::vennDiagram(dataV<0.1)
+summary(dataV>1)
+dataV[is.na(dataV)]<-0
+limma::vennDiagram(dataV>1)
+limma::vennDiagram(dataV<1)
+writexl::write_xlsx(cbind(row.names(dataV),dataV),paste0(inpF,selection,"FoldChangeNC154_63_4.xlsx"))
+```
+
+```{r NC154/63/4HC}
+dataV<-data.frame(cbind(NC154=dataNC154plasmawTest$Log2MedianChange,NC163=dataNC163plasmawTest$Log2MedianChange,NC164=dataNC164plasmawTest$Log2MedianChange))
+row.names(dataV)<-row.names(data)
+#dataV[is.na(dataV)]<-0
+limma::vennDiagram(dataV>0)
+limma::vennDiagram(dataV<0)
 ```
 
 ```{r DEP}
