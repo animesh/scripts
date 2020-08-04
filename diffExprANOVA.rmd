@@ -865,7 +865,7 @@ limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 #https://github.com/gowerc/diffdf
 #install.packages("devtools")
 #devtools::install_github("gowerc/diffdf")
-#diffdf::diffdf(dataNC154plasmawTest, dataNC154plasmawTest)
+diffdf::diffdf(dataNC154plasmawTest, dataNC154plasmawTest)
 dataNC_154_163<-diffdf::diffdf(dataNC154plasmawTest, dataNC163plasmawTest)
 plot(dataNC_154_163$VarDiff_Log2MedianChange)
 dataNC_164_163<-diffdf::diffdf(dataNC164plasmawTest, dataNC163plasmawTest)

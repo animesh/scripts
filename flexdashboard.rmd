@@ -1,0 +1,128 @@
+---
+source: "https://towardsdatascience.com/ten-random-useful-things-in-r-that-you-might-not-know-about-54b2044a3868"
+title: "Check"
+author: ""
+date: ""
+output:
+  html_document:
+    code_folding: "hide"
+params:
+  name:
+    value: n1
+    choices:
+      - D
+      - C
+      - R
+  years_of_study:
+    input: slider
+    min: 2000
+    max: 2020
+    step: 1
+    round: 1
+    sep: ''
+    value: [2012, 2020]
+---
+
+```{r libloc, echo = FALSE}
+.libPaths( c( .libPaths(), "~/libR") )#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
+usethis::edit_r_environ() #edit github_key
+?R_LIBS_USER
+normalizePath("~/.Renviron", mustWork = FALSE)
+```
+
+```{r setup, echo = FALSE}
+#plot
+par(mfrow=c(1,2))
+#.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
+.libPaths()
+setwd("C:/Users/animeshs/GD/scripts")
+getwd()
+#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
+#rm(list = ls())
+#detach("package:pathview", unload=TRUE)
+```
+
+```{r package, echo = FALSE}
+install.packages('flexdashboard')
+library(flexdashboard)
+styler::style_file()
+  DSN = "database_name",
+  UID = "User ID",
+  PASS = "Password"
+db <- DBI::dbConnect(
+  drv = odbc::odbc(),
+  dsn = Sys.getenv("DSN"),
+  uid = Sys.getenv("UID"),
+  pwd = Sys.getenv("PASS")
+)
+data <- read.csv(
+  switch(animal, 
+         "dog" = "dogdata.csv", 
+         "cat" = "catdata.csv",
+         "rabbit" = "rabbitdata.csv")
+)
+output$go_button <- shiny::renderUI({
+  # only display button if an animal input has been chosen
+  
+  shiny::req(input$animal)
+  # display button
+  shiny::actionButton("go", 
+                      paste("Conduct", input$animal, "analysis!") 
+  )
+})
+# get csv input file
+inFile <- input$file1
+data <- inFile$datapath
+# render table only if it is dogs
+shiny::renderTable({
+  # check that it is the dog file, not cats or rabbits
+  shiny::validate(
+    need("Dog Name" %in% colnames(data)),
+    "Dog Name column not found - did you load the right file?"
+  )
+  data
+})
+knit_with_parameters()
+---
+title: "Exporing the Edge of the People Analytics Universe"
+author: "Keith McNulty"
+output:
+  revealjs::revealjs_presentation:
+    center: yes
+    template: starwars.html
+    theme: black
+date: "HR Analytics Meetup London - 18 March, 2019"
+resource_files:
+- darth.png
+- deathstar.png
+- hanchewy.png
+- millenium.png
+- r2d2-threepio.png
+- starwars.html
+- starwars.png
+- stormtrooper.png
+---
+revealjs()
+tags$audio
+praise()
+```
+
+```{r explore}
+#https://github.com/rolkra/explore
+#install.packages("explore")
+library(explore)
+explore(iris)
+##manual
+#library(magrittr)
+#data(iris)
+iris %>% explore(Species)
+iris$is_versicolor <- ifelse(iris$Species == "versicolor", 1, 0)
+iris %>% explore_all(target = is_versicolor)
+describe(iris)
+#DT
+iris$Species <- NULL
+iris %>% explain_tree(target = is_versicolor)
+#LogReg
+iris %>% explain_logreg(target = is_versicolor)
+```
+

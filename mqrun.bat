@@ -1,4 +1,4 @@
-set MAXQUANTDIR=C:\Users\animeshs\GD\MaxQuant1.6.15.0
+set MAXQUANTDIR=C:\Users\animeshs\GD\MQv16170\MaxQuant
 set DATADIR=Z:\PXD009449
 set PREFIXRAW=
 set PARAMFILE=mqpar.xml
@@ -32,11 +32,11 @@ GOTO :Source
 	set FileN=%~1
 	set INTEXTFILE=%PARAMFILE%
 	set OUTTEXTFILE=%DATADIR%\%FileN%.xml
-	set REPLACETEXT=%FileN%
+	set REPLACETEXT=%DATADIR%\%FileN%
 	set OUTPUTLINE=
 
 	if exist %OUTTEXTFILE% del %OUTTEXTFILE%
-	for /f "tokens=1,* delims=�" %%A in ( '"type %INTEXTFILE%"') do (
+	for /f "tokens=1,* delims=" %%A in ( '"type %INTEXTFILE%"') do (
 	SET string=%%A
 	SET modified=!string:%SEARCHTEXT%=%REPLACETEXT%!
 

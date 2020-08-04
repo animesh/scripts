@@ -6,6 +6,16 @@ git clone https://github.com/WolframResearch/WolframLanguageForJupyter.git
 jupyter kernelspec list
 https://stackoverflow.com/questions/52602720/cannot-read-an-m-file-in-atom-with-octave-although-it-works-in-nteract/52629947#52629947 for kernel spec in atom-hydrogen {"wolfram language": "mathematica"}
 *)
+#https://blog.wolfram.com/2020/07/09/accessing-the-world-with-the-wolfram-language-external-identifiers-and-wikidata/
+WikipediaData[Moon,mass]
+WikidataData[
+ ExternalIdentifier["WikidataID",
+  "Q405", <|"Label" -> "Moon",
+   "Description" -> "only natural satellite of Earth"|>],
+ ExternalIdentifier["WikidataID",
+  "P2067", <|"Label" -> "mass",
+   "Description" ->
+    "mass (in colloquial usage also known as weight) of the item"|>]]
 (1/3)*3==1(*TRUE*)
 #https://0.30000000000000004.com/
 (0.1+0.2)==0.3#FALSE
