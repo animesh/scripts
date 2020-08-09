@@ -1,5 +1,5 @@
 set MAXQUANTDIR=C:\Users\animeshs\GD\MQv16170\MaxQuant
-set DATADIR=Z:\PXD009449
+set DATADIR=Z:\PA
 set PREFIXRAW=
 set PARAMFILE=mqpar.xml
 set SEARCHTEXT=TestFile

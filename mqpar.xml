@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>Z:\PXD009449\sequences.fasta</fastaFilePath>
+         <fastaFilePath>Z:\PA\PA.fasta</fastaFilePath>
          <identifierParseRule>>([^\s]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
