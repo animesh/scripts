@@ -43,7 +43,7 @@ getwd()
 ```
 
 ```{r package, echo = FALSE}
-install.packages('flexdashboard')
+#install.packages('flexdashboard')
 library(flexdashboard)
 styler::style_file()
   DSN = "database_name",

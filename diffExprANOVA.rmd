@@ -36,9 +36,9 @@ inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
 #read.delim(inpF,sep="\t",header = T,row.names = 1)
 #clean
-data = data[!data$Reverse=="+",]
-data = data[!data$Potential.contaminant=="+",]
-data = data[!data$Only.identified.by.site=="+",]
+#data = data[!data$Reverse=="+",]
+#data = data[!data$Potential.contaminant=="+",]
+#data = data[!data$Only.identified.by.site=="+",]
 row.names(data)<-paste(row.names(data),data$Gene.names,data$Protein.IDs,data$Protein.names,data$Score,data$Peptide.counts..unique.,sep=";;")
 summary(data)
 dim(data)
@@ -83,9 +83,11 @@ hist(as.matrix(hda))
 #AQ3 NC154 NC163 NC164 NC165 NC166 TT07 TT08 TT09
 AQ3<-apply(hda,1,function(x) if(sum(is.na(x[c(1:3)]))==0){median(x[c(1:3)],na.rm=T)} else{0})
 sum(AQ3>0)
-NC154<-apply(hda,1,function(x) if(sum(is.na(x[c(4:6)]))<5){median(x[c(4:6)],na.rm=T)} else{0})
+NC154<-apply(hda,1,function(x) if(sum(is.na(x[c(7:9)]))<3){median(x[c(7:9)],na.rm=T)} else{0})
 sum(NC154>0)
-NC164<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))==0){median(x[6:8])} else{0})
+NC163<-apply(hda,1,function(x) if(sum(is.na(x[13:15]))<3){median(x[13:15],na.rm=T)} else{0})
+sum(NC163>0)
+NC164<-apply(hda,1,function(x) if(sum(is.na(x[16:18]))<3){median(x[16:18],na.rm=T)} else{0})
 sum(NC164>0)
 NC165<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))==0){median(x[6:8])} else{0})
 sum(NC165>0)
@@ -97,9 +99,13 @@ TT08<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))<3){median(x[9:11],na.rm=T)}
 sum(TT08>0)
 TT09<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))==0){median(x[12:14])} else{0})
 sum(TT09>0)
-NC163<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))<3){median(x[12:14],na.rm=T)} else{0})
-sum(NC163>0)
-hdaM=cbind(AQ3,NC154,NC163,NC164,NC165,NC166,TT07,TT08,TT09)
+#hdaM=cbind(AQ3,NC154,NC163,NC164,NC165,NC166,TT07,TT08,TT09)
+plasma<-as.matrix(log2LFQ[,grep("plasma",colnames(log2LFQ))])
+hist(as.matrix(plasma))
+plasmaM<-apply(plasma,1,function(x) if(sum(is.na(x[1:3]))<3){median(x[1:3],na.rm=T)} else{0})
+plasmaM<-apply(plasma,1,function(x) if(sum(is.na(x[1:2]))<2){median(x[1:2],na.rm=T)} else{0})
+sum(plasmaM>0)
+hdaM=cbind(NC154,NC163,NC164,plasmaM)
 Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
 uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
 row.names(hdaM)<-uniprot
@@ -108,7 +114,8 @@ gene<-toupper(as.character(data$Gene.names))
 gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
 protein<-as.character(data$Protein.IDs)
 summary(hdaM)
-limma::vennDiagram(hdaM[,1:5]>0)
+#limma::vennDiagram(hdaM[,1:5]>0)
+limma::vennDiagram(hdaM>0)
 inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(uniprot,hdaM,hda,data[,7])),inpW)
 ```
