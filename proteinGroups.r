@@ -11,7 +11,7 @@ if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if 
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #read
 #MaxQuant
-#inpF<-file.path("L:/promec/Qexactive/LARS/2020/February/Nathan Shotgun/combined/txt/proteinGroups.txt")
+#inpF<-file.path("L:/promec/HF/Lars/2020/AUGUST/siri/combined/txt_noPHO/proteinGroups.txt")
 #ProteomeDiscoverer
 #inpF<-file.path("Z:/PA/_Pseudomonas_ 1/140605_Pseudomonas_O1_K0K6_Proteins.txt")
 data<-read.table(inpF,header=T,sep="\t")
@@ -23,9 +23,7 @@ if(sum(grep("Intensity.",colnames(data)))>0){intensity<-as.matrix(data[,grep("In
 protNum<-1:ncol(intensity)
 colnames(intensity)=paste(protNum,sub("Intensity.","",colnames(intensity)),sep="_")
 colnames(intensity)=paste(protNum,sub("Abundance.","",colnames(intensity)),sep="_")
-hist(intensity[,74])
-hist(intensity[,73])
-hist(intensity[,72])
+#hist(intensity[,1])
 #clean MQ output
 data = data[!data$Reverse=="+",]
 data = data[!data$Potential.contaminant=="+",]
@@ -148,3 +146,4 @@ if(dim(log2LFQ)[2]>0){
   dev.off()
   print(paste("Histogram, PCA, Heatmap of Log2 transform of",selection,"column(s) written to",outP))
 }
+

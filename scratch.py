@@ -1,3 +1,22 @@
+#https://dataorigami.net/blogs/napkin-folding/highlights-from-lifelines-v0-25-0
+!pip install lifelines
+import pandas as pd
+#df = pd.DataFrame({'a': [35, 36, 40, 25, 55],'s': [60, 35, 80, 50, 100]})
+df = pd.DataFrame({    'age': [35, 36, 40, 25, 55],    'salary': [60, 35, 80, 50, 100],    'age:salary': [2100, 1260, 2400, 1750, 5500],    'Intercept': [1, 1, 1, 1, 1]})
+from lifelines import CoxPHFitter
+from lifelines.datasets import load_rossi
+rossi = load_rossi()
+cph = CoxPHFitter()
+cph.fit(rossi, "week", "arrest", formula="age + fin + prio + paro * mar")
+cph.print_summary(columns=['coef', 'se(coef)', '-log2(p)'])
+cph.fit(rossi, "week", "arrest", formula="age + fin + bs(prio, df=3)")
+cph.print_summary(columns=['coef', 'se(coef)', '-log2(p)'])
+from lifelines import WeibullAFTFitter
+wf = WeibullAFTFitter()
+wf.fit(rossi, "week", "arrest", formula="age + fin + paro * mar", ancillary="age * fin")
+wf.print_summary(columns=['coef', 'se(coef)', '-log2(p)'])
+#It's not displayed by default (that may change), but with the at_risk_counts kwarg in the call to KaplanMeierFitter.plot.
+
 #https://www.kdnuggets.com/2020/07/feature-engineering-sql-python-hybrid-approach.html
 #mysql -uroot -p1234567
 #create database Shutterfly;

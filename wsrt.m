@@ -1,4 +1,4 @@
-fo='L:\promec\HF\Lars\2020\mars\siri\combined\txt\proteinGroupsLog2diffs.xlsx';
+fo='L:\promec\HF\Lars\2020\AUGUST\siri\combined\txt_noPHO\proteinGroupsSctr.xlsx';
 testtype=' WSRT';
 [data,id,~]=xlsread(fo);
 IDX=1;
