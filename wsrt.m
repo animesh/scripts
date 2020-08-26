@@ -1,34 +1,37 @@
-fo='L:\promec\HF\Lars\2020\AUGUST\siri\combined\txt_noPHO\proteinGroupsSctr.xlsx';
+fo='L:\promec\HF\Lars\2020\AUGUST\siri\combined\txt_PHOSTY\proteinGroups.txt';
 testtype=' WSRT';
-[data,id,~]=xlsread(fo);
+data=readtable(fo);
 IDX=1;
-idoff=1; %from id start at +idoff
-idx=1;
-edx=12;
-jmp=3;
-idnm=id(:,IDX);
-data(:,all(isnan(data), 1)) = [];
-data(data == 0) = NaN;
-id=id(1,~cellfun('isempty',id(1,:)));
-pv=zeros(size(data,1),ceil((edx-idx+1)/jmp));
+sdx=108;
+edx=119;
+rep=3;
+log2data=log2(table2array(data(:,sdx:edx))+1);
+log2ctr=log2data(:,[1:ceil((edx-sdx+1)/rep):size(log2data,2)]);
+log2ctr=repelem(log2ctr,1,ceil((edx-sdx+1)/rep));
+log2data=log2data-log2ctr;
+hist(log2data)
+idnm=data(:,IDX);
+id=cell(data.Properties.VariableNames(sdx:edx));
+pv=zeros(size(data,1),ceil((edx-sdx+1)/rep)-1);
 ln=zeros(size(data,1),1);
 hdr='Line ';
-for j = idx:jmp:edx
-    pcvt=ceil(j/jmp)
-    st=j
-    en=j+jmp-1
-    hdr=[hdr strcat(id(1,j+idoff),num2str(j),testtype)]
-    for i = 1:size(data,1) %test with 1%
-        ln(i)=ln(i)+i;
-         if sum(isnan(data(i,st:en)))<(en-st+1)
-            data(i,st:en)
-            %pv(i,pcvt)=signrank(log2(data(i,st:en)/100));
-            pv(i,pcvt)=signrank(data(i,st:en));
+pcvt=0;
+for j = 1:ceil((edx-sdx+1)/rep):size(log2data,2)
+    hdr=[hdr strcat(num2str(j),id(j),testtype)]
+    pcvt=pcvt+1;
+    for i = 1:size(data,1)
+        %tmparr=log2(table2array(data(i,st:en))+1)-log2(table2array(data(i,st))+1);
+        %tmparr(tmparr==0)=nan;
+        %tmparr=tmparr(2:4)
+        i%=1 %test with 1%
+        tmparr=log2data(i,j+1:j+rep)
+        ln(i)=i;
+         if sum(isnan(tmparr))<length(tmparr)
+            pv(i,pcvt)=signrank(tmparr);
          else
             pv(i,pcvt)=1;
          end
     end
 end
 hist(pv)
-ln=ln/ceil((edx-idx+1)/jmp);
-xlswrite(strcat(fo,testtype,'pval.xls'),[idnm [hdr;num2cell([ln pv])]])
+xlswrite(strcat(fo,testtype,'pval.xls'),table2cell([[cell(data.Properties.VariableNames(IDX));idnm] [hdr;num2cell([ln pv])] [id;num2cell(log2data)]]))
