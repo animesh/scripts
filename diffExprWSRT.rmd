@@ -177,17 +177,20 @@ inpW<-paste0(inpF,"sel-LFQ-S-control.WSRT.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(uniprot,dataSellog2grpWSRT,pValNA,data[,7])),inpW)
 ```
 
-```{r S_wsrtMatlab, echo = FALSE}
+```{r MDR_wsrtMatlab, echo = FALSE}
 #install.packages("readxl")
 #library(readxl)
-resMatlab<-readxl::read_excel("L:\\promec\\HF\\Lars\\2020\\AUGUST\\siri\\combined\\txt_PHOSTY\\proteinGroups.txt WSRTpval.xls")
-resMatlab<-as.numeric(resMatlab)
+inpF<-"L:\\promec\\HF\\Lars\\2020\\AUGUST\\siri\\combined\\txt_PHOSTY\\proteinGroups.txt WSRTpVal.csv"
+#resMatlab<-readxl::read_excel(inpF)
+#https://stackoverflow.com/a/39113320/1137129
+hdr<-read.csv(inpF,skip=1,header=F,nrows=1,as.is=T)
+resMatlab<-read.csv(inpF, skip = 2, header = F)
+colnames(resMatlab)<-hdr
 summary(resMatlab)
-hist(as.matrix(resMatlab[,7]-dataSellog2grpWSRT[,1]))#,(resMatlab[,7]+dataSellog2grpWSRT[,1]))
-hist(as.matrix(resMatlab[,3]))
+hist(as.matrix(resMatlab[,5]))#-dataSellog2grpWSRT[,1]))#,(resMatlab[,7]+dataSellog2grpWSRT[,1]))
 hist(pValNA)
-hist(as.matrix(resMatlab[,3])-pValNA)
-plot(as.matrix(resMatlab[,3]),pValNA)
+hist(as.matrix(resMatlab[,7])-pValNA)
+plot(as.matrix(resMatlab[,8]),pValNA)
 ```
 
 
