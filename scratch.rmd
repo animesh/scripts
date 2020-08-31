@@ -40,6 +40,21 @@ library(devtools)
 install_github('MacoskoLab/liger')
 ```
 
+```{r}
+#https://github.com/animesh/causalML
+#https://cran.r-project.org/web/packages/bnlearn/bnlearn.pdf
+install.packages("bnlearn")
+library(bnlearn)
+data(alarm)
+bn.cv(alarm, bn = "hc", algorithm.args = list(score = "bde", iss = 1))
+#https://www.bnlearn.com/examples/xval/
+#  k-fold cross-validation for Bayesian networks
+# target learning algorithm:             Hill-Climbing
+#  number of folds:                       10
+#  loss function:                         Log-Likelihood Loss (disc.)
+#  expected loss:                         10.82617
+```
+
 ```{r pepFunc, echo = FALSE}
 #source https://github.com/northomics/pepFunk
 library(rhandsontable)

@@ -118,7 +118,7 @@ combM<-apply(combM,1,function(x) if(sum(is.na(x[c(1:3)]))==0){median(x[c(1:3)],n
 sum(combM>0)
 hdaM=cbind(ctrM,Sm,MDRm,combM)
 hist(hdaM)
-Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+Uniprot<-sapply(strsplit(data[,1],";"), `[`, 1)
 uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
 row.names(hdaM)<-uniprot
 #colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
@@ -173,11 +173,14 @@ pValNA = apply(
   )
 summary(warnings())
 hist(pValNA)
-inpW<-paste0(inpF,"sel-LFQ-S-control.WSRT.xlsx")
-writexl::write_xlsx(as.data.frame(cbind(uniprot,dataSellog2grpWSRT,pValNA,data[,7])),inpW)
+S_dataSellog2grpWSRT<-cbind(uniprot,dataSellog2grpWSRT,pValNA,data[,7],rownames(S_dataSellog2grpWSRT))
+#writexl::write_xlsx(as.data.frame(S_dataSellog2grpWSRT),paste0(inpF,"sel-LFQ-S-control.WSRT.xlsx"))
+write.csv(as.data.frame(S_dataSellog2grpWSRT),row.names=F,paste0(inpF,"sel-LFQ-S-control.WSRT.csv"))
 ```
 
 ```{r MDR_wsrtMatlab, echo = FALSE}
+#exceltest 
+#=IF(AND(SIGN(B2)=SIGN(C2),SIGN(D2)=SIGN(C2)),1,0)
 #install.packages("readxl")
 #library(readxl)
 inpF<-"L:\\promec\\HF\\Lars\\2020\\AUGUST\\siri\\combined\\txt_PHOSTY\\proteinGroups.txt WSRTpVal.csv"
@@ -190,7 +193,7 @@ summary(resMatlab)
 hist(as.matrix(resMatlab[,5]))#-dataSellog2grpWSRT[,1]))#,(resMatlab[,7]+dataSellog2grpWSRT[,1]))
 hist(pValNA)
 hist(as.matrix(resMatlab[,7])-pValNA)
-plot(as.matrix(resMatlab[,8]),pValNA)
+plot(as.matrix(resMatlab[,7]),pValNA)
 ```
 
 
@@ -235,8 +238,10 @@ pValNA = apply(
   )
 summary(warnings())
 hist(pValNA)
-inpW<-paste0(inpF,"sel-LFQ-M-control.WSRT.xlsx")
-writexl::write_xlsx(as.data.frame(cbind(uniprot,dataSellog2grpWSRT,pValNA,data[,7])),inpW)
+inpW<-paste0(inpF,"sel-LFQ-MDR-control.WSRT.xlsx")
+MDR_dataSellog2grpWSRT<-cbind(uniprot,dataSellog2grpWSRT,pValNA,data[,7],rownames(dataSellog2grpWSRT))
+#writexl::write_xlsx(as.data.frame(MDR_dataSellog2grpWSRT),inpW)
+write.csv(as.data.frame(MDR_dataSellog2grpWSRT),row.names=F,paste0(inpF,"sel-LFQ-MDR-control.WSRT.csv"))
 ```
 
 ```{r comb_WSRT, echo = FALSE}
@@ -280,9 +285,38 @@ pValNA = apply(
   )
 summary(warnings())
 hist(pValNA)
-inpW<-paste0(inpF,"sel-LFQ-C-control.WSRT.xlsx")
-writexl::write_xlsx(as.data.frame(cbind(uniprot,dataSellog2grpWSRT,pValNA,data[,7])),inpW)
+inpW<-paste0(inpF,"sel-LFQ-combi-control.WSRT.xlsx")
+combi_dataSellog2grpWSRT<-cbind(uniprot,dataSellog2grpWSRT,pValNA,data[,7],rownames(dataSellog2grpWSRT))
+#writexl::write_xlsx(as.data.frame(combi_dataSellog2grpWSRT),inpW)
+write.csv(as.data.frame(combi_dataSellog2grpWSRT),row.names=F,paste0(inpF,"sel-LFQ-combi-control.WSRT.csv"))
 ```
+
+```{r sel-WSRTs}
+selThr<-0.3
+dataS<-cbind(S_dataSellog2grpWSRT,MDR_dataSellog2grpWSRT,combi_dataSellog2grpWSRT)
+dataScom<-dataS[(dataS[,5]<selThr) & (dataS[,12]<selThr) & (dataS[,19]<selThr),]
+dataSel<-dataS[,c(5,12,19)]
+dataSel[dataSel==0]<-1
+dataSel[is.na(dataSel)]<-1
+colnames(dataSel)<-c("S","MDR","comb")
+hist(as.numeric(dataSel))
+limma::vennDiagram(dataSel[,c(1:3)]<selThr)
+gene<-sapply(strsplit(row.names(dataSel),";;"), `[`, 2)
+gene<-sapply(strsplit(gene,";"), `[`, 1)
+dataSel<-cbind(gene,dataSel)#[,ncol(dataSel)+1]<-
+writexl::write_xlsx(as.data.frame(dataS),paste0(inpF,"sel-WSRT-onevar.xlsx"))
+write.csv(as.data.frame(dataS),row.names=FALSE,paste0(inpF,"sel-WSRT-onevar.csv"))
+```
+
+```{r SOS-map}
+#https://www.asmscience.org/content/journal/ecosalplus/10.1128/ecosalplus.5.4.3
+##Table1
+sosD<-read.csv(paste0(inpD,"sosList.txt"),header=T,sep="\t")
+gene<-sapply(strsplit(sosD[,1],";"), `[`, 1)
+sosD<-cbind(gene,sosD)
+table1<-merge(x=sosD,y=dataSel,by="gene",all=TRUE)
+```
+
 
 ```{r S_tTest, echo = FALSE}
 dataSellog2grpTtest<-cbind(S,ctr)
