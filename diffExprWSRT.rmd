@@ -173,27 +173,21 @@ pValNA = apply(
   )
 summary(warnings())
 hist(pValNA)
-S_dataSellog2grpWSRT<-cbind(uniprot,dataSellog2grpWSRT,pValNA,data[,7],rownames(S_dataSellog2grpWSRT))
+S_dataSellog2grpWSRT<-cbind(uniprot,dataSellog2grpWSRT,pValNA,data[,7],rownames(dataSellog2grpWSRT))
 #writexl::write_xlsx(as.data.frame(S_dataSellog2grpWSRT),paste0(inpF,"sel-LFQ-S-control.WSRT.xlsx"))
 write.csv(as.data.frame(S_dataSellog2grpWSRT),row.names=F,paste0(inpF,"sel-LFQ-S-control.WSRT.csv"))
 ```
 
-```{r MDR_wsrtMatlab, echo = FALSE}
-#exceltest 
-#=IF(AND(SIGN(B2)=SIGN(C2),SIGN(D2)=SIGN(C2)),1,0)
-#install.packages("readxl")
-#library(readxl)
-inpF<-"L:\\promec\\HF\\Lars\\2020\\AUGUST\\siri\\combined\\txt_PHOSTY\\proteinGroups.txt WSRTpVal.csv"
-#resMatlab<-readxl::read_excel(inpF)
-#https://stackoverflow.com/a/39113320/1137129
-hdr<-read.csv(inpF,skip=1,header=F,nrows=1,as.is=T)
-resMatlab<-read.csv(inpF, skip = 2, header = F)
+```{r S_wsrtMatlab, echo = FALSE}
+inpM<-"L:\\promec\\HF\\Lars\\2020\\AUGUST\\siri\\combined\\txt_PHOSTY\\proteinGroups.txt WSRTpVal.csv"
+hdr<-read.csv(inpM,skip=1,header=F,nrows=1,as.is=T)
+resMatlab<-read.csv(inpM, skip = 2, header = F)
 colnames(resMatlab)<-hdr
 summary(resMatlab)
 hist(as.matrix(resMatlab[,5]))#-dataSellog2grpWSRT[,1]))#,(resMatlab[,7]+dataSellog2grpWSRT[,1]))
 hist(pValNA)
-hist(as.matrix(resMatlab[,7])-pValNA)
-plot(as.matrix(resMatlab[,7]),pValNA)
+hist(as.matrix(resMatlab[,6])-pValNA)
+plot(as.matrix(resMatlab[,6]),pValNA)
 ```
 
 
@@ -302,7 +296,7 @@ colnames(dataSel)<-c("S","MDR","comb")
 hist(as.numeric(dataSel))
 limma::vennDiagram(dataSel[,c(1:3)]<selThr)
 gene<-sapply(strsplit(row.names(dataSel),";;"), `[`, 2)
-gene<-sapply(strsplit(gene,";"), `[`, 1)
+#gene<-sapply(strsplit(gene,";"), `[`, 1)
 dataSel<-cbind(gene,dataSel)#[,ncol(dataSel)+1]<-
 writexl::write_xlsx(as.data.frame(dataS),paste0(inpF,"sel-WSRT-onevar.xlsx"))
 write.csv(as.data.frame(dataS),row.names=FALSE,paste0(inpF,"sel-WSRT-onevar.csv"))
@@ -312,11 +306,109 @@ write.csv(as.data.frame(dataS),row.names=FALSE,paste0(inpF,"sel-WSRT-onevar.csv"
 #https://www.asmscience.org/content/journal/ecosalplus/10.1128/ecosalplus.5.4.3
 ##Table1
 sosD<-read.csv(paste0(inpD,"sosList.txt"),header=T,sep="\t")
-gene<-sapply(strsplit(sosD[,1],";"), `[`, 1)
-sosD<-cbind(gene,sosD)
-table1<-merge(x=sosD,y=dataSel,by="gene",all=TRUE)
+#gene<-sapply(strsplit(sosD[,1],";"), `[`, 1)
+sosD<-unique(data.frame(gene=unlist(strsplit(as.character(sosD$LexA.dependent.genes),";"))))
+#sosD<-cbind(gene,sosD)
+#table1<-merge(x=sosD,y=dataSel,by="gene",all=TRUE)
+rownames(sosD)<-sosD$gene
+sosD$gene<-0.25
+colnames(sosD)<-c("sosD")
+sosD
 ```
 
+```{r SOSlike-map}
+#https://www.asmscience.org/content/journal/ecosalplus/10.1128/ecosalplus.5.4.3
+##Table2
+sosLD<-read.csv(paste0(inpD,"sosLikeList.txt"),header=T,sep="\t")
+#gene<-sapply(strsplit(sosLD[,1],";"), `[`, 1)
+sosLD<-unique(data.frame(gene=unlist(strsplit(as.character(sosLD$Genes.with.potential.SOS.boxes.a),";"))))
+#sosLD<-sosLD[-grep("ORF_within",sosLD),]
+sosLD<-as.data.frame(sosLD[!sosLD$gene=="ORF_within", ])
+rownames(sosLD)<-sosLD$`sosLD[!sosLD$gene == "ORF_within", ]`
+sosLD$`sosLD[!sosLD$gene == "ORF_within", ]`<-0.25
+colnames(sosLD)<-c("sosLD")
+sosLD
+```
+
+```{r SdataSel-map}
+dataSelmapS<-unique(data.frame(gene=unlist(strsplit(dataSel[dataSel[,2]=="0.25",1],";"))))
+rownames(dataSelmapS)<-dataSelmapS$gene
+dataSelmapS$gene<-0.25
+colnames(dataSelmapS)<-c("S")
+dataSelmapS
+```
+
+```{r MDRdataSel-map}
+dataSelmapMDR<-unique(data.frame(gene=unlist(strsplit(dataSel[dataSel[,3]=="0.25",1],";"))))
+rownames(dataSelmapMDR)<-dataSelmapMDR$gene
+dataSelmapMDR$gene<-0.25
+colnames(dataSelmapMDR)<-c("MDR")
+dataSelmapMDR
+```
+
+```{r combDataSel-map}
+dataSelmapComb<-unique(data.frame(gene=unlist(strsplit(dataSel[dataSel[,4]=="0.25",1],";"))))
+rownames(dataSelmapComb)<-dataSelmapComb$gene
+dataSelmapComb$gene<-0.25
+colnames(dataSelmapComb)<-c("comb")
+dataSelmapComb
+```
+
+```{r overlapSOSboth}
+overlapSOS<-merge(sosD,sosLD,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS<-merge(overlapSOS,dataSelmapS,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS<-merge(overlapSOS,dataSelmapMDR,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS<-merge(overlapSOS,dataSelmapComb,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS[overlapSOS==0]<-1
+overlapSOS[is.na(overlapSOS)]<-1
+limma::vennDiagram(overlapSOS<selThr)
+writexl::write_xlsx(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),paste0(inpF,"sosMapBoth.xlsx"))
+write.csv(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),row.names=FALSE,paste0(inpF,"sosMapBoth.csv"))
+```
+
+```{r overlapSOS}
+overlapSOS<-sosD
+overlapSOS<-merge(overlapSOS,dataSelmapS,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS<-merge(overlapSOS,dataSelmapMDR,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS<-merge(overlapSOS,dataSelmapComb,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS[overlapSOS==0]<-1
+overlapSOS[is.na(overlapSOS)]<-1
+limma::vennDiagram(overlapSOS<selThr)
+writexl::write_xlsx(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),paste0(inpF,"sosMap.xlsx"))
+write.csv(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),row.names=FALSE,paste0(inpF,"sosMap.csv"))
+```
+
+```{r overlapSOSlike}
+overlapSOS<-sosLD
+overlapSOS<-merge(overlapSOS,dataSelmapS,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS<-merge(overlapSOS,dataSelmapMDR,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS<-merge(overlapSOS,dataSelmapComb,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS[overlapSOS==0]<-1
+overlapSOS[is.na(overlapSOS)]<-1
+limma::vennDiagram(overlapSOS<selThr)
+writexl::write_xlsx(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),paste0(inpF,"sosLikeMap.xlsx"))
+write.csv(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),row.names=FALSE,paste0(inpF,"sosLikeMap.csv"))
+```
 
 ```{r S_tTest, echo = FALSE}
 dataSellog2grpTtest<-cbind(S,ctr)
