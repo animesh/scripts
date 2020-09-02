@@ -40,7 +40,7 @@ library(devtools)
 install_github('MacoskoLab/liger')
 ```
 
-```{r}
+```{r causalML}
 #https://github.com/animesh/causalML
 #https://cran.r-project.org/web/packages/bnlearn/bnlearn.pdf
 install.packages("bnlearn")
@@ -53,6 +53,14 @@ bn.cv(alarm, bn = "hc", algorithm.args = list(score = "bde", iss = 1))
 #  number of folds:                       10
 #  loss function:                         Log-Likelihood Loss (disc.)
 #  expected loss:                         10.82617
+```
+
+```{r propensity_score_estimation}
+#https://sejdemyr.github.io/r-tutorials/statistics/tutorial8.html
+#https://biol607.github.io/lab/12_gzlm.html#5_beta_regression
+#install.packages("betareg")
+#library(betareg)'
+sodium_beta <- betareg::betareg(Porportion_Sodium_Intake ~ Supplement + Instructor,data = sodium)
 ```
 
 ```{r pepFunc, echo = FALSE}

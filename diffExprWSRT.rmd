@@ -310,7 +310,7 @@ sosD<-read.csv(paste0(inpD,"sosList.txt"),header=T,sep="\t")
 sosD<-unique(data.frame(gene=unlist(strsplit(as.character(sosD$LexA.dependent.genes),";"))))
 #sosD<-cbind(gene,sosD)
 #table1<-merge(x=sosD,y=dataSel,by="gene",all=TRUE)
-rownames(sosD)<-sosD$gene
+rownames(sosD)<-toupper(sosD$gene)
 sosD$gene<-0.25
 colnames(sosD)<-c("sosD")
 sosD
@@ -324,15 +324,26 @@ sosLD<-read.csv(paste0(inpD,"sosLikeList.txt"),header=T,sep="\t")
 sosLD<-unique(data.frame(gene=unlist(strsplit(as.character(sosLD$Genes.with.potential.SOS.boxes.a),";"))))
 #sosLD<-sosLD[-grep("ORF_within",sosLD),]
 sosLD<-as.data.frame(sosLD[!sosLD$gene=="ORF_within", ])
-rownames(sosLD)<-sosLD$`sosLD[!sosLD$gene == "ORF_within", ]`
+rownames(sosLD)<-toupper(sosLD$`sosLD[!sosLD$gene == "ORF_within", ]`)
 sosLD$`sosLD[!sosLD$gene == "ORF_within", ]`<-0.25
 colnames(sosLD)<-c("sosLD")
 sosLD
 ```
 
+```{r SOSboth}
+overlapSOS<-merge(sosD,sosLD,all=T,by="row.names")
+rownames(overlapSOS)<-overlapSOS$Row.names
+overlapSOS<-overlapSOS[,-1]
+overlapSOS[overlapSOS==0]<-1
+overlapSOS[is.na(overlapSOS)]<-1
+limma::vennDiagram(overlapSOS<selThr)
+writexl::write_xlsx(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),paste0(inpF,"sosBoth.xlsx"))
+write.csv(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),row.names=FALSE,paste0(inpF,"sosBoth.csv"))
+```
+
 ```{r SdataSel-map}
 dataSelmapS<-unique(data.frame(gene=unlist(strsplit(dataSel[dataSel[,2]=="0.25",1],";"))))
-rownames(dataSelmapS)<-dataSelmapS$gene
+rownames(dataSelmapS)<-toupper(dataSelmapS$gene)
 dataSelmapS$gene<-0.25
 colnames(dataSelmapS)<-c("S")
 dataSelmapS
@@ -340,7 +351,7 @@ dataSelmapS
 
 ```{r MDRdataSel-map}
 dataSelmapMDR<-unique(data.frame(gene=unlist(strsplit(dataSel[dataSel[,3]=="0.25",1],";"))))
-rownames(dataSelmapMDR)<-dataSelmapMDR$gene
+rownames(dataSelmapMDR)<-toupper(dataSelmapMDR$gene)
 dataSelmapMDR$gene<-0.25
 colnames(dataSelmapMDR)<-c("MDR")
 dataSelmapMDR
@@ -348,16 +359,20 @@ dataSelmapMDR
 
 ```{r combDataSel-map}
 dataSelmapComb<-unique(data.frame(gene=unlist(strsplit(dataSel[dataSel[,4]=="0.25",1],";"))))
-rownames(dataSelmapComb)<-dataSelmapComb$gene
+rownames(dataSelmapComb)<-toupper(dataSelmapComb$gene)
 dataSelmapComb$gene<-0.25
 colnames(dataSelmapComb)<-c("comb")
 dataSelmapComb
 ```
 
 ```{r overlapSOSboth}
-overlapSOS<-merge(sosD,sosLD,all=T,by="row.names")
-rownames(overlapSOS)<-overlapSOS$Row.names
-overlapSOS<-overlapSOS[,-1]
+overlapSOS<-sosD
+colnames(overlapSOS)<-c("sosLD")
+overlapSOS<-rbind(overlapSOS,sosLD)
+#overlapSOS<-merge(sosD,sosLD,all=T,by="row.names")
+#rownames(overlapSOS)<-overlapSOS$Row.names
+#overlapSOS<-overlapSOS[,-1]
+#overlapSOS<-overlapSOS[,-1]
 overlapSOS<-merge(overlapSOS,dataSelmapS,all=T,by="row.names")
 rownames(overlapSOS)<-overlapSOS$Row.names
 overlapSOS<-overlapSOS[,-1]
@@ -372,6 +387,62 @@ overlapSOS[is.na(overlapSOS)]<-1
 limma::vennDiagram(overlapSOS<selThr)
 writexl::write_xlsx(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),paste0(inpF,"sosMapBoth.xlsx"))
 write.csv(as.data.frame(cbind(row.names(overlapSOS),overlapSOS)),row.names=FALSE,paste0(inpF,"sosMapBoth.csv"))
+```
+
+```{r HCoverlapSOS, echo = FALSE}
+data_selr<-overlapSOS
+data_selr<-data_selr[data_selr$sosLD<selThr&(data_selr$S<selThr|data_selr$comb<selThr|data_selr$MDR<selThr),]
+#limma::vennDiagram(data_selr<selThr,main="SOS",counts.col = "red")
+#install.packages("scales")
+data_selr[data_selr==1]=NaN
+data_selr=data_selr+rnorm(nrow(data_selr))/ncol(data_selr)
+data_selr=scales::squish(as.matrix(data_selr),c(-1,1))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_rows=T,cluster_cols=T)#TRUE)
+#install.packages("svglite")
+#install.packages("ggplot2")
+ggplot2::ggsave(file=paste0(inpF,"clusterPlot.HCoverlapSOS.svg"),plot=svgPHC)#,  
+```
+
+```{r data3con2ctrHC, echo = FALSE}
+data3con2ctr<-data.frame(dataS[,c(2:4,9:11,16:18)], stringsAsFactors=F)
+rownames(data3con2ctr)<-toupper(dataS)
+data3con2ctr<-as.data.frame(sapply(data3con2ctr,as.numeric))
+data3con2ctr[data3con2ctr==0]=NaN
+data3con2ctr=scales::squish(as.matrix(data3con2ctr),c(-3,3))
+data3con2ctr=data3con2ctr[complete.cases(data3con2ctr),]
+summary(data3con2ctr)
+c<-3
+hist(as.numeric(data3con2ctr[,c(c,c+3,c+6)]))
+svgPHC<-pheatmap::pheatmap(data3con2ctr,fontsize_row=6,cluster_rows=T,cluster_cols=T)#TRUE)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlot.HCoverlapSOScomb.svg"),plot=svgPHC)#,  
+```
+
+```{r HCoverlapSOS, echo = FALSE}
+data3con2ctrS<-data.frame(dataS[,c(2:4,9:11,16:18)], stringsAsFactors=F)
+#gene<-unique(data.frame(gene=unlist(strsplit(rownames(dataS),";;"))))
+data3con2ctrS<-as.data.frame(sapply(data3con2ctrS,as.numeric))
+data3con2ctrS[data3con2ctrS==0]=NaN
+data3con2ctrS=scales::squish(as.matrix(data3con2ctrS),c(-3,3))
+gene<-sapply(strsplit(rownames(dataS),";;"), `[`,2)
+gene<-toupper(sapply(strsplit(gene,";",fixed=TRUE),`[`,1))
+geneNum<-1:length(gene)
+gene[is.na(gene)]<-geneNum[is.na(gene)]
+rownames(data3con2ctrS)<-gene
+data3con2ctrS<-merge(overlapSOS[overlapSOS$sosLD=="0.25"&(overlapSOS$comb=="0.25"|overlapSOS$MDR=="0.25"|overlapSOS$S=="0.25"),],data3con2ctrS,all.x=T,by="row.names")
+rownames(data3con2ctrS)<-data3con2ctrS$Row.names
+data3con2ctrS<-data3con2ctrS[,-1]
+writexl::write_xlsx(as.data.frame(cbind(row.names(data3con2ctrS),data3con2ctrS)),paste0(inpF,"sosMapBothSel19.xlsx"))
+write.csv(as.data.frame(cbind(row.names(data3con2ctrS),data3con2ctrS)),row.names=FALSE,paste0(inpF,"sosMapBothSel19.csv"))
+summary(as.numeric(data3con2ctrS))
+c<-4
+hist(as.matrix(data3con2ctrS[,c(c,c+3,c+6)]))
+c<-5
+hist(as.numeric(data3con2ctrS[,c(c,c+3,c+6)]))
+svgPHC<-pheatmap::pheatmap(data3con2ctrS[,c(5:13)],fontsize_row=6,cluster_rows=T,clustering_distance_rows = "binary",cluster_cols=F,)#TRUE)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlot.HCoverlapSOScombSel19.svg"),plot=svgPHC)#,  
 ```
 
 ```{r overlapSOS}
