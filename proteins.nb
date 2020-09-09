@@ -1,5 +1,5 @@
 data = SemanticImport["F:\\promec\\Animesh\\Pseudomonas\\_Pseudomonas_ 1\\140605_Pseudomonas_O1_K0K6-(2)_Proteins.txt",Delimiters -> "\t", HeaderLines -> 1]
-data[All, "Intensity"]
+data[All, "Abundances*"]
 Plot[%]
 Histogram[data[All, "Intensity", Log2]]
 FeatureExtract[data[All, "Intensity", Log2+1]]

@@ -1,10 +1,11 @@
 import sys
-#pip3 install pandas --user
-#pip3 install pathlib --user
+#!pip3 install pandas --user
+#!pip3 install pathlib --user
+#!pip3 install pandas_profiling  --user
 from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.7.0\n","USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s) like \"L:/combined/txt\" >")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("L:/promec/Qexactive/LARS/2020/JANUARY/HEIDI/txt")
+#pathFiles = Path("L:/promec/HF/Lars/2020/AUGUST/siri/combined/")
 fileName='allPeptides.txt'
 trainList=list(pathFiles.rglob(fileName))
 
@@ -17,14 +18,18 @@ for f in trainList:
     df=pd.concat([df,peptideHits],sort=False)
 print(df.head())
 print(df.columns)
-#print(df.columns.get_loc("DP Proteins"))
 
+#print(df.columns.get_loc("DP Proteins"))
 dfDP=df.loc[:, df.columns.str.startswith('DP')|df.columns.str.startswith('Raw')]
 dfDP=dfDP[dfDP['DP Proteins'].notnull()]
 dfDP=dfDP.rename(columns = lambda x : str(x)[3:])
 writeDPcsv=pathFiles/(fileName+"DP.csv")
 print("writing output to ... ")
 dfDP.to_csv(writeDPcsv)
+
+import pandas_profiling
+print(dfDP.profile_report())
+
 print(writeDPcsv)
 dfDPcnt=dfDP['Modification'].value_counts()
 print(dfDPcnt)

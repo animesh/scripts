@@ -1,4 +1,5 @@
 (*
+tute: https://www.wolfram.com/language/elementary-introduction/2nd-ed/45-datasets.html
 steps:
 download and install the engine using instructions at http://support.wolfram.com/kb/46069
 git clone https://github.com/WolframResearch/WolframLanguageForJupyter.git
