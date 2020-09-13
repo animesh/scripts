@@ -1,0 +1,28 @@
+```{r data}
+#https://www.kaggle.com/artgor/openvaccine-eda-feature-engineering-and-modelling
+install.packages("dplyr")
+library(dplyr)
+parseProperly <- function(x){
+      x <- x[,-c(ncol(x)-1,ncol(x))]
+      x
+}
+test <- parseProperly(read.delim("C:/Users/animeshs/stanford-covid-vaccine/test_data.csv"))
+train <- parseProperly(read.delim("C:/Users/animeshs/stanford-covid-vaccine/test_data.csv"))
+oob <- parseProperly(read.delim("C:/Users/animeshs/stanford-covid-vaccine/oob.csv"))
+counts <- full_join(x = full_join(train, test, by = "id"), y = oob, by = "id")
+counts[is.na(counts)] <- 0
+rownames(counts) <- counts$id
+counts$id <- NULL
+```
+
+```{r normalization}
+#https://www.biostars.org/p/461026/
+#BiocManager::install("edgeR")
+library(edgeR)
+y <- DGEList(counts = counts)
+y$samples$kit       <- c(rep("train", 6), rep("test", 6), rep("oob", 6))
+y$samples$treatment <- rep(c(rep("treated", 3), rep("untreated", 3)), 3)
+y <- calcNormFactors(y)
+logCPMs <- cpm(y, log = TRUE, prior.count = 1)
+plot(logCPMs)
+```
