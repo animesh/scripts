@@ -40,6 +40,17 @@ library(devtools)
 install_github('MacoskoLab/liger')
 ```
 
+```{r PRIMME}
+#https://github.com/primme/primme/tree/master/R
+#install.packages("PRIMME")
+library(PRIMME)
+A <- diag(1:10) 
+r <- eigs_sym(A, 3);
+r
+plot(r$vectors)
+plot(r$values,r$rnorms)
+```
+
 ```{r causalML}
 #https://github.com/animesh/causalML
 #https://cran.r-project.org/web/packages/bnlearn/bnlearn.pdf

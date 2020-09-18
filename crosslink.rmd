@@ -1,0 +1,71 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(include = FALSE)
+#plot
+par(mfrow=c(1,2))
+#library/packages
+.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R-4.0.1/library") )
+.libPaths()
+setwd("C:/Users/animeshs/GD/scripts")
+getwd()
+chkrVector<-c(22.39459,20.48316,21.87155,NA,20.34495)
+chkrDF<-as.data.frame(chkrVector)
+plot(chkrDF)
+hist(as.matrix(chkrDF))
+chkrDF[,1]
+apply(chkrDF, 2, function(x) t.test(as.numeric(x[c(1:3)]),as.numeric(x[4:5]),na.rm=T,var.equal=T)$p.value)
+t.test(as.numeric(chkrVector[c(1:3)]),as.numeric(chkrVector[4:5]),na.rm=T,var.equal=T)$p.value
+t.test(as.numeric(c(22.39459,20.48316,21.87155)),as.numeric(c(NA,20.34495)),na.rm=T,var.equal=T)$p.value
+t.test(c(22.39459,20.48316,21.87155),c(NA,20.34495),na.rm=T,var.equal=T)$p.value
+t.test(c(22.39459,20.48316,21.87155),c(NA,17.97),na.rm=T,var.equal=T)$p.value
+t.test(c(21.4316,21.77155),c(NA,17.7),na.rm=T,var.equal=T)$p.value
+t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
+```
+
+```{r data, echo=FALSE}
+#inpD<-"L:\\promec\\HF\\Lars\\2020\\AUGUST\\siri\\combined\\txt_noPHO\\"
+inpD <-paste0(getwd(),"/txt_rabitcrap/")
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
+#read.delim(inpF,sep="\t",header = T,row.names = 1)
+#clean
+#data = data[!data$Reverse=="+",]
+#data = data[!data$Potential.contaminant=="+",]
+#data = data[!data$Only.identified.by.site=="+",]
+row.names(data)<-paste(row.names(data),data$Gene.names,data$Protein.IDs,data$Protein.names,data$Score,data$Peptide.counts..unique.,sep=";;")
+summary(data)
+dim(data)
+hist(as.matrix(log2(data[,grep("Intensity",colnames(data))])))
+summary(log2(data[,grep("Intensity",colnames(data))]))
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+protNum<-1:ncol(LFQ)
+colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+log2LFQ[log2LFQ==0]=NA
+summary(log2LFQ)
+hist(log2LFQ)
+```
+
+```{r PSM}
+#BiocManager::install("edgeR")
+library(edgeR)
+y <- DGEList(counts = counts)
+y$samples$kit       <- c(rep("train", 6), rep("test", 6), rep("oob", 6))
+y$samples$treatment <- rep(c(rep("treated", 3), rep("untreated", 3)), 3)
+y <- calcNormFactors(y)
+logCPMs <- cpm(y, log = TRUE, prior.count = 1)
+plot(logCPMs)
+```
+
+```{r XL}
+#https://www.nature.com/articles/s41467-020-16935-w
+#https://github.com/Kalisman-Lab/Search_Formaldehyde_Cross-links/blob/master/Read_Me.pdf
+#Z:\Formaldehyde_XL_Analyzer_64bit_java8\Formaldehyde_XL_Analyzer_64bit_java8 
+xlF<-"Z:/Synnove/form/200911_Synnove_XL_APIM_4-(2).txt"
+xlF<-"Z:/Synnove/form/xl.txt"
+xlFd <- read.table(xlF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
+summary(xlFd)
+plot(xlFd)
+```
