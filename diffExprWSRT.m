@@ -1,4 +1,4 @@
-fo='L:\promec\USERS\Synnøve\20200911_6samples\HF\combined\txt-rabitcrap\proteinGroups.txt';
+fo='L:\promec\USERS\Synnøve\20200825_3samples\QE\1stRun\combined\txt-rabit-noMBR-1\proteinGroups.txt';
 testtype=' WSRT';
 data=readtable(fo);
 IDX=[1 7 8];%Uniprots, Gene Name, Fasta header

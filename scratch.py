@@ -1,3 +1,58 @@
+#https://github.com/alan-turing-institute/sktime
+!pip install sktime
+import numpy as np
+from sktime.datasets import load_airline
+from sktime.forecasting.theta import ThetaForecaster
+from sktime.forecasting.model_selection import temporal_train_test_split
+from sktime.performance_metrics.forecasting import smape_loss
+y = load_airline()
+y_train, y_test = temporal_train_test_split(y)
+fh = np.arange(1, len(y_test) + 1)  # forecasting horizon
+forecaster = ThetaForecaster(sp=12)  # monthly seasonal periodicity
+forecaster.fit(y_train)
+y_pred = forecaster.predict(fh)
+smape_loss(y_test, y_pred)
+#fragment_ion_seriesfrom sktime.datasets import load_arrow_head
+from sktime.classification.compose import TimeSeriesForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+X, y = load_arrow_head(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+classifier = TimeSeriesForestClassifier()
+classifier.fit(X_train, y_train)
+y_pred = classifier.predict(X_test)
+accuracy_score(y_test, y_pred)
+#forecasterimport numpy as np
+from sktime.datasets import load_airline
+from sktime.forecasting.compose import ReducedRegressionForecaster
+from sklearn.ensemble import RandomForestRegressor
+from sktime.forecasting.model_selection import temporal_train_test_split
+from sktime.performance_metrics.forecasting import smape_loss
+y = load_airline()
+y_train, y_test = temporal_train_test_split(y)
+fh = np.arange(1, len(y_test) + 1)  # forecasting horizon
+regressor = RandomForestRegressor()
+forecaster = ReducedRegressionForecaster(regressor, window_length=12)
+forecaster.fit(y_train)
+y_pred = forecaster.predict(fh)
+smape_loss(y_test, y_pred)
+>>> 0.12726230426056875
+
+
+#https://duckdb.org/docs/api/python
+#!python.exe -m pip install --upgrade pip
+#!python.exe -m pip install --upgrade duckdb
+import duckdb
+con = duckdb.connect(database=':memory:', read_only=False)
+import pandas as pd
+test_df = pd.DataFrame.from_dict({"i":[1, 2, 3, 4], "j":["one", "two", "three", "four"]})
+con.register('test_df_view', test_df)
+con.execute('SELECT * FROM test_df_view')
+con.fetchall()
+# [(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four')]
+con.execute('CREATE TABLE test2_df_table AS SELECT * FROM test_df_view')
+con.execute('SELECT * FROM test2_df_table').fetchall()
+
 #https://dataorigami.net/blogs/napkin-folding/highlights-from-lifelines-v0-25-0
 !pip install lifelines
 import pandas as pd

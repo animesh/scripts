@@ -1,0 +1,135 @@
+```{r setup, echo = FALSE}
+#plot
+par(mfrow=c(1,2))
+#.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
+.libPaths()
+setwd("C:/Users/animeshs/GD/scripts")
+getwd()
+#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
+#rm(list = ls())
+#detach("package:pathview", unload=TRUE)
+```
+
+```{r libloc, echo = FALSE}
+.libPaths( c( .libPaths(), "~/libR") )
+#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
+usethis::edit_r_environ()
+
+#https://community.rstudio.com/t/help-regarding-package-installation-renviron-rprofile-r-libs-r-libs-site-and-r-libs-user-oh-my/13888/8
+#R_LIBS_USER in your ~/.Renviron. One <name>=<value> per line.
++#specifiers: %p (expands to the architecture, e.g. x86_64-pc-linux-gnu) and %v (expands to major and minor R version, e.g. 3.5) - see 
+?R_LIBS_USER
+#R_LIBS_USER=~/R/%p-library/%v
+#location of ~/.Renviron
+
+normalizePath("~/.Renviron", mustWork = FALSE)
+
+[1] "/home/hb/.Renviron"
+R_LIBS_USER="C:/Users/Greg/Software/R/%p-library/%v
+Sys.getenv('R_LIBS_USER')
+#Importantly, if this folder does not exist, then R will silently ignore it, despite properly parsing and expanding R_LIBS_USER, e.g.
+dir.exists(Sys.getenv('R_LIBS_USER'))
+.libPaths()[1]
+dir.create(Sys.getenv('R_LIBS_USER'), recursive = TRUE)
+dir.exists(Sys.getenv('R_LIBS_USER'))
+#[1] TRUE
+#Then restart R, and you'll get:
+.libPaths()[1]
+install.packages('devtools')
+library(devtools)
+install_github('MacoskoLab/liger')
+```
+
+```{r}
+data<-read.csv("F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.2dp.txt")
+hist(data[,1])
+# hist(data[,2])
+#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
+#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+dataagg<-tapply(data$X0.00.1, data$X0.00, sum)
+row.names(dataagg)
+```
+
+```{r}
+hmda<-read.csv("F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d322.c100101.hmdb.csv")
+hist(hmda[,1])
+hist(hmda[,10])
+```
+
+
+```{r}
+cation<-merge(hmda,dataagg,by.x="query_mass",by.y=0)
+write.csv(cation,"F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d322.c100101.hmdb.csvcation.csv")
+```
+
+
+```{r}
+#dataA<-read.csv("F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.2dp.txt")
+hist(dataA[,1])
+#hist(dataA[,2])
+#plot(dataA[,2],dataA[,1])
+dataaggA<-tapply(dataA$X0.00.1, dataA$X0.00, sum)
+row.names(dataagg)
+```
+
+```{r}
+hmdaA<-read.csv("F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.count.txt.d322.c100101.hmdb.csv")
+hist(hmdaA[,1])
+#hist(hmdaA[,10])
+```
+
+```{r}
+anion<-merge(hmdaA,dataaggA,by.x="query_mass",by.y=0)
+write.csv(anion,"F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.count.txt.d322.c100101.hmdb.csanion.csv")
+```
+
+```{bash}
+508  awk -F '\t' '{print $2}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt | sort | uniq -c > 200921_fraksjonANIONfrak4_URT1.r
+aw.profile.intensity0.charge0.MS.txt.count.txt
+  509  awk -F '\t' '{print $2}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.p
+rofile.intensity0.charge0.MS.txt.count.txt
+  510  awk '{print $1}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
+  511  awk 'if($1>1){print}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
+  512  awk '{if($1>1){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
+  513  awk '{if($1>1){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | wc
+  514  awk '{if($1>10){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | wc
+  515  awk '{if($1>100){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | wc
+  516  awk '{if($1>100){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt > 200921_fraksjonFTcation_URT1.raw.profile
+.intensity0.charge0.MS.txt.count.txt.mI100.txt
+  517  awk '{if($1>100){printf "%.3f"}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
+  518  awk '{if($1>100){print "%.3f"}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
+  519  awk '{if($1>100){print "%.3f",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
+  520  awk '{if($1>100){printf "%.3f",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
+  521  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
+  522  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| less
+  523  awk '{if($1>10){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>1
+0){printf "%.3f\n",$2}
+
+  524  awk '{if($1>10){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>1
+0){printf "%.3f\n",$2}' | less
+  525  awk '{if($1>10){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>1
+0){printf "%.3f\n",$2}}' | less
+  526  awk '{if($1>10){printf "%.2f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>1
+0){printf "%.2f\n",$2}}' | less
+  527  awk '{if($1>10){printf "%.2f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | wc
+  528  awk '{if($1>10){printf "%.1f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.1f\n",$2}}' | wc
+  529  awk '{if($1>10){printf "%.1f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.1f\n",$2}}' > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d1.c10.txt
+  530  awk '{if($1>10){printf "%.1f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.1f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d1.c10.txt 
+  531  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>100){printf "%.3f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d3.c100.txt 
+  532  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.3f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d3.c100.txt 
+  533  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d3.c100.txt 
+  534  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | sort | uniq -c | awk '{if($1>1){printf "%.1f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d321.c100101.txt 
+  535  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | sort | uniq -c | awk '{if($1>1){printf "%.2f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d322.c100101.txt 
+  536  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | sort | uniq -c | awk '{if($1>1){printf "%.2f\n",$2}}' | sort | uniq -c > 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.count.txt.d322.c100101.txt 
+  537  awk '{if($1>100){printf "%.2f,%.2f\n",$2,$4}}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
+  538  awk '{printf "%.2f,%.2f\n",$2,$4}}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt | less
+  539  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt | less
+  540  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt > 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.2dp.txt
+  541  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | less
+  542  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.2dp.txt
+  543  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | less
+  544  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | wc
+  545  pwd
+  546  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | wc
+```
+

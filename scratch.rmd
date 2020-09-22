@@ -40,6 +40,166 @@ library(devtools)
 install_github('MacoskoLab/liger')
 ```
 
+```{r treeclimbR, echo = FALSE}
+#https://github.com/fionarhuang/treeclimbR
+#devtools::install_github("fionarhuang/treeclimbR")
+#https://fionarhuang.github.io/treeclimbR_toy_example/toy_signal.html
+# wilcox.test
+test.func <- function(X, Y) {  
+    Y <- as.numeric(factor(Y))
+    obj <- apply(X, 1, function(x) {                
+        p.value <- suppressWarnings(wilcox.test(x ~ Y)$p.value)
+        e.sign <- sign(mean(x[Y == 2]) - mean(x[Y == 1]))
+        c(p.value, e.sign)          
+    })
+    return(list(p.value=obj[1, ], e.sign=obj[2, ])) 
+}
+Y <- colData(tse)$group
+X <- assays(tse)[[1]]
+resW <- test.func(X,Y)
+outW <- data.frame(node = rowLinks(tse)$nodeNum,
+                   pvalue = resW$p.value,
+                   sign = resW$e.sign)
+```
+
+
+```{r ComplexHeatmap, echo = FALSE}
+#https://jokergoo.github.io/2020/05/06/translate-from-pheatmap-to-complexheatmap/
+library(ComplexHeatmap)
+test = matrix(rnorm(200), 20, 10)
+test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
+test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
+test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
+colnames(test) = paste("Test", 1:10, sep = "")
+rownames(test) = paste("Gene", 1:20, sep = "")
+pheatmap(test)  # this is ComplexHeatmap::pheatmap
+```
+
+```{r propR, echo = FALSE}
+#Calculating Proportionality Between Vectors of Compositional Data https://cran.r-project.org/web/packages/propr/propr.pdf
+#devtools::install_github("tpq/propr")
+install.packages("propr")
+library(propr)
+counts <- matrix(rpois(20*50, 100), 20, 50)
+group <- sample(c("A", "B"), size = 20, replace = TRUE)
+test = matrix(rnorm(200), 20, 10)
+test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
+test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
+test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
+colnames(test) = paste("Test", 1:10, sep = "")
+rownames(test) = paste("Gene", 1:20, sep = "")
+pr <- propr(counts, # rows as samples, like it should be
+            metric = "rho", # or "phi", "phs", "cor", "vlr"
+            ivar = "clr", # or can use "iqlr" instead
+            alpha = NA, # use to handle zeros
+            p = 100) # used by updateCutoffs
+updateCutoffs(pr,cutoff = seq(0, 1, .05), # cutoffs at which to estimate FDR
+              ncores = 1) # parallelize here
+pd <- propd(counts,group, # a vector of 2 or more groups
+            alpha = NA, # whether to handle zeros
+            weighted = TRUE, # whether to weigh log-ratios
+            p = 100) # used by updateCutoffs
+setDisjointed(pd)
+setEmergent(pd)
+pd <- updateF(pd,moderated = FALSE, # moderate stats with limma-voom
+              ivar = "clr") # used for moderation
+```
+
+```{r scDAseq}
+#https://klugerlab.github.io/DAseq/articles/tutorial.html
+devtools::install_github("KlugerLab/DAseq")
+```
+
+```{r tidyHM}
+#https://github.com/stemangiola/tidyHeatmap
+#install.packages("tidyHeatmap")
+#install.packages("tidyr")
+library(tidyr)
+pasilla_plus <- 
+    tidyHeatmap::pasilla %>%
+        dplyr::mutate(act = activation) %>% 
+        tidyr::nest(data = -sample) %>%
+        dplyr::mutate(size = rnorm(n(), 4,0.5)) %>%
+        dplyr::mutate(age = runif(n(), 50, 200)) %>%
+        tidyr::unnest(data) 
+
+# Plot
+pasilla_plus %>%
+        heatmap(
+            .column = sample,
+            .row = symbol,
+            .value = `count normalised adjusted`
+        ) %>%
+    add_tile(condition) %>%
+    add_point(activation) %>%
+    add_tile(act) %>%
+    add_bar(size) %>%
+    add_line(age)
+```
+
+```{r POMA}
+#https://pcastellanoescuder.github.io/POMA/articles/POMA-eda.html
+#BiocManager::install("POMA")
+library(POMA)
+```
+
+```{r anamoly}
+#https://github.com/pridiltal/stray
+#devtools::install_github("pridiltal/stray")
+library(stray)
+require(ggplot2)
+#> Loading required package: ggplot2
+set.seed(1234)
+data <- c(rnorm(1000, mean = -6), 0, rnorm(1000, mean = 6))
+outliers <- find_HDoutliers(data, knnsearchtype = "brute")
+names(outliers)
+#> [1] "outliers"   "out_scores" "type"
+display_HDoutliers(data, outliers)
+#Two dimensional dataset with 8 outliers
+set.seed(1234)
+n <- 1000 # number of observations
+nout <- 10 # number of outliers
+typical_data <- matrix(rnorm(2*n), ncol = 2, byrow = TRUE)
+out <- matrix(5*runif(2*nout,min=-5,max=5), ncol = 2, byrow = TRUE)
+data <- rbind(out, typical_data )
+outliers <- find_HDoutliers(data, knnsearchtype = "brute")
+display_HDoutliers(data, outliers)
+#3D
+data <- rbind(matrix(rnorm(144), ncol = 3), c(10,12,10),c(3,7,10))
+output <- find_HDoutliers(data, knnsearchtype = "brute")
+display_HDoutliers(data, out = output)
+#more
+outliers<-find_HDoutliers(data_c[,1:2], knnsearchtype= "brute")
+p <- display_HDoutliers(data_c[,1:2], outliers)+ggplot2::ggtitle("data_c")
+print(p)
+#non
+outliers<-find_HDoutliers(data_d[,1:2], knnsearchtype= "brute")
+p <- display_HDoutliers(data_d[,1:2], outliers)+ggplot2::ggtitle("data_d")
+print(p)
+```
+
+```{r HieRFIT}
+#https://www.biorxiv.org/content/10.1101/2020.09.16.300822v1
+#https://github.com/yasinkaymaz/HieRFIT 
+#devtools::install_github("yasinkaymaz/HieRFIT")
+library(HieRFIT)
+#BiocManager::install("Seurat")
+library(Seurat)
+pbmc <- readRDS("pbmc3k_final.Rds")
+pbmc <- UpdateSeuratObject(pbmc)
+```
+
+```{r beta-A/B}
+#https://www.countbayesie.com/blog/2020/8/16/why-bayesian-stats-need-monte-carlo-methods
+N <- 10000
+a_samples <- rbeta(N,2+1,13+1)
+b_samples <- rbeta(N,3+1,11+1)
+sum(b_samples > a_samples)/N
+plot(a_samples,b_samples)
+hist(b_samples-a_samples)
+sum((b_samples-a_samples)>0)
+```
+
 ```{r PRIMME}
 #https://github.com/primme/primme/tree/master/R
 #install.packages("PRIMME")
@@ -4436,48 +4596,6 @@ hist(data)
 dataS<-(data-min(data))/(max(data)-min(data))
 hist(dataS)
 #
-```
-
-```{r propR, echo = FALSE}
-#Calculating Proportionality Between Vectors of Compositional Data https://cran.r-project.org/web/packages/propr/propr.pdf
-#devtools::install_github("tpq/propr")
-install.packages("propr")
-library(propr)
-counts <- matrix(rpois(20*50, 100), 20, 50)
-group <- sample(c("A", "B"), size = 20, replace = TRUE)
-test = matrix(rnorm(200), 20, 10)
-test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
-test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
-test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
-colnames(test) = paste("Test", 1:10, sep = "")
-rownames(test) = paste("Gene", 1:20, sep = "")
-pr <- propr(counts, # rows as samples, like it should be
-            metric = "rho", # or "phi", "phs", "cor", "vlr"
-            ivar = "clr", # or can use "iqlr" instead
-            alpha = NA, # use to handle zeros
-            p = 100) # used by updateCutoffs
-updateCutoffs(pr,cutoff = seq(0, 1, .05), # cutoffs at which to estimate FDR
-              ncores = 1) # parallelize here
-pd <- propd(counts,group, # a vector of 2 or more groups
-            alpha = NA, # whether to handle zeros
-            weighted = TRUE, # whether to weigh log-ratios
-            p = 100) # used by updateCutoffs
-setDisjointed(pd)
-setEmergent(pd)
-pd <- updateF(pd,moderated = FALSE, # moderate stats with limma-voom
-              ivar = "clr") # used for moderation
-```
-
-```{r ComplexHeatmap, echo = FALSE}
-#https://jokergoo.github.io/2020/05/06/translate-from-pheatmap-to-complexheatmap/
-library(ComplexHeatmap)
-test = matrix(rnorm(200), 20, 10)
-test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
-test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
-test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
-colnames(test) = paste("Test", 1:10, sep = "")
-rownames(test) = paste("Gene", 1:20, sep = "")
-pheatmap(test)  # this is ComplexHeatmap::pheatmap
 ```
 
 ```{r pepFunk, echo = FALSE}
