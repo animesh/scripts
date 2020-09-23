@@ -3,7 +3,12 @@
 par(mfrow=c(1,2))
 #.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
 .libPaths()
+<<<<<<< HEAD
+getwd()
+setwd("C:/Users/animeshs")
+=======
 setwd("C:/Users/animeshs/GD/scripts")
+>>>>>>> b3be1ee921a10e26eeba947b8995c64139a27a10
 getwd()
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 #rm(list = ls())
@@ -11,15 +16,106 @@ getwd()
 ```
 
 ```{r libloc, echo = FALSE}
+<<<<<<< HEAD
+#https://community.rstudio.com/t/help-regarding-package-installation-renviron-rprofile-r-libs-r-libs-site-and-r-libs-user-oh-my/13888/8
+.libPaths( c( .libPaths(), "~/libR") )
+usethis::edit_r_environ()
+=======
 .libPaths( c( .libPaths(), "~/libR") )
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 usethis::edit_r_environ()
 
 #https://community.rstudio.com/t/help-regarding-package-installation-renviron-rprofile-r-libs-r-libs-site-and-r-libs-user-oh-my/13888/8
+>>>>>>> b3be1ee921a10e26eeba947b8995c64139a27a10
 #R_LIBS_USER in your ~/.Renviron. One <name>=<value> per line.
 +#specifiers: %p (expands to the architecture, e.g. x86_64-pc-linux-gnu) and %v (expands to major and minor R version, e.g. 3.5) - see 
 ?R_LIBS_USER
 #R_LIBS_USER=~/R/%p-library/%v
+<<<<<<< HEAD
+normalizePath("~/.Renviron", mustWork = FALSE)
+```
+
+```{r data}
+data<-read.csv(paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.txt",sep="/"),sep='\t')
+hist(as.numeric(data[,2]))
+hist(log2(as.numeric(data[,4])))
+#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
+#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+```
+
+```{r anion}
+dataAnion<-data[-grep("Scan",data$Scan1),c(2,4)]
+dataAnion$intensity<-as.numeric(dataAnion$intensity)
+dataAnion$MZ<-strtrim(dataAnion$MZ,7)
+summary(dataAnion)
+```
+
+```{r anionAgg}
+#sapply(dataAnion, as.numeric)
+dataAnionAgg7lMax<-tapply(dataAnion$intensity,dataAnion$MZ,max)
+summary(dataAnionAgg7lMax)
+dataAnionAgg7lMaxF<-as.data.frame(dataAnionAgg7lMax)
+hist(log2(dataAnionAgg7lMaxF$dataAnionAgg7lMax))
+dataAnionAgg7lMaxF$MZ<-row.names(dataAnionAgg7lMaxF)
+dataAnionAgg7lMaxF<-dataAnionAgg7lMaxF[dataAnionAgg7lMaxF$dataAnionAgg7lMax>10e6,]
+row.names(dataAnionAgg7lMaxF)
+write.csv(dataAnionAgg7lMaxF,paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.csv",sep="/"),row.names = F)
+```
+
+```{r anionHMDB}
+hmdA<-read.csv(paste(getwd(),"search (5).csv",sep="/"))
+hist(hmdA[,1])
+hmdA[,1]<-sprintf(hmdA[,1], fmt = '%#.3f')
+hist(hmdA[,10])
+```
+
+```{r}
+anion<-merge(dataAnionAgg7lMaxF,by.x="MZ",hmdA,by.y="query_mass",all = T)
+write.csv(anion,paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.HMDB.csv",sep="/"))
+```
+
+
+
+```{r}
+data<-read.csv(paste(getwd(),"200921_fraksjonFTcation_URT1_20200923005518.raw.profile.intensity0.charge0.MS.txt",sep="/"),sep='\t')
+hist(as.numeric(data[,2]))
+hist(log2(as.numeric(data[,4])))
+#hist(dataA[,2])
+#plot(dataA[,2],dataA[,1])
+#dataAnion<-tapply(dataA$X0.00.1, dataA$X0.00, sum)
+#row.names(dataaggA)
+```
+
+```{r cation}
+dataCation<-data[-grep("Scan",data$Scan1),c(2,4)]
+dataCation$intensity<-as.numeric(dataCation$intensity)
+dataCation$MZ<-strtrim(dataCation$MZ,7)
+summary(dataCation)
+```
+
+```{r cationAgg}
+#sapply(dataAnion, as.numeric)
+dataCationAgg7lMax<-tapply(dataCation$intensity,dataCation$MZ,max)
+summary(dataCationAgg7lMax)
+dataCationAgg7lMaxF<-as.data.frame(dataCationAgg7lMax)
+hist(log2(dataCationAgg7lMaxF$dataCationAgg7lMax))
+dataCationAgg7lMaxF$MZ<-row.names(dataCationAgg7lMaxF)
+dataCationAgg7lMaxF<-dataCationAgg7lMaxF[dataCationAgg7lMaxF$dataCationAgg7lMax>10e6,]
+row.names(dataCationAgg7lMaxF)
+write.csv(dataCationAgg7lMaxF,paste(getwd(),"200921_fraksjonFTcation_URT1_20200923005518.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.csv",sep="/"),row.names = F)
+```
+
+```{r cationHMDB}
+hmdC<-read.csv(paste(getwd(),"search (4).csv",sep="/"))
+hist(hmdC[,1])
+hmdC[,1]<-sprintf(hmdC[,1], fmt = '%#.3f')
+hist(hmdC[,10])
+```
+
+```{r}
+cation<-merge(dataCationAgg7lMaxF,by.x="MZ",hmdC,by.y="query_mass",all = T)
+write.csv(cation,paste(getwd(),"200921_fraksjonFTcation_URT1_20200923005518.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.HMDB.csv",sep="/"))
+=======
 #location of ~/.Renviron
 
 normalizePath("~/.Renviron", mustWork = FALSE)
@@ -131,5 +227,6 @@ rofile.intensity0.charge0.MS.txt.count.txt
   544  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | wc
   545  pwd
   546  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | wc
+>>>>>>> b3be1ee921a10e26eeba947b8995c64139a27a10
 ```
 

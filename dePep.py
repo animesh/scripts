@@ -27,8 +27,8 @@ writeDPcsv=pathFiles/(fileName+"DP.csv")
 print("writing output to ... ")
 dfDP.to_csv(writeDPcsv)
 
-import pandas_profiling
-print(dfDP.profile_report())
+#import pandas_profiling
+#print(dfDP.profile_report())
 
 print(writeDPcsv)
 dfDPcnt=dfDP['Modification'].value_counts()
