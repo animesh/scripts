@@ -1,37 +1,31 @@
 ```{r setup, echo = FALSE}
 #plot
 par(mfrow=c(1,2))
-#.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
+#.libPaths( c( .libPaths(), "C:/Users/animeshs  /GD/R_libs") )
 .libPaths()
-<<<<<<< HEAD
 getwd()
-setwd("C:/Users/animeshs")
-=======
-setwd("C:/Users/animeshs/GD/scripts")
->>>>>>> b3be1ee921a10e26eeba947b8995c64139a27a10
+setwd("F://promec/Animesh")
 getwd()
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 #rm(list = ls())
 #detach("package:pathview", unload=TRUE)
 ```
 
-```{r libloc, echo = FALSE}
-<<<<<<< HEAD
-#https://community.rstudio.com/t/help-regarding-package-installation-renviron-rprofile-r-libs-r-libs-site-and-r-libs-user-oh-my/13888/8
-.libPaths( c( .libPaths(), "~/libR") )
-usethis::edit_r_environ()
-=======
-.libPaths( c( .libPaths(), "~/libR") )
-#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
-usethis::edit_r_environ()
+```{bash}
+sudo apt list --installed | grep libcurl
+sudo apt-get install libcurl4 libcurl4-openssl-dev libssl-dev
+sudo apt install r-cran-devtools
+```
 
+```{r libloc, echo = FALSE}
 #https://community.rstudio.com/t/help-regarding-package-installation-renviron-rprofile-r-libs-r-libs-site-and-r-libs-user-oh-my/13888/8
->>>>>>> b3be1ee921a10e26eeba947b8995c64139a27a10
+.libPaths("~/R/lib")
+install.packages("devtools")
+.libPaths( c( .libPaths(), "~/libR") )
 #R_LIBS_USER in your ~/.Renviron. One <name>=<value> per line.
 +#specifiers: %p (expands to the architecture, e.g. x86_64-pc-linux-gnu) and %v (expands to major and minor R version, e.g. 3.5) - see 
 ?R_LIBS_USER
 #R_LIBS_USER=~/R/%p-library/%v
-<<<<<<< HEAD
 normalizePath("~/.Renviron", mustWork = FALSE)
 ```
 
@@ -115,118 +109,199 @@ hist(hmdC[,10])
 ```{r}
 cation<-merge(dataCationAgg7lMaxF,by.x="MZ",hmdC,by.y="query_mass",all = T)
 write.csv(cation,paste(getwd(),"200921_fraksjonFTcation_URT1_20200923005518.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.HMDB.csv",sep="/"))
-=======
-#location of ~/.Renviron
-
-normalizePath("~/.Renviron", mustWork = FALSE)
-
-[1] "/home/hb/.Renviron"
-R_LIBS_USER="C:/Users/Greg/Software/R/%p-library/%v
-Sys.getenv('R_LIBS_USER')
-#Importantly, if this folder does not exist, then R will silently ignore it, despite properly parsing and expanding R_LIBS_USER, e.g.
-dir.exists(Sys.getenv('R_LIBS_USER'))
-.libPaths()[1]
-dir.create(Sys.getenv('R_LIBS_USER'), recursive = TRUE)
-dir.exists(Sys.getenv('R_LIBS_USER'))
-#[1] TRUE
-#Then restart R, and you'll get:
-.libPaths()[1]
-install.packages('devtools')
-library(devtools)
-install_github('MacoskoLab/liger')
 ```
 
 ```{r}
-data<-read.csv("F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.2dp.txt")
-hist(data[,1])
-# hist(data[,2])
-#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
-#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
-dataagg<-tapply(data$X0.00.1, data$X0.00, sum)
-row.names(dataagg)
+ion<-merge(dataCationAgg7lMaxF,by.x="MZ",dataAnionAgg7lMaxF,by.y="MZ",all = T)
+write.csv(ion,paste(getwd(),"200921_fraksjonION_URT1.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.csv",sep="/"))
 ```
 
 ```{r}
-hmda<-read.csv("F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d322.c100101.hmdb.csv")
-hist(hmda[,1])
-hist(hmda[,10])
+hmdI<-read.csv(paste(getwd(),"search (7).csv",sep="/"))
+hist(hmdI[,1])
+hmdI[,1]<-sprintf(hmdI[,1], fmt = '%#.3f')
+hist(hmdI[,10])
+hmdIon<-merge(ion,by.x="MZ",hmdI,by.y="query_mass",all = T)
+write.csv(hmdIon,paste(getwd(),"200921_hmdIon_URT1.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.csv",sep="/"))
 ```
 
+```{r anionAggMedian}
+#sapply(dataAnion, as.numeric)
+dataAnionAgg7lMedian<-tapply(dataAnion$intensity,dataAnion$MZ,median)
+summary(dataAnionAgg7lMedian)
+dataAnionAgg7lMedianF<-as.data.frame(dataAnionAgg7lMedian)
+hist(log2(dataAnionAgg7lMedianF$dataAnionAgg7lMedian))
+dataAnionAgg7lMedianF$MZ<-row.names(dataAnionAgg7lMedianF)
+dataAnionAgg7lMedianF<-dataAnionAgg7lMedianF[dataAnionAgg7lMedianF$dataAnionAgg7lMedian>10e5,]
+row.names(dataAnionAgg7lMedianF)
+write.csv(dataAnionAgg7lMedianF,paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.dataagg7lMedianF10e6.csv",sep="/"),row.names = F)
+```
+
+```{r checkPkg}
+#install.packages("BiocManager")
+metanr_packages <- function(){
+metr_pkgs <- c("impute", "pcaMethods", "globaltest", "GlobalAncova", "Rgraphviz", "preprocessCore", "genefilter", "SSPA", "sva", "limma", "KEGGgraph", "siggenes","BiocParallel", "MSnbase", "multtest","RBGL","edgeR","fgsea","devtools","crmn")
+list_installed <- installed.packages()
+new_pkgs <- subset(metr_pkgs, !(metr_pkgs %in% list_installed[, "Package"]))
+if(length(new_pkgs)!=0){if (!requireNamespace("BiocManager", quietly = TRUE))
+        install.packages("BiocManager")
+        BiocManager::install(new_pkgs)
+        print(c(new_pkgs, " packages added..."))
+    }
+
+if((length(new_pkgs)<1)){
+        print("No new packages added...")
+    }
+}
+metanr_packages()
+```
+
+```{r installPkg} 
+#install.packages("pacman")
+#pacman::p_load(c("impute", "pcaMethods", "globaltest", "GlobalAncova", "Rgraphviz", "preprocessCore", "genefilter", "SSPA", "sva", "limma", "KEGGgraph", "siggenes","BiocParallel", "MSnbase", "multtest","RBGL","edgeR","fgsea"))
+#rm -rf /home/animeshs/R/x86_64-pc-linux-gnu-library/3.6/*
+#sudo apt-get install r-cran-ncdf4
+BiocManager::install("mzR")
+BiocManager::install("ctc")
+install.packages("gdata")
+install.packages("glasso")
+install.packages("huge")
+install.packages("ppcor")
+install.packages("plotly")
+devtools::install_github("xia-lab/MetaboAnalystR", build = TRUE, build_vignettes = FALSE)
+library(MetaboAnalystR)
+```
 
 ```{r}
-cation<-merge(hmda,dataagg,by.x="query_mass",by.y=0)
-write.csv(cation,"F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d322.c100101.hmdb.csvcation.csv")
-```
-
-
-```{r}
-#dataA<-read.csv("F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.2dp.txt")
-hist(dataA[,1])
-#hist(dataA[,2])
-#plot(dataA[,2],dataA[,1])
-dataaggA<-tapply(dataA$X0.00.1, dataA$X0.00, sum)
-row.names(dataagg)
+tmp.vec <- c("Acetoacetic acid", "Beta-Alanine", "Creatine", "Dimethylglycine", "Fumaric acid")
+mSet<-InitDataObjects("conc", "msetora", FALSE)
+mSet<-Setup.MapData(mSet, tmp.vec)
+mSet<-CrossReferencing(mSet, "name")
+mSet<-CreateMappingResultTable(mSet)
+mSet<-SetMetabolomeFilter(mSet, F)
+mSet<-SetCurrentMsetLib(mSet, "smpdb_pathway", 2)
+mSet<-CalculateHyperScore(mSet)
+mSet<-PlotORA(mSet, "ora_0_", "bar", "png", 72, width=NA)
 ```
 
 ```{r}
-hmdaA<-read.csv("F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.count.txt.d322.c100101.hmdb.csv")
-hist(hmdaA[,1])
-#hist(hmdaA[,10])
+# https://drive.google.com/file/d/1CXluzyYqNoPqu1DI3HwvDAmRVGMe825m/view Create vector consisting of compounds for enrichment analysis
+tmp.vec <- c("Acetoacetic acid", "Beta-Alanine", "Creatine", "Dimethylglycine", "Fumaric acid", "Glycine", "Homocysteine", "L-Cysteine", "L-Isolucine", "L-Phenylalanine", "L-Serine", "L-Threonine", "L-Tyrosine", "L-Valine", "Phenylpyruvic acid", "Propionic acid", "Pyruvic acid", "Sarcosine")
+# Create mSetObj for storing objects created during your analysis
+mSet<-InitDataObjects("conc", "pathora", FALSE)
+# Set up mSetObj with the list of compounds
+mSet<-Setup.MapData(mSet, tmp.vec);
+# Cross reference list of compounds against libraries (hmdb, pubchem, chebi, kegg, metlin)
+mSet<-CrossReferencing(mSet, "name");
+# Creates a mapping result table; shows HMDB, KEGG, PubChem, etc. IDs
+# Saved as "name_map.csv" or can be found in mSet$dataSet$map.table
+# Compounds with no hits will contain NAs across the columns
+mSet<-CreateMappingResultTable(mSet);
+# From the mapping result table, L-Isolucine has no matches
+# Now, perform potential matching with our database against this compound
+mSet<-PerformDetailMatch(mSet, "L-Isolucine");
+# Get list of candidates for matching
+# Results are found in mSet$name.map$hits.candidate.list
+mSet<-GetCandidateList(mSet);
+# Replace L-Isolucine with selected compound (L-Isoleucine)
+mSet<-SetCandidate(mSet, "L-Isolucine", "L-Isoleucine");
+# Select the pathway library, ranging from mammals to prokaryotes
+# Note the third parameter, where users need to input the KEGG pathway version.
+# Use "current" for the latest KEGG pathway library or "v2018" for the KEGG pathway library version prior to November 2019.
+mSet<-SetKEGG.PathLib(mSet, "hsa", "current")
+# Set the metabolite filter
+# Default set to false
+mSet<-SetMetabolomeFilter(mSet, F);
+# Calculate the over representation analysis score, here we selected to use the hypergeometric test (alternative is Fisher's exact test)
+# A results table "pathway_results.csv" will be created and found within your working directory
+mSet<-CalculateOraScore(mSet, "rbc", "hyperg")
+# Plot of the Pathway Analysis Overview
+mSet<-PlotPathSummary(mSet,"path_view_0_","png",72,width=NA)
+# Plot a specific metabolic pathway, in this case "Glycine, serine and threonine metabolism"
+mSet<-PlotKEGGPath(mSet, "Glycine, serine and threonine metabolism",528, 480, "png", NULL)
 ```
 
 ```{r}
-anion<-merge(hmdaA,dataaggA,by.x="query_mass",by.y=0)
-write.csv(anion,"F://promec/Qexactive/LARS/2020/september/PSO/200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.count.txt.d322.c100101.hmdb.csanion.csv")
+#https://drive.google.com/file/d/1HVoXNX98CZLcpr7MkpVZP5DueXcnZeIj/view
+#download.file("https://www.metaboanalyst.ca/MetaboAnalyst/resources/data/integ_genes.txt", "integ_genes.txt", "curl")
+#download.file("https://www.metaboanalyst.ca/MetaboAnalyst/resources/data/integ_cmpds.txt", "integ_cmpds.txt", "curl")
+# Initiate MetaboAnalyst
+mSet<-InitDataObjects("conc", "pathinteg", FALSE)
+# Set organism library
+mSet<-SetOrganism(mSet, "hsa")
+# Set the name of your file containing your gene list
+geneListFile<-"integ_genes.txt"
+# Read in your gene list file
+geneList<-readChar(geneListFile, file.info(geneListFile)$size)
+# Perform gene mapping of your file
+mSet<-PerformIntegGeneMapping(mSet, geneList, "hsa", "symbol");
+# Set the name of your file containing your compound list
+cmpdListFile<-"integ_cmpds.txt"
+# Read in your compound list file
+cmpdList<-readChar(cmpdListFile, file.info(cmpdListFile)$size)
+# Perform compound mapping of your file
+mSet<-PerformIntegCmpdMapping(mSet, cmpdList, "hsa", "kegg");
+# Create a mapping result table
+mSet<-CreateMappingResultTable(mSet)
+# Prepare data for joint pathway analysis
+mSet<-PrepareIntegData(mSet)
+mSet
 ```
 
-```{bash}
-508  awk -F '\t' '{print $2}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt | sort | uniq -c > 200921_fraksjonANIONfrak4_URT1.r
-aw.profile.intensity0.charge0.MS.txt.count.txt
-  509  awk -F '\t' '{print $2}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.p
-rofile.intensity0.charge0.MS.txt.count.txt
-  510  awk '{print $1}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
-  511  awk 'if($1>1){print}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
-  512  awk '{if($1>1){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
-  513  awk '{if($1>1){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | wc
-  514  awk '{if($1>10){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | wc
-  515  awk '{if($1>100){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | wc
-  516  awk '{if($1>100){print}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt > 200921_fraksjonFTcation_URT1.raw.profile
-.intensity0.charge0.MS.txt.count.txt.mI100.txt
-  517  awk '{if($1>100){printf "%.3f"}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
-  518  awk '{if($1>100){print "%.3f"}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
-  519  awk '{if($1>100){print "%.3f",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
-  520  awk '{if($1>100){printf "%.3f",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
-  521  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
-  522  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| less
-  523  awk '{if($1>10){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>1
-0){printf "%.3f\n",$2}
+```{r}
+mSet1<-PerformIntegPathwayAnalysis(mSet, "dc", "hyper", "current", "integ", "query");
+# View the output of the pathway analysis
+mSet1$dataSet$path.mat
+mSet2<-PerformIntegPathwayAnalysis(mSet, "bc", "fisher", "current", "all", "query")
+PlotPathSummary(mSet, "path_view_0_", "png", 72, width=NA)
+PlotPathSummary(mSet1, "path_view_0_", "png", 72, width=NA)
+PlotPathSummary(mSet2, "path_view_0_", "png", 72, width=NA)
+```
 
-  524  awk '{if($1>10){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>1
-0){printf "%.3f\n",$2}' | less
-  525  awk '{if($1>10){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>1
-0){printf "%.3f\n",$2}}' | less
-  526  awk '{if($1>10){printf "%.2f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>1
-0){printf "%.2f\n",$2}}' | less
-  527  awk '{if($1>10){printf "%.2f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | wc
-  528  awk '{if($1>10){printf "%.1f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.1f\n",$2}}' | wc
-  529  awk '{if($1>10){printf "%.1f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.1f\n",$2}}' > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d1.c10.txt
-  530  awk '{if($1>10){printf "%.1f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.1f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d1.c10.txt 
-  531  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>100){printf "%.3f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d3.c100.txt 
-  532  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.3f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d3.c100.txt 
-  533  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d3.c100.txt 
-  534  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | sort | uniq -c | awk '{if($1>1){printf "%.1f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d321.c100101.txt 
-  535  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | sort | uniq -c | awk '{if($1>1){printf "%.2f\n",$2}}' | sort | uniq -c > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.d322.c100101.txt 
-  536  awk '{if($1>100){printf "%.3f\n",$2}}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | sort |uniq -c| awk '{if($1>10){printf "%.2f\n",$2}}' | sort | uniq -c | awk '{if($1>1){printf "%.2f\n",$2}}' | sort | uniq -c > 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt.count.txt.d322.c100101.txt 
-  537  awk '{if($1>100){printf "%.2f,%.2f\n",$2,$4}}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.count.txt | less
-  538  awk '{printf "%.2f,%.2f\n",$2,$4}}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt | less
-  539  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt | less
-  540  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt > 200921_fraksjonANIONfrak4_URT1.raw.profile.intensity0.charge0.MS.txt.2dp.txt
-  541  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | less
-  542  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt > 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt.2dp.txt
-  543  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | less
-  544  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | wc
-  545  pwd
-  546  awk '{printf "%.2f,%.2f\n",$2,$4}' 200921_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt | wc
->>>>>>> b3be1ee921a10e26eeba947b8995c64139a27a10
+```{r}
+##https://drive.google.com/file/d/1fZ364APP8pqemFg0oD0kIhAzH9Zm9p-0/view
+## METABOLITE-DISEASE INTERACTION NETWORK
+##
+# Create objects for storing processed data from the network explorer module
+mSet<-InitDataObjects("conc", "network", FALSE)
+# Set organism to human, at the moment only human data can be accomodated
+mSet<-SetOrganism(mSet, "hsa")
+# Set geneListFile as a file containing your gene list
+geneListFile<-"integ_genes.txt"
+# Read in the geneListFile
+# This will import a plain text file as single character string
+geneList<-readChar(geneListFile, file.info(geneListFile)$size)
+# Perform gene ID mapping
+mSet<-PerformIntegGeneMapping(mSet, geneList, "hsa", "symbol");
+# Set cmpdListFile as a file containing your metablolite list
+cmpdListFile<-"integ_cmpds.txt"
+# Read in the cmpdListFile
+# This will import a plain text file as single character string
+cmpdList<-readChar(cmpdListFile, file.info(cmpdListFile)$size)
+# Perform compound ID mapping
+mSet<-PerformIntegCmpdMapping(mSet, cmpdList, "hsa", "kegg");
+# Create the mapping results table for compounds
+mSet<-CreateMappingResultTable(mSet)
+# Create the mapping results table for genes
+mSet<-GetNetworkGeneMappingResultTable(mSet)
+# Prepare the data for network analysis, saves a .json file that can be uploaded
+# to external sites/packages to view the network
+mSet<-PrepareNetworkData(mSet);
+# Map user's data to internal interaction network
+mSet<-SearchNetDB(mSet, "pheno", "global", FALSE, 0.5)
+# Create graph and subnetworks
+mSet<-CreateGraph(mSet)
+```
+
+```{r}
+mSet<-InitDataObjects("mass_all", "mummichog", FALSE)
+SetPeakFormat("rmp")
+mSet<-UpdateInstrumentParameters(mSet, 20.0, "positive", "yes", 0.02);
+mSet<-Read.PeakListData(mSet, "Replacing_with_your_file_path");
+mSet<-SanityCheckMummichogData(mSet)
+mSet<-SetPeakEnrichMethod(mSet, "integ", "v2")
+mSet<-SetMummichogPval(mSet, 1.0E-5)
+mSet<-PerformPSEA(mSet, "hsa_mfn", "current", 100)
+mSet<-PlotIntegPaths(mSet, "integ_peaks_0_", "png", 72, width=NA)
 ```
 

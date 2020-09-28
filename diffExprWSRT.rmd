@@ -175,6 +175,152 @@ summary(hdaM)
 write.csv(as.data.frame(cbind(uniprot,gen,WSRT=pVal0,Log2Cmax=hdaMax,hdaM,Control_2,Control_3,XL_Control_4,APIM_2,APIM_3,XL_APIM_4,data[,8])),row.names=F,paste0(inpF,"median-LFQ-APIM-control.csv"))
 ```
 
+```{r data, echo=FALSE}
+#inpD<-"L:\\promec\\USERS\\Synnøve\\20200911_6samples\\HF\\combined\\txt-rabitcrap\\"
+inpD <-paste0(getwd(),"/txt_rabitcrap/")
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
+#read.delim(inpF,sep="\t",header = T,row.names = 1)
+#clean
+#data = data[!data$Reverse=="+",]
+#data = data[!data$Potential.contaminant=="+",]
+#data = data[!data$Only.identified.by.site=="+",]
+row.names(data)<-paste(row.names(data),data$Gene.names,data$Protein.IDs,data$Protein.names,data$Score,data$Peptide.counts..unique.,sep=";;")
+summary(data)
+dim(data)
+hist(as.matrix(log2(data[,grep("Intensity",colnames(data))])))
+summary(log2(data[,grep("Intensity",colnames(data))]))
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+protNum<-1:ncol(LFQ)
+colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+log2LFQ[log2LFQ==0]=NA
+summary(log2LFQ)
+hist(log2LFQ)
+write.csv(as.data.frame(cbind(log2LFQ,rownames(data))),row.names=F,paste0(inpD,"log2LFQ.csv"))
+```
+
+```{r label}
+#inpL<-paste0(inpD,"Groups.txt")
+#factor(label$annotation)
+#inpL<-paste0(inpD,"Groups.xlsx")
+#label<-read_xlsx(inpL)
+#colnames(label)=sub("\\-[0-9]+","",colnames(label))
+#colnames(label)
+#table(label)
+label<-colnames(log2LFQ)
+label
+```
+
+```{r Control_2}
+Control_2<-as.matrix(log2LFQ[,grep("Control_2",colnames(log2LFQ))])
+Control_2[is.na(Control_2)]<-0
+hist(as.matrix(Control_2))
+limma::vennDiagram(Control_2>0)
+```
+
+```{r Control_3}
+Control_3<-as.matrix(log2LFQ[,grep("Control_3",colnames(log2LFQ))])
+Control_3[is.na(Control_3)]<-0
+hist(as.matrix(Control_3))
+limma::vennDiagram(Control_3>0)
+```
+
+```{r XL_Control_4}
+XL_Control_4<-as.matrix(log2LFQ[,grep("XL_Control_4",colnames(log2LFQ))])
+XL_Control_4[is.na(XL_Control_4)]<-0
+hist(as.matrix(XL_Control_4))
+limma::vennDiagram(XL_Control_4>0)
+```
+
+```{r APIM_2}
+APIM_2<-as.matrix(log2LFQ[,grep("APIM_2",colnames(log2LFQ))])
+APIM_2[is.na(APIM_2)]<-0
+hist(as.matrix(APIM_2))
+limma::vennDiagram(APIM_2>0)
+```
+
+```{r APIM_3}
+APIM_3<-as.matrix(log2LFQ[,grep("APIM_3",colnames(log2LFQ))])
+APIM_3[is.na(APIM_3)]<-0
+hist(as.matrix(APIM_3))
+limma::vennDiagram(APIM_3>0)
+```
+
+```{r XL_APIM_4}
+XL_APIM_4<-as.matrix(log2LFQ[,grep("XL_APIM_4",colnames(log2LFQ))])
+XL_APIM_4[is.na(XL_APIM_4)]<-0
+hist(as.matrix(XL_APIM_4))
+limma::vennDiagram(XL_APIM_4>0)
+```
+
+```{r medianDiffWSRT}
+Control_2[Control_2==0]<-NA
+Control_2hda<-apply(Control_2,1,function(x) if(sum(!is.na(x))<1){NA}  else{median(x,na.rm=T)})
+Control_2hda[is.na(Control_2hda)]<-0
+summary(Control_2hda)
+Control_3[Control_3==0]<-NA
+Control_3hda<-apply(Control_3,1,function(x) if(sum(!is.na(x))<1){NA}  else{median(x,na.rm=T)})
+Control_3hda[is.na(Control_3hda)]<-0
+summary(Control_3hda)
+XL_Control_4[XL_Control_4==0]<-NA
+XL_Control_4hda<-apply(XL_Control_4,1,function(x) if(sum(!is.na(x))<1){NA}  else{median(x,na.rm=T)})
+XL_Control_4hda[is.na(XL_Control_4hda)]<-0
+summary(XL_Control_4hda)
+APIM_2[APIM_2==0]<-NA
+APIM_2hda<-apply(APIM_2,1,function(x)  if(sum(!is.na(x))<1){NA}  else{median(x,na.rm=T)})
+APIM_2hda[is.na(APIM_2hda)]<-0
+summary(APIM_2hda)
+APIM_3[APIM_3==0]<-NA
+APIM_3hda<-apply(APIM_3,1,function(x)  if(sum(!is.na(x))<1){NA}  else{median(x,na.rm=T)})
+APIM_3hda[is.na(APIM_3hda)]<-0
+summary(APIM_3hda)
+XL_APIM_4[XL_APIM_4==0]<-NA
+XL_APIM_4hda<-apply(XL_APIM_4,1,function(x)  if(sum(!is.na(x))<1){NA}  else{median(x,na.rm=T)})
+XL_APIM_4hda[is.na(XL_APIM_4hda)]<-0
+summary(XL_APIM_4hda)
+A2C_2<-APIM_2hda-Control_2hda
+hist(A2C_2)
+A2C_3<-APIM_3hda-Control_3hda
+hist(A2C_3)
+XL_A2C_4<-XL_APIM_4hda-XL_Control_4hda
+hist(XL_A2C_4)
+hdaM=cbind(A2C_2,A2C_3,XL_A2C_4)
+hist(hdaM)
+limma::vennDiagram(hdaM>0)
+limma::vennDiagram(hdaM<0)
+hdaM[hdaM==0]<-NA
+options(nwarnings = 1000000)
+pVal0 = apply(
+  hdaM, 1, function(x)
+    if(sum(!is.na(x))<2){NA}
+    else if(mode(x)==median(x,na.rm=T)){0}
+    else{wilcox.test(as.numeric(x),na.rm=T)$p.value}
+  )
+summary(warnings())
+options(nwarnings = 1000000)
+hdaMax = apply(
+  hdaM, 1, function(x)
+    if(sum(!is.na(x))<2){NA}
+    else{median(as.numeric(x),na.rm=T)}
+  )
+summary(warnings())
+#hist(hdaMax)
+Uniprot<-sapply(strsplit(data[,1],";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaM)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
+summary(hdaM)
+#limma::vennDiagram(hdaM[,1:5]>0)
+write.csv(as.data.frame(cbind(uniprot,gen,WSRT=pVal0,Log2Cmax=hdaMax,hdaM,Control_2,Control_3,XL_Control_4,APIM_2,APIM_3,XL_APIM_4,data[,8])),row.names=F,paste0(inpF,"median-LFQ-APIM-control.csv"))
+```
+
 ```{r maxDiffWSRT}
 #Control_2[Control_2==1]<-0
 Control_2hda<-apply(Control_2,1,function(x) max(x,na.rm=T))

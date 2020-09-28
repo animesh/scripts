@@ -1,7 +1,7 @@
 #parse argument(s)
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <SILAC>")
 print("default LFQ")
-#Rscript proteinGroups.r /home/animeshs/promec/promec/Qexactive/LARS/2019/oktober/Kristine\ Sonja/combined/txt/proteinGroups.txt SILAC
+#c:\R-4.0.2\bin\Rscript.exe proteinGroups.r "L:\promec\USERS\MarianneNymark\20200108_15-samples\QE\combined\txt\proteinGroups.txt"
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args[1])
@@ -11,9 +11,8 @@ if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if 
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #read
 #MaxQuant
-#inpF<-file.path("L:/promec/HF/Lars/2020/AUGUST/siri/combined/txt_noPHO/proteinGroups.txt")
-#ProteomeDiscoverer
-#inpF<-file.path("Z:/PA/_Pseudomonas_ 1/140605_Pseudomonas_O1_K0K6_Proteins.txt")
+#inpF<-file.path("L:/promec/USERS/MarianneNymark/20200108_15-samples/QE/combined/txt/proteinGroups.txt")
+options(nwarnings = 1000000)
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 #select raw intensity
@@ -97,6 +96,12 @@ if(dim(log2LFQ)[2]>0){
   outP<-paste(inpF,selection,"pdf",sep = ".")
   pdf(outP)
   #i=1
+  summary(log2(intensity))
+  boxplot(intensity)
+  boxplot(log2(intensity))
+  summary(log2LFQ)
+  boxplot(log2LFQ)
+  boxplot(2^log2LFQ)
   for(i in 1:dim(intensity)[2]){hist(log2(intensity[,i]),main=paste("File:",colnames(intensity)[i]),xlab="log2 raw intensity")}
   #plot LFQ histogram
   for(i in 1:dim(log2LFQ)[2]){
@@ -146,4 +151,4 @@ if(dim(log2LFQ)[2]>0){
   dev.off()
   print(paste("Histogram, PCA, Heatmap of Log2 transform of",selection,"column(s) written to",outP))
 }
-
+summary(warnings())
