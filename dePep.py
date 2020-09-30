@@ -33,9 +33,12 @@ dfDP.to_csv(writeDPcsv)
 
 print(writeDPcsv)
 dfDPcnt=dfDP['Modification'].value_counts()
+#https://www.shanelynn.ie/bar-plots-in-python-using-pandas-dataframes/
+#dfDP['Base Raw File'].value_counts().plot(kind='bar',stacked=True)
 print(dfDPcnt)
 writeDPpng=pathFiles/(fileName+"DP.png")
 if(dfDPcnt.empty==False): dfDPcnt[dfDPcnt>0].plot(kind='pie').figure.savefig(writeDPpng.absolute(),dpi=100,bbox_inches = "tight")
+if(dfDPcnt.empty==False): dfDPcnt[dfDPcnt>0].plot(kind='bar',stacked=True).figure.savefig(writeDPpng.absolute(),dpi=100,bbox_inches = "tight")
 plt.close()
 print(writeDPpng)
 unmodCnt=dfDP[dfDP['Modification']=='Unmodified']#unmodified count(s)

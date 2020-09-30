@@ -13,8 +13,7 @@ getwd()
 ```{r libloc, echo = FALSE}
 .libPaths( c( .libPaths(), "~/libR") )
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
-usethis::edit_r_environ()
-
+#usethis::edit_r_environ()
 #https://community.rstudio.com/t/help-regarding-package-installation-renviron-rprofile-r-libs-r-libs-site-and-r-libs-user-oh-my/13888/8
 #R_LIBS_USER in your ~/.Renviron. One <name>=<value> per line.
 +#specifiers: %p (expands to the architecture, e.g. x86_64-pc-linux-gnu) and %v (expands to major and minor R version, e.g. 3.5) - see 
@@ -155,8 +154,8 @@ system.time({
 
 ```{r proteus}
 #BiocManager::install("limma")
-devtools::install_github("bartongroup/proteusLabelFree")
-devtools::install_github("bartongroup/Proteus", build_opts= c("--no-resave-data", "--no-manual"), build_vignettes=F)
+#devtools::install_github("bartongroup/proteusLabelFree")
+#devtools::install_github("bartongroup/Proteus", build_opts= c("--no-resave-data", "--no-manual"), build_vignettes=F)
 library(proteus)
 evidenceFile <- system.file("extdata", "evidence.txt.gz", package="proteusLabelFree")
 metadataFile <- system.file("extdata", "metadata.txt", package="proteusLabelFree")

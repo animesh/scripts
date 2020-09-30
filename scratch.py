@@ -1,3 +1,6 @@
+#https://csvkit.readthedocs.io/en/latest/tutorial/2_examining_the_data.html
+#sudo apt install python3-csvkit
+in2csv -f ndjson promec/promec/Animesh/stanford-covid-vaccine/train.json > promec/promec/Animesh/stanford-covid-vaccine/train.in2.csv
 #https://github.com/alan-turing-institute/sktime
 !pip install sktime
 import numpy as np
