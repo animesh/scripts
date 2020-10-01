@@ -19,6 +19,7 @@ if( @ARGV ne 2){die "\nUSAGE\t\"ProgName MultSeqFile ?baseperiodicity\"\t\n\n\n"
 $file = shift @ARGV;
 $n= shift @ARGV;
 $f=1/$n;
+$th=4;
 use Math::Complex;
 $pi=pi;
 $i=sqrt(-1);
@@ -81,7 +82,84 @@ $c=$subseq=~s/C/C/g;$a=$subseq=~s/A/A/g;$g=$subseq=~s/G/G/g;$t=$subseq=~s/T/T/g;
 		$ptnrnew=($ptnr)/($N*$sbar);
 		$ptnrnew2=2*$ptnrnew;
 		$sumtotal=0;$ll=$c2+$ws-1;
-		if($ptnrnew2 >= 4.0)
+
+$flag=0;
+$i =0 , $m =0;
+$framecount=$c2+$ws/2-1;
+	for ($m =0; $m<$framecount; $m++)
+	{	if($x[$m]>=$th)
+		{	if($flag == 0)
+			{
+			$CRegion[$i] =$s[$m];
+			$flag =1;
+			}
+		}
+	        else
+        	{	if($flag==1)
+       	     		{	if($x[$m]<$th)
+               			{$i++;
+				$CRegion[$i]=$s[$m-1];
+				$i++;
+				}
+			$flag=0;
+			}
+	        }
+	}
+	if ($flag==1)
+	{
+	$i++;
+	$CRegion[$i]=$s[$m-1];
+	$i++;
+	}
+	$flag =0;
+	$code =0;
+	$sta=0 , $stp =0;
+	for($j=0 ; $j<$i ; $j += 2)
+   	{
+		if($flag ==0)
+		{
+		$sta = $CRegion[$j];
+		$stp = $CRegion[$j+1];
+        	if ( ($stp-$sta)>= $exonCutOff ){ $code =1;}
+		else {$code =0;}
+		$flag = 1 ;
+	    	}
+		else
+		{
+			if( ($CRegion[$j]-$CRegion[$j-1]) >=$intronCutOff  )
+			{
+				if($code ==1)
+				{
+				$sta = $CRegion[$j];
+				$stp = $CRegion[$j+1];
+
+					if ( ($stp-$sta)>= $exonCutOff ) {$code =1;}
+					else {$code =0;}
+				$flag = 1 ;
+				}
+				else
+				{
+					if (($stp-$sta)>= $exonCutOff )
+				  	{
+				  	}
+				$sta = $CRegion[$j];
+				$stp = $CRegion[$j+1];
+				if ( ($stp-$sta)>= $exonCutOff ) {$code =1;}
+				else {$code =0;}
+				$flag = 1 ;
+				}
+			}
+			else
+			{
+	        	if( ( $CRegion[$j+1]-$CRegion[$j] ) >= $exonCutOff )
+			{$code =1;}
+			$stp = $CRegion[$j+1];
+        		$flag =1;
+			}
+		}
+if (($code == 1) || (($stp-$sta) >$exonCutOff) )
+{print "hi\n";}}
+		if($ptnrnew2 >= $th)
                    	{
 			print "$sname\t$ptnr\t$ptnrnew\t$ptnrnew2\n";
 			print FS1"$sname\t$ptnrnew2\n$seq\n";
@@ -92,7 +170,7 @@ $c=$subseq=~s/C/C/g;$a=$subseq=~s/A/A/g;$g=$subseq=~s/G/G/g;$t=$subseq=~s/T/T/g;
 			print "$sname\t$ptnr\t$ptnrnew\t$ptnrnew2\n";
 			print FS2"$sname\t$ptnrnew2\n$seq\n";
 			}
-	} # End else
+} # End else
 	sub FT {
 	$st=shift;
 	$sp=shift;
@@ -123,7 +201,8 @@ $c=$subseq=~s/C/C/g;$a=$subseq=~s/A/A/g;$g=$subseq=~s/G/G/g;$t=$subseq=~s/T/T/g;
 			$subsumtotal+=(((1/$le)**2)*(abs($subsum)**2));
 			$subsum=0;
 		 }
-		push(@ssts,$subsumtotal);
+		 push(@ssts,$subsumtotal);
+
 		$sptnr0=$subsumtotal/$ssbar;
 		$sptnr1=$sptnr0/($le*$ssbar);
 		$sptnr2=$sptnr1*2;
@@ -131,13 +210,14 @@ $c=$subseq=~s/C/C/g;$a=$subseq=~s/A/A/g;$g=$subseq=~s/G/G/g;$t=$subseq=~s/T/T/g;
 		$substs+=$subsumtotal;
 		print SFONEW"$ff\t$sptnr0\t$sptnr1\t$sptnr2\n";$subsumtotal=0;
 		}$substss=2*($substs/$le);$substs=0;
-		#for($c8=0;$c8<=$#ssts;$c8++)
-		#{
-		#$sptnr0=@ssts[$c8]/$substss;1/1;$pp=($c8+1)/$le;
-		#$sptnr1=$sptnr0/($le*$ssbar);
-		#$sptnr2=(2*$sptnr1);
-		#print SFO"$pp\t$sptnr0\t$sptnr1\t$sptnr2\n";
-		#}
+		for($c8=0;$c8<=$#ssts;$c8++)
+		{
+		$sptnr0=@ssts[$c8]/$substss;1/1;$pp=($c8+1)/$le;
+		$sptnr1=$sptnr0/($le*$ssbar);
+		$sptnr2=(2*$sptnr1);
+		print SFO"$pp\t$sptnr0\t$sptnr1\t$sptnr2\n";
+		#print SFO"$pp\t$subptnr\n";
+		}
 		print "S(f) to Frequency written to file $sfo1 and $sfo2\n";
 		undef @ssts;close SFO;
 	}

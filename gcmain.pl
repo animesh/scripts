@@ -15,7 +15,6 @@
 
 #!usr/bin/perl
 use LWP::UserAgent;
-use LWP;
 print "\nenter the list of things to be downloaded from site";
 $f1=<>;
 chomp $f1;
@@ -28,9 +27,10 @@ while($line=<F>)
   foreach $spider(@allz){if($spider eq "" or $spider =~ /^</){next;}
    else{$gc_id=($spider);
    $localfile=$f1.".".$n.'.html';
+   
    unless (open(OUT,">$localfile")){print E"ERROR FOR WRITING:$localfile $!\n";exit;}
-   #$web_site='http://bioinfo.weizmann.ac.il/cards-bin/';
    $full_path=$spider;#$web_site.'carddisp?'.$gc_id;
+   $ua->prepare_request($request);
    $ua=new LWP::UserAgent;
    $request = new HTTP::Request('GET', $full_path);
    $response = $ua->request($request);

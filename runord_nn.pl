@@ -1,10 +1,11 @@
-@files1 = <IC_[0-9].txt.ru.class.arff>;
 @files2 = <IC_[0-9][0-9].txt.ru.class.arff>;
-@files=(@files1,@files2);
-system("export CLASSPATH=/usit/titan/u1/ash022");
-foreach $file (@files) {
-	$c++;
+system("export CLASSPATH=/work/ash022");
+for($c=49;$c<=57;$c++) {
+	$file=@files2[$c];
 	print "Processing file # $c $file\n"; 
-	system("/usr/java/default/bin/java -Xmx15590m  weka.classifiers.functions.MultilayerPerceptron -t $file > $file.nn.lm.txt ");
+	#system("java -Xmx3000m  weka.attributeSelection.GainRatioAttributeEval -i $file -x 10 > $file.graeclass.txt ");
+	#system("java -Xmx3000m  weka.attributeSelection.CfsSubsetEval -i $file -x 10   -s weka.attributeSelection.BestFirst > $file.csebfclass.txt ");
+	system("java -Xmx1500m  weka.classifiers.meta.ClassificationViaRegression -t $file -x 10 > $file.lrclass.txt ");
+	#system("java -Xmx3000m  weka.attributeSelection.SVMAttributeEval -i $file -x 10 > $file.svmattribevaltxt ");
 }
 

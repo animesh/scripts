@@ -14,6 +14,7 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
+#final NCDS extractor based on the chi stat
 $file=shift @ARGV;
 $file2=shift @ARGV;
 $pk=shift @ARGV;
@@ -54,13 +55,11 @@ if($t11 eq "cIntergenic"){
 #$st=@t1[2]-@t1[9]+1-3;$sp=@t1[2]-@t1[6]+1;$length=$sp-$st+1;$str = uc(substr($line,($st-1),($length)));
 $str = reverse ($str);
 $str =~ tr/ATCG/TAGC/d;
-if($str=~/^(TTG|GTG|ATG)/ and $str=~/(TAA|TAG|TGA)$/){
-print "@t1[0]\[$st-$sp]\t$t1[4]\t$length\t$file\n$str\n";
+if(($length >= 30) and ($length <= 153)){
+print "$seqname\t[$st-$sp]\t$length\t$lto{$w}\t$file\n$str\n";
 }
 }
-else{
-if($str=~/^(TTG|GTG|ATG)/ and $str=~/(TAA|TAG|TGA)$/){
-print "@t1[0]\[$st-$sp]\t$t1[4]\t$length\t$file\n$str\n";
-}
+elsif($t11 eq "Intergenic" and ($length >= 30) and ($length <= 153)){
+print "$seqname\t[$st-$sp]\t$length\t$lto{$w}\t$file\n$str\n";
 }
 }

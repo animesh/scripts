@@ -1,4 +1,30 @@
-```{r data}
+```{r}
+#https://github.com/mlverse/torch
+#install.packages("torch") 
+#install.packages("torchtext") 
+library(torch) 
+#library(torchvision)
+x <- torch_tensor(1, requires_grad = TRUE)
+w <- torch_tensor(2, requires_grad = TRUE)
+b <- torch_tensor(3, requires_grad = TRUE)
+y <- w * x + b
+y$backward()
+x$grad
+#> torch_tensor 
+#>  2
+#> [ CPUFloatType{1} ]
+w$grad
+#> torch_tensor 
+#>  1
+#> [ CPUFloatType{1} ]
+b$grad
+#> torch_tensor 
+#>  1
+#> [ CPUFloatType{1} ]
+```
+
+``` {.r}
+{r data}
 #https://www.kaggle.com/artgor/openvaccine-eda-feature-engineering-and-modelling
 install.packages("dplyr")
 library(dplyr)

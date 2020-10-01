@@ -1,40 +1,26 @@
-"""
-Short demonstration of the smp_generator for AC Poisson trains.
-"""
-
-# import nest and Hill-Tononi module
 import nest
-nest.ResetKernel()
-
-# import plotting tools
-import matplotlib.pyplot as plt
 import numpy as np
+#from NeuroTools import signals
+import matplotlib.pyplot as plt
+nest.ResetKernel()
+nest.SetKernelStatus({"resolution":.01})
+nest.SetKernelStatus({"overwrite_files":True})
+hhneurons=nest.Create("hh_cond_exp_traub",n=20)
+for k in range(20):
+	nest.SetStatus([hhneurons[k]],{"I_e": k*200.})
+	print k
+sd=nest.Create('spike_detector')
+nest.SetStatus(sd,{'to_file':True})
+nest.ConvergentConnect(hhneurons,sd) 
+nest.Simulate(200.)
+#datafile=signals.NestFile('spike_detector-21-0.gdf',withtime=True)
+#spikes=signals.loadspikelist(datafile,dims=1,idlist=hhneurons)
 
-# create two generators with different frequencies, phases, amplitudes
-g = nest.Create('smp_generator', n=2, params=[{'dc': 10000.0, 'ac': 5000.0,
-                                              'freq': 10.0, 'phi': 0.0},
-                                             {'dc': 0.0, 'ac': 10000.0,
-                                              'freq': 5.0, 'phi': np.pi/2.}])
+#fig = plt.figure()
+#vm=np.loadtxt('voltmeter-2-0.dat')
+#gca = fig.add_subplot(111)
+#gca.plot(vm[:,1],vm[:,2])
+#gca.set_xlabel("Time(msec)")
+#gca.set_ylabel("Vm(mV)")
+#plt.show()
 
-# create multimeters and spike detectors
-m = nest.Create('multimeter', n=2, params={'interval': 0.1, 'withgid': False,
-                                           'record_from': ['Rate']})
-s = nest.Create('spike_detector', n=2, params={'withgid': False})
-
-nest.Connect(m, g)
-nest.Connect(g, s)
-
-nest.Simulate(200)
-
-for j in xrange(2):
-    ev = nest.GetStatus([m[j]])[0]['events']
-    t = ev['times']
-    r = ev['Rate']
-    plt.subplot(211)
-    plt.plot(t, r, '-')
-
-    sp = nest.GetStatus([s[j]])[0]['events']['times']
-    plt.subplot(212)
-    plt.hist(sp, bins=20, range=[0, 200])
-
-plt.show()

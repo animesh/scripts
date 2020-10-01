@@ -38,6 +38,44 @@ install.packages('devtools')
 library(devtools)
 install_github('MacoskoLab/liger')
 ```
+```{r edit}
+#https://cran.r-project.org/web/packages/DataEditR/vignettes/DataEditR.html
+devtools::install_github("DillonHammill/DataEditR")
+library(DataEditR)
+DataEditR::data_edit(df, theme = "cosmo", viewer = FALSE)
+mtcars_new <- cbind(as.data.frame(c(1:nrow(df))),rownames(df), df)
+colnames(mtcars_new) <- "car"
+# Convert characters to factors
+mtcars_new <- DataEditR::data_edit(mtcars_new,col_factor = TRUE)
+str(mtcars_new)
+data_edit(mtcars,col_bind = "fast",col_options = list(fast = c(TRUE,FALSE)))
+# Add column for car colour
+data_edit(mtcars,col_bind = "col",col_options = list(col = c("red","blue","orange","green","black")))
+data_edit(mtcars,col_stretch = TRUE)
+```
+
+```{r ComplexHeatmap, echo = FALSE}
+#https://jokergoo.github.io/2020/05/06/translate-from-pheatmap-to-complexheatmap/
+#BiocManager::install("ComplexHeatmap")
+#library(ComplexHeatmap)
+test = matrix(rnorm(200), 20, 10)
+test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
+test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
+test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
+colnames(test) = paste("Test", 1:10, sep = "")
+rownames(test) = paste("Gene", 1:20, sep = "")
+pheatmap::pheatmap(test)  # this is ComplexHeatmap::pheatmap
+#https://github.com/jokergoo/ComplexHeatmap/issues/30#issuecomment-686440241
+m = matrix(rnorm(10*50), ncol = 50)
+fa = sample(letters[1:4], 50, replace = TRUE)
+# ha just found, column_km can be used together with column_split
+ComplexHeatmap::Heatmap(m, column_km = 3, column_split = fa, row_split = 2)
+#https://jokergoo.github.io/2020/07/06/block-annotation-over-several-slices/
+df = data.frame(km = kmeans(t(m), centers = 3)$cluster,fa = fa)
+df$km = factor(df$km, levels = c(1, 2, 3))
+df$fa = factor(df$fa, levels = letters[1:4])
+ComplexHeatmap::Heatmap(m, column_split = df, row_split = 2, cluster_column_slices = FALSE)
+```
 
 ```{r iq}
 #https://www.rdocumentation.org/packages/iq/versions/1.9/vignettes/iq-fast.Rmd
@@ -188,19 +226,6 @@ resW <- test.func(X,Y)
 outW <- data.frame(node = rowLinks(tse)$nodeNum,
                    pvalue = resW$p.value,
                    sign = resW$e.sign)
-```
-
-
-```{r ComplexHeatmap, echo = FALSE}
-#https://jokergoo.github.io/2020/05/06/translate-from-pheatmap-to-complexheatmap/
-library(ComplexHeatmap)
-test = matrix(rnorm(200), 20, 10)
-test[1:10, seq(1, 10, 2)] = test[1:10, seq(1, 10, 2)] + 3
-test[11:20, seq(2, 10, 2)] = test[11:20, seq(2, 10, 2)] + 2
-test[15:20, seq(2, 10, 2)] = test[15:20, seq(2, 10, 2)] + 4
-colnames(test) = paste("Test", 1:10, sep = "")
-rownames(test) = paste("Gene", 1:20, sep = "")
-pheatmap(test)  # this is ComplexHeatmap::pheatmap
 ```
 
 ```{r propR, echo = FALSE}

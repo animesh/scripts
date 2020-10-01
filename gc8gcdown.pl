@@ -13,39 +13,12 @@
 #
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
-$fs = shift @ARGV;
-$date=time();
-open F,$fs;
-$fsd=$fs.".down.".$date;
-system("mkdir $fsd");
-while($l = <F>){
-	chomp $l;
-	@temp=split(/\s+/,$l);
-	#foreach (@temp) {print "$_\t";}print "\n";
-	if(@temp[2] ne ""){
-	push(@list,(@temp[2]));}
-	}
-	#print @list;
-close F;
- open FE,">./$fsd/$fs.err";
- open FS,">./$fsd/$fs.suc";
-foreach (@list) { DOWN($_); }
- sub DOWN {
- $get="http://bioinfo.weizmann.ac.il/cards-bin/carddisp?";
- @temp=split(/\//,$get);$t=@temp[-1];$t=~s/\?//g;
- #print "$t\n";
- open F,">./$fsd/$_.html";
- $get=$get.$_;
- print "$get\n";
+ $get=shift;if( $get !~ /^http/ ){$get="http\:\/\/".$get;}
  use LWP::UserAgent;
  $ua = LWP::UserAgent->new;
  	#$ua->proxy(['http', 'ftp'] => 'http://animesh_sharma:Infosys123@proxy_realm\MicrosoftAD');
  	$ua->proxy(['http', 'ftp'] => 'http://animesh_sharma:Infosys123@192.168.100.25');
  #$req = HTTP::Request->new( GET ,"http://sparsh/");
- $req = HTTP::Request->new( GET ,$get);
+ $req = HTTP::Request->new( GET ,"http://bioinfo.weizmann.ac.il/cards-bin/carddisp?GPR6");
  $res = $ua->request($req);
- if( $res->is_success ){print F $res->content;print FS"$_\n";}
- else {print FE"$_\n";}
- close F;
-}
-close FS;close FE;
+ print $res->content if $res->is_success ;

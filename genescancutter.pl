@@ -14,17 +14,8 @@
 #    Code base of Animesh Sharma [ sharma.animesh@gmail.com ]
 
 #!/usr/bin/perl
-print "enter the start position \n";
-$start=<>;
-chomp($start);
-print "enter the stop position \n";
-$end=<>;
-chomp($end);
-print "enter the quality \n";
-$qual=<>;
-chomp($qual);
-open F1,"60charfileAC109365.fas.backup";
-open (FILEOUT1, ">>AC109365.genescanresult");
+open F1,"ricecontigAC109365.fas";
+open (FILEOUT1, ">>60charfileAC109365.fas");
 while ($line = <F1>) {
         chomp ($line);
         if ($line =~ /^>/){
@@ -40,15 +31,24 @@ while ($line = <F1>) {
 }
 push(@seq,$seq);
 $l1=@seq;
-foreach $WE (@seq)
+for($cont=0;$cont<=$#seq;$cont++)
 {
-@seqnew=split(//,$WE);
-unshift(@seqnew,0);
+
+@seqnew=split(//,$seq[$cont]);
 $len=@seqnew;
-	for($c=$start;$c<=$end;$c++)
+$rem=$len%60;
+print FILEOUT1">@seqname[$cont]\n";
+for($cc=0;$cc<$len;$cc=($cc+60))
+{
+	for($c=$cc;$c<($cc+60);$c++)
 	{
 	$seq1=$seq1.@seqnew[$c];
 	}
-print FILEOUT1">the subsequence of AC109365 from $start TO $end with tag $qual\n$seq1\n";
-$seq1="";
+print FILEOUT1"$seq1\n";
+$seq1="";}
+for($c=$cc;$c<=($cc+$rem);$c++)
+	{
+	$seq1=$seq1.@seqnew[$c];
+	}
+print FILEOUT1"$seq1\n";
 }

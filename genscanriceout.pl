@@ -18,17 +18,25 @@ open FILE1,"genscanrice.txt" || die;
 while ($line = <FILE1>) {
         chomp ($line);
         if ($line =~ /^>gi|GENSCAN_predicted_CDS_/){
-            $line =~ s/>//;
-            push(@seqname,$line);
-             $cc++;
-            if ($seq ne ""){
-              #push(@seq,$seq);
-	      @l2=&nucl($seq);
-		print @l2;
-	      $seq = "";
-            }
-      } else {
-                  #$seq=$seq.$line;
+                                              do{
+                                        $l=<FILE1>;
+                                        chomp ($l);
+                                        $line =~ s/\>///g;
+                                        $line = $line.$l;
+                                               }   until ($line =~ 
+/\>gi|GENSCAN_predicted_peptide_//);
+
+                                             $line =~ s/[0-9]//g;
+                                             $line =~ s/ORIGIN//g;
+                                             $line =~ s/\/\///g;
+                                             $line =~ s/ //g;
+                                             $linen=$linen.$line;
+
+                                         }
+                }
+
+
+
       }
 }
 push(@seq,$seq);
