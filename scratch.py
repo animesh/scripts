@@ -1,3 +1,10 @@
+#https://mechanicalsoup.readthedocs.io/en/stable/tutorial.html#first-contact-step-by-step
+#!pip install mechanicalsoup
+import mechanicalsoup
+browser = mechanicalsoup.StatefulBrowser()
+browser.open("http://httpbin.org/")
+browser.follow_link("forms")
+browser.get_current_page()
 #https://nbviewer.jupyter.org/github/fastai/numerical-linear-algebra-v2/blob/master/nbs/02-Background-Removal-with-SVD.ipynb
 import numpy as np
 M = np.random.uniform(-40,40,[10,15])

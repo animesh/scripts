@@ -23,8 +23,7 @@ b$grad
 #> [ CPUFloatType{1} ]
 ```
 
-``` {.r}
-{r data}
+``` {r data}
 #https://www.kaggle.com/artgor/openvaccine-eda-feature-engineering-and-modelling
 install.packages("dplyr")
 library(dplyr)
@@ -52,3 +51,8 @@ y <- calcNormFactors(y)
 logCPMs <- cpm(y, log = TRUE, prior.count = 1)
 plot(logCPMs)
 ```
+```{r}
+#http://mc-stan.org/loo/articles/loo2-with-rstan.html
+
+```
+

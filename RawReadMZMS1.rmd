@@ -11,7 +11,7 @@ getwd()
 #detach("package:pathview", unload=TRUE)
 ```
 
-```{bash}
+```{bash apt}
 sudo apt list --installed | grep libcurl
 sudo apt-get install libcurl4 libcurl4-openssl-dev libssl-dev
 sudo apt install r-cran-devtools
@@ -51,9 +51,19 @@ summary(dataAnionAgg7lMax)
 dataAnionAgg7lMaxF<-as.data.frame(dataAnionAgg7lMax)
 hist(log2(dataAnionAgg7lMaxF$dataAnionAgg7lMax))
 dataAnionAgg7lMaxF$MZ<-row.names(dataAnionAgg7lMaxF)
-dataAnionAgg7lMaxF<-dataAnionAgg7lMaxF[dataAnionAgg7lMaxF$dataAnionAgg7lMax>10e6,]
+dataAnionAgg7lMaxF<-dataAnionAgg7lMaxF[dataAnionAgg7lMaxF$dataAnionAgg7lMax>0,]
 row.names(dataAnionAgg7lMaxF)
-write.csv(dataAnionAgg7lMaxF,paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.csv",sep="/"),row.names = F)
+write.csv(dataAnionAgg7lMaxF,paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6chk.csv",sep="/"),row.names = F)
+```
+
+```{r chk}
+chk<-as.data.frame(c(376.259,472.157,393.285,194.102))
+colnames(chk)<-"Test"
+```
+
+```{r writeAnionChk}
+anion<-merge(chk,by.x="Test",dataAnionAgg7lMaxF,by.y="MZ",all = F)
+write.csv(anion,paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.chk.csv",sep="/"))
 ```
 
 ```{r anionHMDB}
@@ -63,24 +73,15 @@ hmdA[,1]<-sprintf(hmdA[,1], fmt = '%#.3f')
 hist(hmdA[,10])
 ```
 
-```{r}
+```{r writeAnion}
 anion<-merge(dataAnionAgg7lMaxF,by.x="MZ",hmdA,by.y="query_mass",all = T)
 write.csv(anion,paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.HMDB.csv",sep="/"))
 ```
 
-
-
-```{r}
+```{r cation}
 data<-read.csv(paste(getwd(),"200921_fraksjonFTcation_URT1_20200923005518.raw.profile.intensity0.charge0.MS.txt",sep="/"),sep='\t')
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
-#hist(dataA[,2])
-#plot(dataA[,2],dataA[,1])
-#dataAnion<-tapply(dataA$X0.00.1, dataA$X0.00, sum)
-#row.names(dataaggA)
-```
-
-```{r cation}
 dataCation<-data[-grep("Scan",data$Scan1),c(2,4)]
 dataCation$intensity<-as.numeric(dataCation$intensity)
 dataCation$MZ<-strtrim(dataCation$MZ,7)
@@ -111,12 +112,12 @@ cation<-merge(dataCationAgg7lMaxF,by.x="MZ",hmdC,by.y="query_mass",all = T)
 write.csv(cation,paste(getwd(),"200921_fraksjonFTcation_URT1_20200923005518.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.HMDB.csv",sep="/"))
 ```
 
-```{r}
+```{r writeCation}
 ion<-merge(dataCationAgg7lMaxF,by.x="MZ",dataAnionAgg7lMaxF,by.y="MZ",all = T)
 write.csv(ion,paste(getwd(),"200921_fraksjonION_URT1.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.csv",sep="/"))
 ```
 
-```{r}
+```{r map}
 hmdI<-read.csv(paste(getwd(),"search (7).csv",sep="/"))
 hist(hmdI[,1])
 hmdI[,1]<-sprintf(hmdI[,1], fmt = '%#.3f')
