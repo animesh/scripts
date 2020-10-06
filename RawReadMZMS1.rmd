@@ -4,7 +4,7 @@ par(mfrow=c(1,2))
 #.libPaths( c( .libPaths(), "C:/Users/animeshs  /GD/R_libs") )
 .libPaths()
 getwd()
-setwd("F://promec/Animesh")
+setwd("L:/promec/Qexactive/LARS/2020/september/PSO")
 getwd()
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 #rm(list = ls())
@@ -24,13 +24,50 @@ install.packages("devtools")
 .libPaths( c( .libPaths(), "~/libR") )
 #R_LIBS_USER in your ~/.Renviron. One <name>=<value> per line.
 +#specifiers: %p (expands to the architecture, e.g. x86_64-pc-linux-gnu) and %v (expands to major and minor R version, e.g. 3.5) - see 
-?R_LIBS_USER
+#?R_LIBS_USER
 #R_LIBS_USER=~/R/%p-library/%v
 normalizePath("~/.Renviron", mustWork = FALSE)
 ```
 
 ```{r data}
-data<-read.csv(paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.txt",sep="/"),sep='\t')
+inpF="201005_fraksjon_frak1_C18_URT1.raw.profile.intensity0.charge0.MS.txt"
+data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
+hist(as.numeric(data[,2]))
+hist(log2(as.numeric(data[,4])))
+#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
+#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+```
+
+```{r data}
+inpF="201005_fraksjon_frak2_C18_URT1.raw.profile.intensity0.charge0.MS.txt"
+data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
+hist(as.numeric(data[,2]))
+hist(log2(as.numeric(data[,4])))
+#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
+#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+```
+
+```{r data}
+inpF="201005_fraksjon_frak3_C18_URT1.raw.profile.intensity0.charge0.MS.txt"
+data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
+hist(as.numeric(data[,2]))
+hist(log2(as.numeric(data[,4])))
+#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
+#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+```
+
+```{r data}
+inpF="201005_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt"
+data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
+hist(as.numeric(data[,2]))
+hist(log2(as.numeric(data[,4])))
+#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
+#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+```
+
+```{r data}
+inpF="201005_fraksjonFT_C18_URT1.raw.profile.intensity0.charge0.MS.txt"
+data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
 #https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
@@ -53,8 +90,39 @@ hist(log2(dataAnionAgg7lMaxF$dataAnionAgg7lMax))
 dataAnionAgg7lMaxF$MZ<-row.names(dataAnionAgg7lMaxF)
 dataAnionAgg7lMaxF<-dataAnionAgg7lMaxF[dataAnionAgg7lMaxF$dataAnionAgg7lMax>0,]
 row.names(dataAnionAgg7lMaxF)
-write.csv(dataAnionAgg7lMaxF,paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6chk.csv",sep="/"),row.names = F)
+write.csv(dataAnionAgg7lMaxF,paste(getwd(),inpF,"dataagg7lMaxF.csv",sep="_"),row.names = F)
 ```
+
+```{r}
+#install.packages("XML")
+#library("XML")
+data <- XML::xmlToDataFrame("F:/promec/Animesh/hmdb_metabolites/hmdb_metabolites.xml")
+data$MZ<-strtrim(data$monisotopic_molecular_weight,7)
+data$MZHp<-(as.numeric(data$monisotopic_molecular_weight)+1.007825035)/1.007825035
+data$MZHp7<-strtrim(data$MZHp,7)
+data$MZHp6<-strtrim(data$MZHp,6)
+write.csv(data,"F:/promec/Animesh/hmdb_metabolites/hmdb_metabolites.xml.csv")
+#print(data)
+```
+
+```{r cation}
+MZ1<-read.csv("L:/promec/Qexactive/LARS/2020/september/mz1coll.csv")
+sum(as.numeric(MZ1[,2])-as.numeric(MZ1[,3]))
+rowMinMZ1<-apply(MZ1, 1, FUN=min)
+rowMaxMZ1<-apply(MZ1, 1, FUN=max)
+MZ1min10e7<-cbind(MZ1,rowMinMZ1)
+MZ1max10e7<-cbind(MZ1min10e7,rowMaxMZ1)
+MZ1max10e7<-MZ1max10e7[MZ1max10e7$rowMaxMZ1>10e6,]
+hist(log2(as.numeric(MZ1max10e7$rowMaxMZ1)))
+summary(MZ1max10e7)
+```
+
+```{r writeAnionChk}
+MZ1max10e7$MZ6<-strtrim(MZ1max10e7$MZ,6)
+MZ1max10e7combo<-merge(MZ1max10e7,by.x="MZ6",data,by.y="MZHp6",all = F)
+write.csv(MZ1max10e7combo,paste(getwd(),inpF,"chk.csv",sep="_"))
+```
+
 
 ```{r chk}
 chk<-as.data.frame(c(376.259,472.157,393.285,194.102))
@@ -63,7 +131,7 @@ colnames(chk)<-"Test"
 
 ```{r writeAnionChk}
 anion<-merge(chk,by.x="Test",dataAnionAgg7lMaxF,by.y="MZ",all = F)
-write.csv(anion,paste(getwd(),"200921_fraksjonANIONfrak4_URT1_20200923030614.raw.profile.intensity0.charge0.MS.dataagg7lMaxF10e6.chk.csv",sep="/"))
+write.csv(anion,paste(getwd(),inpF,"chk.csv",sep="_"))
 ```
 
 ```{r anionHMDB}
