@@ -1,3 +1,5 @@
+#https://pysdr.org/content/intro.html
+
 #https://mechanicalsoup.readthedocs.io/en/stable/tutorial.html#first-contact-step-by-step
 #!pip install mechanicalsoup
 import mechanicalsoup

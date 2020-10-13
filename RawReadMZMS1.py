@@ -4,19 +4,22 @@ import sys
 from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.8.5\n","USAGE: python RawReadMZMS1.py <path to folder containing profile.intensity0.charge0.MS.txt file(s) like \"Z:/RawRead/\" >")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("L:/promec/Qexactive/LARS/2020/september")
-fileName='*raw.profile.intensity0.charge0.MS.txt_dataagg7lMaxF.csv'
+#pathFiles = Path("C:/Users/animeshs/Desktop/RawRead")
+fileName='20150512_BSA_The-PEG-envelope.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.txt'
 trainList=list(pathFiles.rglob(fileName))
 import pandas as pd
 df=pd.DataFrame()
 for f in trainList:
-    peptideHits=pd.read_csv(f,low_memory=False,sep=',')
+    peptideHits=pd.read_csv(f,low_memory=False,sep='\t')
     print(f)
     peptideHits['Name']=f
     df=pd.concat([df,peptideHits],sort=False)
 print(df.tail())
 print(df.columns)
-df['dataAnionAgg7lMax'].sum()
+df['sumIntensity'].sum()
+df['MZ'].hist(bins=10000)
+
+
 df=pd.read_('F:/promec/Animesh/hmdb_metabolites/hmdb_metabolites.xml')
 import xml.etree.ElementTree as et
 #https://medium.com/@robertopreste/from-xml-to-pandas-dataframes-9292980b1c1c

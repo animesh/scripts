@@ -29,6 +29,23 @@ install.packages("devtools")
 normalizePath("~/.Renviron", mustWork = FALSE)
 ```
 
+
+```{r data}
+inpD<-"C:/Users/animeshs/Desktop/RawRead/"
+inpF<-"20150512_BSA_The-PEG-envelope.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.txt"
+data<-read.csv(paste0(inpD,inpF),sep='\t')
+hist(as.numeric(data[,2]))
+hist(log2(as.numeric(data[,2])))
+hist(as.numeric(data[,1]))
+hist(log2(as.numeric(data[,1])))
+plot(as.numeric(data[,1]),log2(as.numeric(data[,2])))
+library(MASS)
+image(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2])),n=1000),col=r)
+contour(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2]))),col=r)
+#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
+#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+```
+
 ```{r data}
 inpF="201005_fraksjon_frak1_C18_URT1.raw.profile.intensity0.charge0.MS.txt"
 data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
@@ -105,6 +122,15 @@ write.csv(data,"F:/promec/Animesh/hmdb_metabolites/hmdb_metabolites.xml.csv")
 #print(data)
 ```
 
+```{r}
+data <- read.csv("L:/promec/Qexactive/LARS/2020/september/hmdb_metabolites.xml.csv")
+data$MZ7<-strtrim(data$monisotopic_molecular_weight,7)
+data$MZHp<-(as.numeric(data$monisotopic_molecular_weight)+1.007825035)/1.007825035
+data$MZHp7<-strtrim(data$MZHp,7)
+summary(data)
+#print(data)
+```
+
 ```{r cation}
 MZ1<-read.csv("L:/promec/Qexactive/LARS/2020/september/mz1coll.csv")
 sum(as.numeric(MZ1[,2])-as.numeric(MZ1[,3]))
@@ -114,7 +140,38 @@ MZ1min10e7<-cbind(MZ1,rowMinMZ1)
 MZ1max10e7<-cbind(MZ1min10e7,rowMaxMZ1)
 MZ1max10e7<-MZ1max10e7[MZ1max10e7$rowMaxMZ1>10e6,]
 hist(log2(as.numeric(MZ1max10e7$rowMaxMZ1)))
+MZ1max10e7$MZ7<-strtrim(MZ1max10e7$MZ,7)
 summary(MZ1max10e7)
+write.csv(MZ1max10e7,"L:/promec/Qexactive/LARS/2020/september/mz1coll.10e7.csv")
+```
+
+```{r cation}
+first500<-read.csv("L:/promec/Qexactive/LARS/2020/september/search (11).csv")
+summary(first500)
+```
+
+```{r cation}
+second500<-read.csv("L:/promec/Qexactive/LARS/2020/september/search (12).csv")
+summary(second500)
+```
+
+```{r writeAnionChk}
+webQhmdb<-rbind(first500,second500)
+summary(webQhmdb)
+MZ1max10e7webQhmdb<-merge(MZ1max10e7,by.x="MZ7",webQhmdb,by.y="query_mass", all.x = TRUE)
+write.csv(MZ1max10e7webQhmdb,"L:/promec/Qexactive/LARS/2020/september/MZ1max10e7webQhmdb.csv")
+```
+
+```{r writeAnionChk}
+MZ1max10e7combo<-merge(MZ1max10e7,by.x="MZ7",data,by.y="MZ7", all.x = TRUE)
+MZ1max10e7combo2<-merge(MZ1max10e7combo,by.x="MZ7",data,by.y="MZHp7", all.x = TRUE)
+write.csv(MZ1max10e7combo2,"L:/promec/Qexactive/LARS/2020/september/MZ7HP7.csv")
+```
+
+```{r writeAnionChk}
+MZ1max10e7$MZ6<-strtrim(MZ1max10e7$MZ,6)
+MZ1max10e7combo<-merge(MZ1max10e7,by.x="MZ6",data,by.y="MZHp6",all = F)
+write.csv(MZ1max10e7combo,paste(getwd(),inpF,"chk.csv",sep="_"))
 ```
 
 ```{r writeAnionChk}
