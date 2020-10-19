@@ -19,7 +19,6 @@ print(df.columns)
 df['sumIntensity'].sum()
 df['MZ'].hist(bins=10000)
 
-
 df=pd.read_('F:/promec/Animesh/hmdb_metabolites/hmdb_metabolites.xml')
 import xml.etree.ElementTree as et
 #https://medium.com/@robertopreste/from-xml-to-pandas-dataframes-9292980b1c1c

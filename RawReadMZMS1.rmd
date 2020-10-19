@@ -41,7 +41,7 @@ hist(log2(as.numeric(data[,1])))
 plot(as.numeric(data[,1]),log2(as.numeric(data[,2])))
 library(MASS)
 image(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2])),n=1000),col=r)
-contour(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2]))),col=r)
+contour(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2]))))
 #https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
 #dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
 ```

@@ -1,14 +1,24 @@
+```{r setup, echo = FALSE}
+#plot
+par(mfrow=c(1,2))
+#.libPaths( c( .libPaths(), "C:/Users/animeshs  /GD/R_libs") )
+.libPaths()
+getwd()
+setwd("L:/promec/Animesh/TK/")
+getwd()
+#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
+#rm(list = ls())
+#detach("package:pathview", unload=TRUE)
+```
+
 ```{r data, echo = FALSE}
-#inpD <-"C:/Users/animeshs/GD/"
-inpD <-"F:/GD/"
-#inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
-inpF<-paste0(inpD,"proteinGroups.txt")
-data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
-#data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
-#rownames(data)<-paste(data$T..Uniprot,data$T..Line,data$T..Gene.names,sep = "_")
+inpD <-getwd()
+inpF<-paste(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt",sep="/")
+data <- read.delim(inpF,sep="\t",header = T)
+rownames(data)<-paste(data$T..T..Uniprot,data$T..T..Line,data$T..gene,sep = "_")
 #clean
 #data = data[!data$T..C..Reverse=="+",]
-data = data[!data$Reverse=="+",]
+#data = data[!data$Reverse=="+",]
 #data = data[!data$C..Potential.contaminant=="+",]
 summary(data)
 dim(data)
@@ -19,16 +29,18 @@ selection<-"LFQ.intensity"
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 protNum<-1:ncol(LFQ)
 colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
-dim(LFQ)
+summary(LFQ)
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
+boxplot(log2LFQ)
+hist(log2LFQ)
+summary(log2LFQ)
 ```
 
 ```{r write-excel, echo = FALSE}
 #install.packages("writexl")
-library("writexl")
 inpW<-paste0(inpF,"write.xlsx")
-write_xlsx(as.data.frame(log2LFQ),inpW)
+writexl::write_xlsx(as.data.frame(log2LFQ),inpW)
 ```
 
 ```{r venn}
@@ -43,19 +55,18 @@ euler(dataV<selThr)$original.values
 plot(euler(dataV<selThr),quantities=TRUE,fill = "transparent",lty = 1:3,labels = list(font = 4), main="Protein Groups WSRT")
 #install.packages('eulerr')
 vplot<-plot(euler(dataV<selThr,shape="ellipse"),quantities=TRUE, main="Protein Groups WSRT")
-library(ggplot2)
-ggsave(file=paste0(inpF,"venn.svg"),plot=vplot)#,  width=6, height=6)
+install.packages("ggplot2")
+ggplot2::ggsave(file=paste0(inpF,"venn.svg"),plot=vplot)#,  width=6, height=6)
 ```
 
 ```{r vennDiagram}
 #https://stats.idre.ucla.edu/r/faq/how-can-i-generate-a-venn-diagram-in-r/
 #BiocManager::install("limma")
-library(limma)
 selThr<-0.3
 dataV<-data[,grep(pattern = "WSRT",colnames(data))]
 cn<-strsplit(colnames(dataV), "_")
 colnames(dataV)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-vennDiagram(dataV<selThr)
+limma::vennDiagram(dataV<selThr)
 ```
 
 ```{r sel-WSRT-onevar}
@@ -91,10 +102,10 @@ hdaM=cbind(apim3,apim4,apim6)
 row.names(hdaM)<-sapply(rn, "[", 1)
 colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
 summary(hdaM)
-vennDiagram(hdaM<(10*-1))
-vennDiagram(hdaM>(10))
-vennDiagram(hdaM<0)
-vennDiagram(hdaM>0)
+limma::vennDiagram(hdaM<(10*-1))
+limma::vennDiagram(hdaM>(10))
+limma::vennDiagram(hdaM<0)
+limma::vennDiagram(hdaM>0)
 ```
 
 ```{r T24/UM-UC3}
@@ -415,6 +426,9 @@ dataS<-data[(data$ctr2==0) & (data$ctr3>0) & (data$ctr4>0) & (data$ctr6>0),]
 ```
 
 ```{r map-ID}
+#Bioarxiv
+#1.	General Metabolism
+#2.	Nucleotide Metabolism
 #install.packages("Rcpp")
 #install.packages("BiocManager")
 #library("Rcpp")

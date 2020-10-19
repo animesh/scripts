@@ -1,7 +1,7 @@
 #parse argument(s)
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <SILAC>")
 print("default LFQ")
-#c:\R-4.0.2\bin\Rscript.exe proteinGroups.r "L:\promec\USERS\MarianneNymark\20200108_15-samples\QE\combined\txt\proteinGroups.txt"
+#c:\R-4.0.2\bin\Rscript.exe proteinGroups.r "L:\promec\USERS\Synnøve\txt-EcoG\proteinGroups.txt"
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args[1])
@@ -11,22 +11,23 @@ if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if 
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #read
 #MaxQuant
-#inpF<-file.path("L:/promec/USERS/MarianneNymark/20200108_15-samples/QE/combined/txt/proteinGroups.txt")
+#inpF<-file.path("L:/promec/USERS/Synnøve/txt-EcoG/proteinGroups.txt")
 options(nwarnings = 1000000)
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
+#summary(data)
 #select raw intensity
 print("Selecting Raw Intensity Values(s)")
 if(sum(grep("Intensity.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Intensity.",colnames(data))])}  else if(sum(grep("Abundance.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Abundance.",colnames(data))])}  else{print('Neither Abundance[PD] nor Intensity[MQ] columns detected!')}
-
 protNum<-1:ncol(intensity)
 colnames(intensity)=paste(protNum,sub("Intensity.","",colnames(intensity)),sep="_")
-colnames(intensity)=paste(protNum,sub("Abundance.","",colnames(intensity)),sep="_")
+intensityLFQ<-log2(intensity)
+intensityLFQ[intensityLFQ==-Inf]=NA
 #hist(intensity[,1])
 #clean MQ output
 data = data[!data$Reverse=="+",]
 data = data[!data$Potential.contaminant=="+",]
-data = data[!data$Only.identified.by.site=="+",]
+data = data[is.na(data[["Only.identified.by.site"]])||data$Only.identified.by.site!="+",]
 print("Removed Reverse,Potential.contaminant and Only.identified.by.site")
 dim(data)
 protNum<-1:nrow(data)
@@ -95,13 +96,13 @@ if(dim(log2LFQ)[2]>0){
   #plot raw intensity histogram
   outP<-paste(inpF,selection,"pdf",sep = ".")
   pdf(outP)
-  #i=1
-  summary(log2(intensity))
+  summary(intensityLFQ)
   boxplot(intensity)
-  boxplot(log2(intensity))
+  boxplot(intensityLFQ)
   summary(log2LFQ)
   boxplot(log2LFQ)
   boxplot(2^log2LFQ)
+  #i=1
   for(i in 1:dim(intensity)[2]){hist(log2(intensity[,i]),main=paste("File:",colnames(intensity)[i]),xlab="log2 raw intensity")}
   #plot LFQ histogram
   for(i in 1:dim(log2LFQ)[2]){
@@ -116,6 +117,7 @@ if(dim(log2LFQ)[2]>0){
   scale=3
   set.seed(scale)
   log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ)-scale,sd=sd(log2LFQ)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
+  log2LFQimp[log2LFQimp<0]<-0
   hist(log2LFQimp,main=paste("Mean:",mean(log2LFQimp),"SD:",sd(log2LFQimp)),breaks=round(max(log2LFQ)))
   print(paste("Imputation constant:",mean(log2LFQimp),"sd:",sd(log2LFQimp)))
   hist(log2LFQ,breaks=round(max(log2LFQ)), col=rgb(0,1,0,0.5))

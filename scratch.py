@@ -1,3 +1,18 @@
+#https://www.statsmodels.org/stable/gettingstarted.html
+import statsmodels.api as sm
+import pandas
+from patsy import dmatrices
+df = sm.datasets.get_rdataset("Guerry", "HistData").data
+vars = ['Department', 'Lottery', 'Literacy', 'Wealth', 'Region']
+df = df.dropna()
+y, X = dmatrices('Lottery ~ Literacy + Wealth + Region', data=df, return_type='dataframe')
+mod = sm.OLS(y, X)    # Describe model
+res = mod.fit()       # Fit model
+print(res.summary())   # Summarize model
+res.params
+dir(res)
+sm.stats.linear_rainbow(res)
+sm.graphics.plot_partregress('Lottery', 'Wealth', ['Region', 'Literacy'],data=df, obs_labels=False)
 #https://pysdr.org/content/intro.html
 
 #https://mechanicalsoup.readthedocs.io/en/stable/tutorial.html#first-contact-step-by-step

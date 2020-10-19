@@ -4,7 +4,7 @@ namespace ANN4CS
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Mainn(string[] args)
         {
             System.Random random = new System.Random();
             Console.WriteLine("parameter count = {0}", args.Length);

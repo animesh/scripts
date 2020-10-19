@@ -2,8 +2,8 @@
 #plot
 par(mfrow=c(1,2))
 #library/packages
-.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R-4.0.1/library") )
-.libPaths()
+#.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R-4.0.1/library") )
+#.libPaths()
 #[1] "C:/Users/animeshs/GD/R-4.0.1/library"
 #install.packages("lattice", repos="http://cran.r-project.org", lib="~/local/R_libs/")
 #.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
@@ -13,7 +13,7 @@ par(mfrow=c(1,2))
 #BiocManager::install("limma")
 #install.packages("matrixStats")
 #directory/home
-setwd("C:/Users/animeshs/GD/scripts")
+setwd("L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/")
 getwd()
 chkrVector<-c(22.39459,20.48316,21.87155,NA,20.34495)
 chkrDF<-as.data.frame(chkrVector)
@@ -31,8 +31,8 @@ t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
 
 ```{r data, echo=FALSE}
 #inpD<-"L:\\promec\\USERS\\Synnøve\\20200911_6samples\\HF\\combined\\txt-rabitcrap\\"
-inpD <-paste0(getwd(),"/txt_rabitcrap/")
-inpF<-paste0(inpD,"proteinGroups.txt")
+inpD <-getwd()
+inpF<-paste(inpD,"proteinGroups.txt",sep="/")
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
 #read.delim(inpF,sep="\t",header = T,row.names = 1)
 #clean
