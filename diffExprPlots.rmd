@@ -24,6 +24,1569 @@ summary(data)
 dim(data)
 ```
 
+```{r data, echo = FALSE}
+#inpD <-"C:/Users/animeshs/GD/"
+inpD <-"L:/promec/Animesh/TK/"
+inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
+#inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T)
+#data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
+#rownames(data)<-paste(data$T..Uniprot,data$T..Line,data$T..Gene.names,sep = "_")
+#clean
+#data = data[!data$T..C..Reverse=="+",]
+data = data[!data$Reverse=="+",]
+#data = data[!data$C..Potential.contaminant=="+",]
+summary(data)
+dim(data)
+```
+
+```{r select-LFQ, echo = FALSE}
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+protNum<-1:ncol(LFQ)
+colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+```
+
+```{r write-excel, echo = FALSE}
+#install.packages("writexl")
+library("writexl")
+inpW<-paste0(inpF,"write.xlsx")
+write_xlsx(as.data.frame(log2LFQ),inpW)
+```
+
+```{r venn}
+selThr<-0.3
+dataV<-data[,c(13,14,15,16)]
+#,sapply(cn, "[", 2))
+#dataV<-data[,c(13,14,15,16)]
+#dataV<-data[(data$B_.WSRT<selThr),]
+hist(rowSums(as.matrix(dataV)))
+library(eulerr)
+euler(dataV<selThr)$original.values
+plot(euler(dataV<selThr),quantities=TRUE,fill = "transparent",lty = 1:3,labels = list(font = 4), main="Protein Groups WSRT")
+#install.packages('eulerr')
+vplot<-plot(euler(dataV<selThr,shape="ellipse"),quantities=TRUE, main="Protein Groups WSRT")
+library(ggplot2)
+ggsave(file=paste0(inpF,"venn.svg"),plot=vplot)#,  width=6, height=6)
+```
+
+```{r vennDiagram}
+#https://stats.idre.ucla.edu/r/faq/how-can-i-generate-a-venn-diagram-in-r/
+#BiocManager::install("limma")
+library(limma)
+selThr<-0.3
+dataV<-data[,grep(pattern = "WSRT",colnames(data))]
+cn<-strsplit(colnames(dataV), "_")
+colnames(dataV)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataV<selThr)
+```
+
+```{r sel-WSRT-onevar}
+dataS<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT<selThr) & (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) & (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) & (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+hist(rowSums(as.matrix(data[,c(1:4)])))
+vennDiagram(dataS[,c(1:4)]<selThr)
+#write.csv(cbind(dataS),paste0(inpF,"sel-WSRT-onevar.csv"))
+write_xlsx(dataS,paste0(inpF,"sel-WSRT-onevar.xlsx"))
+```
+
+```{r sel-WSRT-onevar-x1}
+dataS<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT>selThr) & (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) & (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) & (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+hist(rowSums(as.matrix(data[,c(1:4)])))
+vennDiagram(dataS[,c(1:4)]<selThr)
+#write.csv(cbind(dataS),paste0(inpF,"sel-WSRT-onevar-x1.csv"))
+write_xlsx(dataS,paste0(inpF,"sel-WSRT-onevar-x1.xlsx"))
+```
+
+```{r sel-WSRT-onevar-x1-control}
+dataS<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT>selThr) & (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) & (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) & (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+hda<-as.matrix(dataS[,c(1:4,7:18)],rownames=T)
+hda[hda==0]=NA
+rn<-sub(";","",unlist(dataS[37]))
+rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+rn<-strsplit(rn, "-")
+cn<-strsplit(colnames(hda), "_")
+hist(hda)
+#apim2<-apply(hda,1,function(x) if(x[1]<selThr){median(x[c(5:7)],na.rm=T)} else{NA})
+apim3<-apply(hda,1,function(x) if(x[2]<selThr){median(x[c(8:10)],na.rm=T)} else{NA})
+apim4<-apply(hda,1,function(x) if(x[3]<selThr){median(x[c(11:13)],na.rm=T)} else{NA})
+apim6<-apply(hda,1,function(x) if(x[4]<selThr){median(x[c(14:16)],na.rm=T)} else{NA})
+hdaM=cbind(apim3,apim4,apim6)
+row.names(hdaM)<-sapply(rn, "[", 1)
+colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+summary(hdaM)
+vennDiagram(hdaM<(10*-1))
+vennDiagram(hdaM>(10))
+vennDiagram(hdaM<0)
+vennDiagram(hdaM>0)
+```
+
+```{r T24/UM-UC3}
+inpD <-"L:/promec/USERS/Voin/2016-01-30_20samples/QE/Results/"
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
+data = data[!data$Reverse=="+",]
+summary(data)
+dim(data)
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+inpL<-paste0(inpD,"Groups.txt")
+label<-read.table(inpL,sep="\t",row.names = 1,header = T)
+summary(label)
+dTA<-as.matrix(log2LFQ[,grep("T[4-6]A",colnames(log2LFQ))])
+hist(as.matrix(dTA))
+T24Aall<-apply(dTA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(T24Aall>0)
+dTB<-as.matrix(log2LFQ[,grep("T[4-6]B",colnames(log2LFQ))])
+hist(as.matrix(dTB))
+T24Ball<-apply(dTB,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(T24Ball>0)
+dTC<-as.matrix(log2LFQ[,grep("T[4-6]C",colnames(log2LFQ))])
+hist(as.matrix(dTC))
+T24Call<-apply(dTC,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(T24Call>0)
+dTD<-as.matrix(log2LFQ[,grep("T[4-6]D",colnames(log2LFQ))])
+hist(as.matrix(dTD))
+T24Dall<-apply(dTD,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(T24Dall>0)
+dUA<-as.matrix(log2LFQ[,grep("U[4-6]A",colnames(log2LFQ))])
+hist(as.matrix(dUA))
+UMUC3Aall<-apply(dUA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(UMUC3Aall>0)
+dUB<-as.matrix(log2LFQ[,grep("U[4-6]B",colnames(log2LFQ))])
+hist(as.matrix(dUB))
+UMUC3Ball<-apply(dUB,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(UMUC3Ball>0)
+dUC<-as.matrix(log2LFQ[,grep("U[4-6]C",colnames(log2LFQ))])
+hist(as.matrix(dUC))
+UMUC3Call<-apply(dUC,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(UMUC3Call>0)
+dUD<-as.matrix(log2LFQ[,grep("U[4-6]D",colnames(log2LFQ))])
+hist(as.matrix(dUD))
+UMUC3Dall<-apply(dUD,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(UMUC3Dall>0)
+hdaMall=cbind(T24Aall,UMUC3Aall)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaMall)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
+summary(hdaMall)
+library("limma")
+vennDiagram(hdaMall>0)
+inpW<-paste0(inpF,"sel-LFQ-control.xlsx")
+write_xlsx(as.data.frame(cbind(uniprot,hdaMall,A549all,U2OSall,H460all,Gene=gen,Fasta=data[,7])),inpW)
+UAHctrAll<-cbind(hdaMall,gen,uniprot)
+row.names(UAHctrAll)<-row.names(data)
+summary(UAHctrAll)
+hdaMany=cbind(H460any,U2OSany,A549any)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaMany)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
+summary(hdaMany)
+library("limma")
+vennDiagram(hdaMany>0)
+inpW<-paste0(inpF,"sel-LFQ-control.xlsx")
+write_xlsx(as.data.frame(cbind(uniprot,hdaMany,A549any,U2OSany,H460any,Gene=gen,Fasta=data[,7])),inpW)
+UAHctrAll<-cbind(hdaMany,gen,uniprot)
+row.names(UAHctrAll)<-row.names(data)
+summary(UAHctrAll)
+```
+
+```{r MiB-control}
+inpD <-"L:/promec/USERS/Voin/2016-01-23_32samples/phores2/txt/"
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
+data = data[!data$Reverse=="+",]
+summary(data)
+dim(data)
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+inpL<-paste0(inpD,"Copy of legend.txt")
+label<-read.table(inpL,sep="\t",row.names = 1,header = T)
+summary(label)
+dHA<-as.matrix(log2LFQ[,grep("HA",colnames(log2LFQ))])
+hist(as.matrix(dHA))
+H460all<-apply(dHA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(H460all>0)
+H460any<-apply(dHA,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
+sum(H460any>0)
+dUA<-as.matrix(log2LFQ[,grep("UA",colnames(log2LFQ))])
+hist(as.matrix(dUA))
+U2OSall<-apply(dUA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(U2OSall>0)
+U2OSany<-apply(dUA,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
+sum(U2OSany>0)
+dAA<-as.matrix(log2LFQ[,grep("AA",colnames(log2LFQ))])
+hist(as.matrix(dAA))
+A549all<-apply(dAA,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(A549all>0)
+A549any<-apply(dAA,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
+sum(A549any>0)
+hdaMall=cbind(H460all,U2OSall,A549all)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaMall)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
+summary(hdaMall)
+library("limma")
+vennDiagram(hdaMall>0)
+inpW<-paste0(inpF,"sel-LFQ-control.xlsx")
+write_xlsx(as.data.frame(cbind(uniprot,hdaMall,A549all,U2OSall,H460all,Gene=gen,Fasta=data[,7])),inpW)
+UAHctrAll<-cbind(hdaMall,gen,uniprot)
+row.names(UAHctrAll)<-row.names(data)
+summary(UAHctrAll)
+hdaMany=cbind(H460any,U2OSany,A549any)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaMany)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
+summary(hdaMany)
+library("limma")
+vennDiagram(hdaMany>0)
+inpW<-paste0(inpF,"sel-LFQ-control.xlsx")
+write_xlsx(as.data.frame(cbind(uniprot,hdaMany,A549any,U2OSany,H460any,Gene=gen,Fasta=data[,7])),inpW)
+UAHctrAll<-cbind(hdaMany,gen,uniprot)
+row.names(UAHctrAll)<-row.names(data)
+summary(UAHctrAll)
+```
+
+```{r TK12346-control}
+inpD <-"C:/Users/animeshs/Desktop/GD/"
+#inpD <-"F:/GD/"
+inpF<-paste0(inpD,"proteinGroups.txt")
+data <- read.delim(inpF,sep="\t",header = T,row.names = 1)
+#clean
+data = data[!data$Reverse=="+",]
+#data = data[!data$C..Potential.contaminant=="+",]
+summary(data)
+dim(data)
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+protNum<-1:ncol(LFQ)
+colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+dim(LFQ)git 
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+summary(log2LFQ)
+hda<-as.matrix(log2LFQ[,grep("CTR",colnames(log2LFQ))])
+hist(as.matrix(hda))
+summary(hda)
+#ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))==0){median(x[c(2,3,5)],na.rm=T)} else{0})
+#ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(2,3,5)]))<3){median(x[c(2,3,5)],na.rm=T)} else{0})
+ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))<5){median(x[c(2,3,5)],na.rm=T)} else{0})
+#ctr2<-apply(hda,1,function(x) if(sum(is.na(x[c(1:5)]))<5){median(x[c(1:5)],na.rm=T)} else{0}) #in case all 5 replicate values to be considered in median ctr2
+sum(ctr2>0)
+ctr3<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))==0){median(x[6:8])} else{0})
+#ctr3<-apply(hda,1,function(x) if(sum(is.na(x[6:8]))<3){median(x[6:8],na.rm=T)} else{0})
+sum(ctr3>0)
+ctr4<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))==0){median(x[9:11])} else{0})
+#ctr4<-apply(hda,1,function(x) if(sum(is.na(x[9:11]))<3){median(x[9:11],na.rm=T)} else{0})
+sum(ctr4>0)
+ctr6<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))==0){median(x[12:14])} else{0})
+#ctr6<-apply(hda,1,function(x) if(sum(is.na(x[12:14]))<3){median(x[12:14],na.rm=T)} else{0})
+sum(ctr6>0)
+hdaM=cbind(ctr2,ctr3,ctr4,ctr6)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaM)<-uniprot
+#colnames(hdaM)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.IDs)
+summary(hdaM)
+library("limma")
+vennDiagram(hdaM>0)
+inpW<-paste0(inpF,"sel-LFQ-onevar-x3-control.xlsx")
+#inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control.xlsx")
+write_xlsx(as.data.frame(cbind(uniprot,hdaM,hda,data[,7])),inpW)
+summary(hdaM)
+TK12346ctr<-cbind(hdaM,gen,uniprot)
+row.names(TK12346ctr)<-row.names(data)
+summary(TK12346ctr)
+```
+
+```{r JJN3, echo = FALSE}
+inpD2 <-paste0(inpD,"scripts/")
+#inpD2 <-"L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/"
+inpF2<-"proteinGroups.txt"
+data <- read.delim(paste0(inpD2,inpF2),sep="\t",header = T,row.names = 1)
+data = data[!data$Reverse=="+",]
+#data = data[!data$C..Potential.contaminant=="+",]
+protNum<-1:nrow(data)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+row.names(hdaM)<-uniprot
+fasta<-paste(protNum,data$Protein.IDs,protNum,sep=";")
+gene<-toupper(as.character(sapply(strsplit(fasta,"_"), `[`, 1)))
+gen<-as.character(sapply(strsplit(gene,"\\|"), `[`, 3))
+protein<-as.character(data$Protein.IDs)
+Uniprot<-as.character(sapply(strsplit(gene,"\\|"), `[`, 2))
+uniprot<-sapply(strsplit(Uniprot,"_",fixed=TRUE),`[`, 1)
+unipro<-as.character(sapply(strsplit(uniprot,"-",fixed=TRUE),`[`, 1))
+summary(data)
+dim(data)
+```
+
+```{r TK9, echo = FALSE}
+inpD2 <-paste0(inpD,"scripts/")
+#inpD2 <-"L:/promec/HF/Lars/2019/november/siri_marit/combined/txt/"
+inpF2<-"proteinGroups.txt"
+data <- read.delim(paste0(inpD2,inpF2),sep="\t",header = T,row.names = 1)
+data = data[!data$Reverse=="+",]
+#data = data[!data$C..Potential.contaminant=="+",]
+protNum<-1:nrow(data)
+Uniprot<-sapply(strsplit(rownames(data),";"), `[`, 1)
+uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`,1)
+fasta<-paste(protNum,data$Fasta.headers,protNum,sep=";")
+gene<-toupper(as.character(data$Gene.names))
+gen<-as.character(sapply(strsplit(gene,";"), `[`, 1))
+protein<-as.character(data$Protein.names)
+summary(data)
+dim(data)
+selection<-"LFQ.intensity"
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+summary(LFQ)
+protNum<-1:ncol(LFQ)
+colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+summary(log2LFQ)
+dim(log2LFQ)
+dim(LFQ)
+hist(log2LFQ)
+colnames(log2LFQ[,grep("ctr",colnames(log2LFQ))])
+hda<-as.matrix(log2LFQ[,grep("ctr",colnames(log2LFQ))])
+hda<-hda[,-grep("pool",colnames(hda))]
+hist(hda)
+colnames(hda)
+TK9ctr<-apply(hda,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+TK9ctr<-apply(hda,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})#3408 matrix62 session1comb 
+sum(TK9ctr>0)
+summary(TK9ctr)
+#TK9apim####
+colnames(log2LFQ[,grep("apim",colnames(log2LFQ))])
+hdapim<-as.matrix(log2LFQ[,grep("apim",colnames(log2LFQ))])
+hdapim<-hdapim[,-grep("pool",colnames(hdapim))]
+hist(hdapim)
+colnames(hdapim)
+TK9apim<-apply(hdapim,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+TK9apim<-apply(hdapim,1,function(x) if(sum(is.na(x))<length(x)){median(x,na.rm=T)} else{0})
+sum(TK9apim>0)
+summary(TK9apim)
+hdaM=cbind(TK9ctr,TK9apim)
+summary(hdaM)
+inpW<-paste0(inpD2,gsub("[^[:alnum:] ]", "",inpD2),inpF2,"TK9.xlsx")
+write_xlsx(as.data.frame(cbind(fasta,protein,gene,uniprot,hda,hdapim,hdaM)),inpW)
+write.table(as.data.frame(cbind(fasta,protein,gene,uniprot,hda,hdapim,hdaM)),paste0(inpW,".txt"),sep="\t",quote=T,row.names=F)
+library("limma")
+vennDiagram(hdaM>0)
+hdaM<-cbind(hdaM,gen,uniprot)
+#JJN3<-cbind(JJN3,unipro)
+summary(hdaM)
+TK9<-hdaM
+row.names(TK9)<-row.names(data)
+summary(TK9)
+```
+
+```{r merge}
+dataMid<-"uniprot"
+#dataMid<-"gen"
+ncol(TK9)
+ncol(TK12346ctr)
+#dataM<-merge(TK9,TK12346ctr,by.x=dataMid,by.y=dataMid,all=TRUE)
+dataM<-merge(TK9,TK12346ctr,by=0,all=TRUE)
+summary(dataM)
+inpW<-paste0(inpD,gsub("[^[:alnum:] ]", "",inpD),inpF,gsub("[^[:alnum:] ]", "",inpD2),inpF2,dataMid)
+write_xlsx(as.data.frame(cbind(dataM,row.names(dataM))),paste0(inpW,".xlsx"))
+protNum<-1:nrow(dataM)
+rn<-paste(protNum,dataM$gen.x,dataM$uniprot.x,dataM$gen.y,dataM$uniprot.y,protNum,sep=";")
+#rn<-paste(protNum,dataM$gen.x,dataM$gen.y,protNum,sep=";")
+#rn<-paste(protNum,dataM$uniprot.x,dataM$uniprot.y,protNum,sep=";")#gene
+gn<-dataM$gen #gene
+pn<-dataM$uniprot
+#dataM<-dataM[,c(2,(ncol(TK9)+2):(ncol(dataM)-1))]
+dataM<-dataM[,c(2,(ncol(TK9)+3):(ncol(dataM)-2))]
+row.names(dataM)<-rn
+summary(dataM)
+vennDiagram(dataM>0)
+```
+
+```{r sensel}
+library(readxl)
+inpW<-paste0(inpF,"sel-LFQ-onevar-x1-control-sensel.xlsx")
+data<-read_xlsx(inpW)
+dataS<-data[(data$ctr2==0) & (data$ctr3>0) & (data$ctr4>0) & (data$ctr6>0),]
+#write_xlsx(dataS,inpW)
+```
+
+```{r map-ID}
+#install.packages("Rcpp")
+#install.packages("BiocManager")
+#library("Rcpp")
+#BiocManager::install("org.Hs.eg.db")
+#BiocManager::install("GO.db")
+library(org.Hs.eg.db)
+uniP<-c("P07237","P28331","Q12931")
+select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
+#BiocManager::install("clusterProfiler")
+library(clusterProfiler)
+#http://data.wikipathways.org/current/gmt/
+wikiF<-"wikipathways-20200310-gmt-Homo_sapiens.gmt"
+wikiPF<-paste0(inpD,wikiF)
+#BiocManager::install("GSEABase")
+wp2gene <- read.gmt(wikiPF)
+write.table(wp2gene,paste0(inpD,wikiF,".txt"),sep="\t")
+library(magrittr)
+wp2gene <- wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
+wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE
+wpid2name <- wp2gene %>% dplyr::select(wpid, name) #TERM2NAME
+wpid2name[grep("apoptosis",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("stat",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("mapk",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("akt",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("mtor",wpid2name$name,ignore.case = TRUE),]
+wpid2name[grep("pi3k",wpid2name$name,ignore.case = TRUE),]
+#select(org.Hs.eg.db, uniP, "GENENAME", "UNIPROT")
+#select(org.Hs.eg.db, uniP, "SYMBOL", "UNIPROT")
+#uniP<-data$Majority.protein.IDs
+uniP<-TK12346ctr[,6]
+uniP <- lapply(uniP, as.character)
+unlist(uniP)
+uniP[[311]]
+rn<-sub("-",";",uniP)
+uniP <- paste(sapply(rn, "[", 1))#[[311]]#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+unlist(uniP)
+uniP[[311]]
+
+#colnames(dataV)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
+uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
+wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
+wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
+uniprots <- Rkeys(org.Hs.egUNIPROT)
+uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
+dataSez<-merge(TK12346ctr, uniprots2entrez, by.x="uniprot", by.y="UNIPROT")
+#dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
+dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
+#rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
+rownames(dataSezWP)<-paste(dataSezWP$T..Uniprot,dataSezWP$T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
+#dataS<-dataSezWP
+dataSezWPtest<-dataSezWP[,c(3:6)]
+cn<-strsplit(colnames(dataSezWPtest), "_")
+colnames(dataSezWPtest)<-paste(sapply(cn, "[", 1))#,sapply(cn, "[", 4))
+dataSezWPtest<-apply(dataSezWPtest, 2, as.numeric)
+summary(dataSezWPtest)
+vennDiagram(dataSezWPtest>0,main="dataSezWPtest",counts.col = "red")
+```
+
+```{r data-wikiPathway-map}
+#inpD<-"F:/GD/"
+inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
+#install.packages("readxl")
+data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
+#dataS<-as.matrix(data[,1:4],rownames=T)
+dataS<-as.matrix(data[,c(1:4,7:18)],rownames=T)
+dataS[dataS==0]=NA
+rn<-sub(";","",unlist(data[37]))
+rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+rn<-strsplit(rn, "-")
+row.names(dataS)<-sapply(rn, "[", 1)
+cn<-strsplit(colnames(dataS), "_")
+colnames(dataS)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+summary(dataS)
+hist(dataS)
+selThr<-0.3
+vennDiagram(dataS[,c(1:4)]<selThr,main="wikiD",counts.col = "red")
+```
+
+```{r autophagy, echo = FALSE}
+dataSel <- data[grep("autophag", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="autophag",counts.col = "red")
+#dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+#dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+#dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste0(rownames(dataSel),"autophag")
+dataSelAutophag<-dataSel
+summary(dataSelAutophag)
+```
+
+```{r stat, echo = FALSE}
+dataSel <- data[grep("stat", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="STAT",counts.col = "red")
+#dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+#dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+#dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste0(rownames(dataSel),"_STAT")
+dataSelSTAT<-dataSel
+summary(dataSelSTAT)
+```
+
+```{r mapk, echo = FALSE}
+dataSel <- data[grep("mapk", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="mapk",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"_mapk")
+dataSelMAPK<-dataSel
+summary(dataSelMAPK)
+```
+
+```{r Apoptosis, echo = FALSE}
+dataSel <- data[grep("apoptosis", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="apoptosis",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"apoptosis")
+dataSelApoptosis<-dataSel
+summary(dataSelApoptosis)
+```
+
+```{r PI3K/AKT/mTOR, echo = FALSE}
+dataSelPI3K <- data[(grep("PI3K", data$T..ont,ignore.case=TRUE)),]
+dataSelAKT <- data[(grep("AKT", data$T..ont,ignore.case=TRUE)),]
+dataSelmTOR <- data[(grep("mTOR", data$T..ont,ignore.case=TRUE)),] 
+dataSel_PI3KAKTmTOR <- data[(grep("PI3K-Akt-mTOR", data$T..ont,ignore.case=TRUE)),] 
+#dataSel <- dataSezWP[(grep("AKT", dataSezWP$name,ignore.case=TRUE))|(grep("PI3K", dataSezWP$name,ignore.case=TRUE))|(grep("mTOR", dataSezWP$name,ignore.case=TRUE)),] 
+dataSel<-dataSel_PI3KAKTmTOR#rbind(dataSelPI3K,dataSelAKT,dataSelmTOR)
+#pathwayN<-sapply(strsplit(row.names(dataSel),"_"), `[`, 1)
+#dataSel<-cbind.data.frame(dataSel,pathwayN)
+#dataSel=subset(dataSel, !duplicated(pathwayN))
+#dataSel<-as.matrix(dataSel[,-13])
+summary(dataSel)
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="PI3K/AKT/mTOR",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"_PI3K/AKT/mTOR")
+dataSel_PI3KAKTmTOR<-dataSel
+summary(dataSel_PI3KAKTmTOR)
+```
+
+```{r sel-data-cols, echo = FALSE}
+data_selr_s<-rbind.data.frame(dataSelAutophag)#dataSelApoptosis)#,dataSelMAPK,dataSelSTAT,dataSelAMPK,dataSel_PI3KAKTmTOR)
+#data_selr[data_selr==0]=NA
+#install.packages("scales")
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+#library(quantable)
+#data_selr_s=robustscale(data_selr,dim=1,center = FALSE)#,scale=TRUE,  preserveScale = FALSE)
+#data_selr_s=data_selr_s$data
+#data_selr$data[is.na(data_selr$data)]<-0
+#y$data<-y$data[-(which(rowSums(y$data) == 0)),] 
+#data_selr<-dataSel
+#data_selr<-data_selr$data
+#data_selr<-data_selr[-(which(rowSums(data_selr) == 0)),] 
+summary(data_selr)
+hist(as.matrix(data_selr))
+#data_selr['pathwayN']<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+#data_selr=subset(data_selr, !duplicated(pathwayN))
+#row.names(data_selr)=data_selr$pathwayN
+data_selr<-as.matrix(data_selr[,-13])
+#pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 5)
+summary(data_selr)
+#hist(as.matrix(data_selr))
+#```
+
+#```{r clust-plot, echo = FALSE}
+#install.packages('pheatmap')
+library(pheatmap)
+#?pheatmap
+#rn<-sub(";","",data_selr$T..T..Gene.names)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+#data_selr[data_selr==0]=NA
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+#rn<-strsplit(rn, "apolipoprotein")
+#rn<-strsplit(rn, " ")
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+#svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
+#https://stackoverflow.com/a/44400007/1137129
+bk1 <- c(seq(-1,-0.01,by=0.01))
+bk2 <- c(seq(0.01,1,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+#svgPHC<-pheatmap(data_selr,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,labels_row =  pathwayN,cluster_rows=TRUE,color = colorRampPalette(c( "navy", "white","firebrick"))(50),na_col = "grey")#,annotation_col = label,show_rownames=F)
+library(ggplot2)
+#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
+#plot(svgPHC)
+ggsave(file=paste0(inpD,"clusterPlot.ApoptoMAPKSTATAMPKPI3KAKTmTOR.svg"),plot=svgPHC)#,  width=6, height=6)
+#ggsave(file=paste0(inpD,hdr,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  width=6, height=6)
+#ggsave(file=paste0(inpD,hdr,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  width=6, height=6)
+```
+
+```{r AutophagHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelAutophag
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="autophag",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Autophag.svg"),plot=svgPHC)#,  
+```
+
+```{r metabolism, echo = FALSE}
+dataSel <- data[grep("metabolism", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"metabolism")
+dataSelMetabolism<-dataSel
+summary(dataSelMetabolism)
+write.csv(dataSelMetabolism,paste0(inpD,"dataSelMetabolism.csv"))
+```
+
+```{r metabolismHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMetabolism
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.metabolism.svg"),plot=svgPHC)#,  
+```
+
+```{r Purine, echo = FALSE}
+dataSel <- data[grep("Purine", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="Purine",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"Purine")
+dataSelPurine<-dataSel
+summary(dataSelPurine)
+write.csv(dataSelPurine,paste0(inpD,"Purine",".csv"))
+```
+
+```{r PurineHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelPurine
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="dataSelPurine",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Purine.svg"),plot=svgPHC)#,  
+```
+
+```{r Pyrimidine, echo = FALSE}
+dataSel <- data[grep("Pyrimidine", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="Pyrimidine",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"Pyrimidine")
+dataSelPyrimidine<-dataSel
+summary(dataSelPyrimidine)
+write.csv(dataSelPyrimidine,paste0(inpD,"Pyrimidine",".csv"))
+```
+
+```{r PyrimidineHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelPyrimidine
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="dataSelPurine",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Pyrimidine.svg"),plot=svgPHC)#,  
+```
+
+```{r Nucleotide, echo = FALSE}
+dataSel <- data[grep("Nucleotide", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="Nucleotide",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"Nucleotide")
+dataSelNucleotide<-dataSel
+summary(dataSelNucleotide)
+write.csv(dataSelNucleotide,paste0(inpD,"Nucleotide",".csv"))
+```
+
+```{r metabolismHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMetabolism
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.metabolism.svg"),plot=svgPHC)#,  
+```
+
+```{r metabolism, echo = FALSE}
+dataSel <- data[grep("metabolism", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"metabolism")
+dataSelMetabolism<-dataSel
+summary(dataSelMetabolism)
+write.csv(dataSelMetabolism,paste0(inpD,"dataSelMetabolism.csv"))
+```
+
+```{r metabolismHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMetabolism
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.metabolism.svg"),plot=svgPHC)#,  
+```
+
+```{r metabolism, echo = FALSE}
+dataSel <- data[grep("metabolism", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"metabolism")
+dataSelMetabolism<-dataSel
+summary(dataSelMetabolism)
+write.csv(dataSelMetabolism,paste0(inpD,"dataSelMetabolism.csv"))
+```
+
+```{r metabolismHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMetabolism
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.metabolism.svg"),plot=svgPHC)#,  
+```
+
+```{r metabolism, echo = FALSE}
+dataSel <- data[grep("metabolism", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"metabolism")
+dataSelMetabolism<-dataSel
+summary(dataSelMetabolism)
+write.csv(dataSelMetabolism,paste0(inpD,"dataSelMetabolism.csv"))
+```
+
+```{r metabolismHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMetabolism
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.metabolism.svg"),plot=svgPHC)#,  
+```
+
+```{r metabolism, echo = FALSE}
+dataSel <- data[grep("metabolism", data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+vennDiagram(dataSel[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+rownames(dataSel)<-paste0(rownames(dataSel),"metabolism")
+dataSelMetabolism<-dataSel
+summary(dataSelMetabolism)
+write.csv(dataSelMetabolism,paste0(inpD,"dataSelMetabolism.csv"))
+```
+
+```{r metabolismHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMetabolism
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="metabolism",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.metabolism.svg"),plot=svgPHC)#,  
+```
+
+```{r ApoHC-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelApoptosis
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="apo",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  
+```
+
+```{r STAThc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelSTAT
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+vennDiagram(data_selr_s[,c(1:4)]<selThr,main="stat",counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.STAT.svg"),plot=svgPHC)#,  
+```
+
+```{r MAPKhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMAPK
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  
+```
+
+```{r PI3KAKTmTORhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSel_PI3KAKTmTOR
+row.names(data_selr_s)<-paste0(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+library(scales)
+data_selr[data_selr==0]=NaN
+data_selr=squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+library(pheatmap)
+svgPHC<-pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
+#install.packages("svglite")
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.PI3KAKTmTOR.svg"),plot=svgPHC)#,  
+```
+
+
+```{r Apo-uniqe-data-cols, echo = FALSE}
+data_selr_s<-dataSelApoptosis
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(1:4,7:18)])
+data_selr[data_selr==0]=NA
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+data_selr1<-data_selr[data_selr[,1]<selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr1)
+write.csv(data_selr1,file=paste0(inpD,colnames(data_selr)[1],"Unique.Apoptosis.csv"))
+data_selr2<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]<selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr2)
+write.csv(data_selr2,file=paste0(inpD,colnames(data_selr)[2],"Unique.Apoptosis.csv"))
+data_selr3<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]<selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr3)
+write.csv(data_selr3,file=paste0(inpD,colnames(data_selr)[3],"Unique.Apoptosis.csv"))
+data_selr4<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]<selThr,]
+summary(data_selr4)
+write.csv(data_selr4,file=paste0(inpD,colnames(data_selr)[4],"Unique.Apoptosis.csv"))
+```
+
+```{r STAT-unique-data-cols, echo = FALSE}
+data_selr_s<-dataSelSTAT
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(1:4,7:18)])
+data_selr[data_selr==0]=NA
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+data_selr1<-data_selr[data_selr[,1]<selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr1)
+write.csv(data_selr1,file=paste0(inpD,colnames(data_selr)[1],"Unique.STAT.csv"))
+data_selr2<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]<selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr2)
+write.csv(data_selr2,file=paste0(inpD,colnames(data_selr)[2],"Unique.STAT.csv"))
+data_selr3<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]<selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr3)
+write.csv(data_selr3,file=paste0(inpD,colnames(data_selr)[3],"Unique.STAT.csv"))
+data_selr4<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]<selThr,]
+summary(data_selr4)
+write.csv(data_selr4,file=paste0(inpD,colnames(data_selr)[4],"Unique.STAT.csv"))
+```
+
+```{r MAPK-unique-data-cols, echo = FALSE}
+data_selr_s<-dataSelMAPK
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(1:4,7:18)])
+data_selr[data_selr==0]=NA
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+data_selr1<-data_selr[data_selr[,1]<selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr1)
+write.csv(data_selr1,file=paste0(inpD,colnames(data_selr)[1],"Unique.MAPK.csv"))
+data_selr2<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]<selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr2)
+write.csv(data_selr2,file=paste0(inpD,colnames(data_selr)[2],"Unique.MAPK.csv"))
+data_selr3<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]<selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr3)
+write.csv(data_selr3,file=paste0(inpD,colnames(data_selr)[3],"Unique.MAPK.csv"))
+data_selr4<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]<selThr,]
+summary(data_selr4)
+write.csv(data_selr4,file=paste0(inpD,colnames(data_selr)[4],"Unique.MAPK.csv"))
+```
+
+```{r PI3KAKTmTOR-unique-data-cols, echo = FALSE}
+data_selr_s<-dataSel_PI3KAKTmTOR
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+data_selr<-as.matrix(data_selr_s[,c(1:4,7:18)])
+data_selr[data_selr==0]=NA
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+data_selr1<-data_selr[data_selr[,1]<selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr1)
+write.csv(data_selr1,file=paste0(inpD,colnames(data_selr)[1],"Unique.PI3KAKTmTOR.csv"))
+data_selr2<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]<selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr2)
+write.csv(data_selr2,file=paste0(inpD,colnames(data_selr)[2],"Unique.PI3KAKTmTOR.csv"))
+data_selr3<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]<selThr&data_selr[,c(4)]>selThr,]
+summary(data_selr3)
+write.csv(data_selr3,file=paste0(inpD,colnames(data_selr)[3],"Unique.PI3KAKTmTOR.csv"))
+data_selr4<-data_selr[data_selr[,1]>selThr&data_selr[,c(2)]>selThr&data_selr[,c(3)]>selThr&data_selr[,c(4)]<selThr,]
+summary(data_selr4)
+write.csv(data_selr4,file=paste0(inpD,colnames(data_selr)[4],"Unique.PI3KAKTmTOR.csv"))
+```
+
+
+```{r sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelApoptosis
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.Apoptosis.svg"),plot=svgPHC)#,  
+```
+```{r mapkhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelMAPK
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  
+```
+```{r ampkhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelAMPK
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.AMPK.svg"),plot=svgPHC)#,  
+```
+```{r stathc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelSTAT
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.STAT.svg"),plot=svgPHC)#,  
+```
+```{r pi3kallhc-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSel_PI3KAKTmTOR
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.PI3Ketc.svg"),plot=svgPHC)#,  
+```
+
+```{r sel-data-cols, echo = FALSE}
+data_selr_s<-rbind.data.frame(dataSelMAPK)
+library(scales)
+data_selr=squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),"_"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-1,-0.01,by=0.01))
+bk2 <- c(seq(0.01,1,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.MAPK.svg"),plot=svgPHC)#,  
+```
+
+
+```{r select-hdr-log2, echo = FALSE}
+#hdr="LFQ.intensity."
+hdr="Ratio.H.L.6"
+datLog2LFQ=log2(data[,grep(hdr, names(data))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r remove-samples, echo = FALSE}
+samples="ENDOSOME"
+datLog2LFQ=log2(datLog2LFQ[,-grep(samples, names(datLog2LFQ))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r select-grp, echo = FALSE}
+group="PCI"
+datLog2LFQ=log2(datLog2LFQ[,grep(group, names(datLog2LFQ))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r select-grp, echo = FALSE}
+group="PDT"
+datLog2LFQ=log2(datLog2LFQ[,grep(group, names(datLog2LFQ))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r select-grp, echo = FALSE}
+group="bleomycin"
+datLog2LFQ=log2(datLog2LFQ[,grep(group, names(datLog2LFQ))])
+summary(datLog2LFQ)
+hist(as.matrix(datLog2LFQ))
+```
+
+```{r clean, echo = FALSE}
+decoyPrefix="REV"
+dataClean<-data[-grep(decoyPrefix, rownames(data)),]
+dfNoRev = data[!data$Reverse=="+",]
+setdiff(rownames(dataClean),rownames(dfNoRev))
+setdiff(rownames(dfNoRev),rownames(dataClean))
+decoyPrefix="REV__"
+dataClean<-data[-grep(decoyPrefix, rownames(data)),]
+setdiff(rownames(dataClean),rownames(dfNoRev))
+setdiff(rownames(dfNoRev),rownames(dataClean))
+contaminantPrefix="CON__"
+#dataClean<-dataClean[-grep(contaminantPrefix, rownames(dataClean)),]
+dataClean=dataClean[!dataClean$Potential.contaminant=="+",]
+#dataClean=dataClean[!dataClean$Only.identified.by.site=="+",]
+summary(dataClean)
+```
+
+
+```{r norm, echo = FALSE}
+hdr="LFQ.intensity."
+dataNorm=log2(dataClean[,grep(hdr, names(dataClean))])
+summary(dataNorm)
+hist(as.matrix(dataNorm))
+```
+
+```{r select, echo = FALSE}
+dataNormFilter<-dataNorm
+dataNormFilter[dataNormFilter==-Inf]=NA
+summary(dataNormFilter)
+selThr<-2
+dataNormFilter$Red = apply(dataNormFilter,1,function(x) sum(is.na(x[3:5])))
+dataNormFilter$White = apply(dataNormFilter,1,function(x) sum(is.na(x[c(1,2,6)])))
+dataNormFilter.Select = dataNormFilter[dataNormFilter$Red<selThr | dataNormFilter$White<selThr,1:6]
+summary(dataNormFilter.Select)
+```
+
+
+```{r euler,echo=F}
+#install.packages('eulerr')
+library(eulerr)
+#install.packages('ggplot2')
+library(ggplot2)
+euler(dataNormFilter[,8:7]<2,shape="ellipse")$original.values
+vplot<-plot(euler(dataNormFilter[,8:7]<selThr,shape="ellipse"),quantities=TRUE, col="black",fill=c("white","red"),main="Identified Protein Groups in Salmon Types")
+plot(vplot)
+#iinstall.packages("ggplot2")
+#library(ggplot2)
+#install.packages("svglite")
+#library(svglite)
+ggsave(file=paste0(inpD,hdr,"venn.svg"),plot=vplot)#,  width=6, height=6)
+```
+
+
+```{r imputeFilter, echo = FALSE}
+dataNormImpFilter<-dataNormFilter.Select
+summary(dataNormImpFilter)
+set.seed(1)
+#dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-3,sd=sd(!is.na(dataNormImpFilter))/3)
+dataNormImpFilter[is.na(dataNormImpFilter)]<-rnorm(sum(is.na(dataNormImpFilter)),mean=mean(dataNormImpFilter[!is.na(dataNormImpFilter)])-12,sd=sd(!is.na(dataNormImpFilter))/12)
+summary(dataNormImpFilter)
+hist(as.matrix(dataNormImpFilter))
+```
+
+```{r PCA, echo = FALSE}
+dataNormImpCom<-dataNormImpFilter
+plot(princomp(dataNormImpCom))
+#biplot(prcomp(as.matrix(t(dataNormImpCom)),scale = T))
+#biplot(prcomp(dataNormImpCom,scale = F))
+#biplot(prcomp(dataNormImpCom,scale = T),col=c(1,8), cex=c(0.5, 0.4))
+```
+
+```{r t-test, echo = FALSE}
+pVal = apply(dataNormImpFilter, 1, function(x) t.test(as.numeric(x[c(3:5)]),as.numeric(x[c(1,2,6)]),var.equal=T)$p.value)
+logFC = rowMeans(dataNormImpFilter[,c(3:5)])-rowMeans(dataNormImpFilter[,c(1,2,6)])
+ttest.results = data.frame(gene=rownames(dataNormImpFilter),logFC=logFC,P.Value = pVal, adj.pval = p.adjust(pVal,method = "BH")) 
+#ttest.results$PSMcount = psm.count.table[ttest.results$gene,"count"]
+ttest.results = ttest.results[with(ttest.results, order(P.Value)), ]
+head(ttest.results)
+write.csv(ttest.results,file=paste0(inpD,hdr,"tTestBH.csv"))
+plot(logFC,-log10(pVal),col="orange",)
+```
+
+
+```{r t-test-plot, echo = FALSE}
+dsub=subset(ttest.results,ttest.results$P.Value<0.05&abs(ttest.results$logFC)>0.58)
+#rn<-do.call(rbind, strsplit(rownames(dsub), '\\.'))
+rn<-strsplit(rownames(dsub), ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+#install.packages('svglite')
+ggsave(file=paste0(inpD,hdr,"volcanoPlot.svg"),plot=g)#,  width=6, height=6)
+```
+
+```{r t-test-fraction-plot, echo = FALSE}
+#dsub=data[grep("apo",data$Fasta.headers),]
+dsub=data[(grepl("apo",data$Fasta.headers))|(grepl("alb",data$Fasta.headers)),]
+dsub=merge(dsub,ttest.results,by="row.names")
+rn<-strsplit(dsub$Row.names, ';')
+row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
+g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
+plot(g)
+ggsave(file=paste0(inpD,hdr,"volcanoPlot.frac.svg"),plot=g)#,  width=6, height=6)
+```
+
+```{r fraction-clust-plot, echo = FALSE}
+#install.packages('pheatmap')
+library(pheatmap)
+#?pheatmap
+y<-as.matrix(dsub[,grepl("Fraction\\.[0-9]+",colnames(dsub))])
+#yy<-as.matrix(data[grepl("albumin",data$Fasta.headers),])
+
+y[is.na(y)]<-0
+rn<-sub(";","",dsub$Fasta.headers)
+#rn<-strsplit(rn, "apolipoprotein")
+rn<-strsplit(rn, " ")
+row.names(y)<-paste(sapply(rn, "[", 1),sapply(rn, "[", 3),sapply(rn, "[", 6))
+summary(y)
+#svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
+svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
+#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
+plot(svgPHC)
+ggsave(file=paste0(inpD,hdr,"clusterPlot.frac.svg"),plot=svgPHC)#,  width=6, height=6)
+```
+
+
+```{r ROTS, echo = FALSE}
+#iocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormImpFilter#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,2,2,2,1)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpD,hdr,"rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.5)
+plot(results, fdr = 0.2, type = "heatmap")
+```
+
+```{r imputeFilter-ttest, echo = FALSE}
+pairwise.t.test(as.matrix(dataNormImpFilter),c(0,0,1,1,1,0))#[1,3:5],dataNormImpFilter[1,c(1,2,6)])
+```
+
+```{r write-output, echo = FALSE}
+write.table(dataNorm,file=paste0(inpD,"log2data.txt"), sep = "\t")
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+
+```{r impute, echo = FALSE}
+#install.packages('mice')
+library(mice)
+#install.packages('randomForest')
+library(randomForest)
+dataNormImp=mice(dataNorm, method="rf")
+dataNormImpCom <- complete(dataNormImp,1)
+row.names(dataNormImpCom)<-row.names(dataNorm)
+summary(dataNormImpCom)
+```
+
+```{r write-output, echo = FALSE}
+write.csv(dataNormImpCom,file=paste0(inpD,"log2dataImp.csv"))
+#write.csv(factors,file=paste0(inpD,"dataNormImpComFactor.csv"))
+dataNormImpCom <- read.csv(paste0(inpD,"log2dataImp.csv"),row.names=1,header = T)
+#factors<-read.csv(paste0(inpD,"dataNormImpComFactor.csv"))
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+
+
+```{r DEqMS}
+#https://rdrr.io/bioc/DEqMS/f/vignettes/DEqMS-package-vignette.Rmd
+#install.packages("BiocManager")
+#BiocManager::install("DEqMS")
+library(DEqMS)
+dat.log=dataNormImpFilter
+boxplot(dat.log,las=2,main="")
+cond = as.factor(c("w","w","r","r","r","w"))
+design = model.matrix(~0+cond) # 0 means no intercept for the linear model
+colnames(design) = gsub("cond","",colnames(design))
+x <- c("r-w")
+contrast =  makeContrasts(contrasts=x,levels=design)
+fit1 <- lmFit(dat.log, design)
+fit2 <- contrasts.fit(fit1,contrasts = contrast)
+fit3 <- eBayes(fit2)
+df.prot=dataClean[dataNormFilter$Red<selThr | dataNormFilter$White<selThr,]
+library(matrixStats)
+count_columns = "MS.MS.count."
+#psm.count.table = data.frame(count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))])))+1
+#rownames(fit3$coefficients)
+fit3$count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))]))+1
+fit4 = spectraCounteBayes(fit3)
+# n=30 limits the boxplot to show only proteins quantified by <= 30 PSMs.
+VarianceBoxplot(fit4,n=30,main=inpD,xlab="PSM count")
+VarianceScatterplot(fit4,main=inpD)
+DEqMS.results = outputResult(fit4,coef_col = 1)
+#if you are not sure which coef_col refers to the specific contrast,type
+head(fit4$coefficients)
+# a quick look on the DEqMS results table
+head(DEqMS.results)
+# Save it into a tabular text file
+write.table(DEqMS.results,paste0(inpD,hdr,"DEqMS.results.txt"),sep = "\t",row.names = F,quote=F)
+#install.packages("ggrepel")
+library(ggrepel)
+# Use ggplot2 allows more flexibility in plotting
+DEqMS.results$log.sca.pval = -log10(DEqMS.results$sca.P.Value)
+ggplot(DEqMS.results, aes(x = logFC, y =log.sca.pval )) + 
+    geom_point(size=0.5 )+
+    theme_bw(base_size = 16) + # change theme
+    xlab(expression("log2(red/white)")) + # x-axis label
+    ylab(expression(" -log10(P-value)")) + # y-axis label
+    geom_vline(xintercept = c(-1,1), colour = "red") + # Add fold change cutoffs
+    geom_hline(yintercept = 2, colour = "red") + # Add significance cutoffs
+    geom_vline(xintercept = 0, colour = "black") + # Add 0 lines
+    scale_colour_gradient(low = "black", high = "black", guide = FALSE)+
+    geom_text_repel(data=subset(DEqMS.results, abs(logFC)>1&log.sca.pval > 2),
+                    aes( logFC, log.sca.pval ,label=gene)) # add gene label
+
+#fit4$p.value = fit4$sca.p
+#volcanoplot(fit4,coef=1, style = "p-value", highlight = 10,names=rownames(fit4$coefficients))
+```
+
+```{r DEqMS-peptides}
+fit3$count = rowMins(as.matrix(df.prot[,grepl("^Peptides\\.[0-9]+", names(df.prot))]))+1
+min(fit3$count)
+
+fit4 = spectraCounteBayes(fit3)
+VarianceBoxplot(fit4, n=20, main = hdr,xlab="peptide count + 1")
+DEqMS.results = outputResult(fit4,coef_col = 1)
+DEqMS.results$Gene.name = df.prot[DEqMS.results$gene,]$Gene.names
+head(DEqMS.results)
+write.table(DEqMS.results,paste0(inpD,hdr,"R-W.DEqMS.pep.results.txt"),sep = "\t",row.names = F,quote=F)
+head(DEqMS.results)
+VarianceBoxplot(fit4,n=20)
+#peptideProfilePlot(dat=df.prot)#,col=2,gene="TGFBR2")
+VarianceScatterplot(fit4, xlab="log2(LFQ)")
+limma.prior = fit4$s2.prior
+abline(h = log(limma.prior),col="green",lwd=3 )
+legend("topright",legend=c("DEqMS prior variance","Limma prior variance"),
+        col=c("red","green"),lwd=3)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+Residualplot(fit4,  xlab="log2(PSM count)",main="DEqMS")
+x = fit3$count
+y = log(limma.prior) - log(fit3$sigma^2)
+plot(log2(x),y,ylim=c(-6,2),ylab="Variance(estimated-observed)", pch=20, cex=0.5,
+     xlab = "log2(PSMcount)",main="Limma")
+#install.packages("LSD")
+library(LSD)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+x = fit3$count
+y = fit3$s2.post
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)", 
+     ylab="log(Variance)",
+     main="Posterior Variance in Limma")
+
+y = fit4$sca.postvar
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
+     ylab="log(Variance)", 
+     main="Posterior Variance in DEqMS")
+
+```
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
 ```{r select-LFQ, echo = FALSE}
 selection<-"LFQ.intensity"
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
@@ -46,16 +1609,17 @@ writexl::write_xlsx(as.data.frame(log2LFQ),inpW)
 ```{r venn}
 selThr<-0.3
 dataV<-data[,c(13,14,15,16)]
+summary(dataV)
 #,sapply(cn, "[", 2))
 #dataV<-data[,c(13,14,15,16)]
 #dataV<-data[(data$B_.WSRT<selThr),]
 hist(rowSums(as.matrix(dataV)))
-library(eulerr)
-euler(dataV<selThr)$original.values
-plot(euler(dataV<selThr),quantities=TRUE,fill = "transparent",lty = 1:3,labels = list(font = 4), main="Protein Groups WSRT")
+#library(eulerr)
+#euler(dataV<selThr)$original.values
+#plot(euler(dataV<selThr),quantities=TRUE,fill = "transparent",lty = 1:3,labels = list(font = 4), main="Protein Groups WSRT")
 #install.packages('eulerr')
-vplot<-plot(euler(dataV<selThr,shape="ellipse"),quantities=TRUE, main="Protein Groups WSRT")
-install.packages("ggplot2")
+#vplot<-plot(euler(dataV<selThr,shape="ellipse"),quantities=TRUE, main="Protein Groups WSRT")
+#install.packages("ggplot2")
 ggplot2::ggsave(file=paste0(inpF,"venn.svg"),plot=vplot)#,  width=6, height=6)
 ```
 
@@ -440,11 +2004,11 @@ select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
 #BiocManager::install("clusterProfiler")
 library(clusterProfiler)
 #http://data.wikipathways.org/current/gmt/
-wikiF<-"wikipathways-20200310-gmt-Homo_sapiens.gmt"
-wikiPF<-paste0(inpD,wikiF)
+wikiF<-"wikipathways-20201010-gmt-Homo_sapiens.gmt"
+wikiPF<-paste(inpD,wikiF,sep="/")
 #BiocManager::install("GSEABase")
 wp2gene <- read.gmt(wikiPF)
-write.table(wp2gene,paste0(inpD,wikiF,".txt"),sep="\t")
+write.table(wp2gene,paste0(wikiPF,".txt"),sep="\t")
 library(magrittr)
 wp2gene <- wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
 wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE

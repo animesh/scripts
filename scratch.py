@@ -1,3 +1,90 @@
+#https://www.tensorflow.org/probability/examples/Modeling_with_JointDistribution
+import numpy as np
+import tensorflow.compat.v2 as tf
+import tensorflow_probability as tfp
+tf.enable_v2_behavior()
+tfd = tfp.distributions
+tfb = tfp.bijectors
+dtype = tf.float32
+
+# Generate Data
+X_np = np.linspace(0,1,100)
+# w1=2, b1=1.7, w2=3.2, b2= -0.2
+Y_np = 2*X_np + 1.7
+Z_np = 3.2*X_np - 0.2
+obs = tf.cast(tf.stack((Y_np, Z_np), 1), dtype=dtype)
+
+# Define the model
+Root = tfd.JointDistributionCoroutine.Root  # Convenient alias.
+def model():
+    b2 = yield Root(tfd.Normal(loc=tf.cast(0, dtype), scale=1.))
+    w2 = yield Root(tfd.Normal(loc=tf.cast(0, dtype), scale=1.))
+    b1 = yield Root(tfd.Normal(loc=tf.cast(0, dtype), scale=1.))
+    w1 = yield Root(tfd.Normal(loc=tf.cast(0, dtype), scale=1.))
+    yhat = b1[...,tf.newaxis]+w1[...,tf.newaxis]*X_np
+    zhat = b2[...,tf.newaxis]+w2[...,tf.newaxis]*X_np
+    obshat = tf.cast(tf.stack((yhat, zhat), 1), dtype=dtype)
+    likelihood = yield tfd.Independent(
+            tfd.Normal(loc=obshat, scale=1),
+            reinterpreted_batch_ndims=2)
+
+mdl_ols_coroutine = tfd.JointDistributionCoroutine(model)
+target_log_prob_fn = lambda *x: tf.cast(mdl_ols_coroutine.log_prob(x + (obs, )), dtype=dtype)
+
+print(mdl_ols_coroutine.sample(7))
+# Define the chain trace operator
+@tf.function(autograph=False, experimental_compile=True)
+def run_chain(init_state, step_size, target_log_prob_fn, unconstraining_bijectors,
+              num_steps=50, burnin=50):
+    def trace_fn(_, pkr):
+        return (
+            pkr.inner_results.inner_results.target_log_prob,
+            pkr.inner_results.inner_results.leapfrogs_taken,
+            pkr.inner_results.inner_results.has_divergence,
+            pkr.inner_results.inner_results.energy,
+            pkr.inner_results.inner_results.log_accept_ratio
+        )
+    kernel = tfp.mcmc.TransformedTransitionKernel(
+        inner_kernel=tfp.mcmc.NoUTurnSampler(
+            target_log_prob_fn,
+            step_size=step_size),
+        bijector=unconstraining_bijectors)
+
+    hmc = tfp.mcmc.DualAveragingStepSizeAdaptation(
+        inner_kernel=kernel,
+        num_adaptation_steps=burnin,
+        step_size_setter_fn=lambda pkr, new_step_size: pkr._replace(
+            inner_results=pkr.inner_results._replace(step_size=new_step_size)),
+        step_size_getter_fn=lambda pkr: pkr.inner_results.step_size,
+        log_accept_prob_getter_fn=lambda pkr: pkr.inner_results.log_accept_ratio
+    )
+    # Sampling from the chain.
+    chain_state, sampler_stat = tfp.mcmc.sample_chain(
+        num_results=num_steps,
+        num_burnin_steps=burnin,
+        current_state=init_state,
+        kernel=hmc,
+        trace_fn=trace_fn)
+    return chain_state, sampler_stat
+
+nchain = 1
+n_steps = 5000
+n_burns  = 1000
+init_state = mdl_ols_coroutine.sample(nchain)
+step_size = [tf.cast(i, dtype=dtype) for i in [.1, .1, .1, .1, .1]]
+unconstraining_bijectors = [
+   tfb.Identity(),
+   tfb.Identity(),
+   tfb.Identity(),
+   tfb.Identity(),
+   tfb.Identity(),
+]
+
+samples, sampler_stat = run_chain(init_state, step_size,
+        target_log_prob_fn, unconstraining_bijectors,
+        num_steps=n_steps,
+        burnin=n_burns)
+
 #https://www.statsmodels.org/stable/gettingstarted.html
 import statsmodels.api as sm
 import pandas
