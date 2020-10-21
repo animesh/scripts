@@ -11,7 +11,7 @@ if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if 
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #read
 #MaxQuant
-#inpF<-file.path("L:/promec/USERS/Synnøve/txt-EcoG/proteinGroups.txt")
+#inpF<-file.path("F:/promec/Animesh/Synnove/combined/txt-noMBR/proteinGroups.txt")
 options(nwarnings = 1000000)
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
@@ -23,13 +23,16 @@ protNum<-1:ncol(intensity)
 colnames(intensity)=paste(protNum,sub("Intensity.","",colnames(intensity)),sep="_")
 intensityLFQ<-log2(intensity)
 intensityLFQ[intensityLFQ==-Inf]=NA
+summary(intensityLFQ)[nrow(summary(intensityLFQ)),]
 #hist(intensity[,1])
 #clean MQ output
-data = data[!data$Reverse=="+",]
-data = data[!data$Potential.contaminant=="+",]
-data = data[is.na(data[["Only.identified.by.site"]])||data$Only.identified.by.site!="+",]
-print("Removed Reverse,Potential.contaminant and Only.identified.by.site")
+data = data[!data[["Reverse"]]=="+",]
 dim(data)
+data = data[!data[["Potential.contaminant"]]=="+",]
+dim(data)
+data = data[!data[["Only.identified.by.site"]]=="+",]
+dim(data)
+print("Removed Reverse,Potential.contaminant and Only.identified.by.site")
 protNum<-1:nrow(data)
 row.names(data)<-paste(protNum,data$Fasta.headers,protNum,sep=";")
 print("Converted Fasta.headers to rownames")
@@ -69,9 +72,19 @@ dim(LFQactin)
 if(!is.null(dim(LFQactin))){colSums(LFQactin)/colSums(LFQ)*100}
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
+dim(log2LFQ)
 log2LFQt<-na.omit(log2LFQ)
+dim(log2LFQ)
+summary(log2LFQ)
+summary(intensityLFQ)
 print(paste("Selected and log2 transformed columns",selection))
 if(dim(log2LFQ)[2]>0){
+  outP<-paste(inpF,selection,"pdf",sep = ".")
+  pdf(outP)
+  boxplot(intensity)
+  boxplot(intensityLFQ)
+  boxplot(log2LFQ)
+  boxplot(2^log2LFQ)
   NAcols<-colSums(is.na(log2LFQ))
   NAcols<-c(NAcols, mean(NAcols),median(NAcols),sum(is.na(NAcols)),sd(NAcols)/mean(NAcols),sum(NAcols),"MissingValue(s)")
   print(paste("Summarised missing-values in log2 transformed columns",t(NAcols)))
@@ -94,14 +107,6 @@ if(dim(log2LFQ)[2]>0){
   write.csv(rbind(cbind(log2LFQ,Means,Medians,NAs,CVs,Sums,uniprot),NAcols),outF)
   print(paste("Log2 transform of",selection,"columns written to",outF))
   #plot raw intensity histogram
-  outP<-paste(inpF,selection,"pdf",sep = ".")
-  pdf(outP)
-  summary(intensityLFQ)
-  boxplot(intensity)
-  boxplot(intensityLFQ)
-  summary(log2LFQ)
-  boxplot(log2LFQ)
-  boxplot(2^log2LFQ)
   #i=1
   for(i in 1:dim(intensity)[2]){hist(log2(intensity[,i]),main=paste("File:",colnames(intensity)[i]),xlab="log2 raw intensity")}
   #plot LFQ histogram
