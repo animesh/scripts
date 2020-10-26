@@ -1,3 +1,6 @@
+# track a file
+git log --follow -p -- diffExprPlots.rmd
+git checkout 7dec9c1ae8f302a4e96206364446c53cdffbc5d1
 #undo last commit
 # git config --global alias.undo-commit 'reset --soft HEAD^'
 # git undo-commit
