@@ -35,6 +35,39 @@ dir.exists(Sys.getenv('R_LIBS_USER'))
 #Then restart R, and you'll get:
 .libPaths()[1]
 ```
+```{r MR}
+#https://mran.microsoft.com/documents/rro/multithread#mt-setget
+getMKLthreads()
+
+```
+
+```{r COCA}
+#https://acabassi.github.io/coca/articles/coca-vignette.html
+#install.packages("coca")
+data <- list()
+data[[1]] <- as.matrix(read.csv(system.file("extdata",
+                      "dataset1.csv", package = "coca"), row.names = 1))
+data[[2]] <- as.matrix(read.csv(system.file("extdata",
+                      "dataset2.csv", package = "coca"), row.names = 1))
+data[[3]] <- as.matrix(read.csv(system.file("extdata",
+                      "dataset3.csv", package = "coca"), row.names = 1))
+
+### Build matrix of clusters
+outputBuildMOC <- coca::buildMOC(data, M = 3, K = 5, distances = "cor")
+### Extract matrix of clusters and dataset indicator vector
+moc <- outputBuildMOC$moc
+datasetIndicator <- outputBuildMOC$datasetIndicator
+true_labels <- as.matrix(read.csv(system.file("extdata", "cluster_labels.csv",
+                package = "coca"), row.names = 1))
+annotations <- data.frame(true_labels = as.factor(true_labels))
+### Plot matrix of clusters
+coca::plotMOC(moc, datasetIndicator, annotations = annotations)
+# Use COCA to find global clustering
+coca <- coca::coca(moc, K = 5)
+# Compare clustering to the true labels
+ari <- mclust::adjustedRandIndex(true_labels, coca$clusterLabels)
+ari
+```
 
 ```{r liger}
 install.packages('devtools')

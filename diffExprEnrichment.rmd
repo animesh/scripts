@@ -89,22 +89,34 @@ writexl::write_xlsx(as.data.frame(cbind(data$Uniprot,log2LFQ)),paste0(inpF,"unip
 ```
 
 ```{r data-wikiPathway-map}
-inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
-data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
-#dataS<-as.matrix(data[,1:4],rownames=T)
-dataS<-as.matrix(data[,c(1:4,7:18)],rownames=T)
-dataS[dataS==0]=NA
-rn<-sub(";","",unlist(data[37]))
-rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
-rn<-strsplit(rn, "-")
-row.names(dataS)<-sapply(rn, "[", 1)
-cn<-strsplit(colnames(dataS), "_")
-colnames(dataS)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
-summary(dataS)
-plot(dataS)
 selThr<-0.3
-limma::vennDiagram(dataS[,c(1:4)]<selThr,main="wikiD",counts.col = "red")
+inpD <-"L:/promec/Animesh/Lisa/"
+inpF<-paste0(inpD,"CamillaWSRTdataMedianUniprotGOmin2pv25p.txt")
+inpOm<-paste0(inpF,"MappedSel.csv")
+dataSezWP <- read.csv(inpOm)
+summary(dataSezWP)
+#dataS<-as.matrix(data[,1:4],rownames=T)
+dataSezWPs<-as.matrix(dataSezWP[,c(1:6)])
+hist(dataSezWPs)
+dataSezWPs[dataSezWPs==0]=NA
+dataSezWPs[is.na(dataSezWPs)]=1
+hist(dataSezWPs)
+rn<-sub(" ",";",unlist(dataSezWP[32]))
+rn<-strsplit(rn, ";")
+ln<-1:nrow(dataSezWPs)
+rn<-paste(sapply(rn, "[", 1),sapply(rn, "[", 2),ln,sep=";")#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+row.names(dataSezWPs)<-rn
+cn<-strsplit(colnames(dataSezWPs), "_")
+colnames(dataSezWPs)<-paste(sapply(cn, "[", 1))#,sapply(cn, "[", 4))
+summary(dataSezWPs)
+hist(dataSezWPs)
+limma::vennDiagram(dataSezWPs[,c(1:3,6)]<selThr,main="wikiD",counts.col = "red")
 ```
+
+```{r fisher}
+table(dataSezWPs$)
+```
+
 
 ```{r geneList, echo = FALSE}
 #ORA: ORA’s propensity for type I error rate inflation when genes tend to be co-expressed within sets
@@ -179,6 +191,21 @@ colnames(dataV)<-paste(sapply(cn, "[", 3),sapply(cn, "[", 4))
 library(limma)
 vennDiagram(dataV<selThr)
 #hist(rowSums(as.matrix(dataV)))
+table(dataSezWP[dataSezWPs[,1]<selThr,31])#MONO
+wikiT<-as.matrix(table(dataSezWP[dataSezWPs[,2]<selThr,31]))#MCCAR
+sum(wikiT)#1941
+wikiT[row.names(wikiT)=="WP411"]#58
+wikiTot<-as.matrix(table(dataSezWP[,31]))
+sum(wikiTot)#4972
+wikiTot[row.names(wikiTot)=="WP411"]#71
+#https://en.wikipedia.org/wiki/Hypergeometric_distribution
+wikiWP411 <- matrix(c(58,1941-71,3031-58,71), nrow = 2,dimnames =list(wikiP=c("selected", "full"),pWiki=c("selected", "other")))
+wikiWP411
+sum(wikiWP411)
+fisher.test(wikiWP411, alternative = "less")
+fisher.test(wikiWP411)
+fisher.test(wikiWP411, conf.level = 0.95)$conf.int
+fisher.test(wikiWP411, conf.level = 0.99)$conf.int
 ```
 
 ```{r overlap-plot}

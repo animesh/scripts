@@ -1,3 +1,233 @@
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+java -jar -Dfile.encoding=UTF-8 -Xmx57G C:\Users\animeshs\GD\fragpipe\tools\MSFragger-3.1\MSFragger-3.1.jar F:\SINTEF\fragger.params F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8.raw F:\SINTEF\200925_SINTEF_sample-T2-M4_positionB5.raw F:\SINTEF\200925_SINTEF_sample-T2-M5_positionA6.raw F:\SINTEF\200925_SINTEF_sample-T2-M6_positionB6.raw F:\SINTEF\200925_SINTEF_sample-T2-M7_positionB3.raw F:\SINTEF\200925_SINTEF_sample-T2-M8_positionB8.raw F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1.raw F:\SINTEF\200925_SINTEF_sample-T5-M4_positionC1.raw F:\SINTEF\200925_SINTEF_sample-T5-M5_positionA3.raw F:\SINTEF\200925_SINTEF_sample-T5-M6_positionA2.raw F:\SINTEF\200925_SINTEF_sample-T5-M7_positionA4.raw F:\SINTEF\200925_SINTEF_sample-T5-M8_positionB7.raw F:\SINTEF\200925_SINTEF_sample-T6-M7_positionB2.raw F:\SINTEF\200925_SINTEF_sample-T6-M8_positionA5.raw F:\SINTEF\200925_SINTEF_sample-T7-M3_positionA1.raw F:\SINTEF\200925_SINTEF_sample-T7-M4_positionC2.raw F:\SINTEF\200925_SINTEF_sample-T7-M5_positionB4.raw F:\SINTEF\200925_SINTEF_sample-T7-M6_positionA7.raw
+java -cp C:\Users\animeshs\GD\fragpipe\lib\fragpipe-14.0.jar com.github.chhh.utils.FileMove F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8.pepXML
+java -cp C:\Users\animeshs\GD\fragpipe\lib\fragpipe-14.0.jar com.github.chhh.utils.FileMove --no-err F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8.tsv F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8\200925_SINTEF_sample-T2-M3_positionA8.tsv
+java -Dbatmass.io.libs.thermo.dir="C:\Users\animeshs\GD\fragpipe\tools\MSFragger-3.1\ext\thermo" -Xmx57G -cp "C:\Users\animeshs\GD\fragpipe\tools\original-crystalc-1.3.2.jar;C:\Users\animeshs\GD\fragpipe\tools\batmass-io-1.19.5.jar;C:\Users\animeshs\GD\fragpipe\tools\grppr-0.3.23.jar" crystalc.Run F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8\crystalc-1-200925_SINTEF_sample-T2-M3_positionA8.pepXML.params F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8\200925_SINTEF_sample-T2-M3_positionA8.pepXML
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe peptideprophet --nonparam --expectscore --decoyprobs --masswidth 1000.0 --clevel -2 --decoy rev_ --database F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --combine 200925_SINTEF_sample-T2-M3_positionA8_c.pepXML
+java -cp C:\Users\animeshs\GD\fragpipe\lib/* com.dmtavt.fragpipe.util.RewritePepxml F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1.raw
+java -cp C:\Users\animeshs\GD\fragpipe\lib/* com.dmtavt.fragpipe.util.RewritePepxml F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8.raw
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe proteinprophet --maxppmdiff 2000000 --output combined F:\SINTEF\200925_SINTEF_sample-T5-M5_positionA3\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T7-M3_positionA1\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T6-M8_positionA5\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T2-M4_positionB5\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T7-M4_positionC2\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T7-M5_positionB4\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T7-M6_positionA7\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T5-M8_positionB7\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T5-M7_positionA4\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T5-M6_positionA2\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T5-M4_positionC1\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T2-M5_positionA6\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T6-M7_positionB2\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T2-M7_positionB3\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T2-M8_positionB8\interact.pep.xml F:\SINTEF\200925_SINTEF_sample-T2-M6_positionB6\interact.pep.xml
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M5_positionB4]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M8_positionB7]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M6_positionA2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M3_positionA1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T6-M8_positionA5]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M4_positionB5]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T6-M7_positionB2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M4_positionC2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M8_positionB8]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M6_positionA7]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M6_positionB6]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M5_positionA3]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M7_positionA4]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M5_positionA6]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M4_positionC1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherDbAnnotate [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M7_positionB3]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe database --annotate F:\SINTEF\2020-10-28-decoys-contam-AP-004_translations.fa.fas --prefix rev_
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M6_positionA7]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T7-M6_positionA7 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M8_positionB7]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T5-M8_positionB7 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M3_positionA1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T7-M3_positionA1 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T6-M7_positionB2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T6-M7_positionB2 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M5_positionA3]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T5-M5_positionA3 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T6-M8_positionA5]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T6-M8_positionA5 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M4_positionC1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T5-M4_positionC1 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M8_positionB8]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T2-M8_positionB8 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M6_positionB6]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T2-M6_positionB6 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M6_positionA2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T5-M6_positionA2 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M5_positionA6]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T2-M5_positionA6 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M7_positionA4]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T5-M7_positionA4 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M4_positionC2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T7-M4_positionC2 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M4_positionB5]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T2-M4_positionB5 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M5_positionB4]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T7-M5_positionB4 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherFilter [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M7_positionB3]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe filter --sequential --razor --prot 0.01 --mapmods --tag rev_ --pepxml F:\SINTEF\200925_SINTEF_sample-T2-M7_positionB3 --protxml F:\SINTEF\combined.prot.xml
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M8_positionB7]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M5_positionB4]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M6_positionA2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M3_positionA1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T6-M8_positionA5]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M4_positionB5]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T6-M7_positionB2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M8_positionB8]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M4_positionC2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M6_positionA7]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M6_positionB6]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M5_positionA3]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M7_positionA4]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M5_positionA6]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M4_positionC1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherReport [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M7_positionB3]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe report
+PhilosopherAbacus [Work dir: F:\SINTEF]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe abacus --razor --reprint --tag rev_ --protein 200925_SINTEF_sample-T7-M6_positionA7 200925_SINTEF_sample-T5-M8_positionB7 200925_SINTEF_sample-T7-M3_positionA1 200925_SINTEF_sample-T2-M3_positionA8 200925_SINTEF_sample-T6-M7_positionB2 200925_SINTEF_sample-T5-M5_positionA3 200925_SINTEF_sample-T6-M8_positionA5 200925_SINTEF_sample-T5-M4_positionC1 200925_SINTEF_sample-T5-M3_positionB1 200925_SINTEF_sample-T2-M8_positionB8 200925_SINTEF_sample-T2-M6_positionB6 200925_SINTEF_sample-T5-M6_positionA2 200925_SINTEF_sample-T2-M5_positionA6 200925_SINTEF_sample-T5-M7_positionA4 200925_SINTEF_sample-T7-M4_positionC2 200925_SINTEF_sample-T2-M4_positionB5 200925_SINTEF_sample-T7-M5_positionB4 200925_SINTEF_sample-T2-M7_positionB3
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M8_positionB7]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M5_positionB4]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M6_positionA2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M3_positionA1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T6-M8_positionA5]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M4_positionB5]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T6-M7_positionB2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M8_positionB8]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M4_positionC2]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T7-M6_positionA7]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M6_positionB6]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M5_positionA3]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M7_positionA4]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M5_positionA6]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T5-M4_positionC1]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+WorkspaceClean [Work dir: F:\SINTEF\200925_SINTEF_sample-T2-M7_positionB3]
+C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe workspace --clean --nocheck
+PTMShepherd [Work dir: F:\SINTEF]
+java -Dbatmass.io.libs.thermo.dir="C:\Users\animeshs\GD\fragpipe\tools\MSFragger-3.1\ext\thermo" -cp "C:\Users\animeshs\GD\fragpipe\tools\ptmshepherd-0.4.0.jar;C:\Users\animeshs\GD\fragpipe\tools\batmass-io-1.19.5.jar;C:\Users\animeshs\GD\fragpipe\tools\commons-math3-3.6.1.jar" edu.umich.andykong.ptmshepherd.PTMShepherd "F:\SINTEF\shepherd.config"
+~~~~~~~~~~~~~~~~~~~~~~
+
+Execution order:
+
+    Cmd: [START], Work dir: [F:\SINTEF]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M8_positionB7]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T7-M5_positionB4]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M6_positionA2]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T7-M3_positionA1]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T6-M8_positionA5]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M4_positionB5]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T6-M7_positionB2]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M8_positionB8]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T7-M4_positionC2]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T7-M6_positionA7]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M6_positionB6]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M5_positionA3]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M7_positionA4]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M5_positionA6]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M4_positionC1]
+    Cmd: [WorkspaceCleanInit], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M7_positionB3]
+    Cmd: [MsFragger], Work dir: [F:\SINTEF]
+    Cmd: [Crystal-C], Work dir: [F:\SINTEF]
+    Cmd: [PeptideProphet], Work dir: [F:\SINTEF]
+    Cmd: [ProteinProphet], Work dir: [F:\SINTEF]
+    Cmd: [PhilosopherDbAnnotate], Work dir: [F:\SINTEF]
+    Cmd: [PhilosopherFilter], Work dir: [F:\SINTEF]
+    Cmd: [PhilosopherReport], Work dir: [F:\SINTEF]
+    Cmd: [PhilosopherAbacus], Work dir: [F:\SINTEF]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M8_positionB7]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T7-M5_positionB4]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M6_positionA2]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T7-M3_positionA1]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T6-M8_positionA5]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M4_positionB5]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M3_positionB1]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T6-M7_positionB2]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M8_positionB8]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T7-M4_positionC2]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M3_positionA8]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T7-M6_positionA7]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M6_positionB6]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M5_positionA3]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M7_positionA4]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M5_positionA6]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T5-M4_positionC1]
+    Cmd: [WorkspaceClean], Work dir: [F:\SINTEF\200925_SINTEF_sample-T2-M7_positionB3]
+    Cmd: [PTMShepherd], Work dir: [F:\SINTEF]
+
+~~~~~~~~~~~~~~~~~~~~~~
+
+It's a dry-run, not running the commands.
+
+
+Please cite:
+(Regular searches) MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics. Nat Methods 14:513 (2017)
+(Open search) Identification of modified peptides using localization-aware open search. Nat Commun. 11:4065 (2020)
+(Open search) Crystal-C: A Computational Tool for Refinement of Open Search Results. J. Proteome Res. 19.6:2511 (2020)
+(Open search) PTM-Shepherd: analysis and summarization of post-translational and chemical modifications from open search results. bioRxiv. DOI: 10.1101/2020.07.08.192583 (2020)
+(Glyco/labile search) Fast and comprehensive N- and O-glycoproteomics analysis with MSFragger-Glyco. Nat Methods DOI: 10.1101/2020.05.18.10266 (2020)
+(timsTOF PASEF) Fast quantitative analysis of timsTOF PASEF data with MSFragger and IonQuant. Mol Cell Proteomics 19: 1575 (2020)
+(PeptideProphet/ProteinProphet/PTMProphet/Filtering) Philosopher: a versatile toolkit for shotgun proteomics data analysis. Nat Methods 17:869 (2020)
+(TMT-Integrator) Quantitative proteomic landscape of metaplastic breast carcinoma pathological subtypes and their relationship to triple-negative tumors. Nat Commun. 11:1723 (2020)
+(DIA-Umpire) DIA-Umpire: comprehensive computational framework for data-independent acquisition proteomics. Nat Methods 12:258 (2015)
+
 #https://github.com/Nesvilab/philosopher/wiki/Simple-Data-Analysis
 #FragPipe version 13.0
 #MSFragger version 3.0
