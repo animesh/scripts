@@ -199,13 +199,15 @@ wikiTot<-as.matrix(table(dataSezWP[,31]))
 sum(wikiTot)#4972
 wikiTot[row.names(wikiTot)=="WP411"]#71
 #https://en.wikipedia.org/wiki/Hypergeometric_distribution
-wikiWP411 <- matrix(c(58,1941-71,3031-58,71), nrow = 2,dimnames =list(wikiP=c("selected", "full"),pWiki=c("selected", "other")))
-wikiWP411
-sum(wikiWP411)
-fisher.test(wikiWP411, alternative = "less")
-fisher.test(wikiWP411)
-fisher.test(wikiWP411, conf.level = 0.95)$conf.int
-fisher.test(wikiWP411, conf.level = 0.99)$conf.int
+wikiWP2369 <- matrix(c(3,13,3663,1293), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+wikiWP185 <- matrix(c(13,16,3806,1137), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+wikiWP2369<-wikiWP185
+sum(wikiWP2369)
+(choose(16,13)*choose(3663,1293))/(choose(4972,1306))
+fisher.test(wikiWP2369, alternative = "less")
+fisher.test(wikiWP2369)
+fisher.test(wikiWP2369, conf.level = 0.95)$conf.int
+fisher.test(wikiWP2369, conf.level = 0.99)$conf.int
 ```
 
 ```{r overlap-plot}

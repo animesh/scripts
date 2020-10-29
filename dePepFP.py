@@ -2,9 +2,9 @@
 #!pip3 install pathlib --user
 import sys
 from pathlib import Path
-if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.8.5\n","USAGE: python dePepFP.py <path to folder containing global.profile.tsv file(s) like \"Z:/FP/\" >")
+if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.8.5\n","USAGE: python dePepFP.py <path to folder containing global.profile.tsv file(s) like \"F:/SINTEF/\" >")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("Z:/FP/")
+#pathFiles = Path("F:/SINTEF/")
 fileName='global.profile.tsv'
 trainList=list(pathFiles.rglob(fileName))
 

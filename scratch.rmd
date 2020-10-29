@@ -38,8 +38,38 @@ dir.exists(Sys.getenv('R_LIBS_USER'))
 ```{r MR}
 #https://mran.microsoft.com/documents/rro/multithread#mt-setget
 getMKLthreads()
-
 ```
+```{r}
+#https://bioconductor.org/books/3.12/SingleRBook/annotation-diagnostics.html#based-on-the-deltas-across-cells
+```
+```{r}
+BiocManager::install("corral")
+```
+
+```{r}
+#https://bioconductor.org/packages/release/bioc/vignettes/msImpute/inst/doc/msImpute-vignette.html
+BiocManager::install(version = "3.12")
+BiocManager::install("msImpute")
+BiocManager::install("imputeLCMD")
+BiocManager::install("ComplexHeatmap")
+library(reticulate)
+library(msImpute)
+library(limma)
+library(imputeLCMD)
+library(ComplexHeatmap)
+data(pxd014777)
+y <- pxd014777
+```
+
+```{r}
+#https://bioconductor.org/packages/release/bioc/vignettes/metabolomicsWorkbenchR/inst/doc/Introduction_to_metabolomicsWorkbenchR.html
+BiocManager::install("metabolomicsWorkbenchR")
+# search for all studies with "Diabetes" in the title and return a summary
+#library(metabolomicsWorkbenchR)
+df = metabolomicsWorkbenchR::do_query(context = 'study',input_item = 'study_title',input_value = 'Diabetes',output_item = 'summary')
+df[1:3,c(1,4)]
+```
+
 
 ```{r COCA}
 #https://acabassi.github.io/coca/articles/coca-vignette.html

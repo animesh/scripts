@@ -18,6 +18,77 @@ inpOm<-paste0(inpF,"MappedSel.csv")
 write.csv(cbind(dataSezWP[,c(3:32,68)],rownames(dataSezWP)),inpOm,row.names = F)
 ```
 
+```{r data-jinxian}
+selThr<-0.3
+inpD <-"L:/promec/Animesh/Lisa/"
+inpJ<-paste0(inpD,"jinxian_t1.xlsx")
+#install.packages("readxl")
+dataSezJX <- readxl::read_xlsx(inpJ)
+summary(dataSezJX)
+GeneJL<-dataSezJX[!is.na(dataSezJX$`Metabolite or enzyme`),1]
+GeneJL<-GeneJL[c(13:25),]
+#https://en.wikipedia.org/wiki/Oxoglutarate_dehydrogenase_complex
+GeneJL[10,]<-c("OGDH,DLST,DLD")
+#https://stackoverflow.com/a/15347463
+s <- strsplit(GeneJL$`Metabolite or enzyme`, split = " ")
+s <- strsplit(unlist(s), split = ",")
+GeneJL<-data.frame(gene=toupper(unlist(s)))
+write.csv(GeneJL,paste0(inpJ,"GeneJL.csv"),row.names = F)
+```
+
+```{r dataSezJX, echo = FALSE}
+dataSel <- dataSezWP[,c(3:32,68)]
+geneN<-toupper(sapply(strsplit(row.names(dataSel),";"), `[`, 1))
+dataSel<-cbind.data.frame(dataSel,geneN)
+dataSel<-merge(GeneJL,dataSel,by.y="geneN",by.x="gene",all.x = T)
+limma::vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main="dataSezJX",counts.col = "red")
+rn<-dataSel$gene
+gn<-1:nrow(dataSel)
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+rownames(dataSel)<-paste(rn,gn,"_JX",sep=";")
+dataSelJX<-dataSel
+summary(dataSelJX)
+```
+
+```{r dataSezJX-sel-data-cols, echo = FALSE}
+data_selr_s<-dataSelJX
+#library(scales)
+data_selr=scales::squish(as.matrix(data_selr_s),c(-3,3))
+data_selr[is.na(data_selr)]=0
+#https://stackoverflow.com/a/18055983
+data_selr<-data_selr[apply(data_selr[,-1], 1, function(x) !all(x==0)),]
+summary(data_selr)
+hist(as.matrix(data_selr))
+pathwayN<-sapply(strsplit(row.names(data_selr),";"), `[`, 1)
+data_selr<-cbind.data.frame(data_selr,pathwayN)
+data_selr=subset(data_selr, !duplicated(pathwayN))
+data_selr<-as.matrix(data_selr[,-13])
+summary(data_selr)
+#library(pheatmap)
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";"," ",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap::pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=TRUE,color = my_palette)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+#install.packages("ggplot2")
+#install.packages("svglite")
+#install.packages("scales")
+#library(ggplot2)
+ggplot2::ggsave(file=paste0(inpD,"clusterPlot.dataSelJX.svg"),plot=svgPHC)#,  
+```
+
+
 ```{r venn}
 selThr<-0.3
 dataV<-data[,c(1,2,3,6)]
