@@ -3,7 +3,7 @@
    <fastaFiles>
       <FastaFileInfo>
          <fastaFilePath>SequencesFasta</fastaFilePath>
-         <identifierParseRule>>([^ ]*)</identifierParseRule>
+         <identifierParseRule>>(.*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
@@ -17,8 +17,10 @@
    </fastaFilesFirstSearch>
    <fixedSearchFolder></fixedSearchFolder>
    <andromedaCacheSize>350000</andromedaCacheSize>
-   <advancedRatios>False</advancedRatios>
+   <advancedRatios>True</advancedRatios>
    <pvalThres>0.005</pvalThres>
+   <neucodeRatioBasedQuantification>False</neucodeRatioBasedQuantification>
+   <neucodeStabilizeLargeRatios>False</neucodeStabilizeLargeRatios>
    <rtShift>False</rtShift>
    <separateLfq>False</separateLfq>
    <lfqStabilizeLargeRatios>True</lfqStabilizeLargeRatios>
@@ -46,7 +48,8 @@
    <dependentPeptidesWithinParameterGroup>False</dependentPeptidesWithinParameterGroup>
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
-   <ibaq>True</ibaq>
+   <msmsConnection>False</msmsConnection>
+   <ibaq>False</ibaq>
    <top3>False</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
@@ -54,7 +57,7 @@
    <taxonomyLevel>Species</taxonomyLevel>
    <avalon>False</avalon>
    <nModColumns>3</nModColumns>
-   <ibaqLogFit>True</ibaqLogFit>
+   <ibaqLogFit>False</ibaqLogFit>
    <razorProteinFdr>True</razorProteinFdr>
    <deNovoSequencing>False</deNovoSequencing>
    <deNovoVarMods>True</deNovoVarMods>
@@ -78,56 +81,58 @@
    <advancedSiteIntensities>True</advancedSiteIntensities>
    <customProteinQuantification>False</customProteinQuantification>
    <customProteinQuantificationFile></customProteinQuantificationFile>
-   <minRatioCount>1</minRatioCount>
-   <restrictProteinQuantification>False</restrictProteinQuantification>
+   <minRatioCount>2</minRatioCount>
+   <restrictProteinQuantification>True</restrictProteinQuantification>
    <restrictMods>
+      <string>Oxidation (M)</string>
+      <string>Acetyl (Protein N-term)</string>
    </restrictMods>
    <matchingTimeWindow>0</matchingTimeWindow>
    <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
    <alignmentTimeWindow>0</alignmentTimeWindow>
    <alignmentIonMobilityWindow>0</alignmentIonMobilityWindow>
+   <numberOfCandidatesMultiplexedMsms>25</numberOfCandidatesMultiplexedMsms>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
-   <quantMode>2</quantMode>
+   <quantMode>1</quantMode>
    <massDifferenceMods>
    </massDifferenceMods>
    <mainSearchMaxCombinations>200</mainSearchMaxCombinations>
    <writeMsScansTable>False</writeMsScansTable>
    <writeMsmsScansTable>True</writeMsmsScansTable>
    <writePasefMsmsScansTable>True</writePasefMsmsScansTable>
-   <writeAccumulatedPasefMsmsScansTable>False</writeAccumulatedPasefMsmsScansTable>
+   <writeAccumulatedPasefMsmsScansTable>True</writeAccumulatedPasefMsmsScansTable>
    <writeMs3ScansTable>True</writeMs3ScansTable>
    <writeAllPeptidesTable>True</writeAllPeptidesTable>
    <writeMzRangeTable>True</writeMzRangeTable>
-   <writeDiaFragmentTable>False</writeDiaFragmentTable>
    <writeMzTab>False</writeMzTab>
    <disableMd5>False</disableMd5>
    <cacheBinInds>True</cacheBinInds>
    <etdIncludeB>False</etdIncludeB>
+   <complementaryTmtCollapseNplets>True</complementaryTmtCollapseNplets>
    <ms2PrecursorShift>0</ms2PrecursorShift>
    <complementaryIonPpm>20</complementaryIonPpm>
    <variationParseRule></variationParseRule>
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>1.6.17.0</maxQuantVersion>
+   <maxQuantVersion>1.6.8.0</maxQuantVersion>
+   <tempFolder></tempFolder>
    <pluginFolder></pluginFolder>
    <numThreads>1</numThreads>
-   <batchSize>1</batchSize>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
-   <fixedCombinedFolder></fixedCombinedFolder>
-   <fullMinMz>-1.79589544172745E+308</fullMinMz>
-   <fullMaxMz>1.79589544172745E+308</fullMaxMz>
+   <fixedCombinedFolder>LocalCombinedFolder</fixedCombinedFolder>
+   <fullMinMz>-1.79769313486232E+308</fullMinMz>
+   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
    <calcPeakProperties>False</calcPeakProperties>
    <showCentroidMassDifferences>False</showCentroidMassDifferences>
    <showIsotopeMassDifferences>False</showIsotopeMassDifferences>
-   <useDotNetCore>True</useDotNetCore>
-   <profilePerformance>False</profilePerformance>
+   <useDotNetCore>False</useDotNetCore>
    <filePaths>
       <string>TestFile.raw</string>
    </filePaths>
@@ -148,13 +153,11 @@
    </referenceChannel>
    <intensPred>False</intensPred>
    <intensPredModelReTrain>False</intensPredModelReTrain>
-   <lfqTopNPeptides>0</lfqTopNPeptides>
    <parameterGroups>
       <parameterGroup>
          <msInstrument>0</msInstrument>
          <maxCharge>7</maxCharge>
          <minPeakLen>2</minPeakLen>
-         <diaMinPeakLen>1</diaMinPeakLen>
          <useMs1Centroids>False</useMs1Centroids>
          <useMs2Centroids>False</useMs2Centroids>
          <cutPeaks>True</cutPeaks>
@@ -170,15 +173,14 @@
          <valleyFactor>1.4</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>False</advancedPeakSplitting>
-         <intensityThresholdMs1>0</intensityThresholdMs1>
-         <intensityThresholdMs2>0</intensityThresholdMs2>
+         <intensityThreshold>0</intensityThreshold>
          <labelMods>
             <string></string>
          </labelMods>
          <lcmsRunType>Standard</lcmsRunType>
          <reQuantify>False</reQuantify>
          <lfqMode>0</lfqMode>
-         <lfqNormClusterSize>80</lfqNormClusterSize>
+         <lfqSkipNorm>False</lfqSkipNorm>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
          <lfqAvEdgesPerNode>6</lfqAvEdgesPerNode>
          <lfqMaxFeatures>100000</lfqMaxFeatures>
@@ -252,7 +254,7 @@
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
-         <crossLinkingType>0</crossLinkingType>
+         <crosslinkSearch>False</crosslinkSearch>
          <crossLinker></crossLinker>
          <minMatchXl>0</minMatchXl>
          <minPairedPepLenXl>6</minPairedPepLenXl>
@@ -274,8 +276,7 @@
          <isobaricSumOverWindow>True</isobaricSumOverWindow>
          <isobaricWeightExponent>0.75</isobaricWeightExponent>
          <diaLibraryType>0</diaLibraryType>
-         <diaLibraryPaths>
-         </diaLibraryPaths>
+         <diaLibraryPath></diaLibraryPath>
          <diaPeptidePaths>
          </diaPeptidePaths>
          <diaEvidencePaths>
@@ -288,37 +289,7 @@
          <diaPrecTolPpmFeatureClustering>2</diaPrecTolPpmFeatureClustering>
          <diaFragTolPpmFeatureClustering>2</diaFragTolPpmFeatureClustering>
          <diaScoreN>7</diaScoreN>
-         <diaMinScore>1.99</diaMinScore>
-         <diaXgBoostBaseScore>0.4</diaXgBoostBaseScore>
-         <diaXgBoostSubSample>0.9</diaXgBoostSubSample>
-         <centroidPosition>0</centroidPosition>
-         <diaQuantMethod>7</diaQuantMethod>
-         <diaFeatureQuantMethod>2</diaFeatureQuantMethod>
-         <lfqNormType>1</lfqNormType>
-         <diaTopNForQuant>10</diaTopNForQuant>
-         <diaMinMsmsIntensityForQuant>0</diaMinMsmsIntensityForQuant>
-         <diaTopMsmsIntensityQuantileForQuant>0.85</diaTopMsmsIntensityQuantileForQuant>
-         <diaPrecursorFilterType>0</diaPrecursorFilterType>
-         <diaMinFragmentOverlapScore>1</diaMinFragmentOverlapScore>
-         <diaMinPrecursorScore>0.5</diaMinPrecursorScore>
-         <diaMinProfileCorrelation>0</diaMinProfileCorrelation>
-         <diaXgBoostMinChildWeight>9</diaXgBoostMinChildWeight>
-         <diaXgBoostMaximumTreeDepth>12</diaXgBoostMaximumTreeDepth>
-         <diaXgBoostEstimators>580</diaXgBoostEstimators>
-         <diaXgBoostGamma>0.9</diaXgBoostGamma>
-         <diaXgBoostMaxDeltaStep>3</diaXgBoostMaxDeltaStep>
-         <diaGlobalMl>True</diaGlobalMl>
-         <diaAdaptiveMassAccuracy>False</diaAdaptiveMassAccuracy>
-         <diaMassWindowFactor>3.3</diaMassWindowFactor>
-         <diaRtPrediction>False</diaRtPrediction>
-         <diaRtPredictionSecondRound>False</diaRtPredictionSecondRound>
-         <diaNoMl>False</diaNoMl>
-         <diaPermuteRt>False</diaPermuteRt>
-         <diaPermuteCcs>False</diaPermuteCcs>
-         <diaBackgroundSubtraction>False</diaBackgroundSubtraction>
-         <diaBackgroundSubtractionQuantile>0.5</diaBackgroundSubtractionQuantile>
-         <diaBackgroundSubtractionFactor>4</diaBackgroundSubtractionFactor>
-         <diaLfqWeightedMedian>False</diaLfqWeightedMedian>
+         <diaMinScore>2.99</diaMinScore>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
