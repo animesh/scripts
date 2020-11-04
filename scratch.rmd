@@ -8,6 +8,19 @@ getwd()
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 #rm(list = ls())
 #detach("package:pathview", unload=TRUE)
+#https://mran.microsoft.com/documents/rro/multithread#mt-setget
+#setMKLthreads(<value>)
+#https://htmlpreview.github.io/?https://github.com/lixzhang/R-MRO-MRS/blob/master/Introduction_to_MRO_and_MRS.html
+getMKLthreads()
+# Initialization
+set.seed (1)
+m <- 10000
+n <-  5000
+A <- matrix (runif (m*n),m,n)
+plot(A)
+# Matrix multiply
+system.time (B <- crossprod(A))
+plot(B)
 ```
 
 ```{r libloc, echo = FALSE}
@@ -20,9 +33,7 @@ getwd()
 ?R_LIBS_USER
 #R_LIBS_USER=~/R/%p-library/%v
 #location of ~/.Renviron
-
 normalizePath("~/.Renviron", mustWork = FALSE)
-
 [1] "/home/hb/.Renviron"
 R_LIBS_USER="C:/Users/Greg/Software/R/%p-library/%v
 Sys.getenv('R_LIBS_USER')
@@ -33,15 +44,28 @@ dir.create(Sys.getenv('R_LIBS_USER'), recursive = TRUE)
 dir.exists(Sys.getenv('R_LIBS_USER'))
 #[1] TRUE
 #Then restart R, and you'll get:
-.libPaths()[1]
+.libPaths()[1]"
+update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 ```
+
 ```{r MR}
-#https://mran.microsoft.com/documents/rro/multithread#mt-setget
-getMKLthreads()
-```
-```{r}
 #https://bioconductor.org/books/3.12/SingleRBook/annotation-diagnostics.html#based-on-the-deltas-across-cells
+# Cholesky Factorization
+#system.time (C <- chol(B))
+# Singular Value Decomposition
+#system.time (S <- svd (A,nu=0,nv=0))
+#plot(S$d)
+# Principal Components Analysis
+#system.time (P <- prcomp(A))
+# Linear Discriminant Analysis
+#library('MASS')
+#g <- 5
+#k <- round (m/2)
+#A <- data.frame (A, fac=sample (LETTERS[1:g],m,replace=TRUE))
+#train <- sample(1:m, k)
+#system.time (L <- lda(fac ~., data=A, prior=rep(1,g)/g, subset=train))
 ```
+
 ```{r}
 BiocManager::install("corral")
 ```

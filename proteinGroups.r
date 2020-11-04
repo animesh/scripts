@@ -1,7 +1,7 @@
-#parse argument(s)
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <SILAC>")
 print("default LFQ")
-#c:\R-4.0.2\bin\Rscript.exe proteinGroups.r "L:\promec\USERS\Synnøve\txt-EcoG\proteinGroups.txt"
+#example: "c:\Program Files\Microsoft\R Open\R-4.0.2\bin\Rscript.exe" "L:\promec\HF\Lars\2020\oktober\kathleen tot shotgun\combined\txt\proteinGroups.txt"
+#parse argument(s)
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args[1])
@@ -9,9 +9,8 @@ print(args[2])
 #read
 if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
-#read
-#MaxQuant
-#inpF<-file.path("F:/promec/Animesh/Synnove/combined/txt-noMBR/proteinGroups.txt")
+#read MaxQuant output
+#inpF<-file.path("L:/promec/HF/Lars/2020/oktober/kathleen tot shotgun/combined/txt/proteinGroups.txt")
 options(nwarnings = 1000000)
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
