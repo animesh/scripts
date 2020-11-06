@@ -11,7 +11,7 @@ summary(data)
 selThr<-0.3
 inpD <-"L:/promec/Animesh/Lisa/"
 inpF<-paste0(inpD,"CamillaWSRTdataMedianUniprotGOmin2pv25p.txt")
-inpO<-paste0(inpF,"MappedJJN3-MCCAR-NB4-MO.csv")
+inpO<-paste0(inpF,"Mapped-MCCAR-NB4-MO.csv")
 dataSezWP <- read.csv(inpO,row.names = 1)
 summary(dataSezWP)
 inpOm<-paste0(inpF,"MappedSel.csv")
@@ -103,6 +103,13 @@ hist((as.matrix(dataV)))
 limma::vennDiagram(dataV<selThr)
 #library(ggplot2)
 ggplot2::ggsave(file=paste0(inpF,"venn.svg"),plot=limma::vennDiagram(dataV<selThr))#,  width=6, height=6)
+```
+
+```{r sel-WSRT-onevar-in3}
+selThr<-0.3
+dataS<-data[(data$ONO_.WSRT<selThr) | (data$CCAR_.WSRT<selThr) | (data$NB_.WSRT<selThr),]
+hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
+limma::vennDiagram(dataS[,c(1,2,3,6)]<selThr)
 ```
 
 ```{r sel-WSRT-onevar}
@@ -476,6 +483,7 @@ write.csv(cbind(rownames(dataSel),dataSel),paste0(inpF,group,".dataSel.csv"),row
 assign(group,dataSel)
 #install.packages("scales")
 data_selr=scales::squish(as.matrix(dataSel),c(-3,3))
+data_selr=rbind(data_selr,MIN=rep(-3,ncol(data_selr)),MAX=rep(3,ncol(data_selr)))
 data_selr[is.na(data_selr)]=0
 summary(data_selr)
 hist(as.matrix(data_selr))
@@ -597,6 +605,64 @@ my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1
               "gray", "gray",
               c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
 svgPHC<-pheatmap::pheatmap(data_selr,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+#install.packages("ggplot2")
+#install.packages("svglite")
+ggplot2::ggsave(file=paste0(inpF,group,"clusterPlot.svg"),plot=svgPHC)#,  
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,group,".data_selr.csv"),row.names = F)
+assign(groupData,data_selr)
+```
+
+```{r list-metabolism, echo = FALSE}
+#install.packages("readxl")
+listMetabo<-readxl::read_xlsx(paste0(inpD,"/Liste.xlsx"),col_names = F)
+summary(listMetabo)
+listMetabo$...1=gsub(" ", "", listMetabo$...1)
+UniprotLM<-listMetabo#listMetabo[!is.na(listMetabo$...1),1]
+s <- strsplit(UniprotLM$...1, split = ",")
+UniprotLM<-data.frame(gene=sapply(s, "[", 1),protein=sapply(s, "[", 2))
+UniprotLM$line=1:nrow(UniprotLM)
+group<-""
+groupData<-paste0(group,"_data_selr")
+dataSel <- dataSezWP[(grep(group, dataSezWP$name,ignore.case=TRUE)),] 
+pathwayN<-sapply(strsplit(row.names(dataSel),";"), `[`, 2)
+dataSel<-cbind.data.frame(dataSel,pathwayN)
+dataSel=subset(dataSel, !duplicated(pathwayN))
+dataSel<-merge(UniprotLM,dataSel,by.x="protein",by.y="pathwayN",all.x=T)
+dataSel<-dataSel[order(dataSel$line),]
+row.names(dataSel)<-dataSel$gene
+dataSel<-dataSel[,-c(1)]
+dataSel<-dataSel[,-c(1)]
+dataSel<-dataSel[,-c(1)]
+summary(dataSel)
+limma::vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main=group,counts.col = "red")
+ggplot2::ggsave(file=paste0(inpF,group,".vennPlot.svg"),plot=limma::vennDiagram(dataSel[,c(3,4,5,8)]<selThr,main=group,counts.col = "red"))#,  
+dataSel<-dataSel[,grep("_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("D_x.y_",colnames(dataSel))]
+dataSel<-dataSel[,-grep("C_x.y_",colnames(dataSel))]
+#rownames(dataSel)<-paste(rownames(dataSel),group,sep="_")
+summary(dataSel)
+write.csv(cbind(rownames(dataSel),dataSel),paste0(inpF,group,".dataSel.csv"),row.names = F)
+#assign(group,dataSel)
+#install.packages("scales")
+data_selr=scales::squish(as.matrix(dataSel),c(-3,3))
+data_selr[is.na(data_selr)]=0
+summary(data_selr)
+hist(as.matrix(data_selr))
+#install.packages("pheatmap")
+data_selr=data_selr[,c(10,11,12,4,5,6,7,8,9,1,2,3)]
+summary(data_selr)
+hist(data_selr)
+rn<-sub(";"," ",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+svgPHC<-pheatmap::pheatmap(data_selr,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=F,cluster_rows=F,color=my_palette,fontsize_col=6)#,labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
 #install.packages("ggplot2")
 #install.packages("svglite")
 ggplot2::ggsave(file=paste0(inpF,group,"clusterPlot.svg"),plot=svgPHC)#,  
