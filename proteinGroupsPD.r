@@ -1,7 +1,7 @@
 #parse argument(s)
-print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <SILAC>")
+print("USAGE:Rscript proteinGroupsPD.r <complete path to *_Proteins.txt file>")
 print("default LFQ")
-#Rscript proteinGroups.r /home/animeshs/promec/promec/Qexactive/LARS/2019/oktober/Kristine\ Sonja/combined/txt/proteinGroups.txt SILAC
+#Rscript proteinGroupsPD.r F:\201015_IP\QE\IP\201015_Martin_IP_CHAPS-ATP-synthase-(1)_Proteins.txt
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args[1])
@@ -10,22 +10,81 @@ print(args[2])
 if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #read
-#inpF<-file.path("L:/promec/Animesh/carona_war/20200219_KKL_SARS_CoV2_pool1_F_Proteins.txt")
+#inpF<-file.path("F:/201015_IP/QE/IP/201015_Martin_IP_CHAPS-ATP-synthase-(1)_Proteins.txt")
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
-#select raw ratios
-#selection<-"Abundance.Ratio."
-print(selection)
-intensity<-as.matrix(data[,grep(selection,colnames(data))])
+table(data$Marked.as)
+print("Selecting Raw Intensity Values(s)")
+selectRaw<-"Abundance."
+if(sum(grep(selectRaw,colnames(data)))>0){intensity<-as.matrix(data[,grep(selectRaw,colnames(data))])}  else{print('Neither Abundance[raw] nor scaled columns detected!')}
 protNum<-1:ncol(intensity)
-colnames(intensity)=paste(protNum,sub(selection,"",colnames(intensity)),sep="_")
-intensity<-as.matrix(intensity[,-grep("Adj.",colnames(intensity))])
-summary(intensity)
-log2LFQ<-log2(intensity)
+colnames(intensity)=paste(protNum,sub(selectRaw,"",colnames(intensity)),sep="_")
+intensityLFQ<-log2(intensity)
+intensityLFQ[intensityLFQ==-Inf]=NA
+summary(intensityLFQ)[nrow(summary(intensityLFQ)),]
+#hist(intensity[,1])
+#clean
+data = data[!data[["Contaminant"]]=="True",]
+dim(data)
+data = data[data[["Protein.FDR.Confidence.Combined"]]=="High",]
+dim(data)
+print("Removed potential.contaminant")
+#data = data[!data[["Checked"]]=="True",]
+#dim(data)
+protNum<-1:nrow(data)
+row.names(data)<-paste(protNum,data$FASTA.Title.Lines,protNum,sep=";")
+print("Converted Fasta.headers to rownames")
+#summary(data)
+#select from arg[]
+if(length(args)==1){
+  selection="LFQ.intensity";print(paste("No columns to select, using",selection))
+  LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+  protNum<-1:ncol(LFQ)
+  colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+} else if (args[2]=="SILAC"){
+  selection1="Ratio."
+  LFQ<-as.matrix(data[,grep(selection1,colnames(data))])
+  selection2=".normalized."
+  LFQ<-as.matrix(LFQ[,grep(selection2,colnames(LFQ))])
+  selection<-paste(selection1,selection2)
+  LFQ<-apply(LFQ,2, as.numeric)
+  rownames(LFQ)<-rownames(data)
+  colnames(LFQ)=sub(selection1,"",colnames(LFQ))
+  colnames(LFQ)=sub(selection2,"",colnames(LFQ))
+  protNum<-1:ncol(LFQ)
+  colnames(LFQ)=paste(protNum,colnames(LFQ),protNum,sep="_")
+  print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))
+}
+summary(LFQ)
+dim(LFQ)
+#select certain marker proteins and calculate their intensity proportion, e.g. using histone as a protein ruler http://www.coxdocs.org/doku.php?id=perseus:user:plugins:proteomicruler
+
+#select certain marker proteins and calculate their intensity proportion, e.g. using histone as a protein ruler http://www.coxdocs.org/doku.php?id=perseus:user:plugins:proteomicruler
+LFQhistone<-LFQ[grep("histone",row.names(LFQ),ignore.case = TRUE),]
+#summary(LFQhistone)
+print("Proportion of histone(s)")
+dim(LFQhistone)
+if(!is.null(dim(LFQhistone))){colSums(LFQhistone)/colSums(LFQ)*100}
+LFQactin<-LFQ[grep("actin",row.names(LFQ),ignore.case = TRUE),]
+#summary(LFQactin)
+print("Proportion of actin(s)")
+dim(LFQactin)
+if(!is.null(dim(LFQactin))){colSums(LFQactin)/colSums(LFQ)*100}
+log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
+dim(log2LFQ)
 log2LFQt<-na.omit(log2LFQ)
+dim(log2LFQ)
+summary(log2LFQ)
+summary(intensityLFQ)
 print(paste("Selected and log2 transformed columns",selection))
 if(dim(log2LFQ)[2]>0){
+  outP<-paste(inpF,selection,"pdf",sep = ".")
+  pdf(outP)
+  boxplot(intensity)
+  boxplot(intensityLFQ)
+  boxplot(log2LFQ)
+  boxplot(2^log2LFQ)
   NAcols<-colSums(is.na(log2LFQ))
   NAcols<-c(NAcols, mean(NAcols),median(NAcols),sum(is.na(NAcols)),sd(NAcols)/mean(NAcols),sum(NAcols),"MissingValue(s)")
   print(paste("Summarised missing-values in log2 transformed columns",t(NAcols)))
@@ -48,8 +107,6 @@ if(dim(log2LFQ)[2]>0){
   write.csv(rbind(cbind(log2LFQ,Means,Medians,NAs,CVs,Sums,uniprot),NAcols),outF)
   print(paste("Log2 transform of",selection,"columns written to",outF))
   #plot raw intensity histogram
-  outP<-paste(inpF,selection,"pdf",sep = ".")
-  pdf(outP)
   #i=1
   for(i in 1:dim(intensity)[2]){hist(log2(intensity[,i]),main=paste("File:",colnames(intensity)[i]),xlab="log2 raw intensity")}
   #plot LFQ histogram
@@ -65,6 +122,7 @@ if(dim(log2LFQ)[2]>0){
   scale=3
   set.seed(scale)
   log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ)-scale,sd=sd(log2LFQ)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
+  log2LFQimp[log2LFQimp<0]<-0
   hist(log2LFQimp,main=paste("Mean:",mean(log2LFQimp),"SD:",sd(log2LFQimp)),breaks=round(max(log2LFQ)))
   print(paste("Imputation constant:",mean(log2LFQimp),"sd:",sd(log2LFQimp)))
   hist(log2LFQ,breaks=round(max(log2LFQ)), col=rgb(0,1,0,0.5))
@@ -100,3 +158,4 @@ if(dim(log2LFQ)[2]>0){
   dev.off()
   print(paste("Histogram, PCA, Heatmap of Log2 transform of",selection,"column(s) written to",outP))
 }
+summary(warnings())

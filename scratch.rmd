@@ -48,6 +48,14 @@ dir.exists(Sys.getenv('R_LIBS_USER'))
 update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 ```
 
+```{r}
+#https://github.com/hrbrmstr/hrbrthemes
+install.packages("hrbrthemes", repos = c("https://cinc.rud.is", "https://cloud.r-project.org/"))
+packageVersion("hrbrthemes") # current verison ## [1] '0.8.6'
+ggplot2::ggplot(data, ggplot2::aes(log2(Abundances.Normalized.F1.Sample), log2(Abundances.Normalized.F3.Sample))) +ggplot2::geom_point() +ggplot2::labs(x="F1", y="F3",title="F123",subtitle="",caption="TestFT") + hrbrthemes:: theme_ft_rc()
+```
+
+
 ```{r MR}
 #https://bioconductor.org/books/3.12/SingleRBook/annotation-diagnostics.html#based-on-the-deltas-across-cells
 # Cholesky Factorization
