@@ -47,8 +47,100 @@ dir.exists(Sys.getenv('R_LIBS_USER'))
 .libPaths()[1]"
 update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 ```
+```{r HGNChelper}
+#https://github.com/waldronlab/HGNChelper
+#install.packages("HGNChelper")
+human = c("FN1", "tp53", "UNKNOWNGENE","7-Sep", "9/7", "1-Mar", "Oct4", "4-Oct","OCT4-PG4", "C19ORF71", "C19orf71")
+HGNChelper::checkGeneSymbols(human)
+HGNChelper::checkGeneSymbols(c("1-Feb", "Pzp", "A2m", "E430008G22Rik"), species="mouse")
+HGNChelper::getCurrentHumanMap() 
+getCurrentMouseMap()
+dim(mouse.table)
+#> [1] 371392      2
+dim(hgnc.table)
+#> [1] 99492     3
+```
 
-```{r}
+```{r marker}
+#https://cole-trapnell-lab.github.io/garnett/docs/
+BiocManager::install(c("monocle"))
+install.packages("devtools")
+BiocManager::install(c("org.Mm.eg.db"))
+devtools::install_github("cole-trapnell-lab/garnett")
+```
+
+```{r conditional}
+#https://cran.r-project.org/web/packages/coin/vignettes/coin.pdf
+install.packages("coin")
+library("coin")
+YOY <- data.frame(length = c(46, 28, 46, 37, 32, 41, 42, 45, 38, 44,42, 60, 32, 42, 45, 58, 27, 51, 42, 52,38, 33, 26, 25, 28, 28,26, 27, 27, 27,31, 30, 27, 29, 30, 25, 25, 24, 27, 30),site = gl(4, 10, labels = as.roman(1:4)))
+it <- independence_test(length ~ site, data = YOY,ytrafo = function(data) trafo(data, numeric_trafo = rank_trafo),teststat = "quadratic")
+#data: length by site (I, II, III, IV)
+#chi-squared = 22.852, df = 3, p-value = 4.335e-05
+statistic(it, type = "linear")
+expectation(it)
+covariance(it)
+kt <- kruskal_test(length ~ site, data = YOY,distribution = approximate(nresample = 10000))
+```
+
+```{r corrplot}
+install.packages("corrplot")
+correlationMatrix <- cor(log2LFQ)
+corrplot::corrplot(correlationMatrix, order = 'hclust', addrect = 2, addCoef.col = 'white', number.cex = 0.7) 
+```
+
+```{r prior}
+#https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf
+install.packages("lme4")
+fm1 <- lme4::lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
+```
+```{r limma}
+#http://compgenomr.github.io/book/how-to-test-for-differences-between-samples.html#randomization-based-testing-for-difference-of-the-means
+set.seed(100)
+
+#sample data matrix from normal distribution
+
+gset=rnorm(3000,mean=200,sd=70)
+data=matrix(gset,ncol=6)
+
+# set groups
+group1=1:3
+group2=4:6
+n1=3
+n2=3
+dx=rowMeans(data[,group1])-rowMeans(data[,group2])
+  
+require(matrixStats)
+
+# get the esimate of pooled variance 
+stderr = sqrt( (rowVars(data[,group1])*(n1-1) + 
+       rowVars(data[,group2])*(n2-1)) / (n1+n2-2) * ( 1/n1 + 1/n2 ))
+
+# do the shrinking towards median
+mod.stderr = (stderr + median(stderr)) / 2 # moderation in variation
+
+# esimate t statistic with moderated variance
+t.mod <- dx / mod.stderr
+
+# calculate P-value of rejecting null 
+p.mod = 2*pt( -abs(t.mod), n1+n2-2 )
+
+# esimate t statistic without moderated variance
+t = dx / stderr
+
+# calculate P-value of rejecting null 
+p = 2*pt( -abs(t), n1+n2-2 )
+
+par(mfrow=c(1,2))
+hist(p,col="cornflowerblue",border="white",main="",xlab="P-values t-test")
+mtext(paste("signifcant tests:",sum(p<0.05))  )
+hist(p.mod,col="cornflowerblue",border="white",main="",
+     xlab="P-values mod. t-test")
+mtext(paste("signifcant tests:",sum(p.mod<0.05))  )
+
+```
+
+```{r hrbrthemes}
 #https://github.com/hrbrmstr/hrbrthemes
 install.packages("hrbrthemes", repos = c("https://cinc.rud.is", "https://cloud.r-project.org/"))
 packageVersion("hrbrthemes") # current verison ## [1] '0.8.6'
