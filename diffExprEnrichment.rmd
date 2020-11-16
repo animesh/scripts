@@ -252,9 +252,9 @@ wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
 wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
 uniprots <- Rkeys(org.Hs.egUNIPROT)
 uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
-dataSez<-merge(dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
-dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
-dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
+dataSez<-merge(sort=F,dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
+dataSez<-merge(sort=F,dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
+dataSezWP<-merge(sort=F,dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
 #rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
 rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
 #dataS<-dataSezWP
@@ -770,7 +770,7 @@ ggsave(file=paste0(inpD,hdr,"volcanoPlot.svg"),plot=g)#,  width=6, height=6)
 ```{r t-test-fraction-plot, echo = FALSE}
 #dsub=data[grep("apo",data$Fasta.headers),]
 dsub=data[(grepl("apo",data$Fasta.headers))|(grepl("alb",data$Fasta.headers)),]
-dsub=merge(dsub,ttest.results,by="row.names")
+dsub=merge(sort=F,dsub,ttest.results,by="row.names")
 rn<-strsplit(dsub$Row.names, ';')
 row.names(dsub) <- sapply(rn, "[", 1)#rn[[1]]
 g = ggplot(ttest.results,aes(logFC,-log10(P.Value)))+geom_point(aes(color=adj.pval),size=0.15) + theme_bw(base_size=10) +geom_text(data=dsub,aes(label=row.names(dsub)), vjust=0.5, size=1.5) + xlab("Log2 Fold Change (Red-White)")  + ylab("-Log10 P-value") + ggtitle("Differentially expressed proteins") + scale_size_area()+scale_color_gradient(low="#FF9933", high="#99CC66")
