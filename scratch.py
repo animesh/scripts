@@ -1,3 +1,148 @@
+#code https://towardsdatascience.com/sqlalchemy-python-tutorial-79a577141a91
+#data https://github.com/animesh/datacamp/blob/master/census.sqlite?raw=true
+#check https://sqlite.org/cli.html
+#pip install sqlalchemy
+import sqlalchemy as db
+engine = db.create_engine('sqlite:///C:\\Users\\animeshs\\GD\\scripts\\census.sqlite')
+connection = engine.connect()
+metadata = db.MetaData()
+census = db.Table('census', metadata, autoload=True, autoload_with=engine)
+print(census.columns.keys())
+print(repr(metadata.tables['census']))
+query = db.select([census])
+ResultProxy = connection.execute(query)
+ResultSet = ResultProxy.fetchall()
+ResultSet[:3]
+#Equivalent to 'SELECT * FROM census'
+while flag:
+    partial_results = ResultProxy.fetchmany(50)
+    if(partial_results == []):
+	flag = False
+ResultProxy.close()
+female_pop = db.func.sum(db.case([(census.columns.sex == 'F', census.columns.pop2000)],else_=0))
+query = db.select([female_pop/total_pop * 100])
+total_pop = db.cast(db.func.sum(census.columns.pop2000), db.Float)
+result = connection.execute(query).scalar()
+print(result)#51.09467432293413v51.09467432293413
+state_fact = db.Table('state_fact', metadata, autoload=True, autoload_with=engine)
+query = db.select([census.columns.pop2008, state_fact.columns.abbreviation])
+results = connection.execute(query).fetchall()
+df = pd.DataFrame(results)
+df.columns = results[0].keys()
+df.head(5)
+sql = "SELECT * FROM census;"
+df = pd.read_sql_query(sql, engine)#.set_index('index')
+# shuffle dataset, preserving index
+df.sample(6)
+
+#sql = "SELECT TOP 1 * FROM census ORDER BY newid()"
+#https://stackoverflow.com/a/1253576
+sql = "SELECT * FROM census ORDER BY RANDOM() limit 6"
+pd.read_sql_query(sql, engine)#.set_index('index')
+# shuffle dataset, preserving index
+dfSample = df.sample(5)
+
+engine = db.create_engine('sqlite:///test.sqlite') #Create test.sqlite automatically
+connection = engine.connect()
+metadata = db.MetaData()
+emp = db.Table('emp', metadata,
+              db.Column('Id', db.Integer()),
+              db.Column('name', db.String(255), nullable=False),
+              db.Column('salary', db.Float(), default=100.0),
+              db.Column('active', db.Boolean(), default=True)
+              )
+metadata.create_all(engine) #Creates the table
+#Inserting record one by one
+query = db.insert(emp).values(Id=1, name='naveen', salary=60000.00, active=True)
+ResultProxy = connection.execute(query)
+In [ ]:
+#Inserting many records at ones
+query = db.insert(emp)
+values_list = [{'Id':'2', 'name':'ram', 'salary':80000, 'active':False},
+               {'Id':'3', 'name':'ramesh', 'salary':70000, 'active':True}]
+ResultProxy = connection.execute(query,values_list)
+In [43]:
+results = connection.execute(db.select([emp])).fetchall()
+df = pd.DataFrame(results)
+df.columns = results[0].keys()
+df.head(4)
+
+train_frac = 0.9
+test_frac = 1 - train_frac
+
+trn_cutoff = int(len(df) * train_frac)
+
+df_trn = df[:trn_cutoff]
+df_tst = df[trn_cutoff:]
+
+df_trn.to_sql('trn_set', engine, if_exists='replace')
+df_tst.to_sql('tst_set', engine, if_exists='replace')
+
+df_online = pd.read_csv("data/online.csv")
+df_online.to_sql('Online', engine, if_exists='replace')
+
+df_order = pd.read_csv("data/Order.csv")
+df_order.to_sql('Purchase', engine, if_exists='replace')
+#select count(*) from trn_set;
+#select count(*) from tst_set;
+#select count(*) from tst_set;select * from trn_set limit 5;
+USE Shutterfly;
+
+DROP TABLE IF EXISTS features_group_1;
+
+CREATE TABLE IF NOT EXISTS features_group_1
+SELECT o.index
+  ,LEFT(o.dt, 10) AS day
+  ,COUNT(*) AS order_count
+  ,SUM(p.revenue) AS revenue_sum
+  ,MAX(p.revenue) AS revenue_max
+  ,MIN(p.revenue) AS revenue_min
+  ,SUM(p.revenue) / COUNT(*) AS rev_p_order
+  ,COUNT(p.prodcat1) AS prodcat1_count
+  ,COUNT(p.prodcat2) AS prodcat2_count
+  ,DATEDIFF(o.dt, MAX(p.orderdate)) AS days_last_order
+  ,DATEDIFF(o.dt, MAX(CASE WHEN p.prodcat1 IS NOT NULL THEN p.orderdate ELSE NULL END)) AS days_last_prodcat1
+  ,DATEDIFF(o.dt, MAX(CASE WHEN p.prodcat2 IS NOT NULL THEN p.orderdate ELSE NULL END)) AS days_last_prodcat2
+  ,SUM(p.prodcat1 = 1) AS prodcat1_1_count
+  ,SUM(p.prodcat1 = 2) AS prodcat1_2_count
+  ,SUM(p.prodcat1 = 3) AS prodcat1_3_count
+  ,SUM(p.prodcat1 = 4) AS prodcat1_4_count
+  ,SUM(p.prodcat1 = 5) AS prodcat1_5_count
+  ,SUM(p.prodcat1 = 6) AS prodcat1_6_count
+  ,SUM(p.prodcat1 = 7) AS prodcat1_7_count
+FROM Online AS o
+JOIN Purchase AS p
+  ON o.custno = p.custno
+  AND p.orderdate <= o.dt
+GROUP BY o.index;
+
+ALTER TABLE `features_group_1`
+  ADD KEY `ix_features_group_1_index` (`index`);
+#show tables;
+def load_dataset(split="trn_set", limit=None, ignore_categorical=False):
+    sql = """
+    SELECT o.*, f1.*, f2.*, f3.*, f4.*,
+    EXTRACT(MONTH FROM o.dt) AS month
+    FROM %s AS t
+    JOIN Online AS o
+        ON t.index = o.index
+    JOIN features_group_1 AS f1
+        ON t.index = f1.index
+    JOIN features_group_2 AS f2
+        ON t.index = f2.index
+    JOIN features_group_3 AS f3
+        ON t.index = f3.index
+    JOIN features_group_4 AS f4
+        ON t.index = f4.index
+    """%split
+    if limit:
+        sql += " LIMIT %i"%limit
+
+    df = pd.read_sql_query(sql.replace('\n', " ").replace("\t", " "), engine)
+    df.event1 = df.event1.fillna(0)
+    X = df.drop(["index", "event2", "dt", "day", "session", "visitor", "custno"], axis=1)
+    Y = df.event2
+    return X, Y
 #https://www.tensorflow.org/probability/examples/Modeling_with_JointDistribution
 import numpy as np
 import tensorflow.compat.v2 as tf
@@ -84,6 +229,16 @@ samples, sampler_stat = run_chain(init_state, step_size,
         target_log_prob_fn, unconstraining_bijectors,
         num_steps=n_steps,
         burnin=n_burns)
+
+#Explaining ML models https://www.youtube.com/watch?v=P3n8CVbb01Q&t=1304s
+#Manifold
+#What-IF
+#CF-alibi
+#Interpret
+from interpret import show#https://youtu.be/P3n8CVbb01Q?t=1249
+from interpret.glassbox import ExplainableBoostingClassifier
+from alibi.explainers #https://youtu.be/P3n8CVbb01Q?t=1018
+
 
 #https://www.statsmodels.org/stable/gettingstarted.html
 import statsmodels.api as sm
@@ -214,102 +369,6 @@ wf.fit(rossi, "week", "arrest", formula="age + fin + paro * mar", ancillary="age
 wf.print_summary(columns=['coef', 'se(coef)', '-log2(p)'])
 #It's not displayed by default (that may change), but with the at_risk_counts kwarg in the call to KaplanMeierFitter.plot.
 
-#https://www.kdnuggets.com/2020/07/feature-engineering-sql-python-hybrid-approach.html
-#mysql -uroot -p1234567
-#create database Shutterfly;
-#pip install sqlalchemy
-from sqlalchemy import create_engine
-import pandas as pd
-username = "root"
-password = "1234567"
-port = 3306
-database = "Shutterfly"
-engine = create_engine('mysql+mysqldb://%s:%s@localhost:%i/%s'
-                       %(username, password, port, database))
-#use shutterfly;
-#show tables;
-sql = "SELECT `index`, event2 FROM Online;"
-df = pd.read_sql_query(sql, engine).set_index('index')
-
-# shuffle dataset, preserving index
-df = df.sample(frac=1)
-
-train_frac = 0.9
-test_frac = 1 - train_frac
-
-trn_cutoff = int(len(df) * train_frac)
-
-df_trn = df[:trn_cutoff]
-df_tst = df[trn_cutoff:]
-
-df_trn.to_sql('trn_set', engine, if_exists='replace')
-df_tst.to_sql('tst_set', engine, if_exists='replace')
-
-df_online = pd.read_csv("data/online.csv")
-df_online.to_sql('Online', engine, if_exists='replace')
-
-df_order = pd.read_csv("data/Order.csv")
-df_order.to_sql('Purchase', engine, if_exists='replace')
-#select count(*) from trn_set;
-#select count(*) from tst_set;
-#select count(*) from tst_set;select * from trn_set limit 5;
-USE Shutterfly;
-
-DROP TABLE IF EXISTS features_group_1;
-
-CREATE TABLE IF NOT EXISTS features_group_1
-SELECT o.index
-  ,LEFT(o.dt, 10) AS day
-  ,COUNT(*) AS order_count
-  ,SUM(p.revenue) AS revenue_sum
-  ,MAX(p.revenue) AS revenue_max
-  ,MIN(p.revenue) AS revenue_min
-  ,SUM(p.revenue) / COUNT(*) AS rev_p_order
-  ,COUNT(p.prodcat1) AS prodcat1_count
-  ,COUNT(p.prodcat2) AS prodcat2_count
-  ,DATEDIFF(o.dt, MAX(p.orderdate)) AS days_last_order
-  ,DATEDIFF(o.dt, MAX(CASE WHEN p.prodcat1 IS NOT NULL THEN p.orderdate ELSE NULL END)) AS days_last_prodcat1
-  ,DATEDIFF(o.dt, MAX(CASE WHEN p.prodcat2 IS NOT NULL THEN p.orderdate ELSE NULL END)) AS days_last_prodcat2
-  ,SUM(p.prodcat1 = 1) AS prodcat1_1_count
-  ,SUM(p.prodcat1 = 2) AS prodcat1_2_count
-  ,SUM(p.prodcat1 = 3) AS prodcat1_3_count
-  ,SUM(p.prodcat1 = 4) AS prodcat1_4_count
-  ,SUM(p.prodcat1 = 5) AS prodcat1_5_count
-  ,SUM(p.prodcat1 = 6) AS prodcat1_6_count
-  ,SUM(p.prodcat1 = 7) AS prodcat1_7_count
-FROM Online AS o
-JOIN Purchase AS p
-  ON o.custno = p.custno
-  AND p.orderdate <= o.dt
-GROUP BY o.index;
-
-ALTER TABLE `features_group_1`
-  ADD KEY `ix_features_group_1_index` (`index`);
-#show tables;
-def load_dataset(split="trn_set", limit=None, ignore_categorical=False):
-    sql = """
-    SELECT o.*, f1.*, f2.*, f3.*, f4.*,
-    EXTRACT(MONTH FROM o.dt) AS month
-    FROM %s AS t
-    JOIN Online AS o
-        ON t.index = o.index
-    JOIN features_group_1 AS f1
-        ON t.index = f1.index
-    JOIN features_group_2 AS f2
-        ON t.index = f2.index
-    JOIN features_group_3 AS f3
-        ON t.index = f3.index
-    JOIN features_group_4 AS f4
-        ON t.index = f4.index
-    """%split
-    if limit:
-        sql += " LIMIT %i"%limit
-
-    df = pd.read_sql_query(sql.replace('\n', " ").replace("\t", " "), engine)
-    df.event1 = df.event1.fillna(0)
-    X = df.drop(["index", "event2", "dt", "day", "session", "visitor", "custno"], axis=1)
-    Y = df.event2
-    return X, Y
 #https://gist.githubusercontent.com/shawlu95/73623e2aafb529413dccf89181131b3c/raw/d01ef96ce7ac1e75b34ca39d6fe6bffd6708461b/05_sql_feature_engineering_pull.py
 X_trn, Y_trn = load_dataset("trn_set", limit=5)
 print(X_trn.head().T)
