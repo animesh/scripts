@@ -48,6 +48,19 @@ dir.exists(Sys.getenv('R_LIBS_USER'))
 update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 install.packages(c("rjson","data.table"))
 ```
+
+```{r compare}
+#https://www.tidyverse.org/blog/2020/10/waldo/ 
+x1 <- gh::gh("/repos/gaborcsardi/roxygenlabs")
+x2 <- gh::gh("/repos/gaborcsardi/roxygenlabs", .token = "")
+attr(x1, "response") <- NULL
+attr(x1, ".send_headers") <- NULL
+attr(x2, "response") <- NULL
+attr(x2, ".send_headers") <- NULL
+waldo::compare(x1, x2)
+```
+
+
 ```{r HGNChelper}
 #https://github.com/waldronlab/HGNChelper
 #install.packages("HGNChelper")
