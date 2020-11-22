@@ -1,26 +1,12 @@
-#pip install cptac
-import cptac
-cptac.list_datasets()
-cptac.download(dataset="endometrial")
-en = cptac.Endometrial()
-en.list_data()
-proteomics = en.get_proteomics()
-samples = proteomics.index
-proteins = proteomics.columns
-print("Samples:",samples[0:20].tolist()) #the first twenty samples
-print("Proteins:",proteins[0:20].tolist()) #the first twenty proteins
-proteomics.head()
-transcriptomics = en.get_transcriptomics()
-transcriptomics.head()
-clinical = en.get_clinical()
-clinical.head()
-clinical.loc[["C3L-00006","C3L-00361","C3L-01246", "C3L-00006.N","C3L-00361.N","C3L-01246.N"]]
-somatic_mutations = en.get_somatic_mutation()
-somatic_mutations.head()
-clinical = en.get_clinical()
-clinical.to_csv(path_or_buf="clinical_dataframe.tsv", sep='\t')
-help(en.join_omics_to_omics)
-
+#https://towardsdatascience.com/scientific-python-with-lambda-b207b1ddfcd1
+x = [5,10,15]
+f = lambda x : [z + 5 for z in x]
+print(f(x))
+#[10, 15, 20]
+f = lambda x, y : [w + i for w, i in zip(x, y)]
+from numpy import mean,std
+norm = lambda x : [(i-mean(x)) / std(x) for i in xt]
+norm(x)
 #code https://towardsdatascience.com/sqlalchemy-python-tutorial-79a577141a91
 #data https://github.com/animesh/datacamp/blob/master/census.sqlite?raw=true
 #check https://sqlite.org/cli.html
@@ -261,6 +247,7 @@ samples, sampler_stat = run_chain(init_state, step_size,
 from interpret import show#https://youtu.be/P3n8CVbb01Q?t=1249
 from interpret.glassbox import ExplainableBoostingClassifier
 from alibi.explainers #https://youtu.be/P3n8CVbb01Q?t=1018
+PDP-scikit learn
 
 
 #https://www.statsmodels.org/stable/gettingstarted.html

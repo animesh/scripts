@@ -1,3 +1,8 @@
+#https://towardsdatascience.com/scientific-python-with-lambda-b207b1ddfcd1
+norm(x) = [i = (i-mean(x)) / std(x) for i in xt]
+norm(x)
+norm(x::Array) = [i = (i-mean(x)) / std(x) for i in xt]
+norm(x::Int64) = (x - x) / std(x)
 #setup
 wget https://julialang-s3.julialang.org/bin/linux/x64/1.5/julia-1.5.0-beta1-linux-x86_64.tar.gz
 tar xvzf julia-1.5.0-beta1-linux-x86_64.tar.gz
