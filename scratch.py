@@ -1,3 +1,270 @@
+#https://towardsdatascience.com/introduction-to-plotnine-as-the-alternative-of-data-visualization-package-in-python-46011ebef7fe
+# Dataframe manipulation
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+# Data visualization with plotnine pip install plotnine
+from plotnine import *
+import plotnine
+plt.figure(figsize = (6.4,4.8))
+full_data = pd.read_csv('L:/promec/USERS/MarianneNymark/20200108_15-samples/QE/combined/txt/allPeptides.txtDP.csv')
+print('Dimension of full data:\n{}'.format(len(full_data)),'rows and {}'.format(len(full_data.columns)),'columns')
+full_data.head()
+full_data['Age']=full_data['Score']
+# Create a histogram
+(
+    ggplot(data = full_data[full_data['Age'].isna() == False])+
+    geom_histogram(aes(x = 'Age'),
+                   fill = '#c22d6d',
+                   bins = 20)+  # Set number of bin
+    labs(title = 'Histogram of Athlete Age',
+         subtitle = '1896 - 2016')+
+    xlab('Age')+
+    ylab('Frequency')+
+    theme_bw()
+)
+full_data['NOC']=full_data['Mass Difference']
+full_data['Year']=full_data['PEP']
+full_data['Medal']=full_data['Cluster Index']
+medal_noc = pd.crosstab([full_data['Year'], full_data['NOC']], full_data[' file'], margins = True).reset_index()
+medal_noc.columns.name = None
+medal_noc = medal_noc.drop([medal_noc.shape[0] - 1], axis = 0)
+medal_noc
+# 2 General champion
+medal_noc_year = medal_noc.loc[medal_noc.groupby('Year')['All'].idxmax()].sort_values('Year')
+medal_noc_year
+# Create a time series plot
+(
+    ggplot(data = medal_noc_year)+
+    geom_area(aes(x = 'Year',
+                  y = '200108_Nymark_FTSY5-I',
+                  group = 1),
+              size = 1,
+              fill = '#FFD700',
+              alpha = 0.7)+
+    geom_area(aes(x = 'Year',
+                  y = '200108_Nymark_FTSY5-II',
+                  group = 1),
+              size = 1,
+              fill = '#C0C0C0',
+              alpha = 0.8)+
+    geom_area(aes(x = 'Year',
+                  y = '200108_Nymark_FTSY5-III',
+                  group = 1),
+              size = 1,
+              fill = '#cd7f32',
+              alpha = 0.8)+
+    scale_x_discrete(breaks = range(1890,2020,10))+
+    labs(title = 'Area Chart of Medals Acquisition',
+         subtitle = '1896 - 2016')+
+    xlab('Year')+
+    ylab('Frequency')+
+    theme_bw()
+)
+medal_noc_count = pd.DataFrame(medal_noc_year['NOC'].value_counts()).reset_index()
+medal_noc_count.columns = ['NOC','Count']
+medal_noc_count
+# Create a bar plot
+(
+    ggplot(data = medal_noc_count)+
+    geom_bar(aes(x = 'NOC',
+                 y = 'Count'),
+             fill = np.where(medal_noc_count['NOC'] == 'USA', '#c22d6d', '#80797c'),
+             stat = 'identity')+
+    geom_text(aes(x = 'NOC',
+                  y = 'Count',
+                  label = 'Count'),
+              nudge_y = 0.7)+
+    labs(title = 'Bar plot of Countries that Won Olympics',
+         subtitle = '1896 - 2016')+
+    xlab('Country')+
+    ylab('Frequency')+
+    scale_x_discrete(limits = medal_noc_count['NOC'].tolist())+
+    theme_bw()
+)
+# Data manipulation before making bar plot
+# Top five sport of USA
+# 1 Cross tabulation of medals
+medal_sport = pd.crosstab([full_data['Year'], full_data['NOC'], full_data['Sport']], full_data['Medal'], margins=True).drop(index='All', axis=0).reset_index()
+medal_sport
+# 2 Cross tabulation of medals in sports
+medal_sport_usa = medal_sport[medal_sport['NOC'] == 'USA']
+medal_sport_usa_count = medal_sport_usa.groupby('Sport')['All'].count().reset_index()
+medal_sport_usa_count_10 = medal_sport_usa_count.sort_values('All', ascending=False).head(10)
+medal_sport_usa_count_10
+# Create a bar plot
+(
+    ggplot(data = medal_sport_usa_count_10)+
+    geom_bar(aes(x = 'Sport',
+                 y = 'All',
+                 width = 0.6),
+             fill = np.where(medal_sport_usa_count_10['Sport'] == 'Figure Skating', '#c22d6d', '#80797c'),
+             stat = 'identity')+
+    geom_text(aes(x = 'Sport',
+                  y = 'All',
+                  label = 'All'),
+              nudge_y = 0.9)+
+    labs(title = 'Bar plot of Top Ten Sport Won by USA',
+         subtitle = '1896 - 2016')+
+    xlab('Sport')+
+    ylab('Frequency')+
+  scale_x_discrete(limits = medal_sport_usa_count_10['Sport'].tolist()[::-1])+
+    theme_bw()+
+    coord_flip()
+)
+# Data manipulation
+data_usa_urs = full_data[full_data['NOC'].isin(['USA','URS'])]
+data_usa_urs = data_usa_urs[data_usa_urs['Age'].isna() == False].reset_index(drop = True)
+# Create a box plot
+(
+    ggplot(data = data_usa_urs)+
+    geom_boxplot(aes(x = 'NOC',
+                     y = 'Age'),
+                     fill = '#c22d6d',
+                 show_legend = False)+
+    labs(title = 'Box and Whisker plot of Age',
+         subtitle = '1896 - 2016')+
+    xlab('Country')+
+    ylab('Age')+
+    coord_flip()+
+    theme_bw()
+)
+# Data manipulation before making pie chart
+# Dominant season
+# 1 Select the majority season each year
+data_season_year = pd.crosstab(full_data['Year'], full_data['Season']).reset_index()
+data_season_year.columns.name = None
+data_season_year['Status'] = ['Summer' if data_season_year.loc[i,'Summer'] > data_season_year.loc[i,'Winter'] else 'Winter' for i in range(len(data_season_year))]
+data_season_year
+# 2 Dominant season each year
+dominant_season = data_season_year.groupby('Status')['Year'].count().reset_index()
+dominant_season
+# Customize colors and other settings
+colors = ['#c22d6d','#80797c']
+explode = (0.1,0) # Explode 1st slice
+# Create a pie chart
+plt.pie(dominant_season['Year'], explode = explode, labels = dominant_season['Status'], colors = colors, autopct = '%1.1f%%', shadow = False, startangle = 140)
+plt.title('Piechart of Dominant Season') # Title
+plt.axis('equal')
+plt.show()
+# Data manipulation before making time series plot
+left = medal_noc_year[medal_noc_year['NOC'] == 'USA']
+right = data_season_year
+data_season_usa = left.merge(right, on='Year', how='left')
+data_season_usa
+# Create a time series plot
+(
+    ggplot(data = data_season_usa)+
+    geom_line(aes(x = 'Year',
+                  y = 'All',
+                  group = 1),
+              size = 1.5,
+              color = '#c22d6d')+
+    geom_point(aes(x = 'Year',
+                   y = 'All',
+                   group = 1),
+               size = 3,
+               color = '#000000')+
+    geom_text(aes(x = 'Year',
+                  y = 'All',
+                  label = 'All'),
+              nudge_x = 0.35,
+              nudge_y = 10)+
+    scale_x_discrete(breaks = range(1900,2020,10))+
+    labs(title = 'Line Chart of Medals Acquisition (USA)',
+         subtitle = '1896 - 2016')+
+    xlab('Year')+
+    ylab('Frequency')+
+    theme_bw()
+)
+# Data manipulation before making scatter plot
+# 1 Select the majority season each year
+data_medals = full_data[full_data['Medal'].notna()]
+left = data_medals[(data_medals['NOC'] == 'USA') & (data_medals['Medal'].notna())].groupby('Year')['Sport'].nunique().reset_index()
+right = medal_noc[medal_noc['NOC'] == 'USA']
+sport_medal_usa = left.merge(right, on = 'Year', how = 'left')
+sport_medal_usa
+corr_sport_all = np.corrcoef(sport_medal_usa['Sport'], sport_medal_usa['All'])[0,1]
+# Print status
+print('Pearson correlation between number of sport and total of medals is {}'.format(round(corr_sport_all,3)))
+# Create a scatter plot
+(
+    ggplot(data = sport_medal_usa)+
+    geom_point(aes(x = sport_medal_usa['Sport'],
+                   y = sport_medal_usa['All'],
+                   size = sport_medal_usa['All']),
+               fill = '#c22d6d',
+               color = '#c22d6d',
+               show_legend = True)+
+    labs(title = 'Scatterplot Number of Sport and Total of Medals',
+         subtitle = '1896 - 2016')+
+    xlab('Number of Sport')+
+    ylab('Total of Medals')+
+    theme_bw()
+)
+# Data manipulation before making box and whisker plot
+data_usa_urs['Medal'] = data_usa_urs['Medal'].astype('category')
+data_usa_urs['Medal'] = data_usa_urs['Medal'].cat.reorder_categories(['Gold', 'Silver', 'Bronze'])
+data_usa_urs
+# Create a box and whisker plot
+(
+    ggplot(data = data_usa_urs[data_usa_urs['Medal'].isna() == False])+
+    geom_boxplot(aes(x = 'NOC',
+                     y = 'Age'),
+                 fill = '#c22d6d')+
+    labs(title = 'Box and Whisker plot of Age',
+         subtitle = '1896 - 2016')+
+    xlab('Country')+
+    ylab('Age')+
+    theme_bw()+
+    facet_grid('. ~ Medal')
+)
+
+#https://gist.githubusercontent.com/SajidLhessani/28b1a87351964ba5f310c5acf87204d5/raw/52b1aab88fe3555f78bfe7461c392738e5f9708e/full_live_graph.py
+#https://www.youtube.com/watch?v=95MZRSOccEg&feature=emb_title
+import numpy as np
+import pandas as pd
+#Data Source pip install yfinance
+import yfinance as yf
+#Data viz
+import plotly.graph_objs as go
+data = yf.download(tickers='SPY', period='1d', interval='1m')
+#Interval required 1 minute
+data['Middle Band'] = data['Close'].rolling(window=21).mean()
+data['Upper Band'] = data['Middle Band'] + 1.96*data['Close'].rolling(window=21).std()
+data['Lower Band'] = data['Middle Band'] - 1.96*data['Close'].rolling(window=21).std()
+#declare figure
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=data.index, y= data['Middle Band'],line=dict(color='blue', width=.7), name = 'Middle Band'))
+fig.add_trace(go.Scatter(x=data.index, y= data['Upper Band'],line=dict(color='red', width=1.5), name = 'Upper Band (Sell)'))
+fig.add_trace(go.Scatter(x=data.index, y= data['Lower Band'],line=dict(color='green', width=1.5), name = 'Lower Band (Buy)'))
+#Candlestick
+fig.add_trace(go.Candlestick(x=data.index,
+                open=data['Open'],
+                high=data['High'],
+                low=data['Low'],
+                close=data['Close'], name = 'market data'))
+# Add titles
+fig.update_layout(
+    title='SPY live share price evolution',
+    yaxis_title='Stock Price (USD per Shares)')
+# X-Axes
+fig.update_xaxes(
+    rangeslider_visible=True,
+    rangeselector=dict(
+        buttons=list([
+            dict(count=15, label="15m", step="minute", stepmode="backward"),
+            dict(count=45, label="45m", step="minute", stepmode="backward"),
+            dict(count=1, label="HTD", step="hour", stepmode="todate"),
+            dict(count=3, label="3h", step="hour", stepmode="backward"),
+            dict(step="all")
+        ])
+    )
+)
+#Show
+fig.show()
+
 #https://towardsdatascience.com/scientific-python-with-lambda-b207b1ddfcd1
 x = [5,10,15]
 f = lambda x : [z + 5 for z in x]

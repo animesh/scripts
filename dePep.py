@@ -2,7 +2,7 @@ import sys
 #!pip3 install pandas --user
 #!pip3 install pathlib --user
 from pathlib import Path
-if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.8.5\n","USAGE: python dePep.py <path to folder containing allPeptidex.txt file(s) like \"L:/combined/txt\" >")
+if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.8.5\n","USAGE: python dePep.py <path to folder containing allPeptides.txt file(s) like \"L:/combined/txt\" >")
 pathFiles = Path(sys.argv[1])
 #pathFiles = Path("L:/promec/USERS/MarianneNymark/20200108_15-samples/QE/combined/txt/")
 fileName='allPeptides.txt'
