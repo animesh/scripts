@@ -91,7 +91,7 @@ data_selr=scales::squish(data_selr,c(-3,3))
 summary(data_selr)
 hist(as.numeric(data_selr))
 #install.packages("pheatmap")
-svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
+svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=4,cluster_cols=F,cluster_rows=F)#clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
 ggplot2::ggsave(file=paste0(inpF,group,"dataSelClusterPlot.svg"),plot=svgPHC)#,  
 assign(paste0(group,"clusterData"),data_selr)
 write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,group,"dataSelClusterData.csv"),row.names=F)
