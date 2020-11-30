@@ -1,9 +1,12 @@
 ```{r data-wikiPathway-map}
+selThr<-0.3
 inpD<-"L:/promec/Animesh/TK/"
 inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
 #install.packages("readxl")
 data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
 #dataS<-as.matrix(data[,1:4],rownames=T)
+data<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT<selThr) | (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) | (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) | (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
 dataS<-as.matrix(data[,c(1:4,7:18)],rownames=T)
 dataS[dataS==0]=NA
 rn<-sub(";","",unlist(data[37]))
@@ -14,7 +17,6 @@ cn<-strsplit(colnames(dataS), "_")
 colnames(dataS)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
 summary(dataS)
 hist(dataS)
-selThr<-0.3
 limma::vennDiagram(dataS[,c(1:4)]<selThr,main="wikiD",counts.col = "red")
 ```
 
