@@ -3,7 +3,7 @@ selThr<-0.3
 inpD<-"L:/promec/Animesh/TK/"
 inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
 data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
-data<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT>selThr) & ((data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) & (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) & (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr)),]
+data<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT>selThr) & ((data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) & (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr)) | ((data$X6_APIM4_x.y_6_CTR110.WSRT<selThr)&(data$X3_APIM4_x.y_3_CTR14.WSRT<selThr))|((data$X6_APIM4_x.y_6_CTR110.WSRT<selThr)&(data$X4_APIM4_x.y_4_CTR17.WSRT<selThr)),]
 hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
 dataS<-as.matrix(data[,c(1:4,7:18)],rownames=T)
 dataS[dataS==0]=NA
