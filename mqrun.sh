@@ -2,8 +2,8 @@
 #make sure mqrun.xml is in the directory where the script is and CHANGE following paths according to the MaxQuant Installation, directory containing experiment raw files, fasta file and representative parameter file for that version respectively
 MAXQUANTCMD=$HOME/MaxQuant_1.6.8.0/MaxQuant/bin/MaxQuantCmd.exe
 CPU=16
-DATADIR=$HOME/Animesh/Pseudomonas/
-FASTAFILE=$HOME/Animesh/Pseudomonas/Pse.fasta.uniq.fasta
+DATADIR=$HOME/PD/USERS/Shengdong/201111_IP-and-inputs_12samples/QE/IP/
+FASTAFILE=$HOME/PD/FastaDB/uniprot-human-iso-oct20.fasta
 PARAMFILE=mqpar.xml
 #leave following empty to include ALL files
 PREFIXRAW=
