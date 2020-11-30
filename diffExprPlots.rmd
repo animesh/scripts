@@ -249,6 +249,136 @@ assign(paste0(group,"clusterData"),data_selr)
 write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,group,"dataSelClusterData.csv"),row.names=F)
 ```
 
+```{r ubiquitin-HSP/TUB, echo = FALSE}
+group<-"ubiquitin"
+genSel1<-"^HSP"
+genSel2<-"^TUB"
+groupData<-paste0(group,"_data_selr")
+dataSel <-data[grep(group, data$T..ont,ignore.case=TRUE),] 
+dataSel1 <-dataSel[grep(genSel1, dataSel$T..T..Gene.names),] 
+dataSel2 <-dataSel[grep(genSel2, dataSel$T..T..Gene.names),] 
+dataSel <- rbind(dataSel1,dataSel2)
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+limma::vennDiagram(dataSel[,c(1:4)]<selThr,main=group,counts.col = "red")
+ggplot2::ggsave(file=paste0(inpF,group,genSel1,genSel2,"dataSelVennPlot.svg"),plot=limma::vennDiagram(dataSel[,c(1:4)]<selThr,main=group,counts.col = "red"))
+rownames(dataSel)<-paste0(rownames(dataSel),group)
+summary(dataSel)
+assign(group,dataSel)
+write.csv(cbind(rownames(dataSel),dataSel),paste0(inpF,group,genSel1,genSel2,"dataSel.csv"),row.names=F)
+data_selr_s<-dataSel
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+limma::vennDiagram(data_selr_s[,c(1:4)]<selThr,main=group,counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+#install.packages("scales")
+data_selr[data_selr==0]=NaN
+data_selr=scales::squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
+ggplot2::ggsave(file=paste0(inpF,group,genSel1,genSel2,"dataSelClusterPlot.svg"),plot=svgPHC)#,  
+assign(paste0(group,"clusterData"),data_selr)
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,group,genSel1,genSel2,"dataSelClusterData.csv"),row.names=F)
+```
+
+```{r ubiquitin-HSP/TUB, echo = FALSE}
+group<-"ubiquitin"
+genSel1<-"^PSM"
+genSel2<-"^UB"
+groupData<-paste0(group,"_data_selr")
+dataSel <-data[grep(group, data$T..ont,ignore.case=TRUE),] 
+dataSel1 <-dataSel[grep(genSel1, dataSel$T..T..Gene.names),] 
+dataSel2 <-dataSel[grep(genSel2, dataSel$T..T..Gene.names),] 
+dataSel <- rbind(dataSel1,dataSel2)
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+limma::vennDiagram(dataSel[,c(1:4)]<selThr,main=group,counts.col = "red")
+ggplot2::ggsave(file=paste0(inpF,group,genSel1,genSel2,"dataSelVennPlot.svg"),plot=limma::vennDiagram(dataSel[,c(1:4)]<selThr,main=group,counts.col = "red"))
+rownames(dataSel)<-paste0(rownames(dataSel),group)
+summary(dataSel)
+assign(group,dataSel)
+write.csv(cbind(rownames(dataSel),dataSel),paste0(inpF,group,genSel1,genSel2,"dataSel.csv"),row.names=F)
+data_selr_s<-dataSel
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+limma::vennDiagram(data_selr_s[,c(1:4)]<selThr,main=group,counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+#install.packages("scales")
+data_selr[data_selr==0]=NaN
+data_selr=scales::squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
+ggplot2::ggsave(file=paste0(inpF,group,genSel1,genSel2,"dataSelClusterPlot.svg"),plot=svgPHC)#,  
+assign(paste0(group,"clusterData"),data_selr)
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,group,genSel1,genSel2,"dataSelClusterData.csv"),row.names=F)
+```
+
+```{r energy, echo = FALSE}
+group<-"energy"
+groupData<-paste0(group,"_data_selr")
+dataSel <- data[grep(group, data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+limma::vennDiagram(dataSel[,c(1:4)]<selThr,main=group,counts.col = "red")
+ggplot2::ggsave(file=paste0(inpF,group,"dataSelVennPlot.svg"),plot=limma::vennDiagram(dataSel[,c(1:4)]<selThr,main=group,counts.col = "red"))
+rownames(dataSel)<-paste0(rownames(dataSel),group)
+summary(dataSel)
+assign(group,dataSel)
+write.csv(cbind(rownames(dataSel),dataSel),paste0(inpF,group,"dataSel.csv"),row.names=F)
+data_selr_s<-dataSel
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+limma::vennDiagram(data_selr_s[,c(1:4)]<selThr,main=group,counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+#install.packages("scales")
+data_selr[data_selr==0]=NaN
+data_selr=scales::squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
+ggplot2::ggsave(file=paste0(inpF,group,"dataSelClusterPlot.svg"),plot=svgPHC)#,  
+assign(paste0(group,"clusterData"),data_selr)
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,group,"dataSelClusterData.csv"),row.names=F)
+```
+
+```{r glycolysis, echo = FALSE}
+group<-"glycolysis"
+groupData<-paste0(group,"_data_selr")
+dataSel <- data[grep(group, data$T..ont,ignore.case=TRUE),] 
+cn<-strsplit(colnames(dataSel), "_")
+colnames(dataSel)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+limma::vennDiagram(dataSel[,c(1:4)]<selThr,main=group,counts.col = "red")
+ggplot2::ggsave(file=paste0(inpF,group,"dataSelVennPlot.svg"),plot=limma::vennDiagram(dataSel[,c(1:4)]<selThr,main=group,counts.col = "red"))
+rownames(dataSel)<-paste0(rownames(dataSel),group)
+summary(dataSel)
+assign(group,dataSel)
+write.csv(cbind(rownames(dataSel),dataSel),paste0(inpF,group,"dataSel.csv"),row.names=F)
+data_selr_s<-dataSel
+row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
+limma::vennDiagram(data_selr_s[,c(1:4)]<selThr,main=group,counts.col = "red")
+data_selr<-as.matrix(data_selr_s[,c(7:18)])
+cn<-strsplit(colnames(data_selr), " ")
+colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
+#install.packages("scales")
+data_selr[data_selr==0]=NaN
+data_selr=scales::squish(data_selr,c(-3,3))
+summary(data_selr)
+hist(as.numeric(data_selr))
+#install.packages("pheatmap")
+svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
+ggplot2::ggsave(file=paste0(inpF,group,"dataSelClusterPlot.svg"),plot=svgPHC)#,  
+assign(paste0(group,"clusterData"),data_selr)
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,group,"dataSelClusterData.csv"),row.names=F)
+```
+
 ```{r heat, echo = FALSE}
 group<-"heat"
 groupData<-paste0(group,"_data_selr")
