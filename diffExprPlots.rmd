@@ -2,10 +2,8 @@
 selThr<-0.3
 inpD<-"L:/promec/Animesh/TK/"
 inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
-#install.packages("readxl")
 data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
-#dataS<-as.matrix(data[,1:4],rownames=T)
-data<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT<selThr) | (data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) | (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) | (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr),]
+data<-data[(data$X2_APIM4_x.y_2_CTR1_202003231907461.WSRT>selThr) & ((data$X3_APIM4_x.y_3_CTR14.WSRT<selThr) & (data$X4_APIM4_x.y_4_CTR17.WSRT<selThr) & (data$X6_APIM4_x.y_6_CTR110.WSRT<selThr)),]
 hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
 dataS<-as.matrix(data[,c(1:4,7:18)],rownames=T)
 dataS[dataS==0]=NA
@@ -153,6 +151,7 @@ data_selr=scales::squish(data_selr,c(-3,3))
 summary(data_selr)
 hist(as.numeric(data_selr))
 #install.packages("pheatmap")
+data_selr=rbind(data_selr,MIN=rep(-3,ncol(data_selr)),MAX=rep(3,ncol(data_selr)))
 svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
 ggplot2::ggsave(file=paste0(inpF,group,"dataSelClusterPlot.svg"),plot=svgPHC)#,  
 assign(paste0(group,"clusterData"),data_selr)
@@ -183,6 +182,7 @@ data_selr=scales::squish(data_selr,c(-3,3))
 summary(data_selr)
 hist(as.numeric(data_selr))
 #install.packages("pheatmap")
+data_selr=rbind(data_selr,MIN=rep(-3,ncol(data_selr)),MAX=rep(3,ncol(data_selr)))
 svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
 ggplot2::ggsave(file=paste0(inpF,group,"dataSelClusterPlot.svg"),plot=svgPHC)#,  
 assign(paste0(group,"clusterData"),data_selr)
