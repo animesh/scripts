@@ -3,7 +3,7 @@
 #CANNOT handle path containing spaces! create a symlink in such cases e.g. "ln -s $HOME/HF/Lars/2020/oktober/KATHLEEN\ PHOSTOT\ SHOTGUN\ B\ rest $HOME/HF/Lars/2020/oktober/KATHLEENPHOSTOTSHOTGUNBrest"
 MAXQUANTCMD=$HOME/MaxQuant_1.6.8.0/MaxQuant/bin/MaxQuantCmd.exe
 CPU=16
-DATADIR=$HOME/USERS/Synnøve/20201201_16samples/QE/APIM/
+DATADIR=$HOME/USERS/Synnøve/20201201_16samples/QE/BetaClamp/
 FASTAFILE=$HOME/FastaDB/Synnove.fasta
 PARAMFILE=mqpar.xml
 #leave following empty to include ALL files
