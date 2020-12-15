@@ -1,3 +1,246 @@
+#!pip install --upgrade pip
+#https://towardsdatascience.com/how-to-make-stunning-interactive-maps-with-python-and-folium-in-minutes-e3aff3b0ed43
+#!pip install folium
+#!wget https://www.betterdatascience.com/wp-content/uploads/2020/12/quakes.csv
+import pandas as pd
+df = pd.read_csv('quakes.csv')
+df.head()
+import folium
+quake_map = folium.Map(
+    location=[-16.495477, 174.9663341],
+    zoom_start=6,
+    width=1024,
+    height=600
+)
+quake_map
+quake_map = folium.Map(
+    location=[-16.495477, 174.9663341],
+    zoom_start=6,
+    tiles='Stamen Terrain',
+    width=1024,
+    height=600
+)
+quake_map
+quake_map = folium.Map(
+    location=[-16.495477, 174.9663341],
+    zoom_start=5,
+    tiles='Stamen Terrain',
+    width=1024,
+    height=600
+)
+for _, row in df.iterrows():
+    folium.CircleMarker(
+        location=[row['lat'], row['long']]
+    ).add_to(quake_map)
+
+quake_map
+def generate_color(magnitude):
+    if magnitude <= 5:
+        c_outline, c_fill = '#ffda79', '#ffda79'
+        m_opacity, f_opacity = 0.2, 0.1
+    else:
+        c_outline, c_fill = '#c0392b', '#e74c3c'
+        m_opacity, f_opacity = 1, 1
+    return c_outline, c_fill, m_opacity, f_opacity
+
+
+quake_map = folium.Map(
+    location=[-16.495477, 174.9663341],
+    zoom_start=5,
+    tiles='Stamen Terrain',
+    width=1024,
+    height=600
+)
+
+for _, row in df.iterrows():
+    c_outline, c_fill, m_opacity, f_opacity = generate_color(row['mag'])
+    folium.CircleMarker(
+        location=[row['lat'], row['long']],
+        color=c_outline,
+        fill=True,
+        fillColor=c_fill,
+        opacity=m_opacity,
+        fillOpacity=f_opacity,
+        radius=(row['mag'] ** 2) / 3
+    ).add_to(quake_map)
+
+quake_map
+def generate_color(magnitude):
+    if magnitude <= 5:
+        c_outline, c_fill = '#ffda79', '#ffda79'
+        m_opacity, f_opacity = 0.2, 0.1
+    else:
+        c_outline, c_fill = '#c0392b', '#e74c3c'
+        m_opacity, f_opacity = 1, 1
+    return c_outline, c_fill, m_opacity, f_opacity
+
+def generate_popup(magnitude, depth):
+    return f'''<strong>Magnitude:</strong> {magnitude}<br><strong>Depth:</strong> {depth} km'''
+
+
+quake_map = folium.Map(
+    location=[-16.495477, 174.9663341],
+    zoom_start=5,
+    tiles='Stamen Terrain',
+    width=1024,
+    height=600
+)
+
+for _, row in df.iterrows():
+    c_outline, c_fill, m_opacity, f_opacity = generate_color(row['mag'])
+    folium.CircleMarker(
+        location=[row['lat'], row['long']],
+        popup=generate_popup(row['mag'], row['depth']),
+        color=c_outline,
+        fill=True,
+        fillColor=c_fill,
+        opacity=m_opacity,
+        fillOpacity=f_opacity,
+        radius=(row['mag'] ** 2) / 3
+    ).add_to(quake_map)
+
+quake_map
+
+#https://github.com/slundberg/shap
+import sklearn
+!pip install shap
+import shap
+from sklearn.model_selection import train_test_split
+# print the JS visualization code to the notebook
+shap.initjs()
+# train a SVM classifier
+X_train,X_test,Y_train,Y_test = train_test_split(*shap.datasets.iris(), test_size=0.2, random_state=0)
+svm = sklearn.svm.SVC(kernel='rbf', probability=True)
+svm.fit(X_train, Y_train)
+# use Kernel SHAP to explain test set predictions
+explainer = shap.KernelExplainer(svm.predict_proba, X_train, link="logit")
+shap_values = explainer.shap_values(X_test, nsamples=100)
+
+# plot the SHAP values for the Setosa output of the first instance
+shap.force_plot(explainer.expected_value[0], shap_values[0][0,:], X_test.iloc[0,:], link="logit")
+# plot the SHAP values for the Setosa output of all instances
+shap.force_plot(explainer.expected_value[0], shap_values[0], X_test, link="logit")
+
+#https://www.kaggle.com/dark06thunder/credit-card-dataset https://www.youtube.com/watch?v=H9wYemw-ZAI
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+df = pd.read_csv('credit_dataset.csv')
+df.head()
+ax = df['TARGET'].value_counts().plot(kind='bar', figsize=(10, 6), fontsize=13, color='#087E8B')
+ax.set_title('Credit card fraud (0 = normal, 1 = fraud)', size=20, pad=30)
+ax.set_ylabel('Number of transactions', fontsize=14)
+for i in ax.patches:    ax.text(i.get_x() + 0.19, i.get_height() + 700, str(round(i.get_height(), 2)), fontsize=15)
+# Remap to integers
+df['GENDER'] = [0 if x == 'M' else 1 for x in df['GENDER']]
+df['CAR'] = [1 if x == 'Y' else 0 for x in df['CAR']]
+df['REALITY'] = [1 if x == 'Y' else 0 for x in df['REALITY']]
+# Create dummy variables
+dummy_income_type = pd.get_dummies(df['INCOME_TYPE'], prefix='INC_TYPE', drop_first=True)
+dummy_edu_type = pd.get_dummies(df['EDUCATION_TYPE'], prefix='EDU_TYPE', drop_first=True)
+dummy_family_type = pd.get_dummies(df['FAMILY_TYPE'], prefix='FAM_TYPE', drop_first=True)
+dummy_house_type = pd.get_dummies(df['HOUSE_TYPE'], prefix='HOUSE_TYPE', drop_first=True)
+# Drop unnecessary columns
+to_drop = ['Unnamed: 0', 'ID', 'FLAG_MOBIL', 'INCOME_TYPE','EDUCATION_TYPE', 'FAMILY_TYPE', 'HOUSE_TYPE']
+df.drop(to_drop, axis=1, inplace=True)
+# Merge into a single data frame
+merged = pd.concat([df, dummy_income_type, dummy_edu_type, dummy_family_type, dummy_house_type], axis=1)
+merged.head()
+from sklearn.preprocessing import MinMaxScaler
+# Scale only columns that have values greater than 1
+to_scale = [col for col in df.columns if df[col].max() > 1]
+mms = MinMaxScaler()
+scaled = mms.fit_transform(merged[to_scale])
+scaled = pd.DataFrame(scaled, columns=to_scale)
+# Replace original columns with scaled ones
+for col in scaled:    merged[col] = scaled[col]
+merged.head()
+from sklearn.model_selection import train_test_split
+X = merged.drop('TARGET', axis=1)
+y = merged['TARGET']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+print(f'''% Positive class in Train = {np.round(y_train.value_counts(normalize=True)[1] * 100, 2)}% Positive class in Test  = {np.round(y_test.value_counts(normalize=True)[1] * 100, 2)}''')
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, recall_score, confusion_matrix
+# Train
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+preds = model.predict(X_test)
+# Evaluate
+print(f'Accuracy = {accuracy_score(y_test, preds):.2f}\nRecall = {recall_score(y_test, preds):.2f}\n')
+cm = confusion_matrix(y_test, preds)
+plt.figure(figsize=(8, 6))
+plt.title('Confusion Matrix (without SMOTE)', size=16)
+sns.heatmap(cm, annot=True, cmap='Blues');
+#https://towardsdatascience.com/how-to-effortlessly-handle-class-imbalance-with-python-and-smote-9b715ca8e5a7
+#!pip install imbalanced-learn
+from imblearn.over_sampling import SMOTE
+sm = SMOTE(random_state=42)
+X_sm, y_sm = sm.fit_resample(X, y)
+print(f'''Shape of X before SMOTE: {X.shape} Shape of X after SMOTE: {X_sm.shape}''')
+print('\nBalance of positive and negative classes (%):')
+y_sm.value_counts(normalize=True) * 100
+X_train, X_test, y_train, y_test = train_test_split(X_sm, y_sm, test_size=0.25, random_state=42)
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+preds = model.predict(X_test)
+print(f'Accuracy = {accuracy_score(y_test, preds):.2f}\nRecall = {recall_score(y_test, preds):.2f}\n')
+cm = confusion_matrix(y_test, preds)
+plt.figure(figsize=(8, 6))
+plt.title('Confusion Matrix (with SMOTE)', size=16)
+sns.heatmap(cm, annot=True, cmap='Blues');
+
+#FFT https://www.youtube.com/watch?v=h7apO7q16V0&t=523s
+
+#https://medium.com/swlh/the-fractal-indicator-detecting-tops-bottoms-in-markets-1d8aac0269e8
+def fractal_indicator(Data, high, low, ema_lookback, min_max_lookback, where):
+    Data = ema(Data, 2, ema_lookback, high, where)
+    Data = ema(Data, 2, ema_lookback, low, where + 1)
+    Data = volatility(Data, ema_lookback, high, where + 2)
+    Data = volatility(Data, ema_lookback, low, where + 3)
+    Data[:, where + 4] = Data[:, high] - Data[:, where]
+    Data[:, where + 5] = Data[:, low]  - Data[:, where + 1]
+    for i in range(len(Data)):
+        try:
+            Data[i, where + 6] = max(Data[i - min_max_lookback + 1:i + 1, where + 4])
+        except ValueError:
+            pass
+    for i in range(len(Data)):
+        try:
+            Data[i, where + 7] = min(Data[i - min_max_lookback + 1:i + 1, where + 5])
+        except ValueError:
+            pass
+    Data[:, where + 8] =  (Data[:, where +  2] + Data[:, where +  3]) / 2
+    Data[:, where + 9] = (Data[:, where + 6] - Data[:, where + 7]) / Data[:, where + 8]
+    return Data
+#Fractal Indicator is simply a reformed version of the Rescaled Range formula created by Harold Hurst.
+def adder(Data, times):
+
+    for i in range(1, times + 1):
+
+        z = np.zeros((len(Data), 1), dtype = float)
+        Data = np.append(Data, z, axis = 1)
+return Data
+#Every time the Fractal Indicator reaches the 1.00 threshold while the market price has been trending downwards, we can expect that there will be a structural break in the market price, i.e. a short-term reversal to the upside. We should initiate a long position. Every time the Fractal Indicator reaches the 1.00 threshold while the market price has been trending upwards, we can expect that there will be a structural break in the market price, i.e. a short-term reversal to the downside. We should initiate a short position.
+trend = 10
+def signal(Data, what, closing, buy, sell):
+
+    for i in range(len(Data)):
+
+     if Data[i, what] < barrier and Data[i, closing] < Data[i - trend, closing]:
+        Data[i, buy] = 1
+
+     if Data[i, what] < barrier and Data[i, closing] > Data[i - trend, closing]:
+        Data[i, sell] = -1
+# The trend variable is the algorithm's way to see whether the market price has been trending down or up. This is to known what position to initiate (long/short) as the Fractal Indicator only shows a uniform signal which is the event of reaching 1.00
+# The Data variable refers to the OHLC array
+# The what variable refers to the Fractal Indicator
+# The closing variable refers to the closing price
+# The buy variable refers to where we should place long orders
+# The sell variable refers to where we should place short orders
+#institutional bid/ask spreads, it may be possible to lower the costs such as that a systematic medium-frequency strategy starts being very profitable
+
 #https://towardsdatascience.com/introduction-to-plotnine-as-the-alternative-of-data-visualization-package-in-python-46011ebef7fe
 # Dataframe manipulation
 import pandas as pd

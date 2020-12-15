@@ -3,7 +3,7 @@
 par(mfrow=c(1,2))
 #.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
 .libPaths()
-setwd("C:/Users/animeshs/GD/scripts")
+#setwd("C:/Users/animeshs/GD/scripts")
 getwd()
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 #rm(list = ls())
@@ -48,6 +48,126 @@ dir.exists(Sys.getenv('R_LIBS_USER'))
 update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 install.packages(c("rjson","data.table"))
 ```
+
+```{r med-DB}
+#https://github.com/MIT-LCP/mimic-code
+#https://github.com/MIT-LCP/mimic-code/blob/master/tutorials/explore-items.Rmd
+#downloads (http://dryad2.lib.ncsu.edu/).
+
+```
+
+```{r scry-Pearson_residuals}
+#https://www.biorxiv.org/content/10.1101/2020.12.01.405886v1.full
+#https://bioconductor.org/packages/release/bioc/vignettes/scry/inst/doc/scry.html
+#BiocManager::install("scry")
+library(ggplot2); theme_set(theme_bw())
+#BiocManager::install("DuoClustering2018")
+library(DuoClustering2018)
+require(scry)
+sce<-sce_full_Zhengmix4eq()
+sce<-devianceFeatureSelection(sce, assay="counts", sorted=TRUE)
+#BiocManager::install("SummarizedExperiment")
+library(SummarizedExperiment)
+plot(rowData(sce)$binomial_deviance, type="l", xlab="ranked genes",ylab="binomial deviance", main="Feature Selection with Deviance")
+abline(v=2000, lty=2, col="red")
+sce2<-sce[1:1000, ]
+set.seed(101)
+sce2<-GLMPCA(sce2, 2, assay="counts")
+fit<-metadata(sce2)$glmpca
+pd<-cbind(as.data.frame(colData(sce2)), fit$factors)
+ggplot(pd, aes(x=dim1, y=dim2, colour=phenoid)) + geom_point(size=.8) + ggtitle("GLM-PCA applied to high deviance genes")
+#faster
+sce<-nullResiduals(sce, assay="counts", type="deviance")
+sce<-nullResiduals(sce, assay="counts", type="pearson")
+sce2<-sce[1:1000, ] #use only the high deviance genes
+pca<-function(Y, L=2, center=TRUE, scale=TRUE){
+    #assumes features=rows, observations=cols
+    res<-prcomp(as.matrix(t(Y)), center=center, scale.=scale, rank.=L)
+    factors<-as.data.frame(res$x)
+    colnames(factors)<-paste0("dim", 1:L)
+    factors
+}
+pca_d<-pca(assay(sce2, "binomial_deviance_residuals"))
+pca_d$resid_type<-"deviance_residuals"
+pca_p<-pca(assay(sce2, "binomial_pearson_residuals"))
+pca_p$resid_type<-"pearson_residuals"
+cm<-as.data.frame(colData(sce2))
+pd<-rbind(cbind(cm, pca_d), cbind(cm, pca_p))
+ggplot(pd, aes(x=dim1, y=dim2, colour=phenoid)) + geom_point() +
+  facet_wrap(~resid_type, scales="free", nrow=2) +
+  ggtitle("PCA applied to null residuals of high deviance genes")
+```
+
+```{r wordmap}
+#https://r-tastic.co.uk/post/amazon-reviews-word-cloud/
+install.packages("pacman", repos = "http://cran.us.r-project.org")
+pacman::p_load(XML, dplyr, stringr, rvest, xml2) # web-scraping
+pacman::p_load(tm, rvest, SnowballC, wordcloud) # wordcloud-building
+# define a function removing all white space
+trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+# define product code and the url
+prod_code = "1846558239"
+url <- paste0("https://www.amazon.co.uk/dp/", prod_code)
+doc <- xml2::read_html(url)
+#obtain the text in the node, remove "\n" from the text, and remove white space
+prod <- html_nodes(doc, "#productTitle") %>% html_text() %>% gsub("\n", "", .) %>% trim()
+prod
+# THE KEY: Source function to parse Amazon html pages for data
+source("https://raw.githubusercontent.com/rjsaito/Just-R-Things/master/Text%20Mining/amazonscraper.R")
+pages <- 1
+reviews_all <- NULL
+for(page_num in 1:pages){
+  url2 <- paste0("http://www.amazon.co.uk/product-reviews/",prod_code,"/?pageNumber=", page_num)
+  doc2 <- read_html(url2)
+  reviews <- amazon_scraper(doc2, reviewer = F, delay = 2)
+  reviews_all <- rbind(reviews_all, reviews)
+}
+#### creating corpus
+m <- list(content = "comments")
+myReader <- readTabular(mapping = m)
+
+final_reviews <- data.frame(comments = reviews_all$comments)
+ds <- DataframeSource(final_reviews)
+
+## create corpus with all the reviews
+sapiens_corpus <- VCorpus(ds)
+
+## remove punctuation
+sapiens_corpus = tm_map(sapiens_corpus, removePunctuation)
+
+## remove numbers
+sapiens_corpus = tm_map(sapiens_corpus, removeNumbers)
+
+## LowerCase
+sapiens_corpus = tm_map(sapiens_corpus, tolower)
+## remove stopwords and other words
+myWords=c("format", "paperback", "kindle", "edit", "hardcov", "book", "read", "will", "just", "can", "much")
+
+sapiens_corpus <- tm_map(sapiens_corpus, removeWords, c(stopwords("english"), myWords))
+
+## treat pre-processed documents as text documents
+sapiens_corpus <- tm_map(sapiens_corpus, PlainTextDocument)
+
+## turn into doc matrix
+sapiens_dtm <- DocumentTermMatrix(sapiens_corpus)
+freq <- sort(colSums(as.matrix(sapiens_dtm)), decreasing=TRUE)   
+head(freq, 20)  
+pal=brewer.pal(9, "Set1")
+
+set.seed(100)
+wordcloud(words = names(freq), freq = freq, max.words=250,
+          random.order=FALSE,
+          colors=pal)
+
+```
+
+```{r profiler}
+#https://github.com/CCprofiler/CCprofiler/blob/master/vignettes/CCprofiler_vignette.Rmd
+cran_deps <- c('proxy', 'doSNOW', 'igraph', 'pracma', 'Rmpfr') 
+install.packages(cran_deps)
+BiocManager::install("qvalue")
+```
+
 
 ```{r compare}
 #https://www.tidyverse.org/blog/2020/10/waldo/ 
@@ -165,12 +285,12 @@ ggplot2::ggplot(data, ggplot2::aes(log2(Abundances.Normalized.F1.Sample), log2(A
 ```{r MR}
 #https://bioconductor.org/books/3.12/SingleRBook/annotation-diagnostics.html#based-on-the-deltas-across-cells
 # Cholesky Factorization
-#system.time (C <- chol(B))
+system.time (C <- chol(B))
 # Singular Value Decomposition
-#system.time (S <- svd (A,nu=0,nv=0))
-#plot(S$d)
+system.time (S <- svd (A,nu=0,nv=0))
+plot(S$d)
 # Principal Components Analysis
-#system.time (P <- prcomp(A))
+system.time (P <- prcomp(A))
 # Linear Discriminant Analysis
 #library('MASS')
 #g <- 5

@@ -1,25 +1,28 @@
+#setup
+#https://julialang-s3.julialang.org/bin/winnt/x64/1.5/julia-1.5.3-win64.exe
+versioninfo()
+#https://github.com/JuliaLang/IJulia.jl
+using Pkg
+Pkg.add("IJulia")
+#using IJulia
+#julia>notebook()
+#https://youtu.be/g8RkArhtCc4?t=591
+sound = wavread()
 #https://towardsdatascience.com/scientific-python-with-lambda-b207b1ddfcd1
 norm(x) = [i = (i-mean(x)) / std(x) for i in xt]
-norm(x)
+norm()
 norm(x::Array) = [i = (i-mean(x)) / std(x) for i in xt]
 norm(x::Int64) = (x - x) / std(x)
-#setup
-wget https://julialang-s3.julialang.org/bin/linux/x64/1.5/julia-1.5.0-beta1-linux-x86_64.tar.gz
-tar xvzf julia-1.5.0-beta1-linux-x86_64.tar.gz
-julia-1.5.0-beta1/bin/julia
-
 #https://github.com/Evizero/UnicodePlots.jl
-using Pkg
 Pkg.add("UnicodePlots")
 using UnicodePlots
 histogram(randn(1000) .* 0.1, nbins = 15, closed = :left)
 heatmap(collect(0:30) * collect(0:30)', xscale=0.1, yscale=0.1, xoffset=-2.5, colormap=:inferno)
 
-
 #https://probcomp.github.io/Gen/ The, install the Gen package with the Julia package manager. From the Julia REPL, type ] to enter the Pkg REPL mode and then run: pkg> add https://github.com/probcomp/Gen
+Pkg.add(url="https://github.com/probcomp/Gen")
 #https://probcomp.github.io/Gen/intro-to-modeling/Introduction%20to%20Modeling%20in%20Gen
 using Gen
-
 @gen function sine_model(xs::Vector{Float64})
     n = length(xs)
     phase = @trace(uniform(0, 2 * pi), :phase)
@@ -31,7 +34,6 @@ using Gen
     end
     return n
 end;
-
 function render_sine_trace(trace; show_data=true)
     xs = get_args(trace)[1]
     xmin = minimum(xs)
@@ -40,22 +42,17 @@ function render_sine_trace(trace; show_data=true)
         ys = [trace[(:y, i)] for i=1:length(xs)]
         scatter(xs, ys, c="black")
     end
-
     phase = trace[:phase]
     period = trace[:period]
     amplitude = trace[:amplitude]
-
     test_points = collect(range(xmin, stop=xmax, length=100))
     plot(test_points, amplitude * sin.(2 * pi * test_points / period .+ phase))
-
     ax = gca()
     ax[:set_xlim]((xmin, xmax))
     ax[:set_ylim]((xmin, xmax))
 end;
-
 xs = [-5., -4., -3., -.2, -1., 0., 1., 2., 3., 4., 5.];
 traces = [Gen.simulate(sine_model, (xs,)) for _=1:12];
-
 #import Pkg
 #Pkg.add("PyPlot")
 using PyPlot
