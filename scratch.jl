@@ -3,11 +3,27 @@
 versioninfo()
 #https://github.com/JuliaLang/IJulia.jl
 using Pkg
-Pkg.add("IJulia")
+#Pkg.add("IJulia")
 #using IJulia
 #julia>notebook()
-#https://youtu.be/g8RkArhtCc4?t=591
-sound = wavread()
+#https://youtu.be/g8RkArhtCc4?t=738
+#Pkg.add("WAV")
+using WAV
+#!c:\ffmpeg-2020-12-12-git-5148740e79-essentials_build\bin\ffmpeg.exe -i ..\..\Desktop\Documents\Lydinnspillinger\chk.m4a  chk.wav
+sound = wavread("chk.wav")
+signals = sound[1][:,1]#1-channel
+#Pkg.add("Plots")
+using Plots
+plot(signals,x_lims=(200200,202200))
+#Pkg.add("FFTW")
+using FFTW
+?fft
+signal_fft=fft(signals)
+length(signal_fft)
+length(signals)
+plot(signal_fft[1:1000])
+plot(abs.(signal_fft))
+plot(abs.(signal_fft[102200:202200]))
 #https://towardsdatascience.com/scientific-python-with-lambda-b207b1ddfcd1
 norm(x) = [i = (i-mean(x)) / std(x) for i in xt]
 norm()

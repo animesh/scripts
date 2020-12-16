@@ -3,15 +3,10 @@
 import requests
 import os
 import json
-print(os.environ.get("BEARER_TOKEN"))
+BEARER_TOKEN=os.environ.get("BEARER_TOKEN")
 #https://towardsdatascience.com/sentiment-analysis-for-stock-price-prediction-in-python-bed40c65d178
-requests.get(
-    'https://api.twitter.com/1.1/search/tweets.json?q=tesla',
-    headers={
-        'authorization': 'Bearer '+BEARER_TOKEN
-})
-params = {'q': 'tesla'
-          'tweet_mode': 'extended'}
+requests.get('https://api.twitter.com/1.1/search/tweets.json?q=tesla',headers={'authorization': 'Bearer '+BEARER_TOKEN})
+params = {'q': 'tesla', 'tweet_mode': 'extended'}
 requests.get(
     'https://api.twitter.com/1.1/search/tweets.json',
     params=params,
