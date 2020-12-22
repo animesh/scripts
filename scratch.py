@@ -1,4 +1,125 @@
 #!pip install --upgrade pip
+#https://metagenome-atlas.github.io/
+#VIDEO https://asciinema.org/a/337467
+#github
+ldd /bin/bash
+export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu
+wget https://repo.anaconda.com/archive/Anaconda3-5.3.1-Linux-x86_64.sh
+sh -u Anaconda3-5.3.1-Linux-x86_64.sh
+conda create --name py36 python=3.6
+conda activate py36
+conda install -y -c bioconda -c conda-forge metagenome-atlas
+module load Python/3.6.6-intel-2018b
+pip install snakemake --user
+pip install click --user
+pip install pandas --user
+pip install metagenome-atlas --user
+$HOME/.local/bin/atlas
+  16
+    atlas init --db-dir databases path/to/fastq/files
+    atlas run all
+
+#https://towardsdatascience.com/pca-using-python-scikit-learn-e653f8989e60
+import pandas as pd
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
+# load dataset into Pandas DataFrame
+df = pd.read_csv(url, names=['sepal length','sepal width','petal length','petal width','target'])
+from sklearn.preprocessing import StandardScaler
+features = ['sepal length', 'sepal width', 'petal length', 'petal width']
+# Separating out the features
+x = df.loc[:, features].values
+# Separating out the target
+y = df.loc[:,['target']].values
+# Standardizing the features
+x = StandardScaler().fit_transform(x)
+from sklearn.decomposition import PCA
+pca = PCA(n_components=2)
+principalComponents = pca.fit_transform(x)
+principalDf = pd.DataFrame(data = principalComponents
+             , columns = ['principal component 1', 'principal component 2'])
+finalDf = pd.concat([principalDf, df[['target']]], axis = 1)
+import matplotlib.pyplot as plt
+fig = plt.figure(figsize = (8,8))
+ax = fig.add_subplot(1,1,1)
+ax.set_xlabel('Principal Component 1', fontsize = 15)
+ax.set_ylabel('Principal Component 2', fontsize = 15)
+ax.set_title('2 component PCA', fontsize = 20)
+targets = ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica']
+colors = ['r', 'g', 'b']
+for target, color in zip(targets,colors):
+    indicesToKeep = finalDf['target'] == target
+    ax.scatter(finalDf.loc[indicesToKeep, 'principal component 1']
+               , finalDf.loc[indicesToKeep, 'principal component 2']
+               , c = color
+               , s = 50)
+ax.legend(targets)
+ax.grid()
+plt.show()
+pca.explained_variance_ratio_
+from sklearn.datasets import fetch_openml
+mnist = fetch_openml('mnist_784')
+from sklearn.model_selection import train_test_split
+# test_size: what proportion of original data is used for test set
+train_img, test_img, train_lbl, test_lbl = train_test_split( mnist.data, mnist.target, test_size=1/7.0, random_state=0)
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+# Fit on training set only.
+scaler.fit(train_img)
+# Apply transform to both the training set and the test set.
+train_img = scaler.transform(train_img)
+test_img = scaler.transform(test_img)
+from sklearn.decomposition import PCA
+# Make an instance of the Model
+pca = PCA(.95)
+pca.fit(train_img)
+train_img = pca.transform(train_img)
+test_img = pca.transform(test_img)
+from sklearn.linear_model import LogisticRegression
+# all parameters not specified are set to their defaults
+# default solver is incredibly slow which is why it was changed to 'lbfgs'
+logisticRegr = LogisticRegression(solver = 'lbfgs')
+logisticRegr.fit(train_img, train_lbl)
+# Predict for One Observation (image)
+logisticRegr.predict(test_img[0].reshape(1,-1))
+# Predict for One Observation (image)
+logisticRegr.predict(test_img[0:10])
+logisticRegr.score(test_img, test_lbl)
+
+
+#https://github.com/interpretml/interpret
+#!pip install interpret
+#https://nbviewer.jupyter.org/github/interpretml/interpret/blob/master/examples/python/notebooks/Interpretable%20Classification%20Methods.ipynb
+import pandas as pd
+from sklearn.model_selection import train_test_split
+df = pd.read_csv(
+    "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data",
+    header=None)
+df.columns = [
+    "Age", "WorkClass", "fnlwgt", "Education", "EducationNum",
+    "MaritalStatus", "Occupation", "Relationship", "Race", "Gender",
+    "CapitalGain", "CapitalLoss", "HoursPerWeek", "NativeCountry", "Income"
+]
+# df = df.sample(frac=0.1, random_state=1)
+train_cols = df.columns[0:-1]
+label = df.columns[-1]
+X = df[train_cols]
+y = df[label].apply(lambda x: 0 if x == " <=50K" else 1) #Turning response into 0 and 1
+seed = 1
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=seed)
+from interpret.glassbox import ExplainableBoostingClassifier
+ebm = ExplainableBoostingClassifier()
+ebm.fit(X_train, y_train)
+from interpret import show
+ebm_global = ebm.explain_global()
+show(ebm_global)
+ebm_local = ebm.explain_local(X_test, y_test)
+show(ebm_local)
+show([logistic_regression, decision_tree])
+#https://docs.seldon.io/projects/alibi/en/latest/methods/ALE.html
+from alibi.explainers import ALE
+ale = ALE(predict_fn, feature_names=feature_names, target_names=target_names)
+#Following the initialization, we can immediately produce an explanation given a dataset of instances X:
+exp = ale.explain(X)
 #https://towardsdatascience.com/how-to-make-stunning-interactive-maps-with-python-and-folium-in-minutes-e3aff3b0ed43
 #!pip install folium
 #!wget https://www.betterdatascience.com/wp-content/uploads/2020/12/quakes.csv
