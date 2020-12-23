@@ -3,6 +3,15 @@
 versioninfo()
 #https://github.com/JuliaLang/IJulia.jl
 using Pkg
+#https://github.com/animesh/Distributions.jl
+#Pkg.add("Distributions")
+#https://juliastats.org/Distributions.jl/stable/starting/
+using Random, Distributions
+Random.seed!(123)
+d = Normal()
+x = rand(d, 1000)
+fit(Normal, x)
+truncated(Normal(0,1))#,l,u)
 #Pkg.add("IJulia")
 #using IJulia
 #julia>notebook()

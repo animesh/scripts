@@ -49,6 +49,38 @@ update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 install.packages(c("rjson","data.table"))
 ```
 
+```{r NA}
+#Integrated Proteogenomic Characterization across Major Histological Types of Pediatric Brain Cancer https://www.cell.com/cell/fulltext/S0092-8674(20)31451-3#secsectitle0020
+#data https://github.com/AlexsLemonade/OpenPBTA-analysis
+#https://github.com/WangLab-MSSM/DreamAI#installation
+require("cluster")
+require("survival")
+#install.packages("randomForest")
+require("randomForest")
+#install.packages("missForest")
+require("missForest")
+#install.packages("glmnet")
+require("glmnet")
+require("Rcpp")
+require("foreach")
+require("itertools")
+require("iterators")
+require("Matrix")
+require("devtools")
+#BiocManager::install("impute")
+require("impute")
+require("remotes")
+install_github("WangLab-MSSM/DreamAI/Code")
+require("DreamAI")
+DreamAI(data, k = 10, maxiter_MF = 10, ntree = 100,
+  maxnodes = NULL, maxiter_ADMIN = 30, tol = 10^(-2),
+  gamma_ADMIN = NA, gamma = 50, CV = FALSE,
+  fillmethod = "row_mean", maxiter_RegImpute = 10,
+  conv_nrmse = 1e-06, iter_SpectroFM = 40, method = c("KNN",
+  "MissForest", "ADMIN", "Birnn", "SpectroFM", "RegImpute"),
+  out = c("Ensemble"))
+```
+
 ```{r cellMark}
 #https://github.com/LTLA/SingleR
 #BiocManager::install("SingleR", version = "devel")

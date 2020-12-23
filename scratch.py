@@ -1,4 +1,60 @@
 #!pip install --upgrade pip
+#https://igraph.org/python/
+#!pip install python-igraph
+#https://github.com/pygobject/pycairo
+import cairo
+with cairo.SVGSurface("example.svg", 200, 200) as surface:
+    context = cairo.Context(surface)
+    x, y, x1, y1 = 0.1, 0.5, 0.4, 0.9
+    x2, y2, x3, y3 = 0.6, 0.1, 0.9, 0.5
+    context.scale(200, 200)
+    context.set_line_width(0.04)
+    context.move_to(x, y)
+    context.curve_to(x1, y1, x2, y2, x3, y3)
+    context.stroke()
+    context.set_source_rgba(1, 0.2, 0.2, 0.6)
+    context.set_line_width(0.02)
+    context.move_to(x, y)
+    context.line_to(x1, y1)
+    context.move_to(x2, y2)
+    context.line_to(x3, y3)
+    context.stroke()
+from igraph import *
+import igraph
+print(igraph.__version__)
+g = igraph.Graph([(0,1), (0,2), (2,3), (3,4), (4,2), (2,5), (5,0), (6,3), (5,6)])
+g.vs["name"] = ["Alice", "Bob", "Claire", "Dennis", "Esther", "Frank", "George"]
+g.vs["age"] = [25, 31, 18, 47, 22, 23, 50]
+g.vs["gender"] = ["f", "m", "f", "m", "f", "m", "m"]
+g.es["is_formal"] = [False, False, True, True, True, False, True, False, False]
+g.es[0]["is_formal"] = True
+g["date"] = "2009-01-10"
+g.vs[3]["foo"] = "bar"
+del g.vs["foo"]
+g.degree()
+g.edge_betweenness()
+ebs = g.edge_betweenness()
+max_eb = max(ebs)
+[g.es[idx].tuple for idx, eb in enumerate(ebs) if eb == max_eb]
+g.vs.degree()
+g.es.edge_betweenness()
+g.vs.select(_degree = g.maxdegree())["name"]
+g.vs.find(name="Claire").degree()
+g.get_adjacency()
+layout = g.layout("kamada_kawai")
+plot(g, layout = layout)
+#layout = g.layout_reingold_tilford(root=[2])
+
+#https://ml.dask.org/cross_validation.html
+#!python -m pip install "dask[dataframe]" --upgrade
+import dask.array as da
+#!pip install dask-ml
+from dask_ml.datasets import make_regression
+from dask_ml.model_selection import train_test_split
+
+X, y = make_regression(n_samples=125, n_features=4, random_state=0, chunks=50)
+
+X
 #https://metagenome-atlas.github.io/
 #VIDEO https://asciinema.org/a/337467
 #github
