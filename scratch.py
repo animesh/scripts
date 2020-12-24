@@ -51,10 +51,50 @@ import dask.array as da
 #!pip install dask-ml
 from dask_ml.datasets import make_regression
 from dask_ml.model_selection import train_test_split
-
 X, y = make_regression(n_samples=125, n_features=4, random_state=0, chunks=50)
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+X_train.compute()[:3]
+#https://ml.dask.org/hyper-parameter-search.html#hyperparameter-incremental
+from dask_ml.datasets import make_classification
+from dask_ml.model_selection import train_test_split
+import dask.dataframe as dd
+from distributed import Client
+client = Client()
+X, y = make_classification(chunks=20, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+from sklearn.linear_model import SGDClassifier
+clf = SGDClassifier(tol=1e-3, penalty='elasticnet', random_state=0)
+from scipy.stats import uniform, loguniform
+params = {'alpha': loguniform(1e-2, 1e0),  # or np.logspace
+          'l1_ratio': uniform(0, 1)}  # or np.linspace
+from dask_ml.model_selection import HyperbandSearchCV
+search = HyperbandSearchCV(clf, params, max_iter=81, random_state=0)
+search.fit(X_train, y_train, classes=[0, 1]);
 
-X
+search.best_params_
+Out[14]: {'alpha': 0.12449062586158535, 'l1_ratio': 0.7040486849393368}
+
+search.best_score_
+Out[15]: 0.65
+
+search.score(X_test, y_test)
+Out[16]: 0.3
+Note that when you do post-fit tasks like search.score, the underlying model’s score method is used. If that is unable to handle a larger-than-memory Dask Array, you’ll exhaust your machines memory. If you plan to use post-estimation features like scoring or prediction, we recommend using dask_ml.wrappers.ParallelPostFit.
+
+from dask_ml.wrappers import ParallelPostFit
+
+params = {'estimator__alpha': loguniform(1e-2, 1e0),
+          'estimator__l1_ratio': uniform(0, 1)}
+
+
+est = ParallelPostFit(SGDClassifier(tol=1e-3, random_state=0))
+
+search = HyperbandSearchCV(est, params, max_iter=9, random_state=0)
+
+search.fit(X_train, y_train, classes=[0, 1]);
+
+search.score(X_test, y_test)
+Out[22]: 0.6
 #https://metagenome-atlas.github.io/
 #VIDEO https://asciinema.org/a/337467
 #github

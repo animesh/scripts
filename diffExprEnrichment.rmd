@@ -203,11 +203,29 @@ wikiWP2369 <- matrix(c(3,13,3663,1293), nrow = 2,dimnames =list(wikiP=c("full", 
 wikiWP185 <- matrix(c(13,16,3806,1137), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
 wikiWP2369<-wikiWP185
 sum(wikiWP2369)
-(choose(16,13)*choose(3663,1293))/(choose(4972,1306))
-fisher.test(wikiWP2369, alternative = "less")
-fisher.test(wikiWP2369)
-fisher.test(wikiWP2369, conf.level = 0.95)$conf.int
-fisher.test(wikiWP2369, conf.level = 0.99)$conf.int
+fisher.test(rbind(c(1,9),c(11,3)), alternative="less")$p.value
+(choose(10,1)*choose(14,11))/(choose(24,12))+(choose(10,0)*choose(14,12))/(choose(24,12))
+(choose(628,6)*choose(4458,11))/(choose(5028,17))
+wikiP<-rbind(c(6,622),c(11,4447))
+sum(wikiP)
+fisher.test(wikiP, alternative = "less")
+fisher.test(wikiP)
+fisher.test(wikiP, conf.level = 0.95)$conf.int
+fisher.test(wikiP, conf.level = 0.99)$conf.int
+wikiWP4204 <- matrix(c(6,11,3400,1700), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+fisher.test(wikiWP4204, alternative = "less")
+sel<-628
+dat<-5086
+ovl<-6
+tp<-17
+ovl<-10
+tp<-106
+ovl<-4
+tp<-13
+(tp/dat)/(ovl/sel)
+ovl+sel-ovl+tp-ovl+dat-((sel-ovl)+(tp-ovl)+ovl)
+wikiP <-matrix(c(ovl, tp-ovl,sel-ovl,dat-((sel-ovl)+(tp-ovl)+ovl)),nrow = 2,dimnames = list(P = c("S", "NS"),D = c("S", "NS")))
+fisher.test(wikiP)#, alternative = "greater")
 ```
 
 ```{r overlap-plot}
