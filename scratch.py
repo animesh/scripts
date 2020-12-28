@@ -1,4 +1,10 @@
 #!pip install --upgrade pip
+#http://www-connex.lip6.fr/~schwander/pyMEF/index.html
+
+#https://github.com/Teichlab/bbknn
+#!pip3 install bbknn
+import bbknn
+bbknn.bbknn(adata)
 #https://igraph.org/python/
 #!pip install python-igraph
 #https://github.com/pygobject/pycairo

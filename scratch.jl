@@ -3,6 +3,61 @@
 versioninfo()
 #https://github.com/JuliaLang/IJulia.jl
 using Pkg
+#https://github.com/SciML/ModelingToolkit.jl
+#Pkg.add("ModelingToolkit")
+#Pkg.add("OrdinaryDiffEq")
+using ModelingToolkit, OrdinaryDiffEq
+@parameters t σ ρ β
+@variables x(t) y(t) z(t)
+@derivatives D'~t
+eqs = [D(D(x)) ~ σ*(y-x),
+       D(y) ~ x*(ρ-z)-y,
+       D(z) ~ x*y - β*z]
+sys = ODESystem(eqs)
+sys = ode_order_lowering(sys)
+u0 = [D(x) => 2.0,
+      x => 1.0,
+      y => 0.0,
+      z => 0.0]
+p  = [σ => 28.0,
+      ρ => 10.0,
+      β => 8/3]
+tspan = (0.0,100.0)
+prob = ODEProblem(sys,u0,tspan,p,jac=true)
+sol = solve(prob,Tsit5())
+using Plots; plot(sol,vars=(x,y))
+
+@parameters t σ ρ β
+@variables x(t) y(t) z(t)
+@derivatives D'~t
+eqs = [D(x) ~ σ*(y-x),
+       D(y) ~ x*(ρ-z)-y,
+       D(z) ~ x*y - β*z]
+lorenz1 = ODESystem(eqs,name=:lorenz1)
+lorenz2 = ODESystem(eqs,name=:lorenz2)
+@variables a
+@parameters γ
+connections = [0 ~ lorenz1.x + lorenz2.y + a*γ]
+connected = ODESystem(connections,t,[a],[γ],systems=[lorenz1,lorenz2])
+u0 = [lorenz1.x => 1.0,
+      lorenz1.y => 0.0,
+      lorenz1.z => 0.0,
+      lorenz2.x => 0.0,
+      lorenz2.y => 1.0,
+      lorenz2.z => 0.0,
+      a => 2.0]
+p  = [lorenz1.σ => 10.0,
+      lorenz1.ρ => 28.0,
+      lorenz1.β => 8/3,
+      lorenz2.σ => 10.0,
+      lorenz2.ρ => 28.0,
+      lorenz2.β => 8/3,
+      γ => 2.0]
+tspan = (0.0,100.0)
+prob = ODEProblem(connected,u0,tspan,p)
+sol = solve(prob,Rodas5())
+using Plots; plot(sol,vars=(a,lorenz1.x,lorenz2.z))
+
 #https://github.com/animesh/Distributions.jl
 #Pkg.add("Distributions")
 #https://juliastats.org/Distributions.jl/stable/starting/

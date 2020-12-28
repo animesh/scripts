@@ -84,6 +84,10 @@ dir.exists(Sys.getenv('R_LIBS_USER'))
 update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 install.packages(c("rjson","data.table"))
 ```
+```{r}
+#https://yulab-smu.top/biomedical-knowledge-mining-book/
+BiocManager::install("enrichplot")
+```
 
 ```{r circ}
 #https://jokergoo.github.io/circlize_examples/example/otu.html
