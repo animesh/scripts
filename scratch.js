@@ -11,3 +11,14 @@ z=dbl(y)
 console.log(fact(z+y))
 var name="test+it+out"
 var url = "https://translate.google.com/translate?sl=auto&tl=en&u=" + encodeURIComponent("https://www.google.no/search?q=") + name + "&callback=?";$.get(url, function(response) {  console.log(response);});
+
+//https://github.com/microsoft/Web-Dev-For-Beginners/blob/main/3-terrarium/3-intro-to-DOM-and-closures/README.md
+function displayCandy(){
+	let candy = ['jellybeans'];
+	function addCandy(candyType) {
+		candy.push(candyType)
+	}
+	addCandy('gumdrops');
+}
+displayCandy();
+console.log(candy)

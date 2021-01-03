@@ -3,9 +3,71 @@
 versioninfo()
 #https://github.com/JuliaLang/IJulia.jl
 using Pkg
+#https://github.com/JuliaPlots/StatsPlots.jl
+#Pkg.add("StatsPlots") # install the package if it isn't installed
+using StatsPlots # no need for `using Plots` as that is reexported here
+gr(size=(400,300))
+#https://github.com/JuliaStats/RDatasets.jl
+#Pkg.add("RDatasets")
+covellipse([0,2], [2 1; 1 4], n_std=2, aspect_ratio=1, label="cov1")
+covellipse!([1,0], [1 -0.5; -0.5 3], showaxes=true, label="cov2")
+import RDatasets
+iris = RDatasets.dataset("datasets", "iris")
+iris.Species
+#http://juliagizmos.github.io/Interact.jl/latest/deploying/
+#Pkg.add("Interact") # install the package if it isn't installed
+#using Interact
+#ui = button()
+#display(ui)
+using StatsPlots, Interact
+#Pkg.add("Blink")
+using Blink
+w = Window()
+body!(w, dataviewer(iris))
 #https://github.com/SciML/ModelingToolkit.jl
 #Pkg.add("ModelingToolkit")
 #Pkg.add("OrdinaryDiffEq")
+dist = Gamma(2)
+scatter(dist, leg=false)
+bar!(dist, func=cdf, alpha=0.3)
+x = rand(Normal(), 100)
+y = rand(Cauchy(), 100)
+plot(
+ qqplot(x, y, qqline = :fit), # qqplot of two samples, show a fitted regression line
+ qqplot(Cauchy, y),           # compare with a Cauchy distribution fitted to y; pass an instance (e.g. Normal(0,1)) to compare with a specific distribution
+ qqnorm(x, qqline = :R)       # the :R default line passes through the 1st and 3rd quartiles of the distribution
+)
+#https://en.wikipedia.org/wiki/Andrews_plot
+using RDatasets
+iris = dataset("datasets", "iris")
+@df eltypes(iris)
+iris[!,:Species]
+@df iris andrewsplot((iris[!,:Species]), cols(1:4), legend = :topleft)
+#https://datatofish.com/export-dataframe-to-csv-julia/
+#Pkg.add("CSV")
+using CSV
+CSV.write("iris.csv", iris)
+#Pkg.add("DataFrames")
+using DataFrames
+iris = CSV.read("iris.csv", NamedTuple)
+iris = CSV.read("iris.csv",DataFrame)
+using Pkg
+#CSV.read(joinpath(Pkg.dir("DataFrames"), "test/data/iris.csv"))
+plot(iris.PetalLength)
+plot(iris.Species)
+@df iris scatter(
+    :SepalLength,
+    :SepalWidth,
+    group = :Species,
+    m = (0.5, [:cross :hex :star7], 12),
+    bg = RGB(0.2, 0.2, 0.2)
+)
+@df iris andrewsplot(:Species,cols(:SepalLength,:SepalLength,:SepalLength,:SepalLength))#,legend = :topleft)
+#https://statisticswithjulia.org/StatisticsWithJuliaDRAFT.pdf
+using RDatasets, StatsPlots
+@df iris andrewsplot(:Species, cols(1:4),line=(fill=[:blue :red :green]), legend=:topleft)
+iris = dataset("datasets", "iris")
+@df iris violin(:Species, :SepalLength,fill=:blue, xlabel="Species", ylabel="Sepal Length")
 using ModelingToolkit, OrdinaryDiffEq
 @parameters t σ ρ β
 @variables x(t) y(t) z(t)

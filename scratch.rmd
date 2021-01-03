@@ -85,6 +85,32 @@ update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 install.packages(c("rjson","data.table"))
 ```
 ```{r}
+#https://github.com/SebKrantz/collapse
+#install.packages("collapse")
+library(collapse)
+data("iris")            # iris dataset in base R
+v <- iris$Sepal.Length  # Vector
+d <- num_vars(iris)     # Saving numeric variables (could also be a matrix, statistical functions are S3 generic)
+g <- iris$Species       # Grouping variable (could also be a list of variables)
+## Advanced Statistical Programming -----------------------------------------------------------------------------
+# Simple (column-wise) statistics...
+fmedian(v) 
+```
+
+
+```{r}
+#https://www.bioconductor.org/packages/release/bioc/vignettes/GSVA/inst/doc/GSVA.pdf
+BiocManager::install("GSVA")
+```
+
+```{r}
+#https://stackoverflow.com/questions/19891728/plotting-andrews-curves-of-subsets-of-a-data-frame-on-the-same-plot
+install.packages("andrews")
+data(iris)
+andrews::andrews(iris[1:4],type=1, clr=3)#, step=100, ymax=10, main=NULL, sub=NULL)
+```
+
+```{r}
 #https://yulab-smu.top/biomedical-knowledge-mining-book/
 BiocManager::install("enrichplot")
 ```

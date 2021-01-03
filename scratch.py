@@ -1,6 +1,39 @@
 #!pip install --upgrade pip
 #http://www-connex.lip6.fr/~schwander/pyMEF/index.html
+#https://github.com/lux-org/lux
+#!pip install lux-api
+#!jupyter nbextension install --py luxwidget
+#!jupyter nbextension enable --py luxwidget
+import lux
+import pandas as pd
+df=pd.read_csv("L:\\promec\\HF\\Lars\\2020\\oktober\\KATHLEEN PHOSTOT SHOTGUN b\\combined\\txt-PHOScomp\\proteinGroups.txt",sep="\t",low_memory=False)
+df
 
+pip3 install fastapi
+pip3 install uvicorn
+pip3 install pydantic
+GET request — /loggingapi/v1/logs
+POST request — /loggingapi/v1/log
+app = FastAPI(
+    title = "Logging API",
+    description = "An API for all your logging needs.",
+    version = "2.0",
+)
+@app.get("/loggingapi/v2/logs/{appId}")
+async def Logs(appId: str):
+    results = storage.GetLogs(appId)
+    return results
+uvicorn app:app --reload
+class Log(BaseModel):
+    queueId: str
+    message: str
+    logType: str
+@app.post("/loggingapi/v2/log")
+async def AddLog(log: Log):
+    results = storage.AddLog(log)
+    return results
+    
+#https://medium.com/python-in-plain-english/abandoning-flask-for-fastapi-20105948b062
 #https://github.com/Teichlab/bbknn
 #!pip3 install bbknn
 import bbknn
