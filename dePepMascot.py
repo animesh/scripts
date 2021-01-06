@@ -1,3 +1,4 @@
+#http://mh-mascot.win.ntnu.no/mascot/help/error_tolerant_help.html
 import sys
 from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("USAGE: python dePepMascot.py <path to peptides containing mascot exported file>, \n e.g.,\npython dePepMascot.py L:/promec/Animesh/Raw/New Study/20150512_BSA_The-PEG-envelope (2)-(8)_PeptideGroups.txt\n")

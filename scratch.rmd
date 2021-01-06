@@ -84,7 +84,7 @@ dir.exists(Sys.getenv('R_LIBS_USER'))
 update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 install.packages(c("rjson","data.table"))
 ```
-```{r}
+```{r c++stats}
 #https://github.com/SebKrantz/collapse
 #install.packages("collapse")
 library(collapse)
@@ -97,8 +97,18 @@ g <- iris$Species       # Grouping variable (could also be a list of variables)
 fmedian(v) 
 ```
 
-
 ```{r}
+#https://cran.r-project.org/web/packages/mixtools/vignettes/mixtools.pdf
+install.packages("mixtools")
+library(mixtools)
+data(faithful)
+attach(faithful)
+hist(waiting, main="eruptions", xlab="Minutes", ylab="", cex.main=1.5, cex.lab=1.5, cex.axis=1.4)
+wait1 <- normalmixEM(waiting, lambda = .5, mu = c(55, 80), sigma = 5)
+plot(wait1, density=TRUE, cex.axis=1.4, cex.lab=1.4, cex.main=1.8, main2="mixmod", xlab2="Minutes")
+```
+
+```{r }
 #https://www.bioconductor.org/packages/release/bioc/vignettes/GSVA/inst/doc/GSVA.pdf
 BiocManager::install("GSVA")
 ```

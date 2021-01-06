@@ -1,40 +1,42 @@
-import tensorflow as tf
-#starting tf with https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example, checking with iterative version at  https://github.com/animesh/ann/blob/master/ann/Program.cs with following inp/output
-inp=[0.05,0.10]
-inpw=[[0.15,0.20],[0.25,0.3]]
-hidw=[[0.4,0.45],[0.5,0.55]]
-outputr=[0.01,0.99]
-bias=[0.35,0.6]
-lr=0.5
-
-
-x = tf.placeholder("float", name="x")
-y = tf.placeholder("float", name="y")
-w1 = tf.Variable(inpw, name="W1")
-w2 = tf.Variable(hidw, name="W2")
-
-print(x+y) #Tensor("add_4:0", dtype=float32)
-
-x_data=inp
-y_data=outputr
-
-b1 = tf.Variable(bias[0], name="b1")
-b2 = tf.Variable(bias[1], name="b2")
-
-layer_1 = tf.nn.tanh(tf.add(tf.matmul(x, w1), b1))
-layer_2 = tf.nn.tanh(tf.add(tf.matmul(layer_1, w2), b2))
-
-Lambda = 1
-learning_rate = lr
-
-regularization = tf.nn.l2_loss(w1) + tf.nn.l2_loss(w2)
-loss = tf.reduce_mean(tf.square(layer_2 - y)) + Lambda * regularization
-train_op = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
-
-init = tf.global_variables_initializer()
-
-with tf.Session() as session:
-    session.run(init)
-    for i in range(10):
-        session.run(train_op, feed_dict={x: [x_data], y: [y_data]})
-        print(loss)
+#https://jbloomlab.github.io/dms_variants/installation.html
+#!pip install dms_variants #failed; fix comment out "-Wno-error=declaration-after-statement" in "setup.py"
+#!git clone https://github.com/animesh/dms_variants
+#!python setup.py install
+import collections
+import itertools
+import random
+import tempfile
+import time
+import warnings
+import pandas as pd
+from plotnine import *
+import scipy
+#!pip install dmslogo
+import dmslogo  # used for preference logo plots
+import dms_variants.binarymap
+import dms_variants.codonvarianttable
+import dms_variants.globalepistasis
+import dms_variants.plotnine_themes
+import dms_variants.simulate
+from dms_variants.constants import CBPALETTE, CODONS_NOSTOP
+seed = 42  # random number seed
+genelength = 30  # gene length in codons
+libs = ['lib_1', 'lib_2']  # distinct libraries of gene
+variants_per_lib = 500 * genelength  # variants per library
+avgmuts = 2.0  # average codon mutations per variant
+bclen = 16  # length of nucleotide barcode for each variant
+variant_error_rate = 0.005  # rate at which variant sequence mis-called
+avgdepth_per_variant = 200  # average per-variant sequencing depth
+lib_uniformity = 5  # uniformity of library pre-selection
+noise = 0.02  # random noise in selections
+bottlenecks = {  # bottlenecks from pre- to post-selection
+        'tight_bottle': variants_per_lib * 5,
+        'loose_bottle': variants_per_lib * 100,
+        }
+random.seed(seed)
+pd.set_option('display.max_columns', 20)
+pd.set_option('display.width', 500)
+warnings.simplefilter('ignore')
+theme_set(dms_variants.plotnine_themes.theme_graygrid())
+geneseq = ''.join(random.choices(CODONS_NOSTOP, k=genelength))
+print(f"Wildtype gene of {genelength} codons:\n{geneseq}")
