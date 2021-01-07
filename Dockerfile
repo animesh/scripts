@@ -24,7 +24,7 @@ RUN sudo apt-get install -y dotnet-sdk-3.1
 #RUN R -e "update.packages(ask = FALSE,repos='https://cloud.r-project.org/')"
 RUN R -e "install.packages(c('devtools','BiocManager'))#,'readxl','writexl','ggplot2','svglite','scales','tfprobability','reticulate'),dependencies=TRUE,repos='https://cloud.r-project.org/',ask=FALSE,INSTALL_opts = '--no-multiarch')"
 #RUN R -e "devtools::install_github('bartongroup/Proteus', build_opts= c('--no-resave-data', '--no-manual'), build_vignettes=F)"
-#RUN R -e "BiocManager::install(c('clusterProfiler','pheatmap','limma','org.Hs.eg.db'))"
+RUN R -e "BiocManager::install(c('clusterProfiler','pheatmap','limma','org.Hs.eg.db'))"
 # cleanup
 RUN 	apt-get  -y autoremove
 RUN 	apt-get  -y clean
