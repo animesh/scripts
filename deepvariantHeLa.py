@@ -1,7 +1,14 @@
+#Comprehensive mapping of mutations to the SARS-CoV-2 receptor-binding domain that affect recognition by polyclonal human serum antibodies #https://www.biorxiv.org/content/10.1101/2020.12.31.425021v1.full.pdf
+#download https://github.com/saketkc/pysradb
+#!pip install -U pysradb
+#!pysradb metadata SAMN17185313 #https://www.ncbi.nlm.nih.gov/biosample/?term=SAMN17185313
+#!pysradb metadata PRJNA639956 #https://www.ncbi.nlm.nih.gov/bioproject/PRJNA639956
+#!pysradb download -p PRJNA639956
 #https://jbloomlab.github.io/dms_variants/installation.html
 #!pip install dms_variants #failed; fix comment out "-Wno-error=declaration-after-statement" in "setup.py"
 #!git clone https://github.com/animesh/dms_variants
 #!python setup.py install
+#eg: https://jbloomlab.github.io/dms_variants/codonvariant_sim_data.html
 import collections
 import itertools
 import random
