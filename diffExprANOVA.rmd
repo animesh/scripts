@@ -1,5 +1,6 @@
 ```{r setup, include=FALSE}
 #plot
+#renv::deactivate()
 par(mfrow=c(1,2))
 #library/packages
 inpD<-"L:/promec/Qexactive/LARS/2020/February/Nathan Shotgun/combined/"
@@ -292,5 +293,12 @@ plot_cor(dep, significant = TRUE, lower = 0.8, upper = 1, pal = "Reds")
 plot_heatmap(dep, type = "centered", kmeans = TRUE, k = 6, col_limit = 4, show_row_names = FALSE, indicate = c("condition", "replicate"))
 plot_heatmap(dep, type = "contrast", kmeans = TRUE, k = 6, col_limit = 10, show_row_names = FALSE)
 plot_volcano(dep, contrast = "ExVsSED", label_size = 2, add_names = TRUE)
+```
+```{r artMS}
+#artmsQualityControlEvidenceBasic and artmsQualityControlEvidenceExtended, check  https://biodavidjm.github.io/artMS/articles/artMS_vignette.html#quality-control-1 
+#artmsQuantification(): it performs the relative quantification using the fantastic package MSstats
+#artmsAnalysisQuantifications():
+#devtools::install_github("biodavidjm/artMS")
+#http://phosfate.com/profiler.html#
 ```
 
