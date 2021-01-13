@@ -1,5 +1,62 @@
 #https://towardsdatascience.com/learn-how-to-quickly-create-uis-in-python-a97ae1394d5 follow with PyInstaller ?
 #!pip install PySimpleGUI
+import sys
+from pathlib import Path
+if len(sys.argv)!=2:    sys.exit("USAGE: python dePepGUI.py <path to tab-sep-peptide-hits>, \n e.g.,\npython dePepGUI.py L:/promec/Elite/LARS/2021/Januar/oleJ/Human/210107_SCCAbeads-(1)_PeptideGroups.txt\n")
+pathFiles = Path(sys.argv[1])
+#pathFiles = Path("L:/promec/Elite/LARS/2021/Januar/oleJ/Human/210107_SCCAbeads-(1)_PeptideGroups.txt")
+import pandas as pd
+df=pd.read_csv(pathFiles,low_memory=False,doublequote=True,sep='\t')
+print(df.columns)
+print(df.dtypes)
+df = df.convert_dtypes(convert_boolean=False)
+print(df.dtypes)
+df['Position']=df["Positions in Master Proteins"].str.split('[', expand=True)[1].str.split('-', expand=True)[0].fillna(value='0').astype(int)
+import numpy as np
+df['log2']=np.log2(df['Abundances (Normalized): F1: Sample'].fillna(value=0)+1)-np.log2(df['Abundances (Normalized): F2: Sample'].fillna(value=0)+1)
+df['length']=df['Modifications (all possible sites)'].fillna(value=' ').str.len()
+df=df.sort_values('Position')
+print("DF")
+print(df[['Sequence','log2','length']])
+df.to_csv(pathFiles.with_suffix('.parse.txt'),sep="\t")
+protein="Serpin B3"
+print(protein)
+dfSB3=df[df['Master Protein Descriptions'].str.contains(protein)]#.Confidence#.hist()
+protein=''.join(ch for ch in protein if ch.isalnum())
+dfSB3.to_csv(pathFiles.with_suffix('.'+protein+'.txt'),sep="\t")
+print(dfSB3[['Sequence','log2','length']])
+dfSB3.plot(kind='scatter',x='Position',y='log2',c='length',colormap='jet').figure.savefig(pathFiles.with_suffix('.'+protein+'.svg'),dpi=300,bbox_inches = "tight")
+#ax = dfSB3.plot(kind='scatter',x='Position',y='Abundance Ratio (log2): (F2) / (F1)')
+#dfSB3[['Position','Abundance Ratio (log2): (F2) / (F1)','Sequence']].apply(lambda row: ax.text(*row),axis=1)
+dfSB3only=dfSB3[(dfSB3['Found in File: [F1]']=="High")&(dfSB3['Found in File: [F2]']=="Not Found")]
+dfSB3only.to_csv(pathFiles.with_suffix('.found'+protein+'.txt'),sep="\t")
+print(dfSB3only[['Sequence','log2','length']])
+dfSB3onlyURT=dfSB3[(dfSB3['Found in File: [F2]']=="High")&(dfSB3['Found in File: [F1]']=="Not Found")]
+dfSB3onlyURT.to_csv(pathFiles.with_suffix('.foundURT'+protein+'.txt'),sep="\t")
+print(dfSB3onlyURT[['Sequence','log2','length']])
+protein="Serpin B4"
+print(protein)
+dfSB4=df[df['Master Protein Descriptions'].str.contains(protein)]#.Confidence#.hist()
+dfSB4=dfSB4[-dfSB4['Master Protein Descriptions'].str.contains("Serpin B3")]
+protein=''.join(ch for ch in protein if ch.isalnum())
+dfSB4.to_csv(pathFiles.with_suffix('.SB4.txt'),sep="\t")
+dfSB4.plot(kind='scatter',x='Position',y='log2',c='length',colormap='jet').figure.savefig(pathFiles.with_suffix('.'+protein+'.svg'),dpi=300,bbox_inches = "tight")
+print(dfSB4[['Sequence','log2','length']])
+dfSB4only=dfSB4[(dfSB4['Found in File: [F1]']=="High")&(dfSB4['Found in File: [F2]']=="Not Found")]
+dfSB4only.to_csv(pathFiles.with_suffix('.foundSB4.txt'),sep="\t")
+print(dfSB4only[['Sequence','log2','length']])
+dfSB4onlyURT=dfSB4[(dfSB4['Found in File: [F2]']=="High")&(dfSB4['Found in File: [F1]']=="Not Found")]
+dfSB4onlyURT.to_csv(pathFiles.with_suffix('.foundSB4URT.txt'),sep="\t")
+print(dfSB4onlyURT[['Sequence','log2','length']])
+'''
+import numpy as np
+def scale(dfT, column_name):
+   dfT[column_name] = (dfT[column_name]-np.min(dfT[column_name]))/(np.max(dfT[column_name])-np.min(dfT[column_name]))
+   return dfT
+def drop_missing(dfT):
+   dfT.dropna(axis=0, how='any', inplace=True)
+   return dfT
+df.xcorr.hist()
 import PySimpleGUI as sg
 import re
 import pandas as pd
@@ -66,3 +123,4 @@ while True:                             # The Event Loop
         else:
             print('Please choose 2 files.')
 window.close()
+'''
