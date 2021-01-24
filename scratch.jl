@@ -2,7 +2,12 @@
 #https://julialang-s3.julialang.org/bin/winnt/x64/1.5/julia-1.5.3-win64.exe
 versioninfo()
 #https://github.com/JuliaLang/IJulia.jl
-using Pkg
+#using Pkg
+#https://github.com/Gnimuc/CImGui.jl
+#Pkg.add("CImGui")
+using CImGui
+#include(joinpath(pathof(CImGui), "..", "..", "demo", "demo.jl"))
+include(joinpath(pathof(CImGui), "..", "..", "examples", "demo.jl"))
 #https://github.com/JuliaPlots/StatsPlots.jl
 #Pkg.add("StatsPlots") # install the package if it isn't installed
 using StatsPlots # no need for `using Plots` as that is reexported here

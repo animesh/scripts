@@ -1,5 +1,50 @@
 #!pip install --upgrade pip
+#https://levelup.gitconnected.com/python-tricks-i-can-not-live-without-87ae6aff3af8
+chklist = ["a", "b", "c", "c"]
+chkset = (set(chklist))
+chkset.difference('a')
+for i, item in enumerate(chkset, 16):print(i, item)
 #http://www-connex.lip6.fr/~schwander/pyMEF/index.html
+#https://github.com/khuyentran1401/Data-science
+from datetime import datetime
+from icecream import ic
+import time
+from datetime import datetime
+def time_format():
+    return f'{datetime.now()}|> '
+ic.configureOutput(prefix=time_format,includeContext=True)
+for _ in range(3):
+    time.sleep(1)
+    ic('42')
+#https://towardsdatascience.com/10-surprisingly-useful-base-python-functions-822d86972a23
+mean = lambda x : sum(x) / len(x)
+import shutil
+shutil.copyfile('mydatabase.db', 'archive.db')
+shutil.move('/src/High.py', '/packages/High')
+glob.glob('*.ipynb')
+import argparse
+parser = argparse.ArgumentParser(prog = 'top',description = 'Show top lines from the file')
+parser.add_argument('-l', '--lines', type=int, default=10)
+args = parser.parse_args()
+import re
+re.findall(r'\bf[a-z]*', 'which foot or hand fell fastest')
+['foot', 'fell', 'fastest']
+re.sub(r'(\b[a-z]+) \1', r'\1', 'cat in the the hat')
+'cat in the hat'
+import statistics as st
+st.mean(data)
+st.median(data)
+st.variance(data)
+from urllib.request import urlopen
+data = null
+with urlopen('https://fuzzylife.org/') as response: data = response
+import zlib
+h = " Hello, it is me, you're friend Emmett!"
+print(len(h))
+t = zlib.compress(h)
+print(len(t))
+z = decompress(t)
+print(len(z))
 #https://github.com/lux-org/lux
 #!pip install lux-api
 #!jupyter nbextension install --py luxwidget
@@ -32,7 +77,7 @@ class Log(BaseModel):
 async def AddLog(log: Log):
     results = storage.AddLog(log)
     return results
-    
+
 #https://medium.com/python-in-plain-english/abandoning-flask-for-fastapi-20105948b062
 #https://github.com/Teichlab/bbknn
 #!pip3 install bbknn
