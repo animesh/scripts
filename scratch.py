@@ -1,4 +1,102 @@
 #!pip install --upgrade pip
+#https://alan-turing-institute.github.io/skpro/introduction.html#a-motivating-example
+# Load boston housing data
+X, y = load_boston(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+# Train and predict on boston housing data using a baseline model
+y_pred = DensityBaseline().fit(X_train, y_train).predict(X_test)
+# Obtain the loss
+loss = log_loss(y_test, y_pred, sample=True, return_std=True)
+print('Loss: %f+-%f' % loss)
+y_pred[0].pdf(x=42)
+#conda create --name gt -c conda-forge graph-tool
+#conda activate gt
+#https://pypi.org/project/NiftyNet/
+#pip install niftynet
+#https://machinelearningmastery.com/bagging-ensemble-with-different-data-transformations/ comparison of data transform ensemble to each contributing member for regression
+from numpy import mean
+from numpy import std
+from sklearn.datasets import make_regression
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import RepeatedKFold
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import PowerTransformer
+from sklearn.preprocessing import QuantileTransformer
+from sklearn.preprocessing import KBinsDiscretizer
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import VotingRegressor
+from sklearn.pipeline import Pipeline
+from matplotlib import pyplot
+# get a voting ensemble of models
+def get_ensemble():
+	# define the base models
+	models = list()
+	# normalization
+	norm = Pipeline([('s', MinMaxScaler()), ('m', DecisionTreeRegressor())])
+	models.append(('norm', norm))
+	# standardization
+	std = Pipeline([('s', StandardScaler()), ('m', DecisionTreeRegressor())])
+	models.append(('std', std))
+	# robust
+	robust = Pipeline([('s', RobustScaler()), ('m', DecisionTreeRegressor())])
+	models.append(('robust', robust))
+	# power
+	power = Pipeline([('s', PowerTransformer()), ('m', DecisionTreeRegressor())])
+	models.append(('power', power))
+	# quantile
+	quant = Pipeline([('s', QuantileTransformer(n_quantiles=100, output_distribution='normal')), ('m', DecisionTreeRegressor())])
+	models.append(('quant', quant))
+	# kbins
+	kbins = Pipeline([('s', KBinsDiscretizer(n_bins=20, encode='ordinal')), ('m', DecisionTreeRegressor())])
+	models.append(('kbins', kbins))
+	# define the voting ensemble
+	ensemble = VotingRegressor(estimators=models)
+	# return a list of tuples each with a name and model
+	return models + [('ensemble', ensemble)]
+# generate regression dataset
+X, y = make_regression(n_samples=1000, n_features=100, n_informative=10, noise=0.1, random_state=1)
+# get models
+models = get_ensemble()
+# evaluate each model
+results = list()
+for name,model in models:
+	# define the evaluation method
+	cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
+	# evaluate the model on the dataset
+	n_scores = cross_val_score(model, X, y, scoring='neg_mean_absolute_error', cv=cv, n_jobs=-1)
+	# report performance
+	print('>%s: %.3f (%.3f)' % (name, mean(n_scores), std(n_scores)))
+	results.append(n_scores)
+# plot the results for comparison
+pyplot.boxplot(results, labels=[n for n,_ in models], showmeans=True)
+pyplot.show()
+#https://blog.tensorflow.org/2020/01/hyperparameter-tuning-with-keras-tuner.html
+from sklearn import ensemble
+from sklearn import linear_model
+def build_model(hp):
+    model_type = hp.Choice('model_type', ['random_forest', 'ridge'])
+    if model_type == 'random_forest':
+        with hp.conditional_scope('model_type', 'random_forest'):
+            model = ensemble.RandomForestClassifier(
+                n_estimators=hp.Int('n_estimators', 10, 50, step=10),
+                max_depth=hp.Int('max_depth', 3, 10))
+    elif model_type == 'ridge':
+        with hp.conditional_scope('model_type', 'ridge'):
+            model = linear_model.RidgeClassifier(
+                alpha=hp.Float('alpha', 1e-3, 1, sampling='log'))
+    else:
+        raise ValueError('Unrecognized model_type')
+    return model
+tuner = kt.tuners.Sklearn(
+        oracle=kt.oracles.BayesianOptimization(
+            objective=kt.Objective('score', 'max'),
+            max_trials=10),
+        hypermodel=build_model,
+        directory=tmp_dir)
+X, y = ...
+tuner.search(X, y)
 #https://levelup.gitconnected.com/python-tricks-i-can-not-live-without-87ae6aff3af8
 chklist = ["a", "b", "c", "c"]
 chkset = (set(chklist))

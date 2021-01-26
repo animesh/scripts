@@ -1,5 +1,5 @@
 #convert *bam to *[12].fastq for AGS
-for i in *.bam ; do ls -ltrh $i; bamToFastq -i $i -fq $i.R1.fastq -fq2 $i.R2.fastq; done
+find . name "*.bam" | parallel "bamToFastq -i {} -fq {}.R1.fastq -fq2 {}.R2.fastq"
 #https://www.htslib.org/doc/samtools.html
 wget ftp://ftp.ebi.ac.uk/pub/databases/ena/wgs/public/jj/JJOD01.fasta.gz
 gunzip JJOD01.fasta.gz

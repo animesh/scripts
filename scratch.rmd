@@ -22,6 +22,117 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r pearsonResiduals}
+#https://gist.github.com/hypercompetent/51a3c428745e1c06d826d76c3671797c
+pearson_residuals <- function(counts, theta = 100) {
+  counts_sum0 <- as(matrix(Matrix::colSums(counts),nrow=1),"dgCMatrix")
+  counts_sum1 <- as(matrix(Matrix::rowSums(counts),ncol=1),"dgCMatrix")
+  counts_sum <- sum(counts@x)
+  
+  #get residuals
+  mu <- (counts_sum1 %*% counts_sum0) / counts_sum
+  z <- (counts - mu) / sqrt(mu + mu^2/theta)
+  
+  #clip to sqrt(n)
+  n <- ncol(counts)
+  z[z > sqrt(n)] <- sqrt(n)
+  z[z < -sqrt(n)] <- -sqrt(n)
+  
+  z
+}
+
+sparse_pearson_residuals <- function(counts, theta = 100) {
+  counts_sum0 <- Matrix::colSums(counts)
+  counts_sum1 <- Matrix::rowSums(counts)
+  counts_sum <- sum(counts@x)
+  
+  #get residuals sparsely
+  mu <- Matrix::sparseMatrix(x = counts_sum1[counts@i + 1] * rep(counts_sum0, diff(counts@p)) / counts_sum,
+                             i = counts@i,
+                             p = counts@p,
+                             dims = dim(counts),
+                             index1 = FALSE)
+  
+  z <- counts - mu
+  mu2 <- sqrt(mu + mu^2/theta)
+  z@x <- z@x / mu2@x
+  
+  # clip to sqrt(n)
+  n <- ncol(counts)
+  z@x[z@x > sqrt(n)] <- sqrt(n)
+  z@x[z@x < -sqrt(n)] <- -sqrt(n)
+  
+  z
+}
+```
+
+```{r sIncome}
+# Data https://lindeloev.net/new-pnas-paper-income-is-a-poor-way-to-improve-well-being/
+N = 33391  # Number of participants
+incomes = exp(seq(log(15000), log(480000), length.out = N))  # x-axis of Figure 1
+trend_wb = seq(-0.2, 0.25, length.out = N)  # Linear, read off Figure 1
+trend_ls = seq(-0.3, 0.4, length.out = N)   # Linear, read off Figure 1
+z_wb = rnorm(N, trend_wb)  # z-score is standard normal
+z_ls = rnorm(N, trend_ls)  # z-score is standard normal
+# Merge the data in long format
+df = data.frame(
+  incomes,
+  z = c(rnorm(N, z_wb), rnorm(N, z_ls)),
+  outcome = c(rep("Experienced Well-Being", N), rep("Life Satisfaction", N))
+)
+ggplot2::ggplot(df, ggplot2::aes(x = incomes, y = z)) +
+  ggplot2::geom_point(alpha = 0.1, size = 0.3) + 
+  ggplot2::geom_line(ggplot2::aes(y = c(trend_wb, trend_ls), color = outcome), lwd = 2) + 
+  ggplot2::geom_vline(xintercept = 75000, lty = 2, lwd = 1, color = "#555555") + 
+  ggplot2::facet_wrap(~outcome) + 
+  #scale_x_continuous(trans = "log", breaks = c(15, 30, 60, 120, 240, 480) * 1000) + 
+  ggplot2::scale_x_continuous(breaks = c(15, 30, 60, 120, 240, 480) * 1000, labels = scales::label_number_auto()) + 
+  ggplot2::labs(x = "Houshold income", y = "z-scored well-being") + 
+  ggplot2::theme_bw(13) + 
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))
+#r-values reported in the paper (r = 0.17 and r = 0.09) and that this correspond to 4% and 1.5% variance explained, respectively:
+summary(lm(z_ls ~ log(incomes)))
+summary(lm(z_wb ~ log(incomes)))
+nonlow_incomes = incomes[incomes > 30000]
+lm(z_ls ~ log(nonlow_incomes))
+```
+
+```{r val0}
+#https://www.r-bloggers.com/2021/01/plot-predicted-values-for-presences-vs-absences/
+library(modEvA)
+# load sample models:
+data(rotif.mods)
+# choose a particular model to play with:
+mod <- rotif.mods$models[[1]]
+# make some predPlots:
+predPlot(model = mod)
+predPlot(model = mod, thresh = 0.5)
+# you can also use 'predPlot' with vectors of observed and predicted values instead of a model object:
+myobs <- mod$y
+mypred <- mod$fitted.values
+predPlot(obs = myobs, pred = mypred)
+```
+
+```{r zeroMod}
+#https://notstatschat.rbind.io/2020/09/24/moar-survey-regression-models/
+library(svyVGAM)
+library(pscl)
+data(nhanes_sxq)
+des = svydesign(id=~SDMVPSU,strat=~SDMVSTRA,weights=~WTINT2YR, nest=TRUE, data=nhanes_sxq)
+unwt = zeroinfl(malepartners~RIDAGEYR+factor(RIDRETH1)+DMDEDUC|RIDAGEYR+factor(RIDRETH1)+DMDEDUC, data=nhanes_sxq)
+summary(unwt)
+```
+
+```{r regulon}
+#https://github.com/saezlab/dorothea/tree/non-academic
+devtools::install_github("saezlab/dorothea_R", ref = "non-academic")
+BiocManager::install("dorothea")
+```
+```{r mulEnrichSum}
+#https://github.com/bzhanglab/sumer
+# install.packages("devtools")
+devtools::install_github("bzhanglab/sumer")
+```
 
 ```{r libloc, echo = FALSE}
 .libPaths( c( .libPaths(), "~/libR") )
@@ -49,7 +160,148 @@ update.packages(ask = FALSE,repos='https://cloud.r-project.org/')
 install.packages(c("rjson","data.table"))
 ```
 
+```{r countNorm}
+#https://academic.oup.com/gigascience/article/8/9/giz107/5572529#163672242
+rnaseq <- read.csv("rnaseq-x.csv", row.names=1)
+rnaseq.annot <- read.csv("rnaseq-y.csv", row.names=1)
+masshl <- read.csv("masshl-x.csv", row.names=1)
+masshl.annot <- read.csv("masshl-y.csv", row.names=1)
+inRNAandMS <- masshl.annot$Time
+masshl <- masshl[,inRNAandMS]
+masshl.annot <- masshl.annot[inRNAandMS,]
+install.packages("zCompositions")
+install.packages("propr")
+#install.packages(“BiocManager")
+BiocManager::install("ALDEx2")
+library(zCompositions)
+library(ALDEx2)
+library(propr)
+rnaseq <- t(rnaseq)
+masshl <- t(masshl)
+rnaseq.no0 <- zCompositions::cmultRepl(rnaseq, output = "p-counts")
+masshl.no0 <- zCompositions::cmultRepl(masshl, output = "p-counts")
+# Let's use Nfkb sub-units as alr reference
+
+ref <- grep(“Nfkb", colnames(rnaseq))
+
+ 
+
+# ALDEx2 expects:
+
+# ‘reads': integer counts with columns as samples
+
+# ‘conditions': the experimental outcome
+
+# ‘denom': the log-ratio transform reference
+
+library(ALDEx2)
+
+conditions <- factor(rnaseq.annot$Treatment,
+
+ levels = c(“MOCK", "LPS"))
+
+tt <- aldex(reads = t(ceiling(rnaseq)),
+
+ conditions = conditions,
+
+ denom = ref)
+
+ 
+
+# ALDEx2 outputs a data.frame:
+
+# ‘we.eBH': the FDR-adjusted p-value
+
+# ‘effect': the effect size
+
+# Below, we get the names of genes
+
+# with relatively more abundance
+
+# in the LPS group
+
+tt.bh05 <- tt[tt$we.eBH < .05,]
+
+up <- rownames(tt.bh05[tt.bh05$effect > 0,])
+# propr expects:
+
+# ‘counts': the data matrix with rows as samples
+
+# ‘metric': the proportionality metric to calculate
+
+# ‘ivar': the log-ratio transform reference
+
+library(propr)
+
+pr <- propr(counts = rnaseq.no0,
+
+ metric = “rho",
+
+ ivar = “clr")
+# We can select a good cutoff for ‘rho'
+
+# by permuting the FDR at various cutoffs
+
+# Below, we use [0, .05, ..., .95, 1]
+
+pr <- updateCutoffs(pr, cutoff = seq(0, 1, .05))
+
+pr@fdr
+
+ 
+
+# Let's visualize using a strict cutoff
+
+getNetwork(pr, cutoff = 0.9, col1 = up)
+
+getResults(pr, cutoff = 0.9)
+# propd expects:
+
+# ‘counts': the data matrix with rows as samples
+
+# ‘group': the class labels
+
+library(propr)
+
+pd <- propd(counts = rnaseq.no0,
+
+ group = rnaseq.annot$Treatment)
+
+ 
+
+# Calculate an exact p-value
+
+pd <- updateF(pd)
+
+getResults(pd)
+
+Advanced
+# Get LPS-treated cells only
+
+rna <- rnaseq.no0[rnaseq.annot$Treatment == “LPS'',]
+
+pro <- masshl.no0[masshl.annot$Treatment == “LPS'',]
+
+ 
+
+# Join as single matrix
+
+merge <- rbind(rna, pro)
+
+group <- c(rep(“RNA'', 14), rep(“Protein'', 14))
+
+ 
+
+# Run propd analysis
+
+pd.ms <- propd(merge, group)
+
+```
+
+
 ```{r propensity_score_estimation}
+#https://en.wikipedia.org/wiki/Propensity_score_matching
+#https://en.wikipedia.org/wiki/Inverse_probability_weighting
 #https://sejdemyr.github.io/r-tutorials/statistics/tutorial8.html
 #https://biol607.github.io/lab/12_gzlm.html#5_beta_regression
 #data https://github.com/sejdemyr/ecls
