@@ -22,6 +22,11 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r spaceLocSS}
+#https://bioconductor.org/packages/release/bioc/vignettes/SpatialExperiment/inst/doc/MouseCoronalVisiumAnalysis.html
+BiocManager::install("SpatialExperiment")
+```
+
 ```{r pearsonResiduals}
 #https://gist.github.com/hypercompetent/51a3c428745e1c06d826d76c3671797c
 pearson_residuals <- function(counts, theta = 100) {

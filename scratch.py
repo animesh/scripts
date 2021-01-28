@@ -1,4 +1,37 @@
 #!pip install --upgrade pip
+#https://github.com/mobiusklein/ms_deisotope
+import ms_deisotope
+ms_deisotope.DeconvolutedPeak
+from ms_deisotope import Averagine
+from ms_deisotope import plot
+peptide_averagine = Averagine({"C": 4.9384, "H": 7.7583, "N": 1.3577, "O": 1.4773, "S": 0.0417})
+plot.draw_peaklist(peptide_averagine.isotopic_cluster(1266.321, charge=1))
+#https://mobiusklein.github.io/ms_deisotope/docs/_build/html/Quickstart.html
+from ms_deisotope.test.common import datafile
+path = datafile("F:/SK/export/210112__solveig_AN0-(1).mzML")
+reader = ms_deisotope.MSFileLoader(path)
+bunch = next(reader)
+bunch.precursor.is_profile
+bunch.precursor.pick_peaks()
+bunch.precursor.peak_set[0]
+window = bunch.products[1].isolation_window
+bunch.precursor.peak_set.between(window.lower_bound, window.upper_bound)
+ax = bunch.annotate_precursors(nperrow=2)
+#bayesian deconvolution program git clone https://github.com/michaelmarty/UniDec move unidec* folder/py scripts to lib
+import unidec
+file_name="210112__solveig_AN0-(1).mzML"
+folder="F:/SK/export/"
+eng=unidec.UniDec()
+eng.open_file(file_name, folder)
+eng.process_data()
+eng.run_unidec(silent=True)
+eng.pick_peaks()
+#https://labelstud.io/
+pip install -U label-studio
+label-studio init my_project
+label-studio start my_project
+#https://github.com/PRIDE-Archive/pridepy
+pridepy search-protein-evidences --project_accession PXD012353
 #https://alan-turing-institute.github.io/skpro/introduction.html#a-motivating-example
 # Load boston housing data
 X, y = load_boston(return_X_y=True)

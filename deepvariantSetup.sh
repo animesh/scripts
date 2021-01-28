@@ -1,5 +1,6 @@
 #convert *bam to *[12].fastq for AGS
-find . name "*.bam" | parallel "bamToFastq -i {} -fq {}.R1.fastq -fq2 {}.R2.fastq"
+find . name "*.bam" | parallel "bamToFastq -i {} -fq {}._1.fastq -fq2 {}._2.fastq"
+ls -1 22289_GCCAAT_C5E7AANXX_5_20141008B_20141008.bam 22308_ACTGAT_C5E7AANXX_7_20141008B_20141008.bam 22309_ATTCCT_C5E7AANXX_7_20141008B_20141008.bam | parallel "bamToFastq -i {} -fq {}._1.fastq -fq2 {}._2.fastq"
 #https://www.htslib.org/doc/samtools.html
 wget ftp://ftp.ebi.ac.uk/pub/databases/ena/wgs/public/jj/JJOD01.fasta.gz
 gunzip JJOD01.fasta.gz
