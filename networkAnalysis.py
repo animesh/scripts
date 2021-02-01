@@ -1,3 +1,24 @@
+import sys
+from pathlib import Path
+if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.8.5\n","USAGE: python RawReadMZMS1.py <path to folder containing profile.intensity0.charge0.MS.txt file(s) like \"Z:/RawRead/\" >")
+pathFiles = Path(sys.argv[1])
+pathFiles = Path("L:/promec/Animesh/RawRead")
+fileName='20150512_BSA_The-PEG-envelope.raw.intensityThreshold1000.PPM10.errTolDecimalPlace3.Time20201022145302.MZ1R.csv'
+trainList=list(pathFiles.rglob(fileName))
+import pandas as pd
+df=pd.DataFrame()
+df=pd.read_csv('L:/promec/Qexactive/LARS/2020/september/PSO_201005_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt_dataagg7lMaxF.csv',low_memory=False,index_col="MZ")
+for f in trainList:
+    print(f)
+    temp=pd.read_csv(f,low_memory=False,index_col="MZ")
+    temp.rename(columns={'dataAnionAgg7lMax':f}, inplace=True)
+    df=df.merge(temp,left_index=True, right_index=True,how='outer')
+df.fillna(0,inplace=True)
+print(df.head())
+print(df.columns)
+testCSV=pathFiles/ 'mz1coll.csv'
+df.to_csv(testCSV)
+
 #source https://github.com/jdrudolph/perseuspy
 import sys
 from perseuspy import pd
