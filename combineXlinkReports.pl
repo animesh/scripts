@@ -1,29 +1,29 @@
+#usage: perl combineXlinkReports.pl 2>0 > combx.txt
 use strict;
 use warnings;
 use Text::ParseWords;
 
-my $path = shift @ARGV;
-my $pat = "REP";
-my $fpat = "proteinGroups.txt";
-
+my $path = "/mnt/f/20210118_8samples/QE/";
+my $pat = "210114_Synnove_";
+my $fpat = ".mgf.mq.txt";
 
 my $idi = shift @ARGV;
 my $idn = shift @ARGV;
 my $i1 = shift @ARGV;
 my $thr = shift @ARGV;
 
-if(!$i1){$i1=29;}
+if(!$i1){$i1=2;}
 if(!$idi){$idi=0;}
-if(!$idn){$idn=6;}
+if(!$idn){$idn=1;}
 if(!$thr){$thr=1000;}
 
 #my @files=<$path/*$pat/$fpat>;
-my @files=</cygdrive/l/HF/Lars/2017/JUNI/*/*/combined/txt/proteinGroups.txt>;
+my @files=</mnt/f/20210118_8samples/QE/*.mq.txt>;
 #my @files=<*.txt>;
 my %mrna;
 my %nc;
 
-print "Uniprot ID\tID Name\t";
+print "Uniprot_ID1_ID2\tID_map\t";
 foreach my $f1 (@files){
     my @tmp;
     my @name;
@@ -48,7 +48,7 @@ foreach my $f1 (@files){
             if($tmp[$i1]>$thr){$mrna{$key}.="$tmp[$i1] ";}
         	elsif($tmp[$i1+2]>$thr){$mrna{$key}.="$tmp[$i1+2] ";}
         	elsif($tmp[$i1+12]>$thr){$mrna{$key}.="$tmp[$i1+12] ";}
-        	else{$mrna{$key}.="NA";} 		
+        	else{$mrna{$key}.="NA";}
         	$nc{$upid[1]}=$tmp[6];
     	    }
         }
@@ -71,9 +71,3 @@ foreach my $g  (keys %nc){
         print "$ocg\n";
     }
 }
-
-
-__END__
-
-#perl /cygdrive/c/Users/animeshs/misccb/mqpevol.pl /cygdrive/j/MSdata 7 20 2>0 > combo.txt
-perl mqpevol.pl  /cygdrive/i/MQResults/CellLines/ 2>0 >  /cygdrive/i/MQResults/CellLines/combo.txt
