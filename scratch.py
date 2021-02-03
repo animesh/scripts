@@ -1,4 +1,72 @@
 #!pip install --upgrade pip
+#https://pytorch-lightning.medium.com/introducing-lightning-flash-the-fastest-way-to-get-started-with-deep-learning-202f196b3b98
+import flash
+from flash.core.data import download_data
+from flash.vision import ImageClassificationData, ImageClassifier
+
+# 1. Download the data
+download_data("https://pl-flash-data.s3.amazonaws.com/hymenoptera_data.zip", 'data/')
+
+# 2. Load the data from folders
+datamodule = ImageClassificationData.from_folders(
+    backbone="resnet18",
+    train_folder="data/hymenoptera_data/train/",
+    valid_folder="data/hymenoptera_data/val/",
+    test_folder="data/hymenoptera_data/test/",
+)
+
+# 3. Build the model using desired Task
+model = ImageClassifier(num_classes=datamodule.num_classes)
+
+# 4. Create the trainer (run one epoch for demo)
+trainer = flash.Trainer(max_epochs=1)
+
+# 5. Finetune the model
+trainer.finetune(model, datamodule=datamodule, unfreeze_milestones=(0, 1))
+
+# 6. Use the model for predictions
+predictions = model.predict('data/hymenoptera_data/val/bees/65038344_52a45d090d.jpg')
+# Expact 1 -> bee
+print(predictions)
+
+predictions = model.predict('data/hymenoptera_data/val/ants/2255445811_dabcdf7258.jpg')
+# Expact 0 -> ant
+print(predictions)
+
+# 7. Save the new model!
+trainer.save_checkpoint("image_classification_model.pt")
+import torch
+import torch.nn.functional as F
+from flash.core.classification import ClassificationTask
+from pytorch_lightning.metrics import Accuracy
+from typing import Type, Callable, Mapping, Sequence, Union
+
+
+class LinearClassifier(ClassificationTask):
+    def __init__(
+        self,
+        num_inputs,
+        num_classes,
+        loss_fn: F.cross_entropy,
+        optimizer: Type[torch.optim.Optimizer] = torch.optim.SGD,
+        metrics: Union[pl.metrics.Metric, Mapping, Sequence, None] = [Accuracy()],
+        learning_rate: float = 1e-3,
+    ):
+      super().__init__(
+        model=None,
+          loss_fn=loss_fn,
+          optimizer=optimizer,
+          metrics=metrics,
+          learning_rate=learning_rate,
+      )
+
+      self.save_hyperparameters()
+
+      self.linear = torch.nn.Linear(num_inputs, num_classes)
+
+    def forward(self, x):
+        return self.linear(x)
+        
 #climate dataset https://docs.google.com/spreadsheets/d/1SNe_GFimu_E2sdfpm4_XiEfVFKKHmhPRfneOsbosBnU/edit?usp=sharing
 #https://towardsdatascience.com/the-coolest-data-science-library-i-found-in-2021-956af253fb2c
 #!pip install -U scikit-learn

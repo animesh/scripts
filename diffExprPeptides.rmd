@@ -1,0 +1,221 @@
+```{r data}
+inpD<-getwd()
+inpF<-paste0(inpD,"/HEAVY peptide quantitation ratios total area.csv")
+data<-read.csv(inpF,header=T)
+log2LFQ=log2(data$Total.Area)
+hist(log2LFQ,breaks=round(max(log2LFQ)))
+hist(log2(data[(grep("heavy", data$Isotope.Label.Type)),"Total.Area"]),breaks=round(max(log2LFQ)), col=rgb(1,0,0,0.5), add=T)
+hist(log2(data[(grep("light", data$Isotope.Label.Type)),"Total.Area"]),breaks=round(max(log2LFQ)), col=rgb(0,0,1,0.5), add=T)
+```
+
+```{r select}
+selThr<-0.3
+dataSH<-data[grep("heavy|light", data$Isotope.Label.Type),] 
+hist(log2(dataSH$Total.Area))
+dataSN<-dataSH[(grep("Kathleen", dataSH$Replicate.Name)),] 
+dataS<-dataSH[(grep("201112_kath_TOTTARGETED_", dataSH$Replicate.Name,ignore.case=TRUE)),] 
+plot(as.factor(dataS$Peptide.Sequence),log2(dataS$Total.Area))
+barplot(log2(dataS$Total.Area),names.arg=dataS$Peptide.Sequence)
+barplot(dataS$Total.Area)
+barplot(log2(dataS$Total.Area))
+dataS<-as.matrix(data[,1:4],rownames=T)
+data<-data[(data$X2_Kathleen4_x.y_2_CTR1_202003231907461.Skyline<selThr) | (data$X3_Kathleen4_x.y_3_CTR14.Skyline<selThr) | (data$X4_Kathleen4_x.y_4_CTR17.Skyline<selThr) | (data$X6_Kathleen4_x.y_6_CTR110.Skyline<selThr),]
+hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
+dataS<-as.matrix(data[,c(1:4,7:18)],rownames=T)
+dataS[dataS==0]=NA
+rn<-sub(";","",unlist(data[37]))
+rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+rn<-strsplit(rn, "-")
+row.names(dataS)<-sapply(rn, "[", 1)
+cn<-strsplit(colnames(dataS), "_")
+colnames(dataS)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 4))
+summary(dataS)
+hist(dataS)
+limma::vennDiagram(dataS[,c(1:4)]<selThr,main="target",counts.col = "red")
+```
+
+
+```{r selectHeavy}
+selThr<-"heavy"
+dataSH<-data[grep(selThr, data$Isotope.Label.Type),] 
+dataSN<-dataSH[(grep("Kathleen", dataSH$Replicate.Name)),] 
+dataS<-dataSH[(grep("201112_kath_TOTTARGETED_", dataSH$Replicate.Name,ignore.case=TRUE)),] 
+plot(as.factor(dataS$Peptide.Sequence),log2(dataS$Total.Area))
+#barplot(dataS$Total.Area)
+#barplot(log2(dataS$Total.Area))
+```
+
+```{r selectLight}
+selThr<-"light"
+dataSH<-data[grep(selThr, data$Isotope.Label.Type),] 
+dataSN<-dataSH[(grep("Kathleen", dataSH$Replicate.Name)),] 
+dataS<-dataSH[(grep("201112_kath_TOTTARGETED_", dataSH$Replicate.Name,ignore.case=TRUE)),] 
+plot(as.factor(dataS$Peptide.Sequence),log2(dataS$Total.Area))
+#barplot(log2(dataS$Total.Area),names.arg=dataS$Peptide.Sequence)
+```
+
+
+```{r fraction-clust-plot, echo = FALSE}
+#install.packages('pheatmap')
+library(pheatmap)
+#?pheatmap
+y<-as.matrix(dsub[,grepl("Fraction\\.[0-9]+",colnames(dsub))])
+#yy<-as.matrix(data[grepl("albumin",data$Fasta.headers),])
+
+y[is.na(y)]<-0
+rn<-sub(";","",dsub$Fasta.headers)
+#rn<-strsplit(rn, "apolipoprotein")
+rn<-strsplit(rn, " ")
+row.names(y)<-paste(sapply(rn, "[", 1),sapply(rn, "[", 3),sapply(rn, "[", 6))
+summary(y)
+#svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6)#,annotation_col = label,show_rownames=F)
+svgPHC<-pheatmap(y,scale="row",clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE)#,annotation_col = label,show_rownames=F)
+#ggsave(file=paste0(inpF,"corrcoefED.svg"), plot=svgPHC, width=6, height=6)
+plot(svgPHC)
+ggsave(file=paste0(inpD,hdr,"clusterPlot.frac.svg"),plot=svgPHC)#,  width=6, height=6)
+```
+
+```{r imputeFilter-ttest, echo = FALSE}
+pairwise.t.test(as.matrix(dataNormImpFilter),c(0,0,1,1,1,0))#[1,3:5],dataNormImpFilter[1,c(1,2,6)])
+```
+
+```{r write-output, echo = FALSE}
+write.table(dataNorm,file=paste0(inpD,"log2data.txt"), sep = "\t")
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+
+```{r impute, echo = FALSE}
+#install.packages('mice')
+library(mice)
+#install.packages('randomForest')
+library(randomForest)
+dataNormImp=mice(dataNorm, method="rf")
+dataNormImpCom <- complete(dataNormImp,1)
+row.names(dataNormImpCom)<-row.names(dataNorm)
+summary(dataNormImpCom)
+```
+
+```{r write-output, echo = FALSE}
+write.csv(dataNormImpCom,file=paste0(inpD,"log2dataImp.csv"))
+#write.csv(factors,file=paste0(inpD,"dataNormImpComFactor.csv"))
+dataNormImpCom <- read.csv(paste0(inpD,"log2dataImp.csv"),row.names=1,header = T)
+#factors<-read.csv(paste0(inpD,"dataNormImpComFactor.csv"))
+#dump(dataNorm,file=paste0(inpD,"dataNorm.R"))
+```
+
+
+
+
+```{r ROTS, echo = FALSE}
+#iocManager::install("ROTS")#, version = "3.8")
+dataNormImpCom<-dataNormImpFilter#[is.na(dataNormImpCom)]=5
+summary(dataNormImpCom)
+factors<-c(1,1,2,2,2,1)
+library(ROTS)
+results = ROTS(data = dataNormImpCom, groups = factors , B = 250 , K = 250 , seed = 42)
+write.csv(summary(results, fdr = 1),file=paste0(inpD,hdr,"rots.csv"))
+names(results) 
+summary(results, fdr = 0.05)
+plot(results, fdr = 0.2, type = "pca")
+plot(results, type = "volcano",fdr = 0.5)
+plot(results, fdr = 0.2, type = "heatmap")
+```
+
+
+```{r DEqMS}
+#https://rdrr.io/bioc/DEqMS/f/vignettes/DEqMS-package-vignette.Rmd
+#install.packages("BiocManager")
+#BiocManager::install("DEqMS")
+library(DEqMS)
+dat.log=dataNormImpFilter
+boxplot(dat.log,las=2,main="")
+cond = as.factor(c("w","w","r","r","r","w"))
+design = model.matrix(~0+cond) # 0 means no intercept for the linear model
+colnames(design) = gsub("cond","",colnames(design))
+x <- c("r-w")
+contrast =  makeContrasts(contrasts=x,levels=design)
+fit1 <- lmFit(dat.log, design)
+fit2 <- contrasts.fit(fit1,contrasts = contrast)
+fit3 <- eBayes(fit2)
+df.prot=dataClean[dataNormFilter$Red<selThr | dataNormFilter$White<selThr,]
+library(matrixStats)
+count_columns = "MS.MS.count."
+#psm.count.table = data.frame(count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))])))+1
+#rownames(fit3$coefficients)
+fit3$count = rowMins(as.matrix(df.prot[,grep(count_columns, names(df.prot))]))+1
+fit4 = spectraCounteBayes(fit3)
+# n=30 limits the boxplot to show only proteins quantified by <= 30 PSMs.
+VarianceBoxplot(fit4,n=30,main=inpD,xlab="PSM count")
+VarianceScatterplot(fit4,main=inpD)
+DEqMS.results = outputResult(fit4,coef_col = 1)
+#if you are not sure which coef_col refers to the specific contrast,type
+head(fit4$coefficients)
+# a quick look on the DEqMS results table
+head(DEqMS.results)
+# Save it into a tabular text file
+write.table(DEqMS.results,paste0(inpD,hdr,"DEqMS.results.txt"),sep = "\t",row.names = F,quote=F)
+#install.packages("ggrepel")
+library(ggrepel)
+# Use ggplot2 allows more flexibility in plotting
+DEqMS.results$log.sca.pval = -log10(DEqMS.results$sca.P.Value)
+ggplot(DEqMS.results, aes(x = logFC, y =log.sca.pval )) + 
+    geom_point(size=0.5 )+
+    theme_bw(base_size = 16) + # change theme
+    xlab(expression("log2(red/white)")) + # x-axis label
+    ylab(expression(" -log10(P-value)")) + # y-axis label
+    geom_vline(xintercept = c(-1,1), colour = "red") + # Add fold change cutoffs
+    geom_hline(yintercept = 2, colour = "red") + # Add significance cutoffs
+    geom_vline(xintercept = 0, colour = "black") + # Add 0 lines
+    scale_colour_gradient(low = "black", high = "black", guide = FALSE)+
+    geom_text_repel(data=subset(DEqMS.results, abs(logFC)>1&log.sca.pval > 2),
+                    aes( logFC, log.sca.pval ,label=gene)) # add gene label
+#fit4$p.value = fit4$sca.p
+#volcanoplot(fit4,coef=1, style = "p-value", highlight = 10,names=rownames(fit4$coefficients))
+
+#DEqMS-peptides
+fit3$count = rowMins(as.matrix(df.prot[,grepl("^Peptides\\.[0-9]+", names(df.prot))]))+1
+min(fit3$count)
+fit4 = spectraCounteBayes(fit3)
+VarianceBoxplot(fit4, n=20, main = hdr,xlab="peptide count + 1")
+DEqMS.results = outputResult(fit4,coef_col = 1)
+DEqMS.results$Gene.name = df.prot[DEqMS.results$gene,]$Gene.names
+head(DEqMS.results)
+write.table(DEqMS.results,paste0(inpD,hdr,"R-W.DEqMS.pep.results.txt"),sep = "\t",row.names = F,quote=F)
+head(DEqMS.results)
+VarianceBoxplot(fit4,n=20)
+#peptideProfilePlot(dat=df.prot)#,col=2,gene="TGFBR2")
+VarianceScatterplot(fit4, xlab="log2(LFQ)")
+limma.prior = fit4$s2.prior
+abline(h = log(limma.prior),col="green",lwd=3 )
+legend("topright",legend=c("DEqMS prior variance","Limma prior variance"),
+        col=c("red","green"),lwd=3)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+Residualplot(fit4,  xlab="log2(PSM count)",main="DEqMS")
+x = fit3$count
+y = log(limma.prior) - log(fit3$sigma^2)
+plot(log2(x),y,ylim=c(-6,2),ylab="Variance(estimated-observed)", pch=20, cex=0.5,
+     xlab = "log2(PSMcount)",main="Limma")
+#install.packages("LSD")
+library(LSD)
+op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
+x = fit3$count
+y = fit3$s2.post
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)", 
+     ylab="log(Variance)",
+     main="Posterior Variance in Limma")
+
+y = fit4$sca.postvar
+heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
+     ylab="log(Variance)", 
+     main="Posterior Variance in DEqMS")
+
+```
+
+```{r MSstats}
+#BiocManager::install("MSstats")
+library("MSstats")
+#browseVignettes("MSstats")
+raw <- SkylinetoMSstatsFormat(data)
+```
+
