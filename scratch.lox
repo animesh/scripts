@@ -1,0 +1,36 @@
+//https://github.com/amrdeveloper/snapmacro
+//https://craftinginterpreters.com/the-lox-language.html
+fun main() {
+    val scanner = Scanner(System.`in`)
+    val robot = Robot()
+    while (scanner.hasNext()) {
+        when (scanner.next()) {
+            "mouse" -> when (scanner.next()) {
+                "press" -> {
+                    when (scanner.next()) {
+                        "right" -> robot.mousePress(BUTTON3_DOWN_MASK)
+                        "left" -> robot.mousePress(BUTTON1_DOWN_MASK)
+                    }
+                }
+                "release" -> {
+                    when (scanner.next()) {
+                        "right" -> robot.mouseRelease(BUTTON3_DOWN_MASK)
+                        "left" -> robot.mouseRelease(BUTTON1_DOWN_MASK)
+                    }
+                }
+                "move" -> robot.mouseMove(scanner.nextInt(), scanner.nextInt())
+                "wheel" -> robot.mouseWheel(scanner.nextInt())
+            }
+            "keyboard" -> {
+                val action = scanner.next()
+                val character = scanner.next()
+                val key = KeyEvent.getExtendedKeyCodeForChar(character[0].toInt())
+                when (action) {
+                    "press" -> robot.keyPress(key)
+                    "release" -> robot.keyRelease(key)
+                }
+            }
+            "delay" -> robot.delay(scanner.nextInt())
+        }
+    }
+}

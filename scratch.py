@@ -1,4 +1,54 @@
 #!pip install --upgrade pip
+#https://ml-generator.herokuapp.com/
+#!pip install pyod pandas scikit-learn
+from pyod.models.lof import LOF
+from pyod.utils.data import generate_data
+from pyod.utils.data import evaluate_print
+from pyod.utils.example import visualize
+import pandas as pd
+from sklearn.model_selection import train_test_split
+#https://data.world/uci/heart-disease#__sid=js0
+#https://raw.githubusercontent.com/g-shreekant/Heart-Disease-Prediction-using-Machine-Learning/master/heart.csv
+data = pd.read_csv("heart_disease.csv")
+X = data.copy().drop('outlier', axis=1)
+y = data['outlier']
+X_train, X_test, y_train,y_test = train_test_split(X, y, test_size = 0.2, stratify=y, random_state=42)
+clf = LOF(n_neighbors=10, algorithm='auto', metric='euclidean')
+clf.fit(X_train)
+y_train_pred = clf.labels_  # binary labels (0: inliers, 1: outliers)
+y_train_scores = clf.decision_scores_  # raw outlier scores
+print("\nOn Training Data:")
+evaluate_print('LOF', y_train, y_train_scores)
+y_test_pred = clf.predict(X_test)  # outlier labels (0 or 1)
+y_test_scores = clf.decision_function(X_test)  # outlier scores
+print("\nOn Test Data:")
+evaluate_print(clf_name, y_test, y_test_scores)
+
+#https://medium.com/swlh/python-can-be-faster-than-c-2372c627068
+import math
+#!pip install time
+import sys
+from numba import njit, prange
+@njit(fastmath=True, cache=True)
+def is_prime(num):
+   if num == 2:
+      return True;
+   if num <= 1 or not num % 2:
+      return False
+   for div in range(3,int(math.sqrt(num)+1,2):
+      if not num % div:
+        return False
+   return True
+@njit(fastmath=True, cache=True,parallel=True)
+def run program(N):
+   for i in prange(N):
+      is_prime(i)
+if __name__ == ‘__main__’:
+  N = 10000000
+  start = time()
+  run_program(N)
+  end = time()
+  print(end — start)
 #https://pytorch-lightning.medium.com/introducing-lightning-flash-the-fastest-way-to-get-started-with-deep-learning-202f196b3b98
 import flash
 from flash.core.data import download_data
@@ -66,7 +116,7 @@ class LinearClassifier(ClassificationTask):
 
     def forward(self, x):
         return self.linear(x)
-        
+
 #climate dataset https://docs.google.com/spreadsheets/d/1SNe_GFimu_E2sdfpm4_XiEfVFKKHmhPRfneOsbosBnU/edit?usp=sharing
 #https://towardsdatascience.com/the-coolest-data-science-library-i-found-in-2021-956af253fb2c
 #!pip install -U scikit-learn
@@ -2260,6 +2310,7 @@ print("Version: ", tf.__version__)
 print("Eager mode: ", tf.executing_eagerly())
 print("Hub version: ", hub.__version__)
 print("GPU is", "available" if tf.test.is_gpu_available() else "NOT AVAILABLE")
+tf.config.list_physical_devices('GPU')
 imdb = tf.keras.datasets.imdb
 (pp_train_data, pp_train_labels)= (imdb.load_data(num_words=10000))
 print('Training entries: {}, labels: {}'.format(len(pp_train_data),len(pp_train_labels)))

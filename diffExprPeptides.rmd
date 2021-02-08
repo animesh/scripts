@@ -40,6 +40,8 @@ selThr<-"heavy"
 dataSH<-data[grep(selThr, data$Isotope.Label.Type),] 
 dataSN<-dataSH[(grep("Kathleen", dataSH$Replicate.Name)),] 
 dataS<-dataSH[(grep("201112_kath_TOTTARGETED_", dataSH$Replicate.Name,ignore.case=TRUE)),] 
+dataS[dataS$Total.Area>10e8,]
+dataS[dataS$Peptide.Sequence=="DIKPQNLLVDPDTAVLK",]
 plot(as.factor(dataS$Peptide.Sequence),log2(dataS$Total.Area))
 #barplot(dataS$Total.Area)
 #barplot(log2(dataS$Total.Area))
@@ -50,6 +52,8 @@ selThr<-"light"
 dataSH<-data[grep(selThr, data$Isotope.Label.Type),] 
 dataSN<-dataSH[(grep("Kathleen", dataSH$Replicate.Name)),] 
 dataS<-dataSH[(grep("201112_kath_TOTTARGETED_", dataSH$Replicate.Name,ignore.case=TRUE)),] 
+dataS[dataS$Peptide.Sequence=="SYELPDGQVITIGNER",]
+dataS[dataS$Total.Area>10e9,]
 plot(as.factor(dataS$Peptide.Sequence),log2(dataS$Total.Area))
 #barplot(log2(dataS$Total.Area),names.arg=dataS$Peptide.Sequence)
 ```
@@ -216,6 +220,14 @@ heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
 #BiocManager::install("MSstats")
 library("MSstats")
 #browseVignettes("MSstats")
-raw <- SkylinetoMSstatsFormat(data)
+#https://skyline.ms/wiki/home/software/Skyline/page.view?name=SkylineInstall_64_20-2&submit=false
+#https://skyline.ms/files/home/software/Skyline/tools/_tool_MSstats_3.13.7/MSstats-SkylineExternalTool-InstallationAndUserGuide-v2.1.6.pdf
+raw <- SkylinetoMSstatsFormat(read.csv("MSstats Input.csv",header=T))
+QuantData <- dataProcess(raw)
+```
+
+```{r MSstatsPTM}
+#https://github.com/MeenaChoi/MSstatsPTM/blob/master/vignettes/MSstatsPTM.Rmd
+#devtools::install_github("tsunghengtsai/MSstatsPTM")
 ```
 
