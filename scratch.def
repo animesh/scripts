@@ -1,5 +1,0 @@
-LIBRARY scratch.exe
-
-EXPORTS
-__bt_init
-tcc_backtrace
