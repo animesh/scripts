@@ -3,7 +3,7 @@
 #renv::deactivate()
 par(mfrow=c(1,2))
 #library/packages
-inpD<-"L:/promec/Qexactive/LARS/2020/February/Nathan Shotgun/combined/"
+inpD<-"F:/CLN3/combined/txt/"
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 .libPaths( c( .libPaths(), inpD) )
 .libPaths()
@@ -78,10 +78,10 @@ summary(data)
 dim(data)
 hist(as.matrix(log2(data[,grep("Intensity",colnames(data))])))
 summary(log2(data[,grep("Intensity",colnames(data))]))
-selection<-"LFQ.intensity"
+selection<-"LFQ.intensity."
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-protNum<-1:ncol(LFQ)
-colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
+protNum<-"LFQ intensity"#1:ncol(LFQ)
+colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)))#,protNum,sep="_")
 dim(LFQ)
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
@@ -93,8 +93,27 @@ rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fix
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),inpW)
 ```
 
+```{r corHC}
+corrplot::corrplot(cor(log2LFQ))
+log2LFQ0=log2LFQ
+log2LFQ0[log2LFQ0==NA]=0
+pheatmap::pheatmap(log2LFQ0,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
+scale=3
+log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
+log2LFQimp[log2LFQimp<0]<-0
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
+colnames(log2LFQimp)<-colnames(log2LFQ)
+pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample_Name__)
+```
+
 ```{r label}
-inpL<-paste0(inpD,"Groups.txt")
+inpL<-paste0(inpD,"20210205_SampleKey-To Animesh.txt")
 label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
 label
 ```

@@ -1,10 +1,10 @@
 #!/bin/sh
-#SBATCH --partition=CPUQ
+#SBATCH --partition=bigmem
 #SBATCH --account=nn9036k
-#SBATCH --time=36:15:30
+#SBATCH --time=144:15:30
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=16
-#SBATCH --mem=32000
+#SBATCH --ntasks-per-node=32
+#SBATCH --mem=128000
 #SBATCH --job-name="mono"
 #SBATCH --output=test-srun.out
 #SBATCH --mail-user=animesh.sharma@ntnu.no
@@ -23,4 +23,4 @@ echo "Total of $SLURM_NTASKS cores"
 
 module purge
 module load Mono/6.8.0.105-GCCcore-8.3.0
-mono $HOME/MaxQuant_1.6.17.0/MaxQuant/bin/MaxQuantCmd.exe $HOME/nn9036k/20210118_8samples/QE/mqpar.xml
+mono $HOME/MaxQuant_1.6.17.0/MaxQuant/bin/MaxQuantCmd.exe $HOME/nn9036k/CLN3/mqpar.xml
