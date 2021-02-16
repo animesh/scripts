@@ -41,7 +41,7 @@ maxiter=5000
 for iter in range(maxiter):
   optimizer.zero_grad()                  # set gradients=0 before calculating more
   y_tilde = model(x)                     # feed-forward step
-  loss = loss_fn(y_tilde, y)             # compute the loss
+  loss = loss_fn(y_tilde, y.T)             # compute the loss
   loss_hist_pytorch.append(loss.item())  # save loss for plotting later
   loss.backward()                        # compute gradients via backprop
   optimizer.step()                       # actually update the weights

@@ -1,4 +1,4 @@
-set FRAGPIPE=C:\Users\animeshs\GD\fragpipe
+set FRAGPIPE=F:\GD\fragpipe
 set LIB=%FRAGPIPE%\lib
 set TOOLS=%FRAGPIPE%\tools
 set FP=%LIB%\fragpipe-14.0.jar
@@ -8,15 +8,15 @@ set CC=%TOOLS%\original-crystalc-1.3.2.jar
 set BM=%TOOLS%\batmass-io-1.19.5.jar
 set GRPPR=%TOOLS%\grppr-0.3.23.jar
 set PHILOSOPHER=C:\Users\animeshs\GD\fragpipe\tools\philosopher\philosopher.exe
-set FASTA=Z:\promec\USERS\Shengdong\201111_IP-and-inputs_12samples\QE\IP\2020-11-26-decoys-reviewed-contam-UP000005640.fas
-set DATA=Z:\promec\USERS\Shengdong\201111_IP-and-inputs_12samples\QE\IP
+set FASTA=%HOME%/FastaDB/uniprot-Phaeodactylum-tricornutum-iso-Feb20.fasta
+set DATA=F:\promec\USERS\MarianneNymark\20200108_15-samples\HF\2021run
 cd %DATA%
 
 GOTO :Source
 
 %PHILOSOPHER% workspace --clean --nocheck
 %PHILOSOPHER% workspace --init .
-%PHILOSOPHER% database --reviewed --contam --id  UP000005640
+%PHILOSOPHER% database --reviewed --contam --id  UP000000759
 
 java -jar -Dfile.encoding=UTF-8 -Xmx76G %MSFRAGGER% %DATA%\fragger.params %DATA%\201111_Shengdong_IP_sample3.raw
 mkdir  Z:\promec\USERS\Shengdong\201111_IP-and-inputs_12samples\QE\IP\201111_Shengdong_IP_sample3\

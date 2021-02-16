@@ -3,13 +3,15 @@
 #renv::deactivate()
 par(mfrow=c(1,2))
 #library/packages
-inpD<-"F:/CLN3/combined/txt/"
+inpD<-"F:/promec/Qexactive/Mirta/CLN3/combined/txt/"
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 .libPaths( c( .libPaths(), inpD) )
 .libPaths()
 #install.packages("lattice", repos="http://cran.r-project.org", lib=inpD)
+#install.packages("rlang")
 #install.packages("writexl")
 #install.packages("readxl")
+#install.packages("devtools")
 #install.packages("BiocManager")
 #BiocManager::install("limma")
 #install.packages("matrixStats")
@@ -110,6 +112,14 @@ my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1
 pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
 colnames(log2LFQimp)<-colnames(log2LFQ)
 pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample_Name__)
+log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
+colnames(log2LFQimpCorr)<-colnames(log2LFQ)
+rownames(log2LFQimpCorr)<-colnames(log2LFQ)
+pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = paste(label$Sample.Number,label$Sample_Name__),labels_row = label$Cell.Type_Sample.Group)
+ggplot2::ggsave(file=paste0(inpF,selection,"log2spearClust.svg"),plot=svgPHC)#,  
+assign(paste0(selection,"clusterData"),log2LFQimpCorr)
+write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,selection,"log2spearClust.csv"),row.names=F)
 ```
 
 ```{r label}

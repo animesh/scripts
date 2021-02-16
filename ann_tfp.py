@@ -52,13 +52,14 @@ print(grads[0],a,grads[1],b)
 #https://www.tensorflow.org/probability/api_docs/python/tfp/stats/correlation
 x = tf.random.normal(shape=(100, 2, 3))
 y = tf.random.normal(shape=(100, 2, 3))
+
+import tensorflow_probability as tfp
+print(tfp.__version__)
+
 corr = tfp.stats.correlation(x, y, sample_axis=0, event_axis=None)
 corr_matrix = tfp.stats.correlation(x, y, sample_axis=0, event_axis=-1)
 
 plt.hist(corr)
-
-import tensorflow_probability as tfp
-print(tfp.__version__)
 
 tfd = tfp.distributions
 normal = tfd.Normal(loc=0., scale=1.)
