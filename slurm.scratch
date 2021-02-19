@@ -23,4 +23,4 @@ echo "Total of $SLURM_NTASKS cores"
 
 module purge
 module load Mono/6.8.0.105-GCCcore-8.3.0
-mono $HOME/MaxQuant_1.6.17.0/MaxQuant/bin/MaxQuantCmd.exe $HOME/nn9036k/CLN3/mqpar.xml
+mono $HOME/MaxQuant_1.6.17.0/MaxQuant/bin/MaxQuantCmd.exe  -p 25 $HOME/nn9036k/CLN3/mqpar.xml
