@@ -4,18 +4,24 @@
 #https://matrices.io/deep-neural-network-from-scratch/ using https://www.tensorflow.org/alpha/guide/eager
 #pip3 install tensorflow==2.0.0-rc0
 #https://youtu.be/5ECD8J3dvDQ?t=455
+import tensorflow as tf
+tf.keras.backend.clear_session()
+from tensorflow.python.client import device_lib
+print(device_lib.list_local_devices())
+print("Version: ", tf.__version__)
+print("Eager mode: ", tf.executing_eagerly())
+print("GPU is", "available" if tf.test.is_gpu_available() else "NOT AVAILABLE")
+#print(tf.config.list_physical_devices('GPU'))
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Activation
+from tensorflow.keras.optimizers import Adam
+import numpy as np
 inp=[0.05,0.10]
 #inpw=[[0.15,0.25],[0.20,0.3]]
 #hidw=[[0.4,0.5],[0.45,0.55]]
 outputr=[0.01,0.99]
 #bias=[0.35,0.6]
 lr=0.5
-import tensorflow
-print(tensorflow.__version__)
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Activation
-from tensorflow.keras.optimizers import Adam
-import numpy as np
 X = np.array([inp])
 Y = np.array([outputr])
 n_hidden = 2
