@@ -3,7 +3,7 @@
 #renv::deactivate()
 par(mfrow=c(1,2))
 #library/packages
-inpD<-"L:/promec/Qexactive/Mirta/CLN3/combined/txt/"
+inpD<-"F:/promec/Qexactive/Mirta/CLN3/combined/txt/"
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 .libPaths( c( .libPaths(), inpD) )
 .libPaths()
@@ -36,7 +36,7 @@ t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
 #devtools::install_github("bartongroup/proteusLabelFree")
 #devtools::install_github("bartongroup/Proteus", build_opts= c("--no-resave-data", "--no-manual"), build_vignettes=F)
 library(proteus)
-evidenceFile <- file.path(paste0(inpD,"evidence.txt"))
+evidenceFile <- file.path(paste0(inpD,"txt/evidence.txt"))
 evi <- readEvidenceFile(evidenceFile)
 metadataFile <- file.path(paste0(inpD,"metadata.6.txt"))
 meta <- read.delim(metadataFile, header=TRUE, sep="\t")

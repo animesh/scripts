@@ -1,114 +1,56 @@
+Sys.setenv(TZ="GMT")
+print("USAGE:Rscript proteinGroupsPD.r <complete path to proteinGroups.txt file>")
+print("default values: Abundances.Normalized.")
+#example: "c:\Program Files\Microsoft\R Open\R-4.0.2\bin\Rscript.exe" proteinGroupsPD.r  "F:\promec\Animesh\Kathleen\PCA\181006_HCT_totx_R1.xlsx"
 #parse argument(s)
-print("USAGE:Rscript proteinGroupsPD.r <complete path to *_Proteins.txt file>")
-print("default LFQ")
-#Rscript proteinGroupsPD.r F:\201015_IP\QE\IP\201015_Martin_IP_CHAPS-ATP-synthase-(1)_Proteins.txt
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args[1])
 print(args[2])
 #read
-if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
-print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
-#read
-inpD<-"L:/promec/HF/Lars/2020/oktober/Results/"
-data<-read.delim(paste0(inpD,"201105_kath_phostot_1B-(2)comb_Proteins.txt"),sep="\t",header = T,row.names = 1)
-hist(log2(as.matrix(data[,grep("Scaled",colnames(data))])))
-scaleData=data[,grep("Scaled",colnames(data))]
-colnames(scaleData) <-  sub("Abundances.Scaled.", "", colnames(scaleData))
-colnames(scaleData) <-  sub(".Sample", "", colnames(scaleData))
-scaleData$FastaT<-sapply(strsplit(as.character(data$FASTA.Title.Lines),"|",fixed=TRUE), "[", 2)
-scaleDataT<-t(scaleData)
-label<-read.delim(paste0(inpD,"PDkeyF.txt"),sep="\t",header = T)
-summary(label)
-scaleDataTmerge<-merge(scaleDataT,label,by.x= "row.names", by.y= "Name", all.x  = TRUE)
-label2<-read.delim(paste0(inpD,"B2F.txt"),sep="\t",header = T)
-summary(label2)
-scaleDataTmerge$RawFile2<-gsub("B_.*$", "B",scaleDataTmerge$RawFile)
-scaleDataTmerge2<-merge(scaleDataTmerge,label2,by.x= "RawFile2", by.y= "RawFile", all.x  = TRUE)
-summary(scaleDataTmerge2)
-scaleDataTmerge2T<-as.data.frame(t(scaleDataTmerge2))
-summary(scaleDataTmerge2T)
-geneData<-cbind(rownum=rownames(data),Gene=data$Accession,Symbol=data$Gene.Symbol,HGNC=data$Entrez.Gene.ID,Descirption=data$Description,Mod=data$Modifications)
-scaleDataTmerge2Tgene<-merge(scaleDataTmerge2T,geneData,by.x= "row.names", by.y= "rownum", all.x  = TRUE)
-summary(scaleDataTmerge2Tgene)
-hist(log2(as.double(unlist(scaleDataTmerge2Tgene[1:5086,2:84]))))
-#data<-within(data,rm("Modifications"))
-write.table(as.data.frame(scaleDataTmerge2Tgene),paste0(inpD,"paRse.txt"),sep = "\t",quote=FALSE)
-install.packages("writexl")
-writexl::write_xlsx(as.data.frame(scaleDataTmerge2Tgene),paste0(inpD,"paRse.xlsx"))
-write.table(data,paste0(inpF,"paRse.txt"),row.names = F,sep = "\t",quote=FALSE)
-data<-read.table(inpF,header=T,sep="\t")
+if(length(args)==0){print(paste("No proteinGroups.xlsx file supplied"))} else if (length(args)>0){inpF<-args[1]}
+print(paste("Using proteinGroupsPD.xlsx file",inpF,"with dimension(s)"))
+options(nwarnings = 1000000)
+fName<-"181006_HCT_totx_R1.xlsx"
+inpD <-"L:/promec/Animesh/Kathleen/PCA/"
+inpF<-paste0(inpD,fName)
+data <- readxl::read_xlsx(inpF)
+data<-data[!is.na(data$`Protein FDR Confidence: Combined`),]
 dim(data)
-table(data$Marked.as)
-print("Selecting Raw Intensity Values(s)")
-selectRaw<-"Abundance."
-if(sum(grep(selectRaw,colnames(data)))>0){intensity<-as.matrix(data[,grep(selectRaw,colnames(data))])}  else{print('Neither Abundance[raw] nor scaled columns detected!')}
-protNum<-1:ncol(intensity)
-colnames(intensity)=paste(protNum,sub(selectRaw,"",colnames(intensity)),sep="_")
-intensityLFQ<-log2(intensity)
-intensityLFQ[intensityLFQ==-Inf]=NA
-summary(intensityLFQ)[nrow(summary(intensityLFQ)),]
-#hist(intensity[,1])
-#clean
-data = data[!data[["Contaminant"]]=="True",]
+print("Removed NA(s)")
+data = as.data.frame(data[!data$Contaminant=="TRUE",])
 dim(data)
-data = data[data[["Protein.FDR.Confidence.Combined"]]=="High",]
-dim(data)
-print("Removed potential.contaminant")
-#data = data[!data[["Checked"]]=="True",]
-#dim(data)
+print("Removed Potential.contaminant(s)")
 protNum<-1:nrow(data)
-row.names(data)<-paste(protNum,data$FASTA.Title.Lines,protNum,sep=";")
-print("Converted Fasta.headers to rownames")
-#summary(data)
-#select from arg[]
-if(length(args)==1){
-  selection="LFQ.intensity";print(paste("No columns to select, using",selection))
-  LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-  protNum<-1:ncol(LFQ)
-  colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
-} else if (args[2]=="SILAC"){
-  selection1="Ratio."
-  LFQ<-as.matrix(data[,grep(selection1,colnames(data))])
-  selection2=".normalized."
-  LFQ<-as.matrix(LFQ[,grep(selection2,colnames(LFQ))])
-  selection<-paste(selection1,selection2)
-  LFQ<-apply(LFQ,2, as.numeric)
-  rownames(LFQ)<-rownames(data)
-  colnames(LFQ)=sub(selection1,"",colnames(LFQ))
-  colnames(LFQ)=sub(selection2,"",colnames(LFQ))
-  protNum<-1:ncol(LFQ)
-  colnames(LFQ)=paste(protNum,colnames(LFQ),protNum,sep="_")
-  print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))
-}
+row.names(data)<-paste(protNum,data$Accession,protNum,sep=";")
+print("Converted Accession to rownames")
+#select
+selection<-"Normalized"
+LFQ<-(data[,grep(selection,colnames(data))])
+LFQ<-sapply(LFQ, as.numeric)
 summary(LFQ)
+colnames(LFQ)=sub(selection,"",colnames(LFQ))
+colnames(LFQ)=sub("Abundances","",colnames(LFQ))
+colnames(LFQ)=sub("Sample","",colnames(LFQ))
+colnames(LFQ)=sub(":","",colnames(LFQ))
+colnames(LFQ)=sub("\\(","",colnames(LFQ))
+colnames(LFQ)=sub("\\)","",colnames(LFQ))
 dim(LFQ)
-#select certain marker proteins and calculate their intensity proportion, e.g. using histone as a protein ruler http://www.coxdocs.org/doku.php?id=perseus:user:plugins:proteomicruler
-
-#select certain marker proteins and calculate their intensity proportion, e.g. using histone as a protein ruler http://www.coxdocs.org/doku.php?id=perseus:user:plugins:proteomicruler
-LFQhistone<-LFQ[grep("histone",row.names(LFQ),ignore.case = TRUE),]
+LFQhistone<-LFQ[grep("histone",data$Description,ignore.case = TRUE),]
 #summary(LFQhistone)
 print("Proportion of histone(s)")
 dim(LFQhistone)
-if(!is.null(dim(LFQhistone))){colSums(LFQhistone)/colSums(LFQ)*100}
-LFQactin<-LFQ[grep("actin",row.names(LFQ),ignore.case = TRUE),]
-#summary(LFQactin)
-print("Proportion of actin(s)")
-dim(LFQactin)
-if(!is.null(dim(LFQactin))){colSums(LFQactin)/colSums(LFQ)*100}
+if(!is.null(dim(LFQhistone))){colSums(LFQhistone,na.rm = T)/colSums(LFQ,na.rm = T)*100}
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 dim(log2LFQ)
 log2LFQt<-na.omit(log2LFQ)
 dim(log2LFQ)
 summary(log2LFQ)
-summary(intensityLFQ)
 print(paste("Selected and log2 transformed columns",selection))
 if(dim(log2LFQ)[2]>0){
   outP<-paste(inpF,selection,"pdf",sep = ".")
   pdf(outP)
-  boxplot(intensity)
-  boxplot(intensityLFQ)
   boxplot(log2LFQ)
   boxplot(2^log2LFQ)
   NAcols<-colSums(is.na(log2LFQ))
@@ -126,16 +68,14 @@ if(dim(log2LFQ)[2]>0){
   summary(log2LFQ)
   #rowsum(s)
   #extract-uniprot-id(s)
-  Uniprot<-sapply(strsplit(row.names(log2LFQ),";"), `[`, 2)
-  uniprot<-sapply(strsplit(Uniprot,"|",fixed=TRUE),`[`, 2)
+  Uniprot<-sapply(strsplit(row.names(data),";"), `[`, 2)
+  uniprot<-sapply(strsplit(Uniprot,"-",fixed=TRUE),`[`, 1)
   #write-csv
   outF=paste(inpF,selection,"log2","csv",sep = ".")
-  write.csv(rbind(cbind(log2LFQ,Means,Medians,NAs,CVs,Sums,uniprot),NAcols),outF)
+  write.csv(rbind(cbind(log2LFQ,Means,Medians,NAs,CVs,Sums,uniprot),NAcols),outF,row.names = F)
   print(paste("Log2 transform of",selection,"columns written to",outF))
   #plot raw intensity histogram
   #i=1
-  for(i in 1:dim(intensity)[2]){hist(log2(intensity[,i]),main=paste("File:",colnames(intensity)[i]),xlab="log2 raw intensity")}
-  #plot LFQ histogram
   for(i in 1:dim(log2LFQ)[2]){
     log2lfq <- hist(log2LFQ[,i],main=paste("File:",colnames(log2LFQ)[i],"\n","Quantified Protein Group(s):",dim(log2LFQ)[1]-as.integer(NAcols[i]),"out of ",dim(log2LFQ)[1],",","Missing Value(s):",NAcols[i]),xlab=paste("log2",selection),breaks=max(log2LFQ)-min(log2LFQ),xlim=c(min(log2LFQ), max(log2LFQ)))
   }
@@ -155,13 +95,12 @@ if(dim(log2LFQ)[2]>0){
   hist(log2LFQimp,breaks=round(max(log2LFQ)),col=rgb(0,0,1,0.5), add=T)
   log2LFQ[log2LFQ==0]<-log2LFQimp[log2LFQ==0]
   outF<-paste(inpF,selection,"log2","Imputation",mean(log2LFQimp),"sd",sd(log2LFQimp),"csv",sep = ".")
-  write.csv(rbind(cbind(log2LFQ,Means,Medians,NAs,CVs,Sums,uniprot),NAcols),outF)
+  write.csv(rbind(cbind(log2LFQ,Means,Medians,NAs,CVs,Sums,uniprot),NAcols),outF,row.names = F)
   print(paste("Log2 transform of",selection,"columns written to",outF))
   summary(log2LFQ)
   hist(log2LFQ,breaks=round(max(log2LFQ)),col=rgb(1,0,0,0.5), add=T)
   plot(princomp(log2LFQ),main=paste("Imputed value:",mean(log2LFQimp),"sd:",sd(log2LFQimp)))
-  biplot(prcomp(as.matrix(log2LFQ),scale=TRUE),cex=c(0.5, 0.4), xlab=NULL,arrow.len = 0)
-  heatmap(log2LFQ, scale = "row")
+  biplot(prcomp(as.matrix(log2LFQ),scale=TRUE),cex=c(1, 1), xlab=NULL,arrow.len = 0)
   #plot with 0 containing proteinGroups removed
   if(dim(log2LFQt)[1]>0){
     log2LFQt<-t(log2LFQt)
@@ -169,19 +108,18 @@ if(dim(log2LFQ)[2]>0){
     log2LFQtPCAsumm<-summary(log2LFQtPCA)
     #plot(prcomp(log2LFQt))
     plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups removed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
-    op <- par(cex = 0.4)
+    op <- par(cex = 1)
     legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
     log2LFQt<-t(log2LFQ)
     log2LFQtPCA<-prcomp(log2LFQt,scale=TRUE)
     log2LFQtPCAsumm<-summary(log2LFQtPCA)
     plot(prcomp(log2LFQt))
     plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
-    op <- par(cex = 0.4)
+    op <- par(cex = 1)
     legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
-    heatmap(log2LFQt)
   }
   print(dim(log2LFQt))
   dev.off()
-  print(paste("Histogram, PCA, Heatmap of Log2 transform of",selection,"column(s) written to",outP))
+  print(paste("Histogram and PCA for Log2 transform of",selection,"column(s) written to",outP))
 }
 summary(warnings())
