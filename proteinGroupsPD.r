@@ -1,6 +1,6 @@
 Sys.setenv(TZ="GMT")
 print("USAGE:Rscript proteinGroupsPD.r <complete path to proteinGroups.txt file>")
-print("default values: Abundances.Normalized.")
+print("default values: Abundances.Scaled.")
 #example: "c:\Program Files\Microsoft\R Open\R-4.0.2\bin\Rscript.exe" proteinGroupsPD.r  "F:\promec\Animesh\Kathleen\PCA\181006_HCT_totx_R1.xlsx"
 #parse argument(s)
 args = commandArgs(trailingOnly=TRUE)
@@ -11,7 +11,7 @@ print(args[2])
 if(length(args)==0){print(paste("No proteinGroups.xlsx file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroupsPD.xlsx file",inpF,"with dimension(s)"))
 options(nwarnings = 1000000)
-fName<-"181006_HCT_totx_R1.xlsx"
+fName<-"181108_HCT_totPHOS__R1-(1).xlsx"
 inpD <-"L:/promec/Animesh/Kathleen/PCA/"
 inpF<-paste0(inpD,fName)
 data <- readxl::read_xlsx(inpF)
@@ -25,7 +25,7 @@ protNum<-1:nrow(data)
 row.names(data)<-paste(protNum,data$Accession,protNum,sep=";")
 print("Converted Accession to rownames")
 #select
-selection<-"Normalized"
+selection<-"Scaled"
 LFQ<-(data[,grep(selection,colnames(data))])
 LFQ<-sapply(LFQ, as.numeric)
 summary(LFQ)
