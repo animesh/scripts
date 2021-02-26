@@ -1,19 +1,18 @@
+#example:"c:\Program Files\Microsoft\R Open\R-4.0.2\bin\Rscript.exe" proteinGroupsPD.r  "F:\promec\Animesh\Kathleen\PCA\Exosome_Shotgun_190118_KATHLENN_HCT_R5.xlsx"
 Sys.setenv(TZ="GMT")
 print("USAGE:Rscript proteinGroupsPD.r <complete path to proteinGroups.txt file>")
 print("default values: Abundances.Scaled.")
-#example: "c:\Program Files\Microsoft\R Open\R-4.0.2\bin\Rscript.exe" proteinGroupsPD.r  "F:\promec\Animesh\Kathleen\PCA\181006_HCT_totx_R1.xlsx"
 #parse argument(s)
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args[1])
-print(args[2])
 #read
+fName<-"Exosome_Shotgun_190118_KATHLENN_HCT_R5.xlsx"
+inpD <-"L:/promec/Animesh/Kathleen/PCA/"
+inpF<-paste0(inpD,fName)
 if(length(args)==0){print(paste("No proteinGroups.xlsx file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroupsPD.xlsx file",inpF,"with dimension(s)"))
 options(nwarnings = 1000000)
-fName<-"181108_HCT_totPHOS__R1-(1).xlsx"
-inpD <-"L:/promec/Animesh/Kathleen/PCA/"
-inpF<-paste0(inpD,fName)
 data <- readxl::read_xlsx(inpF)
 data<-data[!is.na(data$`Protein FDR Confidence: Combined`),]
 dim(data)

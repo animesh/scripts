@@ -1,4 +1,19 @@
 #!pip install --upgrade pip
+import pyforest
+file_path = r"*.xlsx"
+files = glob.glob(file_path)
+Tax= pd.read_table('Z:/ayu/S33-QUALITY-PASSED/binning/DASTool/checkm/taxonomy.tsv',index_col=0)
+Labels=Tax.ffill(axis=1).species.copy()
+Labels.loc[Tax.species.isnull()]+= ' '+ Labels.index[Tax.species.isnull()]
+#https://github.com/fbdesignpro/sweetviz
+#!pip install sweetviz
+import sweetviz as sv
+report = sv.analyze(my_dataframe)#feature_config = sv.FeatureConfig(skip="PassengerId", force_text=["Age"])#pairwise_analysis="on"
+report.show_html() # Default arguments will generate to "SWEETVIZ_REPORT.html"
+#show_notebook(  w=None,                 h=None,                 scale=None,                layout='widescreen',                filepath=None)
+compare_report = sv.compare([my_dataframe, "Training Data"], [test_df, "Test Data"], "Survived", feature_config)
+sumcomp_report = sv.compare_intra(my_dataframe, my_dataframe["Sex"] == "male", ["Male", "Female"], feature_config)
+
 #https://pytorch-lightning.medium.com/introducing-lightning-flash-the-fastest-way-to-get-started-with-deep-learning-202f196b3b98
 import flash
 from flash.core.data import download_data
@@ -66,7 +81,7 @@ class LinearClassifier(ClassificationTask):
 
     def forward(self, x):
         return self.linear(x)
-        
+
 #climate dataset https://docs.google.com/spreadsheets/d/1SNe_GFimu_E2sdfpm4_XiEfVFKKHmhPRfneOsbosBnU/edit?usp=sharing
 #https://towardsdatascience.com/the-coolest-data-science-library-i-found-in-2021-956af253fb2c
 #!pip install -U scikit-learn

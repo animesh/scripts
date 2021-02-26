@@ -1,9 +1,11 @@
 ```{r setup, echo = FALSE}
+#lib
+libPaths="L:/promec/Animesh/R/win-library/4.0"
+.libPaths(c(libPaths, .libPaths()))
+.libPaths()
 #plot
 par(mfrow=c(1,2))
-#.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
-.libPaths()
-#setwd("C:/Users/animeshs/GD/scripts")
+#setwd("L:/GD/scripts")
 getwd()
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 #rm(list = ls())
