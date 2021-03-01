@@ -1,92 +1,50 @@
 ---
-title: diffExprPlots
-output: html_document
 runtime: shiny
+output: 
+  html_document:
+    theme: darkly
+    highlight: tango
 ---
 
-```{r setup}
-libPaths="L:/promec/Animesh/R/win-library/4.0"
-.libPaths(c(libPaths, .libPaths()))
+```{r setup, echo = FALSE}
+#libPaths="L:/promec/Animesh/R/win-library/4.0"
+#.libPaths(c(libPaths, .libPaths()))
 #install.packages("htmltools",lib=.libPaths()[1])
-knitr::opts_chunk$set(echo=F)
-library(plotly)
-library(tidyverse)
-library(shiny)
+#knitr::opts_chunk$set(echo=F)
+#library(shiny)
+#install.packages("shinythemes")
+#library(shinythemes)
+#theme = shinythemes::shinytheme("darkly")
 ```
 
-```{r input}
-inputPanel(shiny::selectInput("chart_type", label = "Chart Type", choices = c("Level", "Aggregated")))
-```
-
-```{r output}
-#https://github.com/animesh/free_r_tips/blob/master/024_shiny_in_rmarkdown/024_shiny_in_rmarkdown.Rmd
-output$p1 <- renderPlotly({
-  if (input$chart_type == "Aggregated") {
-    g <- customer_churn_tbl %>%
-      select(Contract, Churn) %>%
-      count(Contract, Churn) %>%
-      group_by(Contract) %>%
-      mutate(prop = n / sum(n)) %>%
-      ungroup() %>%
-      mutate(Contract = as_factor(Contract) %>% fct_reorder(prop) %>% fct_rev()) %>%
-      filter(Churn == 'Yes') %>%
-      ggplot(aes(prop, Contract)) +
-      geom_col(aes(text = str_glue("Churn %: {scales::percent(prop)}")), 
-               fill = palette_light()[2]) +
-      scale_x_continuous(labels = scales::percent_format()) +
-      theme_tq() 
-  } else {
-    g <- customer_churn_tbl %>%
-      mutate(value = ifelse(Churn == 'Yes', 1, 0)) %>%
-      mutate(Contract = factor(Contract, 
-                               levels = c("Month-to-month", "One year", "Two year"))) %>%
-      ggplot(aes(value, Contract, color = Churn)) +
-      geom_jitter((aes(text = str_glue({
-        "Customer ID: {customerID}
-        Contract: {Contract}
-        Tenure: {tenure}
-        Payment Method: {PaymentMethod}"
-      }))), 
-                  alpha = 0.5) +
-      scale_color_tq() +
-      scale_x_continuous(breaks = c(0,1)) +
-      theme_tq() +
-      labs(x = "Churn Numeric (Yes = 1, No = 0)")
-  }
-  
-   ggplotly(g)
-})
-plotlyOutput("p1", height = "600px")
-```
 
 ```{r data, echo = FALSE}
-fName<-"181006_HCT_totx_R1.xlsx"
-inpD <-"L:/promec/Animesh/Kathleen/PCA/"
+fName<-"proteinGroups.txt"
+inpD <-"L:/promec/Qexactive/Mirta/CLN3/combined/txt/"
 inpF<-paste0(inpD,fName)
-data <- readxl::read_xlsx(inpF)
-summary(data)
+data <- data.table::fread(inpF)
+#data<-data[!data$Reverse=="+",]
+#summary(data)
 ```
 
-```{r select}
-sel<-"Normalized"
-dataHigh<-data[!is.na(data$`Protein FDR Confidence: Combined`),]
-dataHighNorm<-dataHigh[,grep(sel,colnames(dataHigh))]
-dataHighNorm<-sapply(dataHighNorm, as.numeric)
-summary(dataHighNorm)
-dataHighNormLog2<-log2(dataHighNorm)
-summary(dataHighNormLog2)
-dataHighNormLog2[is.na(dataHighNormLog2)]<-rnorm(1)
-summary(dataHighNormLog2)
-plot(princomp(dataHighNormLog2),main=paste("Imputed value:0",mean(dataHighNormLog2),"sd:",sd(dataHighNormLog2)))
-biplot(prcomp(as.matrix(dataHighNormLog2),scale=TRUE),cex=c(0.5, 0.4), xlab=NULL,arrow.len = 0)
+```{r select, echo = FALSE}
+sel<-grep("LFQ",names(data))
+dataHigh<-data[data$`Q-value`==0,]
+dataHighNorm<-dataHigh[,..sel]
+#summary(dataHighNorm)
+dataHighNormLog2<-log2(dataHighNorm+1)
+#dataHighNormLog2[is.na(dataHighNormLog2)]<-rnorm(1)
+#summary(dataHighNormLog2)
+hist(as.matrix(dataHighNormLog2))
 ```
 
-```{r vennDiagram}
-limma::vennDiagram(dataHighNormLog2[,1:5])
+
+```{r vennDiagram, echo = FALSE}
+limma::vennDiagram(dataHighNormLog2[,1:5]>30)
 #ggplot::ggsave(file=paste0(inpF,"venn.svg"),plot=vplot)#,  width=6, height=6)
 ```
 
-```{r}
+```{r PCA, echo = FALSE}
 log2LFQt<-t(dataHighNormLog2)
 row.names(log2LFQt)<-colnames(dataHighNormLog2)
 log2LFQtPCA<-prcomp(log2LFQt)
@@ -97,103 +55,9 @@ op <- par(cex = 1)
 legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
 ```
 
-```{r map-ID}
-library(org.Hs.eg.db)
-uniP<-c("P07237","P28331","Q12931")
-select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
-#library(clusterProfiler)
-#http://data.wikipathways.org/current/gmt/
-#wp2gene <- clusterProfiler::read.gmt("L:/promec/Animesh/Lisa/wikipathways-20191010-gmt-Homo_sapiens.gmt")
-wp2gene <- clusterProfiler::read.gmt("L:/promec/Animesh/Lisa/wikipathways-20201010-gmt-Homo_sapiens.gmt")
-library(magrittr)
-wp2gene <- wp2gene %>% tidyr::separate(term, c("name","version","wpid","org"), "%")
-wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE
-wpid2name <- wp2gene %>% dplyr::select(wpid, name) #TERM2NAME
-wpid2name[grep("apoptosis",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("stat",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("mapk",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("akt",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("mtor",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("pi3k",wpid2name$name,ignore.case = TRUE),]
-#select(org.Hs.eg.db, uniP, "GENENAME", "UNIPROT")
-#select(org.Hs.eg.db, uniP, "SYMBOL", "UNIPROT")
-uniP<-data$T..Uniprot
-uniP <- lapply(uniP, as.character)
-unlist(uniP)
-uniP[[1]]
-uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
-wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
-wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
-uniprots <- Rkeys(org.Hs.egUNIPROT)
-uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
-dataSez<-merge(dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
-dataSez<-merge(dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
-dataSezWP<-merge(dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
-#rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
-rownames(dataSezWP)<-paste(dataSezWP$T..T..Gene.names,dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = ";")
-#dataS<-dataSezWP
-inpO<-paste0(inpF,"Mapped.csv")
-write.csv(cbind(rownames(dataSezWP),dataSezWP),inpO,row.names = F)
-```
-
-```{r data-wikiPathway-map}
-selThr<-0.3
-inpD<-"L:/promec/Animesh/TK/"
-inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx WSRTpvalGroupsGeneMap.txt")
-data_selr_s<-dataSelPyrimidine
-row.names(data_selr_s)<-paste(unlist(data_selr_s[37]),row.names(data_selr_s),sep="_")
-limma::vennDiagram(data_selr_s[,c(1:4)]<selThr,main="dataSelPurine",counts.col = "red")
-data_selr<-as.matrix(data_selr_s[,c(7:18)])
-cn<-strsplit(colnames(data_selr), " ")
-colnames(data_selr)<-paste(sapply(cn, "[", 2),sapply(cn, "[", 1))
-data_selr[data_selr==0]=NaN
-data_selr=scales::squish(data_selr,c(-3,3))
-summary(data_selr)
-hist(as.numeric(data_selr))
-svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_cols=FALSE,cluster_rows=F)#TRUE)
-ggplot2::ggsave(file=paste0(inpF,"clusterPlot.Pyrimidine.svg"),plot=svgPHC)#,  
-```
-
-
-
-```{r DEqMS-peptides}
-fit3$count = rowMins(as.matrix(df.prot[,grepl("^Peptides\\.[0-9]+", names(df.prot))]))+1
-min(fit3$count)
-
-fit4 = spectraCounteBayes(fit3)
-VarianceBoxplot(fit4, n=20, main = hdr,xlab="peptide count + 1")
-DEqMS.results = outputResult(fit4,coef_col = 1)
-DEqMS.results$Gene.name = df.prot[DEqMS.results$gene,]$Gene.names
-head(DEqMS.results)
-write.table(DEqMS.results,paste0(inpD,hdr,"R-W.DEqMS.pep.results.txt"),sep = "\t",row.names = F,quote=F)
-head(DEqMS.results)
-VarianceBoxplot(fit4,n=20)
-#peptideProfilePlot(dat=df.prot)#,col=2,gene="TGFBR2")
-VarianceScatterplot(fit4, xlab="log2(LFQ)")
-limma.prior = fit4$s2.prior
-abline(h = log(limma.prior),col="green",lwd=3 )
-legend("topright",legend=c("DEqMS prior variance","Limma prior variance"),
-        col=c("red","green"),lwd=3)
-op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
-Residualplot(fit4,  xlab="log2(PSM count)",main="DEqMS")
-x = fit3$count
-y = log(limma.prior) - log(fit3$sigma^2)
-plot(log2(x),y,ylim=c(-6,2),ylab="Variance(estimated-observed)", pch=20, cex=0.5,
-     xlab = "log2(PSMcount)",main="Limma")
-#install.packages("LSD")
-#library(LSD)
-op <- par(mfrow=c(1,2), mar=c(4,4,4,1), oma=c(0.5,0.5,0.5,0))
-x = fit3$count
-y = fit3$s2.post
-heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)", 
-     ylab="log(Variance)",
-     main="Posterior Variance in Limma")
-
-y = fit4$sca.postvar
-heatscatter(log2(x),log(y),pch=20, xlab = "log2(PSMcount)",
-     ylab="log(Variance)", 
-     main="Posterior Variance in DEqMS")
-
+```{r react, echo = FALSE}
+inputPanel(shiny::selectInput("lfq", label = "LFQ", choices = c(sel)))
+output<-shiny::reactive({input$lfq})
 ```
 
 
