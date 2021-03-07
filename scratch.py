@@ -1,4 +1,219 @@
 #!pip install --upgrade pip
+#https://pub.towardsai.net/shapash-making-ml-models-understandable-by-everyone-8f96ad469eb3
+import pandas as pd
+from shapash.data.data_loader import data_loading
+house_df, house_dict = data_loading('house_prices')
+y_df=house_df['SalePrice'].to_frame()
+X_df=house_df[house_df.columns.difference(['SalePrice'])]
+house_df.head(3)
+from category_encoders import OrdinalEncoder
+categorical_features = [col for col in X_df.columns if X_df[col].dtype == 'object']
+encoder = OrdinalEncoder(cols=categorical_features).fit(X_df)
+X_df=encoder.transform(X_df)
+ordinal_cols_mapping = [{
+    "col":"ExterQual",
+    "mapping": [
+        ('Ex',5),
+        ('Gd',4),
+        ('TA',3),
+        ('Fa',2),
+        ('Po',1),
+        ('NA',np.nan)
+    ]},
+]
+encoder = OrdinalEncoder(mapping = ordinal_cols_mapping,
+                         return_df = True)
+df_train = encoder.fit_transform(train_data)
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+
+Xtrain, Xtest, ytrain, ytest = train_test_split(X_df, y_df, train_size=0.75)
+reg = RandomForestRegressor(n_estimators=200, min_samples_leaf=2).fit(Xtrain,ytrain)
+y_pred = pd.DataFrame(reg.predict(Xtest), columns=['pred'], index=Xtest.index)
+from shapash.explainer.smart_explainer import SmartExplainer
+xpl = SmartExplainer(features_dict=house_dict) # Optional parameter
+xpl.compile(
+    x=Xtest,
+    model=reg,
+    preprocessing=encoder,# Optional: use inverse_transform method
+    y_pred=y_pred # Optional
+)
+app = xpl.run_app()
+app.kill()
+subset = [ 168, 54, 995, 799, 310, 322, 1374,
+          1106, 232, 645, 1170, 1229, 703, 66,
+          886, 160, 191, 1183, 1037, 991, 482,
+          725, 410, 59, 28, 719, 337, 36 ]
+xpl.plot.features_importance(selection=subset)
+xpl.plot.contribution_plot("OverallQual")
+xpl.filter(max_contrib=8,threshold=100)
+xpl.plot.local_plot(index=560)
+xpl.filter(max_contrib=3,threshold=1000)
+summary_df = xpl.to_pandas()
+summary_df.head()
+xpl.plot.compare_plot(row_num=[0, 1, 2, 3, 4], max_features=8)
+#https://medium.com/statch/speeding-up-python-code-with-nim-ec205a8a5d9c
+def fib(n):
+    if n == 0:
+        return 0
+    elif n < 3:
+        return 1
+    return fib(n - 1) + fib(n - 2)
+import nimporter
+from time import perf_counter
+import scratch#.nim
+print('Measuring Python...')
+start_py = perf_counter()
+for i in range(0, 40):
+    print(pmath.fib(i))
+end_py = perf_counter()
+
+print('Measuring Nim...')
+start_nim = perf_counter()
+for i in range(0, 40):
+    print(nmath.fib(i))
+end_nim = perf_counter()
+
+print('---------')
+print('Python Elapsed: {:.2f}'.format(end_py - start_py))
+print('Nim Elapsed: {:.2f}'.format(end_nim - start_nim))
+
+#https://towardsdatascience.com/a-simple-way-to-time-code-in-python-a9a175eb0172
+"""Build the timefunc decorator."""
+
+import time
+import functools
+
+
+def timefunc(func):
+    """timefunc's doc"""
+
+    @functools.wraps(func)
+    def time_closure(*args, **kwargs):
+        """time_wrapper's doc string"""
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        time_elapsed = time.perf_counter() - start
+        print(f"Function: {func.__name__}, Time: {time_elapsed}")
+        return result
+
+    return time_closure
+@timefunc
+def single_thread(inputs):
+    """
+    Compute single threaded.
+    """
+    return [f(x) for x in inputs]
+
+
+if __name__ == "__main__":
+
+    demo_inputs = [randint(1, 100) for _ in range(10_000)]
+
+    single_thread(demo_inputs)
+"""Build the timefunc decorator."""
+
+import time
+import functools
+
+
+def timefunc(func):
+    """timefunc's doc"""
+
+    @functools.wraps(func)
+    def time_closure(*args, **kwargs):
+        """time_wrapper's doc string"""
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        time_elapsed = time.perf_counter() - start
+        print(f"Function: {func.__name__}, Time: {time_elapsed}")
+        return result
+
+    return time_closure
+
+#https://www.youtube.com/watch?v=9Q6sLbz37gk&feature=emb_title
+from requests import get
+b = get('http://whatsmyip.org')
+b.text
+#https://pub.towardsai.net/data-preprocessing-concepts-with-python-b93c63f14bb6
+#Before modeling our estimator we should always some preprocessing scaling.
+# Feature Scaling
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+import numpy as np
+X_train = np.array([[ 1., 0.,  2.], [ 2.,  0.,  -1.], [ 0.,  2.,
+                                                             -1.]])
+from sklearn.preprocessing import MinMaxScaler
+min_max_scaler = MinMaxScaler()
+X_train_minmax = min_max_scaler.fit_transform(X_train)
+print(X_train_minmax)
+#output:
+array([[0.5, 0. , 1. ],
+       [1. , 0. , 0. ],
+       [0. , 1. , 0. ]])
+from sklearn.preprocessing import RobustScaler
+X = [[ 1., 0.,  2.], [ 2.,  0.,  -1.], [ 0.,  2., -1.]]
+transformer = RobustScaler().fit(X)
+transformer.transform(X)
+#output:
+array([[ 0.,  0.,  2.],
+       [ 1.,  0.,  0.],
+       [-1.,  2.,  0.]])
+from sklearn.preprocessing import normalize
+X = [[ 1., 0., 2.], [ 2., 0., -1.], [ 0., 2., -1.]]
+X_normalized = normalize(X, norm=’l2')
+print(X_normalized)
+#output:
+array([[ 0.4472136 ,  0.        ,  0.89442719],
+       [ 0.89442719,  0.        , -0.4472136 ],
+       [ 0.        ,  0.89442719, -0.4472136 ]])
+from sklearn.preprocessing import Normalizer
+X = [[ 1., 0., 2.], [ 2., 0., -1.], [ 0., 2., -1.]]
+normalizer = preprocessing.Normalizer().fit(X)
+normalizer.transform(X)
+#output:
+array([[ 0.4472136 ,  0.        ,  0.89442719],
+       [ 0.89442719,  0.        , -0.4472136 ],
+       [ 0.        ,  0.89442719, -0.4472136 ]])
+#Get Dummies: It is used to get a new feature column with 0 and 1 encoding the categories with the help of the pandas’ library.
+#Label Encoder: It is used to encode binary categories to numeric values in the sklearn library.
+#One Hot Encoder: The sklearn library provides another feature to convert categories class to new numeric values of 0 and 1 with new feature columns.
+#Hashing: It is more useful than one-hot encoding in the case of high dimensions. It is used when there is high cardinality in the feature.
+#There are many other encoding methods like mean encoding, Helmert encoding, ordinal encoding, probability ratio encoding and, etc.
+df1=pd.get_dummies(df['State'],drop_first=True)
+# import the pandas library
+import pandas as pd
+import numpy as np
+df = pd.DataFrame(np.random.randn(4, 3), index=['a', 'c', 'e',
+'h'],columns=['First', 'Second', 'Three'])
+df = df.reindex(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'])
+print (df)
+print ("NaN replaced with '0':")
+print (df.fillna(0))
+from sklearn.impute import SimpleImputer
+imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+#When we use sparse input it is important to convert it not CSR format to avoid multiple memory copies. The CSR is compressed Sparse Rows comes in scipy.sparse.csr_matrix.
+#https://docs.fast.ai/tutorial.vision.html
+from fastai.vision.all import *
+path = untar_data(URLs.PETS)
+path = path/'images'
+path.ls()
+def is_cat(x): return x[0].isupper()
+dls = ImageDataLoaders.from_name_func(
+    path, get_image_files(path), valid_pct=0.2, seed=42,
+    label_func=is_cat, item_tfms=Resize(224))
+learn = cnn_learner(dls, resnet34, metrics=error_rate)
+learn.fine_tune(1)
+#https://youtu.be/6BPl81wGGP8?t=485
+from tensorflow.keras.datasets import mnist
+(train_X,train_Y),(test_X,test_Y)=mnist.load_data()
+#import umap as umap
+import umap.umap_ as umap
+from babyplots import Babyplot
+reducer=umap.UMAP(random_state=42)
 import pyforest
 file_path = r"*.xlsx"
 files = glob.glob(file_path)
