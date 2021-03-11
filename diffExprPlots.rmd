@@ -24,14 +24,30 @@ inpD <-"L:/promec/Qexactive/Mirta/Katja/AbHA/"
 inpF<-paste0(inpD,fName)
 options(nwarnings = 1000000)
 data <- readxl::read_xlsx(inpF)
-data<-data[!is.na(data$`Protein FDR Confidence: Combined`),]
+#data<-data[!is.na(data$`Protein FDR Confidence: Combined`),]
 dim(data)
-print("Removed NA(s)")
-data = as.data.frame(data[!data$Contaminant=="TRUE",])
-dim(data)
+#print("Removed NA(s)")
+#data = as.data.frame(data[!data$Contaminant=="TRUE",])
+#dim(data)
+plot(data$`Abundance: F81: Sample`,data$`Abundance: F82: Sample`)
 ```
 
-```{r}
+```{r label}
+inpL<-paste0(inpD,"20210302_DDA_WT_H2O2_c11_Exp02-(2)_InputFiles.txt")
+label<-read.table(inpL,header=T,sep="\t")#, colClasses=c(rep("factor",3)))
+label
+```
+```{r data-labelled, echo = FALSE}
+fName<-"20210302_DDA_WT_H2O2_c11_Exp02-(2)FileNamed.xlsx"
+inpD <-"L:/promec/Qexactive/Mirta/Katja/AbHA/"
+inpF<-paste0(inpD,fName)
+dataFN <- readxl::read_xlsx(inpF)
+dim(dataFN)
+plot(dataFN$`Abundances : OGG1-HA__H2O2_c01_Exp02`,dataFN$`Abundances : OGG1-HA__H2O2_c01_Exp02_AGAIN`)
+hist(log2(dataFN$`Abundances : OGG1-HA__H2O2_c01_Exp02`-dataFN$`Abundances : OGG1-HA__H2O2_c01_Exp02_AGAIN`))
+```
+
+```{r PCA}
 protNum<-1:nrow(data)
 row.names(data)<-paste(protNum,data$Accession,protNum,sep=";")
 print("Converted Accession to rownames")
@@ -55,6 +71,7 @@ if(!is.null(dim(LFQhistone))){colSums(LFQhistone,na.rm = T)/colSums(LFQ,na.rm = 
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 dim(log2LFQ)
+plot(log2LFQ[,12],log2LFQ[,11])
 log2LFQt<-na.omit(log2LFQ)
 dim(log2LFQ)
 summary(log2LFQ)
@@ -143,4 +160,7 @@ inputPanel(shiny::selectInput("lfq", label = "LFQ", choices = c(selection)))
 output<-shiny::reactive({input$lfq})
 ```
 
+```{r}
+BiocManager::install("InteractiveComplexHeatmap")
+```
 

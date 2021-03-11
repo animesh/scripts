@@ -1,7 +1,60 @@
+```{r setup}
+#install.packages("Peptides", dependencies=TRUE)
+```
+
 ```{r data}
-inpD<-getwd()
-inpF<-paste0(inpD,"/HEAVY peptide quantitation ratios total area.csv")
-data<-read.csv(inpF,header=T)
+inpD<-"L:/promec/Animesh/Abba"
+inpF<-paste0(inpD,"/SA24G.xlsx")
+dataSA<-readxl::read_xlsx(inpF)
+dataSA$File<-"SA24G"
+dataSA$FileI<-1
+inpF<-paste0(inpD,"/AP6G.xlsx")
+dataAP<-readxl::read_xlsx(inpF)
+dataAP$File<-"AP6G"
+dataAP$FileI<-2
+inpF<-paste0(inpD,"/A6G.xlsx")
+dataA<-readxl::read_xlsx(inpF)
+dataA$File<-"A6G"
+dataA$FileI<-3
+data<-rbind(dataSA[,-1],dataAP[,-1],dataA[,-1])
+data<-data[data$Status=="reviewed",]
+data$GN<-sub("_HUMAN","",data$`Entry name`)
+writexl::write_xlsx(as.data.frame(cbind(data,rownames(data))),paste0(inpF,"GREEN.xlsx"))
+```
+
+```{r phyicoChemT}
+seq<-data$Sequence[1]
+Peptides::aaComp(seq)
+Peptides::hydrophobicity(seq, scale = "KyteDoolittle")
+Peptides::mw(seq)
+data$Mass[1]
+#Peptides::pI(seq, pKscale = "EMBOSS")
+Peptides::pI(seq, pKscale="Bjellqvist" )
+data$Mass[1]
+```
+
+```{r phyicoChemT}
+cor(as.numeric(gsub(",", "", data$Mass)),Peptides::mw(data$Sequence))
+plot(as.numeric(gsub(",", "", data$Mass)),Peptides::mw(data$Sequence))
+Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle")
+Peptides::mw(data$Sequence)
+Peptides::pI(data$Sequence, pKscale="Bjellqvist" )
+plot(Peptides::mw(data$Sequence),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ))
+plot(Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ))
+plot(Peptides::mw(data$Sequence),Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"))
+```
+
+```{r plot3D}
+#http://www.sthda.com/english/wiki/impressive-package-for-3d-and-4d-graph-r-software-and-data-visualization
+#install.packages("plot3D")
+plot3D::scatter3D(Peptides::mw(data$Sequence),Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ))
+plot3D::scatter3D(Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ),Peptides::mw(data$Sequence))
+plot3D::scatter3D(Peptides::pI(data$Sequence, pKscale="Bjellqvist" ),Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::mw(data$Sequence),colvar = data$FileI,bty = "g",pch = 18,theta = -25, phi = 20, ticktype = "detailed",colkey = list(side = 1, length = 0.5))#,colvar = data$File)#,col.var = as.factor(data$File))#col = ramp.col(c("blue", "yellow", "red")))
+plot3D::text3D(Peptides::pI(data$Sequence, pKscale="Bjellqvist" ),Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::mw(data$Sequence),labels = data$GN, add = TRUE, colkey = FALSE, cex = 0.5)
+#plot3D::text3D(Peptides::pI(data$Sequence, pKscale="Bjellqvist" ),Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::mw(data$Sequence),labels = data$File, add = TRUE, colkey = FALSE, cex = 0.5)
+```
+
+```{r log2}
 log2LFQ=log2(data$Total.Area)
 hist(log2LFQ,breaks=round(max(log2LFQ)))
 hist(log2(data[(grep("heavy", data$Isotope.Label.Type)),"Total.Area"]),breaks=round(max(log2LFQ)), col=rgb(1,0,0,0.5), add=T)

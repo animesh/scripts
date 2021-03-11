@@ -3,7 +3,10 @@
 #renv::deactivate()
 par(mfrow=c(1,2))
 #library/packages
-inpD<-"F:/promec/Qexactive/Mirta/CLN3/combined/txt/"
+inpD <-"L:/promec/Qexactive/Mirta/Katja/AbHA/"
+fName<-"20210302_DDA_WT_H2O2_c11_Exp02-(2).xlsx"
+inpF<-paste0(inpD,fName)
+options(nwarnings = 1000000)
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 .libPaths( c( .libPaths(), inpD) )
 .libPaths()
@@ -69,29 +72,31 @@ plotProtPeptides(pepdat.clean, 'A0A0G2K5X3', prodat.med)
 ```
 
 ```{r proteinGroups, echo=FALSE}
-inpF<-paste0(inpD,"proteinGroups.txt")
-data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
+data <- readxl::read_xlsx(inpF)
 #clean
 #data = data[!data$Reverse=="+",]
 #data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
-row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
+#row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
 summary(data)
 dim(data)
-hist(as.matrix(log2(data[,grep("Intensity",colnames(data))])))
-summary(log2(data[,grep("Intensity",colnames(data))]))
-selection<-"LFQ.intensity."
+selection<-"Abundance."
+hist(as.matrix(log2(data[,grep(selection,colnames(data))])))
+summary(log2(data[,grep(selection,colnames(data))]))
+selection<-"Normalized"
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-protNum<-"LFQ intensity"#1:ncol(LFQ)
-colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)))#,protNum,sep="_")
+#protNum<-1:ncol(LFQ)
+colnames(LFQ)=sub("Abundances \\(Normalized\\)\\: ","",colnames(LFQ))
+colnames(LFQ)=sub("\\: Sample","",colnames(LFQ))
 dim(LFQ)
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 log2LFQ[log2LFQ==0]=NA
 summary(log2LFQ)
 hist(log2LFQ)
-inpW<-paste0(inpD,"log2LFQ.xlsx")
-rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
+inpW<-paste0(inpF,"log2LFQ.xlsx")
+rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$`FASTA Title Lines`, ">",fixed=T), "[", 2)), "-"), "[", 1))
+rowName<-sub("ProteinCenter:sp_tr_incl_isoforms\\|","",rowName)
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),inpW)
 ```
 
@@ -116,17 +121,23 @@ log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
-svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = paste(label$Sample.Number,label$Sample_Name__),labels_row = label$Cell.Type_Sample.Group)
+pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6)
+ggplot2::ggsave(file=paste0(inpF,selection,"log2spearClust.svg"),plot=svgPHC)
+fn<-as.data.frame(label$File.Name[-1])
+fn$`label$File.Name`<-sub("F\\:\\\\promec\\\\Qexactive\\\\Mirta\\\\Katja\\\\20210302_DDA_","",fn$`label$File.Name`)
+rownames(fn)<-label$Study.File.ID[-1]
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8,labels_col = fn$`label$File.Name`,labels_row = fn$`label$File.Name`)
 ggplot2::ggsave(file=paste0(inpF,selection,"log2spearClust.svg"),plot=svgPHC)#,  
 assign(paste0(selection,"clusterData"),log2LFQimpCorr)
 write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,selection,"log2spearClust.csv"),row.names=F)
 ```
 
 ```{r label}
-inpL<-paste0(inpD,"20210205_SampleKey-To Animesh.txt")
-label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
+inpL<-paste0(inpD,"20210302_DDA_WT_H2O2_c11_Exp02-(2)_InputFiles.txt")
+label<-read.table(inpL,header=T,sep="\t")#, colClasses=c(rep("factor",3)))
 label
 ```
+
 
 ```{r WT}
 hda<-as.matrix(log2LFQ[,grep("SED",colnames(log2LFQ))])
