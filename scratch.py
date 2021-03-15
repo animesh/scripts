@@ -1,4 +1,12 @@
 #!pip install --upgrade pip
+#https://towardsdatascience.com/11-python-built-in-functions-you-should-know-877a2c2139db
+def is_even(num):
+    if num % 2 == 0:
+        return True
+    return False
+f_even = filter(is_even, [1,2,3,4,5,6,7,8])
+list(f_even)
+locals()
 #https://python.plainenglish.io/make-beautiful-water-polo-chart-in-a-few-lines-in-python-5d04f3f9335d
 from pyecharts import options as opts
 from pyecharts.charts import Liquid

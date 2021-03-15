@@ -19,6 +19,9 @@ dataA$FileI<-3
 data<-rbind(dataSA[,-1],dataAP[,-1],dataA[,-1])
 data<-data[data$Status=="reviewed",]
 data$GN<-sub("_HUMAN","",data$`Entry name`)
+data$Group<-1
+data$Group<-"Green"
+data1<-data
 writexl::write_xlsx(as.data.frame(cbind(data,rownames(data))),paste0(inpF,"GREEN.xlsx"))
 ```
 
@@ -39,6 +42,9 @@ dataA$FileI<-3
 data<-rbind(dataSA[,-1],dataAP[,-1],dataA[,-1])
 data<-data[data$Status=="reviewed",]
 data$GN<-sub("_HUMAN","",data$`Entry name`)
+data$Group<-2
+data$Group<-"Orange"
+data2<-data
 writexl::write_xlsx(as.data.frame(cbind(data,rownames(data))),paste0(inpF,"ORANGE.xlsx"))
 ```
 
@@ -59,10 +65,34 @@ dataA$FileI<-3
 data<-rbind(dataSA[,-1],dataAP[,-1],dataA[,-1])
 data<-data[data$Status=="reviewed",]
 data$GN<-sub("_HUMAN","",data$`Entry name`)
-writexl::write_xlsx(as.data.frame(cbind(data,rownames(data))),paste0(inpF,"GREEN.xlsx"))
+data$Group<-3
+data$Group<-"Black"
+data3<-data
+writexl::write_xlsx(as.data.frame(cbind(data,rownames(data))),paste0(inpF,"BLACK.xlsx"))
 ```
 
-```{r phyicoChemT}
+```{r phyicoChemisT}
+cor(as.numeric(gsub(",", "", data$Mass)),Peptides::mw(data$Sequence))
+plot(as.numeric(gsub(",", "", data$Mass)),Peptides::mw(data$Sequence))
+Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle")
+Peptides::mw(data$Sequence)
+Peptides::pI(data$Sequence, pKscale="Bjellqvist" )
+plot(Peptides::mw(data$Sequence),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ))
+plot(Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ))
+p1 = ggplot2::ggplot(data, ggplot2::aes(Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ))) + 
+  ggplot2::geom_jitter(position = ggplot2::position_jitter(width = 0.3), 
+              ggplot2::aes(color = factor(data$File)), size = 2.5, alpha = 1) + 
+  ggplot2::facet_wrap(~Group)
+p1 = ggplot2::ggplot(data, ggplot2::aes(Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ))) + 
+  ggplot2::geom_jitter(position = ggplot2::position_jitter(width = 0.3), 
+              ggplot2::aes(color = factor(data$Group)), size = 2.5, alpha = 1) + 
+  ggplot2::facet_wrap(~File)
+print(p1)
+plot(Peptides::mw(data$Sequence),Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"))
+```
+
+```{r combPhyicoChemisT}
+data<-rbind(data1,data2,data3)
 seq<-data$Sequence[1]
 Peptides::aaComp(seq)
 Peptides::hydrophobicity(seq, scale = "KyteDoolittle")
@@ -71,17 +101,13 @@ data$Mass[1]
 #Peptides::pI(seq, pKscale = "EMBOSS")
 Peptides::pI(seq, pKscale="Bjellqvist" )
 data$Mass[1]
-```
-
-```{r phyicoChemT}
-cor(as.numeric(gsub(",", "", data$Mass)),Peptides::mw(data$Sequence))
-plot(as.numeric(gsub(",", "", data$Mass)),Peptides::mw(data$Sequence))
-Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle")
-Peptides::mw(data$Sequence)
-Peptides::pI(data$Sequence, pKscale="Bjellqvist" )
-plot(Peptides::mw(data$Sequence),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ))
-plot(Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"),Peptides::pI(data$Sequence, pKscale="Bjellqvist" ))
-plot(Peptides::mw(data$Sequence),Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle"))
+data$pI<-Peptides::pI(data$Sequence, pKscale="Bjellqvist" )
+data$hI<-Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle")
+writexl::write_xlsx(as.data.frame(cbind(data,rownames(data))),paste0(inpF,"combined.xlsx"))
+write.csv(as.data.frame(cbind(data)),paste0(inpF,"combined.csv"),row.names = F)
+p = ggplot2::ggplot(data, ggplot2::aes(data$hI,data$pI)) +   ggplot2::geom_jitter(position = ggplot2::position_jitter(width = 0.3), ggplot2::aes(color = factor(data$Group)), size = 2.5, alpha = 1) + ggplot2::facet_wrap(~File)
+print(p)
+ggplot2::ggsave(paste0(inpF,"combined.svg"),p)
 ```
 
 ```{r plot3D}

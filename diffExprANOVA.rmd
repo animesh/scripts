@@ -33,6 +33,26 @@ t.test(c(22.39459,20.48316,21.87155),c(NA,20.34495),na.rm=T,var.equal=T)$p.value
 t.test(c(22.39459,20.48316,21.87155),c(NA,17.97),na.rm=T,var.equal=T)$p.value
 t.test(c(21.4316,21.77155),c(NA,17.7),na.rm=T,var.equal=T)$p.value
 t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
+#https://biocorecrg.github.io/CRG_RIntroduction/volcano-plots.html
+de$diffexpressed <- "NO"
+# if log2Foldchange > 0.6 and pvalue < 0.05, set as "UP" 
+de$diffexpressed[de$log2FoldChange > 0.6 & de$pvalue < 0.05] <- "UP"
+# if log2Foldchange < -0.6 and pvalue < 0.05, set as "DOWN"
+de$diffexpressed[de$log2FoldChange < -0.6 & de$pvalue < 0.05] <- "DOWN"
+# Re-plot but this time color the points with "diffexpressed"
+p <- ggplot(data=de, aes(x=log2FoldChange, y=-log10(pvalue), col=diffexpressed)) + geom_point() + theme_minimal()
+p2 <- p + geom_vline(xintercept=c(-0.6, 0.6), col="red") +  geom_hline(yintercept=-log10(0.05), col="red")
+de$delabel <- NA
+de$delabel[de$diffexpressed != "NO"] <- de$gene_symbol[de$diffexpressed != "NO"]
+library(ggrepel)
+# plot adding up all layers we have seen so far
+ggplot(data=de, aes(x=log2FoldChange, y=-log10(pvalue), col=diffexpressed, label=delabel)) +
+        geom_point() + 
+        theme_minimal() +
+        geom_text_repel() +
+        scale_color_manual(values=c("blue", "black", "red")) +
+        geom_vline(xintercept=c(-0.6, 0.6), col="red") +
+        geom_hline(yintercept=-log10(0.05), col="red")
 ```
 
 ```{r ExWTpeptides}
@@ -83,16 +103,22 @@ dim(data)
 selection<-"Abundance."
 hist(as.matrix(log2(data[,grep(selection,colnames(data))])))
 summary(log2(data[,grep(selection,colnames(data))]))
-selection<-"Normalized"
+selection<-"Scaled"
+selThr<-5
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 #protNum<-1:ncol(LFQ)
-colnames(LFQ)=sub("Abundances \\(Normalized\\)\\: ","",colnames(LFQ))
+colnames(LFQ)=sub(paste0("Abundances \\(",selection,"\\)\\: "),"",colnames(LFQ))
 colnames(LFQ)=sub("\\: Sample","",colnames(LFQ))
 dim(LFQ)
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 log2LFQ[log2LFQ==0]=NA
 summary(log2LFQ)
+Means<-apply(log2LFQ,1, mean, na.rm = TRUE)
+Stdevs<-apply(log2LFQ,1, sd, na.rm = TRUE)
+NAs<-rowSums(is.na(log2LFQ))
+summary(NAs)
+CVs<-Stdevs/Means
 hist(log2LFQ)
 rowName<-data$`FASTA Title Lines`
 rowName<-sub("ProteinCenter:sp_tr_incl_isoforms\\|","",rowName)
@@ -100,8 +126,8 @@ rowName<-gsub("\r","",rowName)
 rowName<-gsub("\n","",rowName)
 rownames(data)<-rowName
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(rowName, ">",fixed=T), "[", 2)), " "), "[", 1))
-writexl::write_xlsx(as.data.frame(cbind(rownames(data),Uniprot=rowName,log2LFQ)),paste0(inpF,"log2LFQ.xlsx"))
-write.table(as.data.frame(cbind(Uniprot=rowName,log2LFQ)),paste0(inpF,"log2LFQ.txt"),row.names = F,sep="\t",quote = FALSE)
+writexl::write_xlsx(as.data.frame(cbind(rownames(data),Uniprot=rowName,log2LFQ,NAs,CVs)),paste0(inpF,selection,selThr,"log2LFQ.xlsx"))
+write.table(as.data.frame(cbind(Uniprot=rowName,log2LFQ,NAs,CVs)),paste0(inpF,selection,selThr,"log2LFQ.txt"),row.names = F,sep="\t",quote = FALSE)
 ```
 
 ```{r corHC}
@@ -126,14 +152,14 @@ colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
 pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6)
-ggplot2::ggsave(file=paste0(inpF,selection,"log2spearClust.svg"),plot=svgPHC)
+ggplot2::ggsave(file=paste0(inpF,selection,selThr,"log2spearClust.svg"),plot=svgPHC)
 fn<-as.data.frame(label$File.Name[-1])
 fn$`label$File.Name`<-sub("F\\:\\\\promec\\\\Qexactive\\\\Mirta\\\\Katja\\\\20210302_DDA_","",fn$`label$File.Name`)
 rownames(fn)<-label$Study.File.ID[-1]
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8,labels_col = fn$`label$File.Name`,labels_row = fn$`label$File.Name`)
-ggplot2::ggsave(file=paste0(inpF,selection,"log2spearClust.svg"),plot=svgPHC)#,  
+ggplot2::ggsave(file=paste0(inpF,selection,selThr,"log2spearClust.svg"),plot=svgPHC)#,  
 assign(paste0(selection,"clusterData"),log2LFQimpCorr)
-write.txt(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,selection,"log2spearClust.txt"),row.names=F)
+write.txt(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,selection,selThr,"log2spearClust.txt"),row.names=F)
 ```
 
 ```{r label}
@@ -148,7 +174,7 @@ hda<-as.matrix(log2LFQ[,grep("F89|F90|F91|F92",colnames(log2LFQ))])
 hist(as.matrix(hda))
 WT<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
 sum(WT>0)
-limma::vennDiagram(hda>20)
+limma::vennDiagram(hda>selThr)
 inpW<-paste0(inpF,"sel-LFQ-control.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(WT,hda,data$`FASTA Title Lines`)),inpW)
 hdaWT<-hda
@@ -159,7 +185,7 @@ hda<-as.matrix(log2LFQ[,grep("F96|F95|F94|F93",colnames(log2LFQ))])
 hist(as.matrix(hda))
 WTH2O2<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
 sum(WTH2O2>0)
-limma::vennDiagram(hda>20)
+limma::vennDiagram(hda>selThr)
 inpW<-paste0(inpF,"sel-LFQ-WTH2O2.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(WTH2O2,hda,data$`FASTA Title Lines`)),inpW)
 hdaWTH2O2<-hda
@@ -169,7 +195,7 @@ hda<-as.matrix(log2LFQ[,grep("F85|F86|F87|F88",colnames(log2LFQ))])
 hist(as.matrix(hda))
 OGG1HA<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
 sum(OGG1HA>0)
-limma::vennDiagram(hda>20)
+limma::vennDiagram(hda>selThr)
 inpW<-paste0(inpF,"sel-LFQ-OGG1HA.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(OGG1HA,hda,data$`FASTA Title Lines`)),inpW)
 hdaOGG1HA<-hda
@@ -180,7 +206,7 @@ hda<-as.matrix(log2LFQ[,grep("F76|F77|F78|F79",colnames(log2LFQ))])
 hist(as.matrix(hda))
 MUTYHHA<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
 sum(MUTYHHA>0)
-limma::vennDiagram(hda>20)
+limma::vennDiagram(hda>selThr)
 inpW<-paste0(inpF,"sel-LFQ-MUTYHHA.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(MUTYHHA,hda,data$`FASTA Title Lines`)),inpW)
 hdaMUTYHHA<-hda
@@ -191,7 +217,7 @@ hda<-as.matrix(log2LFQ[,grep("F72|F73|F74|F75",colnames(log2LFQ))])
 hist(as.matrix(hda))
 MUTYHHAH2O2<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
 sum(WT>0)
-limma::vennDiagram(hda>20)
+limma::vennDiagram(hda>selThr)
 inpW<-paste0(inpF,"sel-LFQ-MUTYHHAH2O2.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(MUTYHHAH2O2,hda,data$`FASTA Title Lines`)),inpW)
 hdaMUTYHHAH2O2<-hda
@@ -202,7 +228,7 @@ hda<-as.matrix(log2LFQ[,grep("F80|F81|F82|F83|F84",colnames(log2LFQ))])
 hist(as.matrix(hda))
 OGG1HAH2O2<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
 sum(OGG1HAH2O2>0)
-limma::vennDiagram(hda>20)
+limma::vennDiagram(hda>selThr)
 inpW<-paste0(inpF,"sel-LFQ-OGG1HAH2O2.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(OGG1HAH2O2,hda,data$`FASTA Title Lines`)),inpW)
 hdaOGG1HAH2O2<-hda
@@ -225,7 +251,7 @@ summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
 compName<-gsub(" ", "",compName)
-compName<-gsub(",", "",compName)
+compName<-gsub("[^[:alnum:] ]", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-8
@@ -271,8 +297,8 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAWT.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAWT.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,compName,"tTestOGG1HAWT.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,compName,"tTestOGG1HAWT.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ```
@@ -283,7 +309,7 @@ summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
 compName<-gsub(" ", "",compName)
-compName<-gsub(",", "",compName)
+compName<-gsub("[^[:alnum:] ]", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-8
@@ -338,8 +364,8 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTeswOGG1HAWT.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTeswOGG1HAWT.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswOGG1HAWT.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswOGG1HAWT.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ttest.results[is.na(ttest.results)]=0.1
@@ -349,7 +375,7 @@ dsub <- subset(ttest.results,Significance)
 p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
 p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
 #f=paste(file,proc.time()[3],".jpg")
-ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,qThr,compName,"VolcanotTeswOGG1HAWT.svg"), p)
+ggplot2::ggsave(paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"VolcanotTeswOGG1HAWT.svg"), p)
 print(p)
 ```
 
@@ -368,7 +394,7 @@ summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
 compName<-gsub(" ", "",compName)
-compName<-gsub(",", "",compName)
+compName<-gsub("[^[:alnum:] ]", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-8
@@ -414,8 +440,8 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAWT.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAWT.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,compName,"tTestOGG1HAWT.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,compName,"tTestOGG1HAWT.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ```
@@ -426,7 +452,7 @@ summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
 compName<-gsub(" ", "",compName)
-compName<-gsub(",", "",compName)
+compName<-gsub("[^[:alnum:] ]", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-8
@@ -481,8 +507,8 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTeswMUTYHHAWT.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTeswMUTYHHAWT.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswMUTYHHAWT.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswMUTYHHAWT.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ttest.results[is.na(ttest.results)]=0.1
@@ -492,7 +518,7 @@ dsub <- subset(ttest.results,Significance)
 p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
 p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
 #f=paste(file,proc.time()[3],".jpg")
-ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,qThr,compName,"tTeswMUTYHHAWT.svg"), p)
+ggplot2::ggsave(paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswMUTYHHAWT.svg"), p)
 print(p)
 ```
 
@@ -518,7 +544,7 @@ summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
 compName<-gsub(" ", "",compName)
-compName<-gsub(",", "",compName)
+compName<-gsub("[^[:alnum:] ]", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-8
@@ -564,8 +590,8 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAH2O2WTH2O2.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAH2O2WTH2O2.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,compName,"tTestOGG1HAH2O2WTH2O2.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,compName,"tTestOGG1HAH2O2WTH2O2.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ```
@@ -576,7 +602,7 @@ summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
 compName<-gsub(" ", "",compName)
-compName<-gsub(",", "",compName)
+compName<-gsub("[^[:alnum:] ]", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-8
@@ -631,8 +657,8 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTesw82OGG1HAH2O2WTH2O2.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTesw82OGG1HAH2O2WTH2O2.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTesw82OGG1HAH2O2WTH2O2.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTesw82OGG1HAH2O2WTH2O2.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ttest.results[is.na(ttest.results)]=0.1
@@ -642,7 +668,7 @@ dsub <- subset(ttest.results,Significance)
 p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
 p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
 #f=paste(file,proc.time()[3],".jpg")
-ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,qThr,compName,"tTesw82OGG1HAH2O2WTH2O2.svg"), p)
+ggplot2::ggsave(paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTesw82OGG1HAH2O2WTH2O2.svg"), p)
 print(p)
 ```
 
@@ -653,7 +679,7 @@ summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
 compName<-gsub(" ", "",compName)
-compName<-gsub(",", "",compName)
+compName<-gsub("[^[:alnum:] ]", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-8
@@ -708,8 +734,8 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTeswOGG1HAH2O2WTH2O2.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTeswOGG1HAH2O2WTH2O2.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswOGG1HAH2O2WTH2O2.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswOGG1HAH2O2WTH2O2.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ```
@@ -729,7 +755,7 @@ summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
 compName<-gsub(" ", "",compName)
-compName<-gsub(",", "",compName)
+compName<-gsub("[^[:alnum:] ]", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-8
@@ -775,8 +801,8 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAWT.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestMUTYHHAH2O2WTH2O2.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,compName,"tTestOGG1HAWT.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,compName,"tTestMUTYHHAH2O2WTH2O2.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ```
@@ -787,7 +813,7 @@ summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
 compName<-gsub(" ", "",compName)
-compName<-gsub(",", "",compName)
+compName<-gsub("[^[:alnum:] ]", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
 eCol<-8
@@ -842,8 +868,8 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTeswMUTYHHAH2O2WTH2O2.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,compName,"tTeswMUTYHHAH2O2WTH2O2.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswMUTYHHAH2O2WTH2O2.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswMUTYHHAH2O2WTH2O2.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ttest.results[is.na(ttest.results)]=0.1
@@ -853,7 +879,7 @@ dsub <- subset(ttest.results,Significance)
 p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
 p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
 #f=paste(file,proc.time()[3],".jpg")
-ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,qThr,compName,"VolcanotTeswMUTYHHAH2O2WTH2O2.svg"), p)
+ggplot2::ggsave(paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"VolcanotTeswMUTYHHAH2O2WTH2O2.svg"), p)
 print(p)
 ```
 

@@ -1,0 +1,6 @@
+[wsl2]
+processors=12
+memory=64GB
+swap=192GB
+swapFile=C:\swap192.vhdx
+
