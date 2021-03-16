@@ -103,9 +103,10 @@ Peptides::pI(seq, pKscale="Bjellqvist" )
 data$Mass[1]
 data$pI<-Peptides::pI(data$Sequence, pKscale="Bjellqvist" )
 data$hI<-Peptides::hydrophobicity(data$Sequence, scale = "KyteDoolittle")
+data$Gene<-paste0(sapply(strsplit(data$`Gene names`, " ",fixed=T), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(data,rownames(data))),paste0(inpF,"combined.xlsx"))
 write.csv(as.data.frame(cbind(data)),paste0(inpF,"combined.csv"),row.names = F)
-p = ggplot2::ggplot(data, ggplot2::aes(data$hI,data$pI)) +   ggplot2::geom_jitter(position = ggplot2::position_jitter(width = 0.3), ggplot2::aes(color = factor(data$Group)), size = 2.5, alpha = 1) + ggplot2::facet_wrap(~File)
+p = ggplot2::ggplot(data, ggplot2::aes(data$hI,data$pI)) +   ggplot2::geom_jitter(ggplot2::aes(color = factor(data$Group)), alpha = 0.5) + ggplot2::facet_wrap(~File) + ggplot2::geom_text(size=2,ggplot2::aes(label=data$Gene),hjust=0.1, vjust=0.1)
 print(p)
 ggplot2::ggsave(paste0(inpF,"combined.svg"),p)
 ```

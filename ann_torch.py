@@ -26,7 +26,7 @@ Y = np.array([outputr],dtype=np.float32).T
 # re-cast data as PyTorch variables, on the device (CPU or GPU) were calc's are performed
 print(X.shape,Y.shape)
 x, y = torch.tensor(X).to(device), torch.tensor(Y).to(device)
-# specify model (similar to Keras but not quite)
+# ispecify model (similar to Keras but not quite)
 n_hidden = 2                           # number of hidden neurons
 model = torch.nn.Sequential(
           torch.nn.Linear(X.shape[1], n_hidden),
