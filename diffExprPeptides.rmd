@@ -93,6 +93,8 @@ plot(Peptides::mw(data$Sequence),Peptides::hydrophobicity(data$Sequence, scale =
 
 ```{r combPhyicoChemisT}
 data<-rbind(data1,data2,data3)
+data<-data[-5,]
+data<-data[-45,]
 seq<-data$Sequence[1]
 Peptides::aaComp(seq)
 Peptides::hydrophobicity(seq, scale = "KyteDoolittle")

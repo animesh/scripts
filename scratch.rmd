@@ -2,7 +2,13 @@
 #lib
 libPaths="L:/promec/Animesh/R/win-library/4.0"
 .libPaths(c(libPaths, .libPaths()))
-.libPaths()
+#PATH="${RTOOLS40_HOME}\usr\bin;${PATH}"
+#writeLines('PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"', con = "~/.Renviron")
+Sys.which("make")
+## "C:\\rtools40\\usr\\bin\\make.exe"
+remotes::install_version("htmltools","0.5.1", repos = "http://cran.us.r-project.org")
+#plot
+#renv::deactivate()
 #plot
 par(mfrow=c(1,2))
 #setwd("L:/GD/scripts")
