@@ -5,7 +5,7 @@
 #plot
 par(mfrow=c(1,2))
 #data
-inpD<-"L:/promec/Qexactive/LARS/2021/march/Rolf/combined/txt/"
+inpD<-"L:/promec/USERS/Synnøve/"
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 setwd(inpD)
 getwd()
@@ -89,7 +89,7 @@ write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,selection,"
 
 
 ```{r WT}
-hda<-as.matrix(log2LFQ[,grep("SED",colnames(log2LFQ))])
+hda<-as.matrix(log2LFQ[,grep("C",colnames(log2LFQ))])
 hist(as.matrix(hda))
 WT<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
 sum(WT>0)
@@ -100,7 +100,7 @@ hdaWT<-hda
 ```
 
 ```{r EX}
-hda<-as.matrix(log2LFQ[,grep("Ex",colnames(log2LFQ))])
+hda<-as.matrix(log2LFQ[,grep("B",colnames(log2LFQ))])
 hist(as.matrix(hda))
 EX<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
 sum(EX>0)
@@ -117,13 +117,13 @@ limma::vennDiagram(hda>0)
 ```
 
 ```{r ExWTt, echo = FALSE}
-dataSellog2grpTtest<-cbind(hdaEx,hdaWT)
+dataSellog2grpTtest<-cbind(hdaEx,hdaWT[,-4])
 summary(dataSellog2grpTtest)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
-eCol<-16
-mCol<-8
-qThr<-1.5
+eCol<-7
+mCol<-4
+qThr<-3
 t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
 chkr<-1
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
@@ -177,16 +177,28 @@ writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,hdr,"tTes
 write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,hdr,"tTestBHgrpExWT.csv"),row.names = F)
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
+limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
+selThr=0.05
+data$RowGeneUniProtScorePeps<-data$Gene.names
+ttest.results[is.na(ttest.results)]=selThr
+Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>1
+sum(Significance)
+dsub <- subset(ttest.results,Significance)
+p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
+p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+#f=paste(file,proc.time()[3],".jpg")
+ggplot2::ggsave(paste0(inpF,selection,selThr,sCol,eCol,qThr,"VolcanotTeswOGG1HAWT.svg"), p)
+print(p)
 ```
 
 ```{r ExWTw, echo = FALSE}
-dataSellog2grpTtest<-cbind(hdaEx,hdaWT)
+dataSellog2grpTtest<-cbind(hdaEx,hdaWT[,-4])
 summary(dataSellog2grpTtest)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
-eCol<-16
-mCol<-8
-qThr<-2
+eCol<-7
+mCol<-4
+qThr<-3
 t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
 chkr<-1
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
@@ -236,10 +248,24 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,"wTestBHgrpExWT.xlsx"))
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,hdr,"wTestBHgrpExWT.xlsx"))
+write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,qThr,hdr,"wTestBHgrpExWT.csv"),row.names = F)
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
+limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
+selThr=0.05
+data$RowGeneUniProtScorePeps<-data$Gene.names
+ttest.results[is.na(ttest.results)]=selThr
+Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>1
+sum(Significance)
+dsub <- subset(ttest.results,Significance)
+p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
+p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+#f=paste(file,proc.time()[3],".jpg")
+ggplot2::ggsave(paste0(inpF,selection,selThr,sCol,eCol,qThr,"VolcanoWteswOGG1HAWT.svg"), p)
+print(p)
 ```
+
 
 ```{r DEP}
 #http://www.matrixscience.com/blog/using-the-quantitation-summary-to-create-reports-and-charts.html
