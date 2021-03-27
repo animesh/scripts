@@ -20,7 +20,7 @@ libPaths="L:/promec/Animesh/R/win-library/4.0"
 
 ```{r data, echo = FALSE}
 fName<-"proteinGroups.txt"
-inpD <-"L:/promec/Qexactive/Mirta/MariKaarbo/combined/txt/"
+inpD <-"L:/promec/Qexactive/Mirta/Celine/combined/txtLFQ1/"
 inpF<-paste0(inpD,fName)
 data <- data.table::fread(inpF)
 #data<-data[!data$Reverse=="+",]
@@ -28,7 +28,7 @@ data <- data.table::fread(inpF)
 ```
 
 ```{r select, echo = FALSE}
-sel<-grep("Intensity",names(data))
+sel<-grep("LFQ",names(data))
 dataHigh<-data[data$`Q-value`==0,]
 dataHigh<-dataHigh[,..sel]
 #summary(dataHighNorm)

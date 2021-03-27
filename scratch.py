@@ -1,4 +1,22 @@
 #!pip install --upgrade pip
+#https://towardsdatascience.com/why-decorators-in-python-are-pure-genius-1e812949a81e
+def startstop(func):
+    def wrapper():
+        print("Starting...")
+        func()
+        print("Finished!")
+    return wrapper
+def roll():
+    print("Rolling on the floor laughing XD")
+roll = startstop(roll)
+@startstop
+def roll():
+    print("Rolling on the floor laughing XD")
+#move to decorators.py and write something like this into your main file:
+from decorators import startstop
+@startstop
+def roll():
+    print("Rolling on the floor laughing XD")
 #https://towardsdatascience.com/11-python-built-in-functions-you-should-know-877a2c2139db
 def is_even(num):
     if num % 2 == 0:

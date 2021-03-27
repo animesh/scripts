@@ -30,6 +30,68 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+
+```{r expectedReturns}
+#https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2965224#03262021-111
+#The entry function is stk.exp.ret(ret, hld, k, tol = 1e-8). Here ret is an N×d matrix ηis of alpha expected returns, where the most recent date corresponds to s = 1; hld is a 3-dimensional N × M × d array PiAs of stock positions; k is the input (see below) number of principal components K used in modeling the matrix Ξeijs; tol is used in dealing with rounding errors (to wit, to distinguish null eigenvalues). Internally the function stk.exp.ret() calls the function calc.spec.var(), which internally calls the function calc.erank(). For K = 0 or K ≥ d − 2 the code sets K = 0, i.e., no principal components are used. For K < 0 the code sets K using eRank (truncated to an integer – it is straightforward to change it to rounding). For 0 < K < d − 2 the code uses this input value for the number of principal components. Internally the function calc.spec.var() also calls the function qrm.calc.eigen.eff() given in Appendix C of [Kakushadze and Yu, 2017b], which provides a much more efficient method (not based on power iterations) for computing eigenpairs than the internal R function (which is based on power iterations [Mises and ollaczek-Geiringer, 1929]).31 The function stk.exp.ret() returns the vector Ei = Ei,s=1 of the stock expected returns for the most recent date s = 1. The code only uses data with s > 1 to compute the regression weights out-of-sample.
+calc.erank <- function (x, excl.first)
+{
+take <- x > 0
+x <- x[take]
+if(excl.first)
+x <- x[-1]
+p <- x / sum(x)
+h <- - sum(p * log(p))
+er <- exp(h)
+if(excl.first)
+er <- er + 1
+return(er)
+}
+calc.spec.var <- function (x, k, do.trunc = T)
+{
+m <- ncol(x) - 1
+if(k == 0 | k >= m)
+30 The R Project for Statistical Computing, www.r-project.org.
+31 For large N using the internal R function eigen() here would be computationally prohibitive.
+16
+return(apply(x, 1, var))
+x.e <- qrm.calc.eigen.eff(x)
+x.val <- x.e$values
+x.vec <- x.e$vectors
+if(k < 0)
+{
+k <- calc.erank(x.val, excl.first = F)
+if(do.trunc)
+k <- trunc(k)
+else
+k <- round(k)
+}
+if(length(take <- (k+1):m) == 1)
+return(x.vec[, take]^2 * x.val[take])
+return(colSums(t(x.vec[, take])^2 * x.val[take]))
+}
+stk.exp.ret <- function (ret, hld, k, tol = 1e-8)
+{
+n <- nrow(ret)
+d <- ncol(ret)
+res <- matrix(NA, n, d - 1)
+for(s in 2:d)
+res[, s - 1] <- residuals(lm(ret[, s] ∼ -1 + hld[, , s]))
+v <- 1 / calc.spec.var(res, k)
+x <- t(hld[, , 1]) %*% (v * hld[, , 1])
+x.e <- eigen(x)
+x.val <- x.e$values
+x.vec <- x.e$vectors
+take <- x.val > tol * x.val[1]
+x.val <- x.val[take]
+x.vec <- x.vec[, take]
+stk <- colSums(hld[, , 1] * v * ret[, 1])
+stk <- colSums(x.vec * stk) / x.val
+stk <- colSums(t(x.vec) * stk)
+return(stk)
+}
+```
+
 ```{r splitProtOpt}
 #https://www.nature.com/articles/s41589-020-00729-8#MOESM4
 #Logistic regression analysis:
