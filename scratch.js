@@ -1,3 +1,5 @@
+//iwr https://deno.land/x/install/install.ps1 -useb | iex 
+//deno scratch.js
 function fact(x) {
    if(x==0) {
       return 1;

@@ -30,6 +30,10 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r}
+#https://www.biogeography.org/news/news/bayesian-nonparametric-regression-workshop/
+’embarcadero’, ‘blockCV’ and ‘modEvA’
+```
 
 ```{r expectedReturns}
 #https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2965224#03262021-111
