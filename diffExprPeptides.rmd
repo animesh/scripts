@@ -353,3 +353,52 @@ QuantData <- dataProcess(raw)
 #devtools::install_github("tsunghengtsai/MSstatsPTM")
 ```
 
+```{r DEP}
+#http://www.matrixscience.com/blog/using-the-quantitation-summary-to-create-reports-and-charts.html
+#BiocManager::install("DEP")
+library("DEP")
+# tweaks to data frame required by DEP
+data$Genes = data$Protein.IDs
+#data$Majority.protein.IDs = data$Protein.IDs
+colnames(data)[colnames(data) == 'Peptide.counts..all.'] <- 'Peptides'
+colnames(data)[colnames(data) == 'Peptide.counts..unique.'] <- 'Unique.peptides'
+data$Razor...unique.peptide = data$Unique.peptides
+data$ID = data$Fasta.headers
+colnames(data)
+dim(data)
+data$Potential.contaminant
+data <- filter(data,Potential.contaminant!="+")
+dim(data) 
+data_unique <- make_unique(data,"Genes", "Proteins", delim = ";")
+LFQ_columns <- grep("LFQ.", colnames(data))
+experimental_design = read.table(paste0(inpD,"/annodataPC2.txt"),stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
+experimental_design$label<-paste0("LFQ.intensity.",experimental_design$ID)
+experimental_design$condition<-experimental_design$annotation
+experimental_design$replicate<-experimental_design$axisLabels
+rownames(experimental_design)<-experimental_design$label
+summary(experimental_design)
+data_se <- make_se(data, LFQ_columns, experimental_design)
+summary(data_se)
+plot_frequency(data_se)
+data_filt <- filter_missval(data_se, thr = 0)
+plot_numbers(data_filt)
+data_norm <- normalize_vsn(data_filt)
+plot_normalization(data_filt, data_norm)
+plot_detect(data_filt)
+data_imp <- impute(data_norm, fun = "MinProb", q = 0.01)
+plot_imputation(data_norm, data_imp)
+data_diff <- test_diff(data_imp, type = "control", control = "SED")
+dep <- add_rejections(data_diff, alpha = 0.05, lfc = log2(1.5))
+plot_pca(dep, x = 1, y = 2, n = 500, point_size = 4)
+plot_cor(dep, significant = TRUE, lower = 0.8, upper = 1, pal = "Reds")
+plot_heatmap(dep, type = "centered", kmeans = TRUE, k = 6, col_limit = 4, show_row_names = FALSE, indicate = c("condition", "replicate"))
+plot_heatmap(dep, type = "contrast", kmeans = TRUE, k = 6, col_limit = 10, show_row_names = FALSE)
+plot_volcano(dep, contrast = "ExVsSED", label_size = 2, add_names = TRUE)
+```
+```{r artMS}
+#artmsQualityControlEvidenceBasic and artmsQualityControlEvidenceExtended, check  https://biodavidjm.github.io/artMS/articles/artMS_vignette.html#quality-control-1 
+#artmsQuantification(): it performs the relative quantification using the fantastic package MSstats
+#artmsAnalysisQuantifications():
+#devtools::install_github("biodavidjm/artMS")
+#http://phosfate.com/profiler.html#
+```

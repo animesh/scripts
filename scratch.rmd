@@ -6,7 +6,7 @@ libPaths="L:/promec/Animesh/R/win-library/4.0"
 #writeLines('PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"', con = "~/.Renviron")
 Sys.which("make")
 ## "C:\\rtools40\\usr\\bin\\make.exe"
-remotes::install_version("htmltools","0.5.1", repos = "http://cran.us.r-project.org")
+remotes::install_version("xfun","0.19", repos = "http://cran.us.r-project.org")
 #plot
 #renv::deactivate()
 #plot
@@ -30,9 +30,14 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
-```{r}
+```{r nonparamBayes}
 #https://www.biogeography.org/news/news/bayesian-nonparametric-regression-workshop/
 ’embarcadero’, ‘blockCV’ and ‘modEvA’
+```
+```{r biomeX}
+#https://github.com/compbiomed/animalcules
+BiocManager::install(version = "3.12")
+BiocManager::install("compbiomed/animalcules")
 ```
 
 ```{r expectedReturns}
