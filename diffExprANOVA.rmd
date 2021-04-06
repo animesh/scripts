@@ -4,9 +4,9 @@
 .libPaths( c( .libPaths(), "L:/promec/Animesh/R/win-library/4.0") )
 .libPaths()
 #plot
-par(mfrow=c(1,2))
+#par(mfrow=c(1,2))
 #data
-inpD <-"L:/promec/HF/Lars/2021/march/Ingrid/combined/txtLFQ1/"
+inpD <-"L:/promec/Animesh/Kristian/"
 thr<-20
 selThr=0.1
 selThrFC=1
@@ -62,7 +62,7 @@ writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),inpW)
 ```
 
 ```{r label}
-inpL<-paste0(inpD,"SampleKey.txt")
+inpL<-paste0(inpD,"Groups.txt")
 label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
 label
 ```
@@ -89,10 +89,33 @@ colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 #pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
-svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,labels_row = paste(label$RawFnum,label$ID_ROLF,label$Tank,label$Diet,label$Fish))
+#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,labels_row = paste(label$RawFnum,label$ID_ROLF,label$Tank,label$Diet,label$Fish))
 ggplot2::ggsave(file=paste0(inpF,hdr,selection,"log2spearClust.svg"),plot=svgPHC)#,  
 assign(paste0(selection,"clusterData"),log2LFQimpCorr)
 write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,hdr,selection,"log2spearClust.csv"),row.names=F)
+```
+
+```{r PCA, echo = FALSE}
+options(nwarnings = 1000000)
+scale=3
+set.seed(scale)
+log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
+hist(log2LFQimp)
+log2LFQimp[log2LFQimp<0]<-0
+summary(log2LFQimp)
+dataHighNormLog2<-log2LFQimp
+dataHighNormLog2[!is.na(log2LFQ)]<-log2LFQ[!is.na(log2LFQ)]
+summary(dataHighNormLog2)
+hist(dataHighNormLog2)
+log2LFQt<-t(dataHighNormLog2)
+row.names(log2LFQt)<-colnames(log2LFQ)
+log2LFQt<-log2LFQt[-grep("PreOC",rownames(log2LFQt)),]
+log2LFQtPCA<-prcomp(log2LFQt)
+log2LFQtPCAsumm<-summary(log2LFQtPCA)
+plot(prcomp(log2LFQt))
+plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+op <- par(cex = 0.5)
+legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
 ```
 
 

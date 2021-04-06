@@ -1,4 +1,18 @@
 #!pip install --upgrade pip
+#https://discuss.streamlit.io/t/new-pyvis-component-for-graphs/11335
+pip install stvis
+from pyvis import network as net
+import streamlit as st
+from stvis import pv_static
+
+g=net.Network(height='500px', width='500px',heading='')
+g.add_node(1)
+g.add_node(2)
+g.add_node(3)
+g.add_edge(1,2)
+g.add_edge(2,3) 
+
+pv_static(g)
 #https://towardsdatascience.com/why-decorators-in-python-are-pure-genius-1e812949a81e
 def startstop(func):
     def wrapper():
