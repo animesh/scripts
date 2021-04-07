@@ -1,6 +1,68 @@
 #setup
-#https://julialang-s3.julialang.org/bin/winnt/x64/1.5/julia-1.5.3-win64.exe
+#https://julialang-s3.julialang.org/bin/winnt/x64/1.6
 versioninfo()
+#using Pkg
+#GPU https://youtu.be/v9bFRg4rUfk
+#Pkg.add("CUDA")
+using CUDA
+CUDA.version()
+CUDA.functional()
+CuDevice(0)
+Mem.alloc
+r=CUDA.rand(10000,10000)
+sum(r)
+CUDA.@time sum(r)
+CUDA.@profile sum(r)
+CUDA.@time r.+r# reverse(r)
+using LinearAlgebra
+@btime norm(r)
+#CNN https://youtu.be/aa3JkX_cj_I
+
+#https://juliagpu.gitlab.io/CUDA.jl/tutorials/introduction/
+N = 2^20
+x = fill(1.0f0, N)  # a vector filled with 1.0 (Float32)
+y = fill(2.0f0, N)  # a vector filled with 2.0
+y .+= x
+using Test
+@test all(y .== 3.0f0)
+function sequential_add!(y, x)
+    for i in eachindex(y, x)
+        @inbounds y[i] += x[i]
+    end
+    return nothing
+end
+fill!(y, 2)
+sequential_add!(y, x)
+@test all(y .== 3.0f0)
+function parallel_add!(y, x)
+    Threads.@threads for i in eachindex(y, x)
+        @inbounds y[i] += x[i]
+    end
+    return nothing
+end
+fill!(y, 2)
+parallel_add!(y, x)
+@test all(y .== 3.0f0)
+using BenchmarkTools
+@btime sequential_add!($y, $x)
+@btime parallel_add!($y, $x)
+x_d = CUDA.fill(1.0f0, N)  # a vector stored on the GPU filled with 1.0 (Float32)
+y_d = CUDA.fill(2.0f0, N)  # a vector stored on the GPU filled with 2.0
+y_d .+= x_d
+@test all(Array(y_d) .== 3.0f0)
+@btime add_broadcast!($y_d, $x_d)
+function gpu_add2_print!(y, x)
+    index = threadIdx().x    # this example only requires linear indexing, so just use `x`
+    stride = blockDim().x
+    @cuprintln("thread $index, block $stride")
+    for i = index:stride:length(y)
+        @inbounds y[i] += x[i]
+    end
+    return nothing
+end
+@cuda threads=16 gpu_add2_print!(y_d, x_d)
+synchronize()
+
 #https://github.com/JuliaLang/IJulia.jl
 #using Pkg
 #https://github.com/Gnimuc/CImGui.jl

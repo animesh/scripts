@@ -1,4 +1,11 @@
 #!pip install --upgrade pip
+
+#https://github.com/chanzuckerberg/cellxgene
+conda create --yes -n cellxgene python=3.7
+conda activate cellxgene ; pip install cellxgene
+cellxgene launch https://cellxgene-example-data.czi.technology/pbmc3k.h5ad
+#http://localhost:5005/
+
 #https://discuss.streamlit.io/t/new-pyvis-component-for-graphs/11335
 pip install stvis
 from pyvis import network as net
@@ -10,7 +17,7 @@ g.add_node(1)
 g.add_node(2)
 g.add_node(3)
 g.add_edge(1,2)
-g.add_edge(2,3) 
+g.add_edge(2,3)
 
 pv_static(g)
 #https://towardsdatascience.com/why-decorators-in-python-are-pure-genius-1e812949a81e

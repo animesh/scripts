@@ -17,7 +17,7 @@ open(F1,$f);
 while(my $l1=<F1>){
 	chomp $l1;
 	$l1=~s/\r//g;
-	if($l1=~/^>/){$seqc=$l1;$seqc=~s/^>//;}
+	if($l1=~/^>/){$seqc=$l1;$seqc=~s/^>ProteinCenter:sp_tr_incl_isoforms\|//;my @tmpn=split(" ",$seqc);$seqc=$tmpn[0];}
 	else{$seqh{$seqc}.=uc($l1);}
 }
 close F1;
@@ -51,4 +51,4 @@ while (my $line = <F1>) {
 }
 
 __END__
-perl countAA.pl L:\promec\FastaDB\uniprot-human-iso-sep19.fasta E > uniprot-human-iso-sep19.fasta.E.count.txt
+perl countAA.pl L:\promec\HF\Lars\2021\march\Ingrid\KO\210317_Ingrid1.fasta E > L:\promec\HF\Lars\2021\march\Ingrid\KO\210317_Ingrid1.fasta.count.E.txt
