@@ -1,75 +1,93 @@
-KEGG map with Gene symbols using Pathview
-========================================================
-
 ```{r setup}
-.libPaths( c( .libPaths(), "~/libR") )
-grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
-#rm(list = ls())
-#detach("package:pathview", unload=TRUE)
+.libPaths( c( .libPaths(), "L:/promec/Animesh/R/win-library/4.0") )
+.libPaths()
+#data
+inpD <-"L:/promec/Animesh/Kristian/"
+thr<-20
+selThr=0.3
+selThrFC=0.5
+hdr<-gsub("[^[:alnum:] ]", "",inpD)
+setwd(inpD)
 getwd()
-setwd("F:/GD/")
-knitr::opts_knit$get("root.dir") 
 ```
 
-```{r install libraries and setup}
-source("http://bioconductor.org/biocLite.R")
-biocLite('pathview')
-biocLite('IRanges')
-install.packages("RSQLite")
-biocLite('XVector')
+```{r library}
+install.packages("BiocManager")
+BiocManager::install("pathview")
 library(pathview)
 ?pathview
 ```
 
 ```{r data}
-inpD<-"F:/GD/STAMI/"
-#inpD<-"C:/Users/animeshs/GD/"
-inpF<-paste0(inpD,"base file_Log2.xlsx")
-#install.packages("readxl")
-library("readxl")
-data<-read_xlsx(inpF)
-#dataS<-as.matrix(data[,1:4],rownames=T)
+inpF<-paste0(inpD,"proteinGroupsM1M0Mono-log2LFQmedian.txt")
+data<-read.csv(inpF,sep="\t")
 dataS<-as.matrix(data[,c(1:3)],rownames=T)
 dataS<-apply(dataS, 2, as.numeric)
 dataS[dataS==0]=NA
-rn<-sub(";","",unlist(data[46]))
+rn<-strsplit(data$T..Gene.names,";")
 rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
-rn<-strsplit(rn, "-")
-row.names(dataS)<-sapply(rn, "[", 1)
+#rn<-strsplit(rn, "-")
+row.names(dataS)<-rn
 cn<-strsplit(colnames(dataS), "_")
 colnames(dataS)<-paste(sapply(cn, "[", 1))#,sapply(cn, "[", 4))
 summary(dataS)
 plot(dataS)
+limma::vennDiagram(dataS>0)
 ```
 
 ```{r pathview-comb-SA[ET]/pc}
 #https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
 #BiocManager::install("pathview")
 library(pathview)
-library(writexl)
 #https://www.kegg.jp/kegg-bin/show_pathway?hsa03010
-pcode<-"03010"
-pspecies<-"hsa"
-sfx<-paste(gsub("[^[:alnum:] ]", "",colnames(dataS)), collapse='_' )
-idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
 hda=dataS
-rowName<-strsplit(data$`T: T: Gene names`, ";")
+rowName<-strsplit(data$T..Protein.IDs, ";")
 rowName<-paste(sapply(rowName, "[", 1))
 rowName<-strsplit(rowName, "-")
 protNum<-1:nrow(dataS)
 protName<-sapply(rowName, "[", 1)
 rowName<-paste(protName,protNum,sep=";")
-rownames(hda)<-rowName
-hda[is.na(hda)]<-0
-hda=hda-matrixStats::rowMedians(hda)
-#hda[hda==0]<-NA
+#rownames(hda)<-rowName
+hist(hda)
+#hda=hda-matrixStats::rowMedians(hda)
+hda=hda-median(hda,na.rm=T)+1e-6
+hist(hda)
+hda[hda==0]<-NA
+#hda[is.na(hda)]<-0
+hist(hda)
 #heatmap(hda)
 #library(scales)
 #scale(t(hda))
 #hda=squish(as.matrix(hda),c(-10,10))
-hist(hda)
-rownames(hda)<-protName
+#hist(hda)
+#rownames(hda)<-protName
+rownames(hda)<-rownames(dataS)
+pathList<-c(
+"hsa04064",  
+#NF-kappa B signaling pathway
+"hsa04210",  
+#Apoptosis
+"hsa04217",  
+#Necroptosis
+"hsa04620",  
+#Toll-like receptor signaling pathway
+"hsa04668",  
+#TNF signaling pathway
+"hsa04621",  
+#NOD-like receptor signaling pathway
+"hsa05130",  
+#Pathogenic Escherichia coli infection
+"hsa05135"
+#Yersinia infection
+) 
+for(pcode in pathList){
+  print(pcode)
+#pcode<-"04064"
+pspecies<-"hsa"
+sfx<-paste(gsub("[^[:alnum:] ]", "",colnames(dataS)), collapse='_' )
+idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
 pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="orange"),both.dirs=list(gene=T), limit = list(gene = 5), bins = list(gene = 5), na.col="grey",out=sfx)
-write_xlsx(data.frame(Name=data$`T: T: Gene names`,hda),paste0(inpF,sfx,"wTestBHgrpComb.xlsx"))
+}
+write.csv(hda,paste0(inpF,sfx,"-median.csv"))
 ```
 
