@@ -1,24 +1,29 @@
 ```{r setup, echo = FALSE}
+#library/packages
+.libPaths( c( .libPaths(), "L:/promec/Animesh/R/win-library/4.0") )
+.libPaths()
+#install.packages("glue")
 #plot
 par(mfrow=c(1,2))
-#https://www.osc.edu/resources/getting_started/howto/howto_install_local_r_packages
-#install.packages("lattice", repos="http://cran.r-project.org", lib="~/local/R_libs/")
-#.libPaths( c( .libPaths(), "C:/Users/animeshs/GD/R_libs") )
-.libPaths()
-#install.packages("writexl")
-#install.packages("BiocManager", repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
-#library("BiocManager",lib="C:/Users/animeshs/GD/R_libs")
-#BiocManager::install("limma",lib="C:/Users/animeshs/GD/R_libs")
-#library("limma")#,lib="C:/Users/animeshs/GD/R_libs")
+#data
+inpD <-"L:/promec/Animesh/Kristian/"
+selThr=0.3
+selThrFC=0.5
+hdr<-gsub("[^[:alnum:] ]", "",inpD)
+setwd(inpD)
 getwd()
-#setwd("C:/Users/animeshs/GD/")
-#install.packages("readxl", repos="http://cran.r-project.org", lib="C:/Users/animeshs/GD/R_libs")
-#library("readxl",lib="C:/Users/animeshs/GD/R_libs")
-#inpF<-paste0(inpD,"proteinGroupsLog2diffs.xlsx")
-#data<-read_xlsx(inpF)
-#grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
-#rm(list = ls())
-#detach("package:pathview", unload=TRUE)
+#https://en.wikipedia.org/wiki/Hypergeometric_distribution
+fisher.test(rbind(c(1,9),c(11,3)), alternative="less")$p.value
+(choose(10,1)*choose(14,11))/(choose(24,12))+(choose(10,0)*choose(14,12))/(choose(24,12))
+(choose(628,6)*choose(4458,11))/(choose(5028,17))
+wikiP <- matrix(c(13,16,3806,1137), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+sum(wikiP)
+plot(wikiP)
+hist(wikiP)
+table(wikiP)
+fisher.test(wikiP)
+fisher.test(wikiP, alternative="greater")
+fisher.test(wikiP, conf.level = 0.99)$conf.int
 ```
 
 ```{r packages, echo = FALSE}
@@ -70,59 +75,57 @@ if(sum(suc) < length(list.of.bio.packages) )
 ```
 
 ```{r data, echo = FALSE}
-inpD <-paste0(getwd(),"/Heidi/")
-inpF<-paste0(inpD,"proteinGroups.txt")
-data <- read.delim(inpF,sep="\t",header = T)
-data$Uniprot<-sapply(strsplit(as.character(data$Protein.IDs),"[-;]"), "[", 1)
+inpF<-paste0(inpD,"proteinGroups.txtLpromecAnimeshKristianM1_Mono_MOtestsM.csv")
+data <- read.csv(inpF,header = T)
+data$Gene<-sapply(strsplit(as.character(data$RowGeneUniProtScorePeps),";;"), "[", 5)
+data$Gene<-sapply(strsplit(data$Gene,";"), "[", 1)
+data$GN<-sapply(strsplit(as.character(data$RowGeneUniProtScorePeps),"GN="), "[", 2)
+data$GN<-sapply(strsplit(data$GN,"[:; ]"), "[", 1)
+data$ChkG<-data$GN==data$Gene
 summary(data)
-selection<-"LFQ.intensity"
+selection<-"TtestPval"
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 protNum<-1:ncol(LFQ)
 colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
 dim(LFQ)
+hist(LFQ)
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 summary(log2LFQ)
-hist(as.matrix(log2(data[,grep("Intensity",colnames(data))])))
-hist(as.matrix(log2(data[,grep("LFQ",colnames(data))])))
-writexl::write_xlsx(as.data.frame(cbind(data$Uniprot,log2LFQ)),paste0(inpF,"uniprot.xlsx"))
-```
-
-```{r data-wikiPathway-map}
-selThr<-0.3
-inpD <-"L:/promec/Animesh/Lisa/"
-inpF<-paste0(inpD,"CamillaWSRTdataMedianUniprotGOmin2pv25p.txt")
-inpOm<-paste0(inpF,"MappedSel.csv")
-dataSezWP <- read.csv(inpOm)
-summary(dataSezWP)
-#dataS<-as.matrix(data[,1:4],rownames=T)
-dataSezWPs<-as.matrix(dataSezWP[,c(1:6)])
-hist(dataSezWPs)
-dataSezWPs[dataSezWPs==0]=NA
-dataSezWPs[is.na(dataSezWPs)]=1
-hist(dataSezWPs)
-rn<-sub(" ",";",unlist(dataSezWP[32]))
-rn<-strsplit(rn, ";")
-ln<-1:nrow(dataSezWPs)
-rn<-paste(sapply(rn, "[", 1),sapply(rn, "[", 2),ln,sep=";")#,sapply(rn, "[", 3),sapply(rn, "[", 6))
-row.names(dataSezWPs)<-rn
-cn<-strsplit(colnames(dataSezWPs), "_")
-colnames(dataSezWPs)<-paste(sapply(cn, "[", 1))#,sapply(cn, "[", 4))
-summary(dataSezWPs)
-hist(dataSezWPs)
-limma::vennDiagram(dataSezWPs[,c(1:3,6)]<selThr,main="wikiD",counts.col = "red")
-```
-
-```{r fisher}
-table(dataSezWPs$)
+hist(log2LFQ)
+writexl::write_xlsx(as.data.frame(cbind(data$Gene,log2LFQ,data$ChkG,data$GN,data$RowGeneUniProtScorePeps)),paste0(inpF,"gene.xlsx"))
 ```
 
 
-```{r geneList, echo = FALSE}
+```{r mapID2pathway}
+library(org.Hs.eg.db)
+uniP<-c("P07237","P28331","Q12931")
+select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
+#http://data.wikipathways.org/current/gmt/
+wp2gene <- clusterProfiler::read.gmt(paste0(inpD,"wikipathways-20210310-gmt-Homo_sapiens.gmt"))
+wp2gene[grep("apoptosis",wp2gene$term,ignore.case = TRUE),]
+uniP<-data$Uniprot.x
+uniP <- lapply(uniP, as.character)
+unlist(uniP)
+uniP[[1]]
+select(org.Hs.eg.db, unlist(uniP[[334]]), "ENTREZID", "UNIPROT")
+uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
+wp2gene[grep(uniL$ENTREZID[334],wp2gene$gene,ignore.case = TRUE),]
+uniprots <- Rkeys(org.Hs.egUNIPROT)
+uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
+dataSez<-merge(sort=F,data, uniprots2entrez, by.x="Uniprot.x", by.y="UNIPROT")
+dataSezWP<-merge(sort=F,dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
+#rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
+#dataS<-dataSezWP
+```
+
+```{r geneListTestFE, echo = FALSE}
 #ORA: ORA’s propensity for type I error rate inflation when genes tend to be co-expressed within sets
-list11<-as.data.frame(toupper(c("TPD52", "BCM", "LILRB4", "FADS2", "C11orf58", "GAA", "CGREF1", "TSG101", "ZNRF2", "COG4", "UPF3B")))
-colnames(list11)<-"gene"
-summary(list11)
+#listG<-as.data.frame(toupper(c("TPD52", "BCM", "LILRB4", "FADS2", "C11orf58", "GAA", "CGREF1", "TSG101", "ZNRF2", "COG4", "UPF3B")))
+match<-table(wp2gene[grep("Apoptosis%WikiPathways_20210310%WP254%Homo sapiens",wp2gene$term),])
+fisher.test(rbind(c(sum(match),nrow(match)-sum(match)),c(nrow(wp2gene)
+,nrow(wp2gene)-nrow(match))), alternative="less")$p.value
+
 ```
 
 ```{r string-DB, echo = FALSE}
@@ -184,7 +187,6 @@ length(clustersList)
 
 
 ```{r overlap}
-selThr<-0.3
 dataV<-data[,grep(pattern = "WSRT",colnames(data))]
 cn<-strsplit(colnames(dataV), "_")
 colnames(dataV)<-paste(sapply(cn, "[", 3),sapply(cn, "[", 4))
@@ -198,20 +200,6 @@ wikiT[row.names(wikiT)=="WP411"]#58
 wikiTot<-as.matrix(table(dataSezWP[,31]))
 sum(wikiTot)#4972
 wikiTot[row.names(wikiTot)=="WP411"]#71
-#https://en.wikipedia.org/wiki/Hypergeometric_distribution
-wikiWP2369 <- matrix(c(3,13,3663,1293), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
-wikiWP185 <- matrix(c(13,16,3806,1137), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
-wikiWP2369<-wikiWP185
-sum(wikiWP2369)
-fisher.test(rbind(c(1,9),c(11,3)), alternative="less")$p.value
-(choose(10,1)*choose(14,11))/(choose(24,12))+(choose(10,0)*choose(14,12))/(choose(24,12))
-(choose(628,6)*choose(4458,11))/(choose(5028,17))
-wikiP<-rbind(c(6,622),c(11,4447))
-sum(wikiP)
-fisher.test(wikiP, alternative = "less")
-fisher.test(wikiP)
-fisher.test(wikiP, conf.level = 0.95)$conf.int
-fisher.test(wikiP, conf.level = 0.99)$conf.int
 wikiWP4204 <- matrix(c(6,11,3400,1700), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
 fisher.test(wikiWP4204, alternative = "less")
 sel<-628
@@ -239,44 +227,6 @@ hist(rowSums(as.matrix(dataS[,c(1,2,3,6)])))
 vennDiagram(dataS[,c(1,2,3,6)]<selThr)
 ```
 
-
-```{r map-ID}
-dataS<-data
-library(org.Hs.eg.db)
-uniP<-c("P07237","P28331","Q12931")
-select(org.Hs.eg.db, uniP, "ENTREZID", "UNIPROT")
-library(clusterProfiler)
-#http://data.wikipathways.org/current/gmt/
-wp2gene <- read.gmt("L:/promec/Animesh/Lisa/wikipathways-20191010-gmt-Homo_sapiens.gmt")
-library(magrittr)
-wp2gene <- wp2gene %>% tidyr::separate(ont, c("name","version","wpid","org"), "%")
-wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE
-wpid2name <- wp2gene %>% dplyr::select(wpid, name) #TERM2NAME
-wpid2name[grep("apoptosis",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("stat",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("mapk",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("akt",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("mtor",wpid2name$name,ignore.case = TRUE),]
-wpid2name[grep("pi3k",wpid2name$name,ignore.case = TRUE),]
-#select(org.Hs.eg.db, uniP, "GENENAME", "UNIPROT")
-#select(org.Hs.eg.db, uniP, "SYMBOL", "UNIPROT")
-uniP<-data$T..Uniprot
-uniP <- lapply(uniP, as.character)
-unlist(uniP)
-uniP[[1]]
-select(org.Hs.eg.db, unlist(uniP[[1]]), "ENTREZID", "UNIPROT")
-uniL<-select(org.Hs.eg.db, unlist(uniP), "ENTREZID", "UNIPROT")
-wpid2gene[grep(uniL$ENTREZID[1],wpid2gene$gene,ignore.case = TRUE),]
-wpid2gene[grep("361",wpid2gene$gene,ignore.case = TRUE),]
-uniprots <- Rkeys(org.Hs.egUNIPROT)
-uniprots2entrez <- select(org.Hs.eg.db, uniprots, "ENTREZID", "UNIPROT")
-dataSez<-merge(sort=F,dataS, uniprots2entrez, by.x="T..Uniprot", by.y="UNIPROT")
-dataSez<-merge(sort=F,dataS, uniprots2entrez, by.x="T..Entry", by.y="UNIPROT")
-dataSezWP<-merge(sort=F,dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
-#rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$name,dataSezWP$ENTREZID,sep = "_")
-rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
-#dataS<-dataSezWP
-```
 
 ```{r apim, echo = FALSE}
 dataSel <- data[,grep("apim", colnames(data),ignore.case=TRUE)]

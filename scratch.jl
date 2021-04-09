@@ -2,6 +2,8 @@
 #https://julialang-s3.julialang.org/bin/winnt/x64/1.6
 versioninfo()
 #using Pkg
+Pluto.run(host="10.20.93.253",port=8889)
+http://10.20.93.118:8889/?secret=NhWiCckC
 #GPU https://youtu.be/v9bFRg4rUfk
 #Pkg.add("CUDA")
 using CUDA
