@@ -31,65 +31,87 @@ normalizePath("~/.Renviron", mustWork = FALSE)
 
 
 ```{r data}
-inpD<-"C:/Users/animeshs/Desktop/RawRead/"
-inpF<-"20150512_BSA_The-PEG-envelope.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.txt"
-data<-read.csv(paste0(inpD,inpF),sep='\t')
+#for %i in (L:\promec\Elite\LARS\2021\april\olej\*.raw) do (RawRead.exe %i)
+inpD<-"L:/promec/Elite/LARS/2021/april/olej/"
+inpF<-"210408_EL20_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,2])))
 hist(as.numeric(data[,1]))
 hist(log2(as.numeric(data[,1])))
-plot(as.numeric(data[,1]),log2(as.numeric(data[,2])))
-library(MASS)
-image(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2])),n=1000),col=r)
-contour(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2]))))
+#plot(as.numeric(data[,1]),log2(as.numeric(data[,2])))
+#library(MASS)
+#image(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2])),n=1000),col=r)
+#contour(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2]))))
 #https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
 #dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+assign(inpF,data)
 ```
 
 ```{r data}
-inpF="201005_fraksjon_frak1_C18_URT1.raw.profile.intensity0.charge0.MS.txt"
-data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
+inpF="210408_EL250_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
-#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
-#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+assign(inpF,data)
 ```
 
 ```{r data}
-inpF="201005_fraksjon_frak2_C18_URT1.raw.profile.intensity0.charge0.MS.txt"
-data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
+inpF="210408_EL250_SAX_urt3_210409134630.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
-#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
-#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+assign(inpF,data)
 ```
 
 ```{r data}
-inpF="201005_fraksjon_frak3_C18_URT1.raw.profile.intensity0.charge0.MS.txt"
-data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
+inpF="210408_EL50_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
-#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
-#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+assign(inpF,data)
 ```
 
 ```{r data}
-inpF="201005_fraksjonFTcation_URT1.raw.profile.intensity0.charge0.MS.txt"
-data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
+inpF="210408_FT_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
-#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
-#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+assign(inpF,data)
 ```
 
 ```{r data}
-inpF="201005_fraksjonFT_C18_URT1.raw.profile.intensity0.charge0.MS.txt"
-data<-read.csv(paste(getwd(),inpF,sep="/"),sep='\t')
+inpF="210408_FT_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
-#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
-#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
+assign(inpF,data)
 ```
+
+```{r data}
+inpF="210408_FT_SAX_urt3_210409113040.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+data<-read.csv(paste0(inpD,inpF))
+hist(as.numeric(data[,2]))
+hist(log2(as.numeric(data[,4])))
+assign(inpF,data)
+```
+
+```{r merge}
+data<-merge(`210408_EL20_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`,`210408_EL250_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`,by="MZ1",all=T)
+colnames(data)<-gsub(".x","EL20_c18_urt3",colnames(data))
+colnames(data)<-gsub(".y","EL250_SAX_urt3",colnames(data))
+data<-merge(data,`210408_EL250_SAX_urt3_210409134630.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+data<-merge(data,`210408_EL50_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+colnames(data)<-gsub(".x","EL250_SAX_urt3_210409134630",colnames(data))
+colnames(data)<-gsub(".y","EL50_c18_urt3",colnames(data))
+data<-merge(data,`210408_FT_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+data<-merge(data,`210408_FT_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+colnames(data)<-gsub(".x","FT_c18_urt3",colnames(data))
+colnames(data)<-gsub(".y","FT_SAX_urt3",colnames(data))
+data<-merge(data,`210408_FT_SAX_urt3_210409113040.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+write.csv(data,paste0(inpD,inpF,".combined.csv"))
+```
+
 
 ```{r anion}
 dataAnion<-data[-grep("Scan",data$Scan1),c(2,4)]
