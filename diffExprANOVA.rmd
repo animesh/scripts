@@ -582,7 +582,7 @@ Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValu
 sum(Significance)
 dsub <- subset(ttest.results,Significance)
 p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
-p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=""),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
 #f=paste(file,proc.time()[3],".jpg")
 ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"VolcanoTest.svg"), p)
 print(p)
@@ -601,5 +601,39 @@ dsub[dsub==selThr]<-13
 #dsub[is.na(dsub)]<-13
 p<-pheatmap::pheatmap(dsub,clustering_distance_rows="euclidean",clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
 ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTest.svg"), p)
+```
+
+```{r choseDist-mRNA}
+dsub<-readxl::read_xlsx(paste0(inpD,"BvL_210409_Ingrid1.AAGandfasta.count.E.xlsx"))
+uniprot<-dsub$Uniprot
+pE<-as.matrix(100*dsub$Count/dsub$Length)
+rownames(pE)<-uniprot
+hist(pE)
+dsub<-dsub[,grep("^F[0-9]+",colnames(dsub))]
+dsub<-sapply(dsub,as.numeric)
+rownames(dsub)<-uniprot
+summary(dsub)
+#dsub[dsub==selThr]<-14
+#dsub[dsub==13]<-NA
+dsub[is.na(dsub)]<-14
+summary(dsub)
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows="euclidean",clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTest.svg"), p)
+dsubCor<-as.dist(cor(t(dsub),method="spearman"))
+dsubCor<-dist(dsub,method="euclidean")
+hist(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDist.svg"), p)
+dsubCor<-dist(pE,method="euclidean")
+dsubCorM<-as.matrix(dist(pE,method="euclidean",diag = T,upper = T))
+hist(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDistE.svg"), p)
 ```
 
