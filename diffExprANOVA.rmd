@@ -615,13 +615,28 @@ rownames(dsub)<-uniprot
 summary(dsub)
 #dsub[dsub==selThr]<-14
 #dsub[dsub==13]<-NA
+hist(dsub)
 dsub[is.na(dsub)]<-14
 summary(dsub)
+hist(dsub)
+#dsub<-dsub-matrixStats::rowMedians(dsub)
+#dsub<-dsub/matrixStats::rowSds(dsub)
+dsubMeds<-matrixStats::rowMedians(dsub)
+summary(dsubMeds)
+hist(dsubMeds)
+dsubSD<-matrixStats::rowSds(dsub)
+summary(dsubSD)
+hist(dsubSD)
+dsub<-(dsub-dsubMeds)/dsubSD
+summary(dsub)
+hist(dsub)
 p<-pheatmap::pheatmap(dsub,clustering_distance_rows="euclidean",clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
 ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTest.svg"), p)
-dsubCor<-as.dist(cor(t(dsub),method="spearman"))
+dsubCor<-as.dist(cor(t(dsub),method="pearson",use="pairwise.complete.obs",))
+dsubCor[is.na(dsubCor)]<-0
 dsubCor<-dist(dsub,method="euclidean")
 hist(dsubCor)
+summary(dsubCor)
 #check
 nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
 #dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
