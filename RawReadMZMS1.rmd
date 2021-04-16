@@ -31,9 +31,9 @@ normalizePath("~/.Renviron", mustWork = FALSE)
 
 
 ```{r data}
-#for %i in (L:\promec\Elite\LARS\2021\april\olej\*.raw) do (RawRead.exe %i)
-inpD<-"L:/promec/Elite/LARS/2021/april/olej/"
-inpF<-"210408_EL20_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+#for %i in ("L:\promec\Elite\LARS\2021\april\olej\second run\*.raw") do (L:\GD\RawRead\RawRead.exe "%i")
+inpD<-"L:/promec/Elite/LARS/2021/april/olej/second run/"
+inpF<-"210408_FT_c18_urt3_b_210415153547.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
 data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,2])))
@@ -48,48 +48,56 @@ hist(log2(as.numeric(data[,1])))
 assign(inpF,data)
 ```
 
-```{r data}
-inpF="210408_EL250_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+```{r data2}
+inpF="210408_FT_c18_urt3_210412101905.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
 data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
 assign(inpF,data)
 ```
 
-```{r data}
-inpF="210408_EL250_SAX_urt3_210409134630.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+```{r data3}
+inpF="210408_EL100_c18_urt3_b_210415122905.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
 data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
 assign(inpF,data)
 ```
 
-```{r data}
-inpF="210408_EL50_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+```{r data4}
+inpF="210408_EL100_c18_urt3__210415101412.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
 data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
 assign(inpF,data)
 ```
 
-```{r data}
-inpF="210408_FT_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+```{r data5}
+inpF="210408_EL50_c18_urt3_b_210415200502.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
 data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
 assign(inpF,data)
 ```
 
-```{r data}
-inpF="210408_FT_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+```{r data6}
+inpF="210408_EL50_c18_urt3_210412144911.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
 data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
 assign(inpF,data)
 ```
 
-```{r data}
-inpF="210408_FT_SAX_urt3_210409113040.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+```{r data7}
+inpF="210408_EL20_c18_urt3_b_210415175050.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+data<-read.csv(paste0(inpD,inpF))
+hist(as.numeric(data[,2]))
+hist(log2(as.numeric(data[,4])))
+assign(inpF,data)
+```
+
+```{r data8}
+inpF="210408_EL20_c18_urt3_210412123437.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
 data<-read.csv(paste0(inpD,inpF))
 hist(as.numeric(data[,2]))
 hist(log2(as.numeric(data[,4])))
@@ -97,21 +105,51 @@ assign(inpF,data)
 ```
 
 ```{r merge}
-data<-merge(`210408_EL20_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`,`210408_EL250_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`,by="MZ1",all=T)
-colnames(data)<-gsub(".x","EL20_c18_urt3",colnames(data))
-colnames(data)<-gsub(".y","EL250_SAX_urt3",colnames(data))
-data<-merge(data,`210408_EL250_SAX_urt3_210409134630.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
-data<-merge(data,`210408_EL50_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
-colnames(data)<-gsub(".x","EL250_SAX_urt3_210409134630",colnames(data))
+data<-merge(`210408_FT_c18_urt3_b_210415153547.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`,`210408_FT_c18_urt3_210412101905.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`,by="MZ1",all=T)
+colnames(data)<-gsub(".x","FT_c18_urt3_b",colnames(data))
+colnames(data)<-gsub(".y","FT_c18_urt3",colnames(data))
+data<-merge(data,`210408_EL100_c18_urt3_b_210415122905.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+data<-merge(data,`210408_EL100_c18_urt3__210415101412.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+colnames(data)<-gsub(".x","EL100_c18_urt3_b",colnames(data))
+colnames(data)<-gsub(".y","EL100_c18_urt3",colnames(data))
+data<-merge(data,`210408_EL50_c18_urt3_b_210415200502.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+data<-merge(data,`210408_EL50_c18_urt3_210412144911.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+colnames(data)<-gsub(".x","EL50_c18_urt3_b",colnames(data))
 colnames(data)<-gsub(".y","EL50_c18_urt3",colnames(data))
-data<-merge(data,`210408_FT_c18_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
-data<-merge(data,`210408_FT_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
-colnames(data)<-gsub(".x","FT_c18_urt3",colnames(data))
-colnames(data)<-gsub(".y","FT_SAX_urt3",colnames(data))
-data<-merge(data,`210408_FT_SAX_urt3_210409113040.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+data<-merge(data,`210408_EL20_c18_urt3_b_210415175050.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+data<-merge(data,`210408_EL20_c18_urt3_210412123437.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+colnames(data)<-gsub(".x","EL20_c18_urt3_b",colnames(data))
+colnames(data)<-gsub(".y","EL20_c18_urt3",colnames(data))
+hist(data$MZ1)
+hist(log2(data$MZ1))
 write.csv(data,paste0(inpD,inpF,".combined.csv"))
 ```
 
+```{r mergeData}
+inpD<-"L:/promec/Elite/LARS/2021/april/olej/second run/"
+inpF<-"210408_EL20_c18_urt3_210412123437.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv.combined.csv"
+data<-read.csv(paste0(inpD,inpF))
+dataLog2<-data[,grep("log2",colnames(data))]
+dataLog2<-sapply(dataLog2,as.numeric)
+rownames(dataLog2)<-data$MZ1
+hist(dataLog2)
+dataLog2.957.493<-dataLog2[grep("957.493",rownames(dataLog2)),]
+plot(dataLog2.957.493)
+dataLog2.674.254<-dataLog2[grep("674.254",rownames(dataLog2)),]
+plot(dataLog2.674.254)
+dataLog2.427.146<-dataLog2[grep("427.146",rownames(dataLog2)),]
+plot(dataLog2.427.146)
+dataLog2.276.123<-dataLog2[grep("276.123",rownames(dataLog2)),]
+plot(dataLog2.276.123)
+dataLog2.447.114<-dataLog2[grep("623.292",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.447.114<-dataLog2[grep("460.212",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.447.114<-dataLog2[grep("615.191",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.447.114<-dataLog2[grep("447.114",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+```
 
 ```{r anion}
 dataAnion<-data[-grep("Scan",data$Scan1),c(2,4)]
