@@ -1,6 +1,86 @@
 #!pip install --upgrade pip
-
+#https://github.com/koaning/drawdata
+from drawdata import draw_scatter
+draw_scatter()
+import pandas as pd
+data=pd.read_clipboard(sep=",")
+data.hist()
+#https://github.com/hyperopt/hyperopt/wiki/FMin#21-parameter-expressions preprocessors adapted in HyperOpt/Adaptive Tree of Parzen Estimators/ Sklearn are: PCA, TfidfVectorizer, StandardScalar, MinMaxScalar, Normalizer, OneHotEncoder; classifiers adapted in HyperOpt Sklearn are: SVC, LinearSVC KNeightborsClassifier. RandomForestClassifier, ExtraTreesClassifier SGDClassifier, MultinomialNB, BernoulliRBM, ColumnKMeans
 #https://github.com/chanzuckerberg/cellxgene
+import pickle
+import time
+from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
+def objective(x):
+    return {
+        'loss': x ** 2,
+        'status': STATUS_OK,
+        # -- store other results like this
+        'eval_time': time.time(),
+        'other_stuff': {'type': None, 'value': [0, 1, 2]},
+        # -- attachments are handled differently
+        'attachments':
+            {'time_module': pickle.dumps(time.time)}
+        }
+trials = Trials()
+best = fmin(objective,
+    space=hp.uniform('x', -10, 10),
+    algo=tpe.suggest,
+    max_evals=100,
+    trials=trials)
+print(best)
+msg = trials.trial_attachments(trials.trials[5])['time_module']
+time_module = pickle.loads(msg)
+#https://github.com/hyperopt/hyperopt-sklearn
+from hpsklearn import HyperoptEstimator, any_classifier, any_preprocessing
+from sklearn.datasets import load_iris
+from hyperopt import tpe
+import numpy as np
+from hpsklearn import HyperoptEstimator, extra_trees
+from sklearn.datasets import fetch_mldata
+from hyperopt import tpe
+import numpy as np
+
+# Download the data and split into training and test sets
+
+digits = fetch_mldata('MNIST original')
+
+X = digits.data
+y = digits.target
+
+test_size = int(0.2 * len(y))
+np.random.seed(13)
+indices = np.random.permutation(len(X))
+X_train = X[indices[:-test_size]]
+y_train = y[indices[:-test_size]]
+X_test = X[indices[-test_size:]]
+y_test = y[indices[-test_size:]]
+
+# Instantiate a HyperoptEstimator with the search space and number of evaluations
+
+estim = HyperoptEstimator(classifier=extra_trees('my_clf'),
+                          preprocessing=[],
+                          algo=tpe.suggest,
+                          max_evals=10,
+                          trial_timeout=300)
+
+# Search the hyperparameter space based on the data
+
+estim.fit( X_train, y_train )
+
+# Show the results
+
+print(estim.score(X_test, y_test))
+# 0.962785714286
+
+print(estim.best_model())
+# {'learner': ExtraTreesClassifier(bootstrap=True, class_weight=None, criterion='entropy',
+#           max_depth=None, max_features=0.959202875857,
+#           max_leaf_nodes=None, min_impurity_decrease=0.0,
+#           min_impurity_split=None, min_samples_leaf=1,
+#           min_samples_split=2, min_weight_fraction_leaf=0.0,
+#           n_estimators=20, n_jobs=1, oob_score=False, random_state=3,
+#           verbose=False, warm_start=False), 'preprocs': (), 'ex_preprocs': ()}
+
 conda create --yes -n cellxgene python=3.7
 conda activate cellxgene ; pip install cellxgene
 cellxgene launch https://cellxgene-example-data.czi.technology/pbmc3k.h5ad
