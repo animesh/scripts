@@ -1,91 +1,58 @@
 ```{r setup, echo = FALSE}
 .libPaths( c("L:/promec/Animesh/R/win-library/4.0", .libPaths()) )
 .libPaths()
+inpD<-"L:/promec/Elite/LARS/2021/april/olej/second run SAX 2/"
 ```
 
-```{bash apt}
-sudo apt list --installed | grep libcurl
-sudo apt-get install libcurl4 libcurl4-openssl-dev libssl-dev
-sudo apt install r-cran-devtools
+```{r getRawRead}
+download.file("https://github.com/animesh/RawRead/archive/refs/heads/blazor.zip",paste0(inpD,"RawRead.zip"))
+unzip(paste0(inpD,"RawRead.zip"),exdir = paste0(inpD,"RawRead"))
 ```
-
-```{r libloc, echo = FALSE}
-#https://community.rstudio.com/t/help-regarding-package-installation-renviron-rprofile-r-libs-r-libs-site-and-r-libs-user-oh-my/13888/8
-.libPaths("~/R/lib")
-install.packages("devtools")
-.libPaths( c( .libPaths(), "~/libR") )
-#R_LIBS_USER in your ~/.Renviron. One <name>=<value> per line.
-+#specifiers: %p (expands to the architecture, e.g. x86_64-pc-linux-gnu) and %v (expands to major and minor R version, e.g. 3.5) - see 
-#?R_LIBS_USER
-#R_LIBS_USER=~/R/%p-library/%v
-normalizePath("~/.Renviron", mustWork = FALSE)
-```
-
 
 ```{r data}
-#for %i in ("L:\promec\Elite\LARS\2021\april\olej\second run\*.raw") do (L:\GD\RawRead\RawRead.exe "%i")
-inpD<-"L:/promec/Elite/LARS/2021/april/olej/second run SAX/"
-inpF<-"210408_EL250_SAX_urt3_210416121234.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
-data<-read.csv(paste0(inpD,inpF))
-hist(as.numeric(data[,2]))
-hist(log2(as.numeric(data[,2])))
-hist(as.numeric(data[,1]))
-hist(log2(as.numeric(data[,1])))
-hist(log2(as.numeric(data[,4])))
-#plot(as.numeric(data[,1]),log2(as.numeric(data[,2])))
-#library(MASS)
-#image(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2])),n=1000),col=r)
-#contour(kde2d(as.numeric(data[,1]),log2(as.numeric(data[,2]))))
-#https://stackoverflow.com/questions/10180132/consolidate-duplicate-rows
-#dataagg<-aggregate(dataX.0.00.1'], by=data['X.0.00'], sum)
-assign(inpF,data)
-```
-
-```{r data2}
-inpF="210408_EL250_SAX_urt3_210416173339.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
-data<-read.csv(paste0(inpD,inpF))
-hist(as.numeric(data[,2]))
-hist(log2(as.numeric(data[,4])))
-assign(inpF,data)
-```
-
-```{r data3}
-inpF="210408_FT_SAX_urt3_210416095759.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
-data<-read.csv(paste0(inpD,inpF))
-hist(as.numeric(data[,2]))
-hist(log2(as.numeric(data[,4])))
-assign(inpF,data)
-```
-
-```{r data4}
-inpF="210408_FT_SAX_urt3_210416151908.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
-data<-read.csv(paste0(inpD,inpF))
-hist(as.numeric(data[,2]))
-hist(log2(as.numeric(data[,4])))
-assign(inpF,data)
+#generate in windows prompt using cmd
+## for %i in ("L:\promec\Elite\LARS\2021\april\olej\second run SAX 2\*.raw") do ("L:\promec\Elite\LARS\2021\april\olej\second run SAX 2\RawRead\RawRead-blazor\RawRead.exe" "%i")
+#or in bash with mono something like
+## cd dir;for i in *.raw; do mono RawRead.exe $i; done
+inpFL<-list.files(pattern="*MZ1R.csv$",path=inpD,full.names=F,recursive=F)
+dfMZ1<-0
+for(inpF in inpFL){
+    print(inpF)
+    data<-read.csv(paste0(inpD,inpF))
+    MZ1<-data$MZ1
+    dfMZ1<-union(dfMZ1,MZ1)
+    colnames(data)<-paste0(colnames(data),inpF)
+    hist(log2(as.numeric(data[,4])))
+    data$MZ1<-MZ1
+    assign(inpF,data)
+}
+hist(dfMZ1)
 ```
 
 ```{r merge}
-data<-merge(data,`210408_FT_SAX_urt3_210416095759.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`,by="MZ1",all=T)
-colnames(data)<-gsub(".x","FT_SAX_urt3_210416151908",colnames(data))
-colnames(data)<-gsub(".y","FT_SAX_urt3_210416095759",colnames(data))
-data<-merge(data,`210408_EL250_SAX_urt3_210416173339.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
-data<-merge(data,`210408_EL250_SAX_urt3_210416121234.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
-colnames(data)<-gsub(".x","EL250_SAX_urt3_210416173339",colnames(data))
-colnames(data)<-gsub(".y","EL250_SAX_urt3_210416121234",colnames(data))
+data<-data.frame(MZ1=dfMZ1)
+#data<-merge(data,`210408_EL500_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
+#plot(data$MZ1,data$MZ1210408_EL500_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv)
+for (obj in inpFL) {
+    print(obj)
+    data<-merge(data,get(obj),by="MZ1",all=T)
+}
 hist(data$MZ1)
-hist(log2(data$MZ1))
 write.csv(data,paste0(inpD,inpF,".combined.csv"))
 ```
 
 ```{r plot}
-hda<-cbind(data$log2sumIntensiFT_SAX_urt3_210416095759FT_SAX_urt3_210416151908,data$log2sumIntensiFT_SAX_urt3_210416095759FT_SAX_urt3_210416095759,data$log2sumIntensiEL250_SAX_urt3_210416121234EL250_SAX_urt3_210416173339,data$log2sumIntensiEL250_SAX_urt3_210416121234EL250_SAX_urt3_210416121234)
+sel<-"log2sumIntensity"
+sel2<-".raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv"
+hda<-data[,grep(sel,colnames(data))]
+hda<-sapply(hda,as.numeric)
+colnames(hda)<-sub(sel,"",colnames(hda))
+colnames(hda)<-sub(sel2,"",colnames(hda))
 hist(hda)
 hda[is.na(hda)]<-0
-limma::vennDiagram(hda>0)
+limma::vennDiagram(hda[,1:5]>0)
 log2LFQimpCorr<-cor(hda,use="pairwise.complete.obs",method="pearson")
-colnames(log2LFQimpCorr)<-colnames(hda)
-rownames(log2LFQimpCorr)<-colnames(hda)
+#rownames(log2LFQimpCorr)<-colnames(hda)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 ```
 
@@ -96,6 +63,8 @@ dataLog2<-data[,grep("log2",colnames(data))]
 dataLog2<-sapply(dataLog2,as.numeric)
 rownames(dataLog2)<-data$MZ1
 hist(dataLog2)
+hist(dataLog2[,8])
+boxplot(dataLog2)
 dataLog2.957.493<-dataLog2[grep("957.493",rownames(dataLog2)),]
 plot(dataLog2.957.493)
 dataLog2.674.254<-dataLog2[grep("674.254",rownames(dataLog2)),]
@@ -112,6 +81,11 @@ dataLog2.447.114<-dataLog2[grep("615.191",rownames(dataLog2)),]
 plot(dataLog2.447.114)
 dataLog2.447.114<-dataLog2[grep("447.114",rownames(dataLog2)),]
 plot(dataLog2.447.114)
+dataLog2.447.114<-dataLog2[grep("342.111",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.447.114<-dataLog2[grep("342.112",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.447.114
 ```
 
 ```{r anion}
