@@ -1,6 +1,9 @@
 ```{r setup, echo = FALSE}
 .libPaths( c("L:/promec/Animesh/R/win-library/4.0", .libPaths()) )
 .libPaths()
+#plot
+par(mfrow=c(1,2))
+#data
 inpD<-"L:/promec/Elite/LARS/2021/april/olej/second run SAX 2/"
 ```
 
@@ -54,6 +57,26 @@ limma::vennDiagram(hda[,1:5]>0)
 log2LFQimpCorr<-cor(hda,use="pairwise.complete.obs",method="pearson")
 #rownames(log2LFQimpCorr)<-colnames(hda)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+```
+
+```{r norm}
+boxplot(dataLog2)
+#BiocManager::install("vsn")
+#dataLog2VSN<-vsn::justvsn(dataLog2)
+#boxplot(dataLog2VSN)
+#dataLog2.447.114<-dataLog2VSN[grep("615.191",rownames(dataLog2VSN)),]
+#plot(dataLog2.447.114)
+#dataLog2.447.114<-dataLog2VSN[grep("447.114",rownames(dataLog2VSN)),]
+#plot(dataLog2.447.114)
+#BiocManager::install("DAPAR")
+#dataLog2QC <- wrapper.normalizeD(obj = dataLog2, method = "QuantileCentering", conds=c(1:8), type = "within conditions")
+#boxplot(dataLog2QC)
+dataLog2NormLOESS<-limma::normalizeCyclicLoess(dataLog2, weights = NULL, span=0.7, iterations = 3, method = "fast")
+boxplot(dataLog2NormLOESS)
+dataLog2.615.191<-dataLog2NormLOESS[grep("615.191",rownames(dataLog2NormLOESS)),]
+plot(dataLog2.615.191)
+dataLog2.447.114<-dataLog2NormLOESS[grep("447.114",rownames(dataLog2NormLOESS)),]
+plot(dataLog2.447.114)
 ```
 
 ```{r mergeData}
