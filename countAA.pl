@@ -51,4 +51,5 @@ while (my $line = <F1>) {
 }
 
 __END__
-perl countAA.pl L:\promec\HF\Lars\2021\march\Ingrid\KO\210317_Ingrid1.fasta E > L:\promec\HF\Lars\2021\march\Ingrid\KO\210317_Ingrid1.fasta.count.E.txt
+perl countAA.pl L:\promec\HF\Lars\2021\march\Ingrid\KO\210317_Ingrid1.fasta R > L:\promec\HF\Lars\2021\march\Ingrid\KO\210317_Ingrid1.fasta.count.R.txt
+perl countAA.pl L:\promec\HF\Lars\2021\march\Ingrid\KO\210317_Ingrid1.fasta K > L:\promec\HF\Lars\2021\march\Ingrid\KO\210317_Ingrid1.fasta.count.K.txt
