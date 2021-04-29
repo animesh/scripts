@@ -1,0 +1,156 @@
+```{r setup, include=FALSE}
+#plot
+#renv::deactivate()
+par(mfrow=c(1,2))
+#library/packages
+inpD <-"L:/promec/Elite/LARS/2021/april/Garima/RopacusPD630gelBands4/"
+fName<-"210427_GELBAND_91KDA-(7).xlsx"
+inpF<-paste0(inpD,fName)
+options(nwarnings = 1000000)
+compName<-gsub("[^[:alnum:] ]", "",inpD)
+.libPaths( c( .libPaths(), inpD) )
+.libPaths()
+#install.packages("lattice", repos="http://cran.r-project.org", lib=inpD)
+#install.packages("rlang")
+#install.packages("writexl")
+#install.packages("readxl")
+#install.packages("devtools")
+#install.packages("BiocManager")
+#BiocManager::install("limma")
+#install.packages("matrixStats")
+#directory/home
+setwd(inpD)
+getwd()
+chkrVector<-c(22.39459,20.48316,21.87155,NA,20.34495)
+chkrDF<-as.data.frame(chkrVector)
+plot(chkrDF)
+hist(as.matrix(chkrDF))
+chkrDF[,1]
+apply(chkrDF, 2, function(x) t.test(as.numeric(x[c(1:3)]),as.numeric(x[4:5]),na.rm=T,var.equal=T)$p.value)
+t.test(as.numeric(chkrVector[c(1:3)]),as.numeric(chkrVector[4:5]),na.rm=T,var.equal=T)$p.value
+t.test(as.numeric(c(22.39459,20.48316,21.87155)),as.numeric(c(NA,20.34495)),na.rm=T,var.equal=T)$p.value
+t.test(c(22.39459,20.48316,21.87155),c(NA,20.34495),na.rm=T,var.equal=T)$p.value
+t.test(c(22.39459,20.48316,21.87155),c(NA,17.97),na.rm=T,var.equal=T)$p.value
+t.test(c(21.4316,21.77155),c(NA,17.7),na.rm=T,var.equal=T)$p.value
+t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
+```
+```{r proteinGroups, echo=FALSE}
+data <- readxl::read_xlsx(inpF)
+#clean
+data = data[!is.na(data$Master),]
+data = data[data$Contaminant=="FALSE",]
+data$MW<-sapply(data$`MW [kDa]`,as.numeric)
+data<-data[data$MW<240&data$MW>80,]
+#data = data[!data$Only.identified.by.site=="+",]
+#row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
+summary(data)
+dim(data)
+selection<-"Normalized"
+LFQ<-data[,grep(selection,colnames(data))]
+#protNum<-1:ncol(LFQ)
+colnames(LFQ)=sub("Abundances \\(Normalized\\)\\: ","",colnames(LFQ))
+colnames(LFQ)=sub("\\: Sample","",colnames(LFQ))
+dim(LFQ)
+LFQ<-sapply(LFQ,as.numeric)
+summary(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+log2LFQ[log2LFQ==0]=NA
+summary(log2LFQ)
+hist(log2LFQ)
+rowName<-data$`FASTA Title Lines`
+rowName<-sub("ProteinCenter:sp_tr_incl_isoforms\\|","",rowName)
+rowName<-gsub("\r","",rowName)
+rowName<-gsub("\n","",rowName)
+rownames(data)<-rowName
+rowName<-paste(sapply(strsplit(paste(sapply(strsplit(rowName, ">",fixed=T), "[", 2)), " "), "[", 1))
+writexl::write_xlsx(as.data.frame(cbind(rownames(data),Uniprot=rowName,log2LFQ)),paste0(inpF,"log2LFQ.xlsx"))
+write.table(as.data.frame(cbind(Uniprot=rowName,log2LFQ)),paste0(inpF,"log2LFQ.txt"),row.names = F,sep="\t",quote = FALSE)
+```
+
+```{r corHC}
+corrplot::corrplot(cor(log2LFQ))
+log2LFQ0=log2LFQ
+log2LFQ0[log2LFQ0==NA]=0
+scale=3
+log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
+log2LFQimp[log2LFQimp<0]<-0
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
+colnames(log2LFQimp)<-colnames(log2LFQ)
+log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
+colnames(log2LFQimpCorr)<-colnames(log2LFQ)
+rownames(log2LFQimpCorr)<-colnames(log2LFQ)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6)
+ggplot2::ggsave(file=paste0(inpF,selection,"log2spearClust.svg"),plot=svgPHC)
+```
+
+```{r venn}
+hda<-log2LFQ
+hist(hda)
+hda[is.na(hda)]<-0
+limma::vennDiagram(hda>0)
+```
+
+```{r tTest, echo = FALSE}
+dataSellog2grpTtest<-hda
+summary(dataSellog2grpTtest)
+compName<-colnames(dataSellog2grpTtest)
+compName<-toString(compName)
+compName<-gsub(" ", "",compName)
+compName<-gsub(",", "",compName)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-8
+mCol<-4
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-1
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+options(nwarnings = 1000000)
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+  else{NA}
+  )
+summary(warnings())
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hist(log2FCmedianFC)
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAWT.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAWT.txt"),row.names = F,sep="\t")
+#limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
+limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
+```

@@ -2,11 +2,12 @@
 #lib
 libPaths="L:/promec/Animesh/R/win-library/4.0"
 .libPaths(c(libPaths, .libPaths()))
+#install.packages("RcppEigen")
 #PATH="${RTOOLS40_HOME}\usr\bin;${PATH}"
 #writeLines('PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"', con = "~/.Renviron")
 Sys.which("make")
 ## "C:\\rtools40\\usr\\bin\\make.exe"
-remotes::install_version("xfun","0.19", repos = "http://cran.us.r-project.org")
+#remotes::install_version("xfun","0.19", repos = "http://cran.us.r-project.org")
 #plot
 #renv::deactivate()
 #plot
@@ -30,6 +31,29 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+
+```{r jobs}
+#https://github.com/lindeloev/job
+#remotes::install_github("lindeloev/job")
+#install.packages("brms")
+library(brms)
+data = mtcars[mtcars$hp > 100, ]
+plot(data)
+model = mpg ~ hp * wt
+fit = brm(model, data)
+fit = add_criterion(fit, "loo")
+print(summary(fit))  # Show a summary in the job
+the_test = hypothesis(fit, "hp > 0")
+# Send long-running code to a job
+job::job(brm_result = {
+  fit = brm(model, data)
+  fit = add_criterion(fit, "loo")
+  print(summary(fit))  # Show a summary in the job
+  the_test = hypothesis(fit, "hp > 0")
+})
+cat("Console.")
+```
+
 ```{r nonparamBayes}
 #https://www.biogeography.org/news/news/bayesian-nonparametric-regression-workshop/
 ’embarcadero’, ‘blockCV’ and ‘modEvA’

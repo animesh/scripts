@@ -4,17 +4,26 @@
 using DataFrames,CSV
 df=DataFrame(CSV.File("L:/promec/Elite/LARS/2021/april/olej/second run SAX 2/210408_FT_SAX_urt3_210416151908.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv.combined.csv",normalizenames=true))
 names(df)
-#Pkg.add("PlotThemes")
 using Plots
+#Pkg.add("PlotThemes")
+using PlotThemes
 #Plots.showtheme(:dark)
 theme(:gruvbox_dark)
+plot()
+histogram(df.MZ1)
+#Pkg.add("PlotlyBase")
+plotly()
 histogram(df.MZ1)
 #Pkg.add("StatsPlots")
 using StatsPlots
-@df df plot(:MZ1, [:MZ1210408_FT_SAX_urt3_210416151908_raw_intensityThreshold1000_errTolDecimalPlace3_MZ1R_csv :MZ1210408_FT_SAX_urt3_210416095759_raw_intensityThreshold1000_errTolDecimalPlace3_MZ1R_csv])
+@df df plot(:MZ1, [:MZ1210408_EL250_SAX_urt3_210416121234_raw_intensityThreshold1000_errTolDecimalPlace3_MZ1R_csv :MZ1210408_FT_SAX_urt3_210416095759_raw_intensityThreshold1000_errTolDecimalPlace3_MZ1R_csv])
 @df df marginalhist(:MZ1210408_EL250_SAX_urt3_210416121234_raw_intensityThreshold1000_errTolDecimalPlace3_MZ1R_csv, :MZ1210408_FT_SAX_urt3_210416095759_raw_intensityThreshold1000_errTolDecimalPlace3_MZ1R_csv)
 @df df violin(:MZ1)
 boxplot!(["MZ1210408_EL250_SAX_urt3_210416121234_raw_intensityThreshold1000_errTolDecimalPlace3_MZ1R_csv" "MZ1210408_FT_SAX_urt3_210416095759_raw_intensityThreshold1000_errTolDecimalPlace3_MZ1R_csv"], df, leg = false)
+#Pkg.add("DifferentialEquations")
+using DifferentialEquations
+#Pkg.add("ModelingToolkit")
+using ModelingToolkit
 #Pkg.add("Turing")
 using Turing
 @model function gdemo(x, y)
