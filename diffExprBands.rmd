@@ -34,6 +34,7 @@ t.test(c(22.39459,20.48316,21.87155),c(NA,17.97),na.rm=T,var.equal=T)$p.value
 t.test(c(21.4316,21.77155),c(NA,17.7),na.rm=T,var.equal=T)$p.value
 t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
 ```
+
 ```{r proteinGroups, echo=FALSE}
 data <- readxl::read_xlsx(inpF)
 #clean
@@ -45,27 +46,76 @@ data<-data[data$MW<240&data$MW>80,]
 #row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
 summary(data)
 dim(data)
-selection<-"Normalized"
-LFQ<-data[,grep(selection,colnames(data))]
-#protNum<-1:ncol(LFQ)
-colnames(LFQ)=sub("Abundances \\(Normalized\\)\\: ","",colnames(LFQ))
-colnames(LFQ)=sub("\\: Sample","",colnames(LFQ))
-dim(LFQ)
+data$Score<-sapply(data$`Score Sequest HT: A15 Sequest HT`,as.numeric)
+hist(data$Score)
+selection<-"Scaled"
+#selection<-"Normalized"
+selThr<-5
+LFQ<-as.data.frame(data[,grep(selection,colnames(data))])
+summary(LFQ)
 LFQ<-sapply(LFQ,as.numeric)
 summary(LFQ)
+#protNum<-1:ncol(LFQ)
+colnames(LFQ)=sub(paste0("Abundances \\(",selection,"\\)\\: "),"",colnames(LFQ))
+colnames(LFQ)=sub("\\: Sample","",colnames(LFQ))
+dim(LFQ)
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 log2LFQ[log2LFQ==0]=NA
+hist(log2LFQ)#A0A3G9MCC3
+boxplot(log2LFQ)#A0A3G9MCC3
 summary(log2LFQ)
-hist(log2LFQ)
+Means<-apply(log2LFQ,1, mean, na.rm = TRUE)
+Stdevs<-apply(log2LFQ,1, sd, na.rm = TRUE)
+NAs<-rowSums(is.na(log2LFQ))
+summary(NAs)
+hist(log2LFQ)#A0A3G9MCC3
+log2LFQ0<-log2LFQ
+log2LFQ0[is.na(log2LFQ0)]=0
+hist(log2LFQ0)#A0A3G9MCC3
+boxplot(log2LFQ0)#A0A3G9MCC3
+summary(log2LFQ0)
+Means0<-apply(log2LFQ0,1, mean)
+Stdevs0<-apply(log2LFQ0,1, sd)
+NAs0<-rowSums(is.na(log2LFQ))
+summary(NAs0)
+CVs<-Stdevs0/Means0
 rowName<-data$`FASTA Title Lines`
 rowName<-sub("ProteinCenter:sp_tr_incl_isoforms\\|","",rowName)
 rowName<-gsub("\r","",rowName)
 rowName<-gsub("\n","",rowName)
 rownames(data)<-rowName
-rowName<-paste(sapply(strsplit(paste(sapply(strsplit(rowName, ">",fixed=T), "[", 2)), " "), "[", 1))
-writexl::write_xlsx(as.data.frame(cbind(rownames(data),Uniprot=rowName,log2LFQ)),paste0(inpF,"log2LFQ.xlsx"))
-write.table(as.data.frame(cbind(Uniprot=rowName,log2LFQ)),paste0(inpF,"log2LFQ.txt"),row.names = F,sep="\t",quote = FALSE)
+uniprot<-paste(sapply(strsplit(paste(sapply(strsplit(rowName, ">",fixed=T), "[", 2)), " "), "[", 1))
+uniprot<-paste(uniprot,data$MW,sep=";")
+writexl::write_xlsx(as.data.frame(cbind(rownames(data),Uniprot=uniprot,log2LFQ,NAs,CVs,data$MW)),paste0(inpF,selection,selThr,"log2LFQ.xlsx"))
+write.table(as.data.frame(cbind(Uniprot=rowName,log2LFQ,NAs,CVs,data$MW)),paste0(inpF,selection,selThr,"log2LFQ.txt"),row.names = F,sep="\t",quote = FALSE)
+```
+
+```{r pgID, echo=FALSE}
+selection<-"Found in File"
+LFQ<-as.data.frame(data[,grep(selection,colnames(data))])
+colnames(LFQ)=sub(paste0(selection,": \\["),"",colnames(LFQ))
+colnames(LFQ)=sub("\\]","",colnames(LFQ))
+summary(LFQ)
+LFQ<-lapply(LFQ, function(x) gsub("High","1",x))
+LFQ<-lapply(LFQ, function(x) gsub("Peak Found","0.5",x))
+LFQ<-lapply(LFQ, function(x) gsub("Not Found","0",x))
+summary(LFQ)
+dim(LFQ)
+log2LFQ<-sapply(LFQ,as.numeric)
+log2LFQ<-as.data.frame(log2LFQ)
+summary(log2LFQ)
+hist(log2LFQ)#A0A3G9MCC3
+boxplot(log2LFQ)#A0A3G9MCC3
+summary(log2LFQ)
+Means<-apply(log2LFQ,1, mean, na.rm = TRUE)
+Stdevs<-apply(log2LFQ,1, sd, na.rm = TRUE)
+NAs<-rowSums(is.na(log2LFQ))
+summary(NAs)
+CVs<-Stdevs/Means
+hist(CVs)#A0A3G9MCC3
+writexl::write_xlsx(as.data.frame(cbind(rownames(data),Uniprot=uniprot,log2LFQ,NAs,CVs,data$MW)),paste0(inpF,selection,selThr,"log2LFQ.xlsx"))
+write.table(as.data.frame(cbind(Uniprot=rowName,log2LFQ,NAs,CVs,data$MW)),paste0(inpF,selection,selThr,"log2LFQ.txt"),row.names = F,sep="\t",quote = FALSE)
 ```
 
 ```{r corHC}
@@ -94,7 +144,93 @@ ggplot2::ggsave(file=paste0(inpF,selection,"log2spearClust.svg"),plot=svgPHC)
 hda<-log2LFQ
 hist(hda)
 hda[is.na(hda)]<-0
-limma::vennDiagram(hda>0)
+limma::vennDiagram(hda>0.5)
+```
+
+```{r choseDist-scaled}
+selection<-"ScaledLFQ"
+dsub<-readxl::read_xlsx(paste0(inpD,"210427_GELBAND_91KDA-(7).xlsxScaled5log2LFQ.xlsx"))
+hist(as.numeric(dsub$CVs))
+uniprot<-dsub$Uniprot 
+#W8HEX2 F1 91 
+#W8GPA2 F2 A0A3G9M6C4 98
+#A0A3G9M7H8 F3 125
+#W8HHZ8 F4 230
+pE<-as.matrix(sapply(dsub$V9,as.numeric))
+rownames(pE)<-uniprot
+hist(pE)
+dsub<-dsub[,grep("^F[0-9]+",colnames(dsub))]
+dsub<-sapply(dsub,as.numeric)
+rownames(dsub)<-uniprot
+summary(dsub)
+#dsub[dsub==selThr]<-14
+#dsub[dsub==13]<-NA
+hist(dsub)
+dsub[is.na(dsub)]<-(abs(min(dsub,na.rm=T))+max(dsub,na.rm=T))*(-1)
+summary(dsub)
+hist(dsub)
+dsubMeds<-matrixStats::rowMedians(dsub)
+summary(dsubMeds)
+hist(dsubMeds)
+dsubSD<-matrixStats::rowSds(dsub)
+summary(dsubSD)
+hist(dsubSD)
+dsub<-(dsub-dsubMeds)/dsubSD
+summary(dsub)
+hist(dsub)
+dsub[is.na(dsub)]<-0
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,selection,"HeatMapTest.svg"), p)
+dsubCor<-as.dist(cor(t(dsub),method="pearson",use="pairwise.complete.obs",))
+dsubCor<-dist(dsub,method="euclidean")
+hist(dsubCor)
+summary(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,selection,"HeatMapTestChosenDist.svg"), p)
+dsubCor<-dist(pE,method="euclidean")
+dsubCorM<-as.matrix(dist(pE,method="euclidean",diag = T,upper = T))
+hist(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,selection,"HeatMapTestChosenDistE.svg"), p)
+```
+```{r choseDist-found}
+selection<-"Identification"
+dsub<-readxl::read_xlsx(paste0(inpD,"210427_GELBAND_91KDA-(7).xlsxFound in File5log2LFQ.xlsx"))
+hist(as.numeric(dsub$CVs))
+uniprot<-dsub$Uniprot 
+pE<-as.matrix(sapply(dsub$`data$MW`,as.numeric))
+rownames(pE)<-uniprot
+hist(pE)
+dsub<-dsub[,grep("^F[0-9]+",colnames(dsub))]
+dsub<-sapply(dsub,as.numeric)
+rownames(dsub)<-uniprot
+summary(dsub)
+hist(dsub)
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,selection,"HeatMapTest.svg"), p)
+dsubCor<-as.dist(cor(t(dsub),method="pearson",use="pairwise.complete.obs",))
+dsubCor<-dist(dsub,method="euclidean")
+hist(dsubCor)
+summary(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,selection,"HeatMapTestChosenDist.svg"), p)
+dsubCor<-dist(pE,method="euclidean")
+dsubCorM<-as.matrix(dist(pE,method="euclidean",diag = T,upper = T))
+hist(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,selection,"HeatMapTestChosenDistE.svg"), p)
 ```
 
 ```{r tTest, echo = FALSE}
