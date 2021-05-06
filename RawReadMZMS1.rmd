@@ -4,7 +4,7 @@
 #plot
 par(mfrow=c(1,2))
 #data
-inpD<-"L:/promec/Elite/LARS/2021/april/olej/second run SAX 2/"
+inpD<-"L:/promec/Elite/LARS/2021/april/olej/210506 BSA SCCA/"
 ```
 
 ```{r getRawRead}
@@ -14,7 +14,7 @@ unzip(paste0(inpD,"RawRead.zip"),exdir = paste0(inpD,"RawRead"))
 
 ```{r data}
 #generate in windows prompt using cmd
-## for %i in ("L:\promec\Elite\LARS\2021\april\olej\second run SAX 2\*.raw") do ("L:\promec\Elite\LARS\2021\april\olej\second run SAX 2\RawRead\RawRead-blazor\RawRead.exe" "%i")
+## for %i in ("L:\promec\Elite\LARS\2021\april\olej\210506 BSA SCCA\*.raw") do ("L:\promec\Elite\LARS\2021\april\olej\210506 BSA SCCA\RawRead\RawRead-blazor\RawRead.exe" "%i")
 #or in bash with mono something like
 ## cd dir;for i in *.raw; do mono RawRead.exe $i; done
 inpFL<-list.files(pattern="*MZ1R.csv$",path=inpD,full.names=F,recursive=F)
@@ -54,13 +54,47 @@ colnames(hda)<-sub(sel2,"",colnames(hda))
 hist(hda)
 hda[is.na(hda)]<-0
 limma::vennDiagram(hda[,1:5]>0)
-log2LFQimpCorr<-cor(hda,use="pairwise.complete.obs",method="pearson")
+log2LFQimpCorr<-cor(hda,use="pairwise.complete.obs",method="spearman")
 #rownames(log2LFQimpCorr)<-colnames(hda)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 ```
 
-```{r norm}
+
+```{r mergeData}
+inpF<-"210505_SCCA_urt3b.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv.combined.csv"
+data<-read.csv(paste0(inpD,inpF))
+dataLog2<-data[,grep("log2",colnames(data))]
+dataLog2<-sapply(dataLog2,as.numeric)
+rownames(dataLog2)<-data$MZ1
+hist(dataLog2)
+hist(dataLog2[,8])
 boxplot(dataLog2)
+colnames(dataLog2)
+dataLog2.957.493<-dataLog2[grep("957.493",rownames(dataLog2)),]
+plot(dataLog2.957.493)
+dataLog2.674.254<-dataLog2[grep("674.254",rownames(dataLog2)),]
+plot(dataLog2.674.254)
+dataLog2.427.146<-dataLog2[grep("427.146",rownames(dataLog2)),]
+plot(dataLog2.427.146)
+dataLog2.276.123<-dataLog2[grep("276.123",rownames(dataLog2)),]
+plot(dataLog2.276.123)
+dataLog2.447.114<-dataLog2[grep("623.292",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.447.114<-dataLog2[grep("460.212",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.615.191<-dataLog2[grep("615.191",rownames(dataLog2)),]
+plot(dataLog2.615.191)
+dataLog2.447.114<-dataLog2[grep("447.114",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.447.114<-dataLog2[grep("342.111",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.447.114<-dataLog2[grep("342.112",rownames(dataLog2)),]
+plot(dataLog2.447.114)
+dataLog2.447.114
+```
+
+```{r norm}
+boxplot(hda)
 #BiocManager::install("vsn")
 #dataLog2VSN<-vsn::justvsn(dataLog2)
 #boxplot(dataLog2VSN)
@@ -79,37 +113,6 @@ dataLog2.447.114<-dataLog2NormLOESS[grep("447.114",rownames(dataLog2NormLOESS)),
 plot(dataLog2.447.114)
 ```
 
-```{r mergeData}
-inpF<-"210408_FT_SAX_urt3_210416151908.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv.combined.csv"
-data<-read.csv(paste0(inpD,inpF))
-dataLog2<-data[,grep("log2",colnames(data))]
-dataLog2<-sapply(dataLog2,as.numeric)
-rownames(dataLog2)<-data$MZ1
-hist(dataLog2)
-hist(dataLog2[,8])
-boxplot(dataLog2)
-dataLog2.957.493<-dataLog2[grep("957.493",rownames(dataLog2)),]
-plot(dataLog2.957.493)
-dataLog2.674.254<-dataLog2[grep("674.254",rownames(dataLog2)),]
-plot(dataLog2.674.254)
-dataLog2.427.146<-dataLog2[grep("427.146",rownames(dataLog2)),]
-plot(dataLog2.427.146)
-dataLog2.276.123<-dataLog2[grep("276.123",rownames(dataLog2)),]
-plot(dataLog2.276.123)
-dataLog2.447.114<-dataLog2[grep("623.292",rownames(dataLog2)),]
-plot(dataLog2.447.114)
-dataLog2.447.114<-dataLog2[grep("460.212",rownames(dataLog2)),]
-plot(dataLog2.447.114)
-dataLog2.447.114<-dataLog2[grep("615.191",rownames(dataLog2)),]
-plot(dataLog2.447.114)
-dataLog2.447.114<-dataLog2[grep("447.114",rownames(dataLog2)),]
-plot(dataLog2.447.114)
-dataLog2.447.114<-dataLog2[grep("342.111",rownames(dataLog2)),]
-plot(dataLog2.447.114)
-dataLog2.447.114<-dataLog2[grep("342.112",rownames(dataLog2)),]
-plot(dataLog2.447.114)
-dataLog2.447.114
-```
 
 ```{r anion}
 dataAnion<-data[-grep("Scan",data$Scan1),c(2,4)]

@@ -31,6 +31,38 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r}
+#https://waldronlab.io/PublicDataResources/
+r BiocStyle::Biocpkg("GEOquery"): Access to the NCBI Gene Expression Omnibus (GEO), a public repository of gene expression (primarily microarray) data.
+r BiocStyle::Biocpkg("GenomicDataCommons"): Access to the NIH / NCI Genomic Data Commons RESTful service.
+r BiocStyle::Githubpkg("seandavi/SRAdbV2"): A compilation of metadata from the NCBI Sequence Read Archive, the largest public repository of sequencing data from the next generation of sequencing platforms, and tools
+r BiocStyle::Biocpkg("curatedTCGAData"): Curated data from The Cancer Genome Atlas (TCGA) as MultiAssayExperiment Objects
+r BiocStyle::Biocpkg("curatedMetagenomicData"): Curated metagenomic data of the human microbiome
+r BiocStyle::Biocpkg("HMP16SData"): Curated metagenomic data of the human microbiome
+r BiocStyle::Biocpkg("PharmacoGx"): Curated large-scale preclinical pharmacogenomic data and basic analysis tools
+```
+
+
+```{r}
+library(purrr)
+
+mtcars %>%
+  split(.$cyl) %>% # from base R
+  map(~ lm(mpg ~ wt, data = .)) %>%
+  map(summary) %>%
+  map_dbl("r.squared")
+#>         4         6         8 
+#> 0.5086326 0.4645102 0.4229655
+library(purrrogress)
+## basic example code
+
+fun <- function(...){
+    # this does nothing but take time.
+    Sys.sleep(0.1)
+    invisible(NULL)
+}
+invisible(map(1:100, with_progress(fun)))
+```
 
 ```{r jobs}
 #https://github.com/lindeloev/job

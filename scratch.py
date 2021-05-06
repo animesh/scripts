@@ -1,4 +1,68 @@
 #!pip install --upgrade pip
+#https://machinelearningmastery.com/confidence-intervals-for-machine-learning/
+from numpy.random import seed
+from numpy.random import rand
+from numpy.random import randint
+from numpy import mean
+from numpy import median
+from numpy import percentile
+# seed the random number generator
+seed(1)
+# generate ddataset = 0.5 + rand(1000) * 0.5
+# bootstrap
+scores = list()
+for _ in range(100):
+	# bootstrap sample
+	indices = randint(0, 1000, 1000)
+	sample = dataset[indices]
+	# calculate and store statistic
+	statistic = mean(sample)
+	scores.append(statistic)
+print('median=%.3f' % median(scores))
+alpha = 5.0
+# calculate lower percentile (e.g. 2.5)
+lower_p = alpha / 2.0
+# retrieve observation at lower percentile
+lower = max(0.0, percentile(scores, lower_p))
+print('%.1fth percentile = %.3f' % (lower_p, lower))
+# calculate upper percentile (e.g. 97.5)
+upper_p = (100 - alpha) + (alpha / 2.0)
+# retrieve observation at upper percentile
+upper = min(1.0, percentile(scores, upper_p))
+print('%.1fth percentile = %.3f' % (upper_p, upper))
+#https://towardsdatascience.com/find-the-difference-in-python-68bbd000e513
+import difflib as dl
+s1 = 'abcde'
+s2 = 'fabdc'
+seq_matcher = dl.SequenceMatcher(None, s1, s2)
+for tag, i1, i2, j1, j2 in seq_matcher.get_opcodes():
+    print(f'{tag:7}   s1[{i1}:{i2}] --> s2[{j1}:{j2}] {s1[i1:i2]!r:>6} --> {s2[j1:j2]!r}')
+seq_matcher = dl.SequenceMatcher(lambda c: c in 'abc', s1, s2)
+#https://tutorial.dask.org/01_dask.delayed.html
+from dask.distributed import Client
+client = Client(n_workers=4)
+from time import sleep
+def inc(x):
+    sleep(1)
+    return x + 1
+def add(x, y):
+    sleep(1)
+    return x + y
+x = inc(1)
+y = inc(2)
+z = add(x, y)
+from dask import delayed
+x = delayed(inc)(1)
+y = delayed(inc)(2)
+z = delayed(add)(x, y)
+z.compute()
+z.visualize()
+client.close()
+#https://towardsdatascience.com/3-python-pandas-tricks-for-efficient-data-analysis-6324d013ef39
+df["rank"] = df.groupby("date)["sales"].rank(ascending=False).astype("int")
+df.groupby(["store","rank"]).count()[["sales"]]
+df.groupby(["store","rank"]).agg(rank_count = ("rank", "count"))
+df = pd.concat([A, B, C]).sort_values(by="date", ignore_index=True)
 #https://github.com/koaning/drawdata
 from drawdata import draw_scatter
 draw_scatter()
