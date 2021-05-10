@@ -3,8 +3,8 @@
 #renv::deactivate()
 par(mfrow=c(1,2))
 #library/packages
-inpD <-"L:/promec/Elite/LARS/2021/april/Garima/RopacusPD630gelBands4/"
-fName<-"210427_GELBAND_91KDA-(7).xlsx"
+inpD <-"L:/promec/HF/Lars/2021/mai/MortenH/disc/"
+fName<-"210503_MORTEN_1-(2).xlsx"
 inpF<-paste0(inpD,fName)
 options(nwarnings = 1000000)
 compName<-gsub("[^[:alnum:] ]", "",inpD)
@@ -41,15 +41,15 @@ data <- readxl::read_xlsx(inpF)
 data = data[!is.na(data$Master),]
 data = data[data$Contaminant=="FALSE",]
 data$MW<-sapply(data$`MW [kDa]`,as.numeric)
-data<-data[data$MW<240&data$MW>80,]
+#data<-data[data$MW<240&data$MW>80,]
 #data = data[!data$Only.identified.by.site=="+",]
 #row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
 summary(data)
 dim(data)
-data$Score<-sapply(data$`Score Sequest HT: A15 Sequest HT`,as.numeric)
+data$Score<-sapply(data$`Score Sequest HT: Sequest HT`,as.numeric)
 hist(data$Score)
-selection<-"Scaled"
-#selection<-"Normalized"
+#selection<-"Scaled"
+selection<-"Normalized"
 selThr<-5
 LFQ<-as.data.frame(data[,grep(selection,colnames(data))])
 summary(LFQ)
@@ -86,7 +86,7 @@ rowName<-gsub("\r","",rowName)
 rowName<-gsub("\n","",rowName)
 rownames(data)<-rowName
 uniprot<-paste(sapply(strsplit(paste(sapply(strsplit(rowName, ">",fixed=T), "[", 2)), " "), "[", 1))
-uniprot<-paste(uniprot,data$MW,sep=";")
+#uniprot<-paste(uniprot,data$MW,sep=";")
 writexl::write_xlsx(as.data.frame(cbind(rownames(data),Uniprot=uniprot,log2LFQ,NAs,CVs,data$MW)),paste0(inpF,selection,selThr,"log2LFQ.xlsx"))
 write.table(as.data.frame(cbind(Uniprot=rowName,log2LFQ,NAs,CVs,data$MW)),paste0(inpF,selection,selThr,"log2LFQ.txt"),row.names = F,sep="\t",quote = FALSE)
 ```
@@ -234,7 +234,7 @@ ggplot2::ggsave(paste0(inpF,selection,"HeatMapTestChosenDistE.svg"), p)
 ```
 
 ```{r tTest, echo = FALSE}
-dataSellog2grpTtest<-hda
+dataSellog2grpTtest<-log2LFQ
 summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
 compName<-toString(compName)
@@ -242,8 +242,8 @@ compName<-gsub(" ", "",compName)
 compName<-gsub(",", "",compName)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
-eCol<-8
-mCol<-4
+eCol<-10
+mCol<-5
 t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
 chkr<-1
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
@@ -284,9 +284,9 @@ logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAWT.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestOGG1HAWT.txt"),row.names = F,sep="\t")
+ttest.results = data.frame(Uniprot=uniprot,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1CTR.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1CTR.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 ```
