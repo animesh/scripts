@@ -10,8 +10,11 @@
   </ParameterGroup>
   <ParameterGroup Name="Generic" CollapsedDefault="false">
     <FileParam Type="BaseLibS.Param.FileParam, BaseLibS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Executable">
-      <Value>Rscript</Value>
+      <Value />
     </FileParam>
+    <LabelParam Type="BaseLibS.Param.LabelParam, BaseLibS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Download data for preview">
+      <Value />
+    </LabelParam>
     <LabelParam Type="BaseLibS.Param.LabelParam, BaseLibS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Name="Download parameter for preview">
       <Value />
     </LabelParam>

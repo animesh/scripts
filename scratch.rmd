@@ -31,6 +31,7 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+
 ```{r}
 #https://waldronlab.io/PublicDataResources/
 r BiocStyle::Biocpkg("GEOquery"): Access to the NCBI Gene Expression Omnibus (GEO), a public repository of gene expression (primarily microarray) data.
