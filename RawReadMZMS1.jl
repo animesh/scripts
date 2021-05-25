@@ -1,9 +1,10 @@
-#using Pkg
+using Pkg
 #Pkg.add("DataFrames")
 #Pkg.add("CSV")
 using DataFrames,CSV
 df=DataFrame(CSV.File("L:/promec/Elite/LARS/2021/april/olej/second run SAX 2/210408_FT_SAX_urt3_210416151908.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv.combined.csv",normalizenames=true))
 names(df)
+#Pkg.add("Plots")
 using Plots
 #Pkg.add("PlotThemes")
 using PlotThemes
