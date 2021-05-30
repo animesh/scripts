@@ -4,7 +4,7 @@
 MAXQUANTCMD=$HOME/MaxQuant_1.6.8.0/MaxQuant/bin/MaxQuantCmd.exe
 CPU=16
 DATADIR=$HOME/promec/Elite/LARS/2021/mai/sudhl5/
-FASTAFILE=$HOME/FastaDB/uniprot-human-iso-oct20.fasta
+FASTAFILE=$HOME/FastaDB/HumanCanonicalUniprotMay21.fasta
 PARAMFILE=mqpar.xml
 #leave following empty to include ALL files
 PREFIXRAW=
