@@ -1,9 +1,10 @@
-#USAGE: bash mqrun.sh
+#USAGE: bash mqrun.sh <directory containing raw files>, example below
+#bash mqrun.sh $HOME/promec/Elite/LARS/2021/mai/sudhl5/
 #make sure mqrun.xml is in the directory where the script is and CHANGE following paths according to the MaxQuant Installation, directory containing experiment raw files, fasta file and representative parameter file for that version respectively
 #CANNOT handle path containing spaces! create a symlink in such cases e.g. "ln -s $HOME/HF/Lars/2020/oktober/KATHLEEN\ PHOSTOT\ SHOTGUN\ B\ rest $HOME/HF/Lars/2020/oktober/KATHLEENPHOSTOTSHOTGUNBrest"
 MAXQUANTCMD=$HOME/MaxQuant_1.6.8.0/MaxQuant/bin/MaxQuantCmd.exe
 CPU=16
-DATADIR=$HOME/promec/Elite/LARS/2021/mai/sudhl5/
+DATADIR=$1
 FASTAFILE=$HOME/FastaDB/HumanCanonicalUniprotMay21.fasta
 PARAMFILE=mqpar.xml
 #leave following empty to include ALL files
