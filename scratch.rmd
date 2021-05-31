@@ -32,7 +32,13 @@ system.time (B <- crossprod(A))
 plot(B)
 ```
 
-```{r}
+```{r table}
+install.packages("DT")
+library(DT)
+datatable(iris)
+```
+
+```{r PublicDataResources}
 #https://waldronlab.io/PublicDataResources/
 r BiocStyle::Biocpkg("GEOquery"): Access to the NCBI Gene Expression Omnibus (GEO), a public repository of gene expression (primarily microarray) data.
 r BiocStyle::Biocpkg("GenomicDataCommons"): Access to the NIH / NCI Genomic Data Commons RESTful service.
@@ -44,7 +50,7 @@ r BiocStyle::Biocpkg("PharmacoGx"): Curated large-scale preclinical pharmacogeno
 ```
 
 
-```{r}
+```{r scrap}
 library(purrr)
 
 mtcars %>%

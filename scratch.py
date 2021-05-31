@@ -121,7 +121,7 @@ from drawdata import draw_scatter
 draw_scatter()
 import pandas as pd
 data=pd.read_clipboard(sep=",")
-data.hist()
+data.head()
 #https://github.com/hyperopt/hyperopt/wiki/FMin#21-parameter-expressions preprocessors adapted in HyperOpt/Adaptive Tree of Parzen Estimators/ Sklearn are: PCA, TfidfVectorizer, StandardScalar, MinMaxScalar, Normalizer, OneHotEncoder; classifiers adapted in HyperOpt Sklearn are: SVC, LinearSVC KNeightborsClassifier. RandomForestClassifier, ExtraTreesClassifier SGDClassifier, MultinomialNB, BernoulliRBM, ColumnKMeans
 #https://github.com/chanzuckerberg/cellxgene
 import pickle

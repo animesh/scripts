@@ -6,8 +6,10 @@ git clone https://github.com/WolframResearch/WolframLanguageForJupyter.git
 <path to wolframscript binary> WolframLanguageForJupyter/configure-jupyter.wls add
 jupyter kernelspec list
 https://stackoverflow.com/questions/52602720/cannot-read-an-m-file-in-atom-with-octave-although-it-works-in-nteract/52629947#52629947 for kernel spec in atom-hydrogen {"wolfram language": "mathematica"}
+https://resources.wolframcloud.com/FunctionRepository/resources/RandomEnglishHaiku/
 *)
-Binomial[10,1]*Binomial[14,11]/(Binomial[24,12])+Binomial[10,0]*Binomial[14,12]/(Binomial[24,12])//N(*https://en.wikipedia.org/wiki/Fisher%27s_exact_test*)
+ResourceFunction["RandomEnglishHaiku"][TextWords[ResourceData["Hamlet"]]]
+ Binomial[10,1]*Binomial[14,11]/(Binomial[24,12])+Binomial[10,0]*Binomial[14,12]/(Binomial[24,12])//N(*https://en.wikipedia.org/wiki/Fisher%27s_exact_test*)
 Binomial[628,6]*Binomial[4458,165]/(Binomial[5086,171])//N
 Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17])//N
 Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17])+Binomial[628,7]*Binomial[4458,10]/(Binomial[5028,17])+Binomial[628,8]*Binomial[4458,9]/(Binomial[5028,17])//N

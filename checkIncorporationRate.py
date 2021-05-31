@@ -2,7 +2,7 @@ print("peptide.txt output file to calculate the incorporation rate. Distinguish 
 import sys
 from pathlib import Path
 
-print("Windows example\n\nExample\n\npython checkIncorporationRate.py \"F:/promec/Elite/LARS/2021/mai/sudhl5 silac/combined/txt/\" peptides.txt\n\n")
+print("Windows Example\n\npython checkIncorporationRate.py \"F:/promec/Elite/LARS/2021/mai/sudhl5 silac/New Study 1/\" 210526_K0R0_sudhl5_PeptideGroups.txt\n\n")
 print("Linux example\n\npython checkIncorporationRate.py $PWD/mqpar.xml.1622276751.results/210526_K8R10_sudhl5/ peptides.txt\n\n")
 
 if len(sys.argv) != 3:
@@ -18,9 +18,9 @@ else:
 trainList=list(dirName.rglob(fileName))
 print("Using file(s)\n",trainList)
 
-columnName='^(Ratio H/L)(.*)'#'*([0-9])$'
-columnNameH='^(Intensity H)(.*)'#'*([0-9])$'
-columnNameL='^(Intensity L)(.*)'#'*([0-9])$'
+columnName='^(Ratio H/L)(.*)|^(Abundance Ratio: )(.*)'#'*([0-9])$'
+columnNameH='^(Intensity H)(.*)|(.*)(Light)$'#'*([0-9])$'
+columnNameL='^(Intensity L)(.*)|(.*)(Heavy)$'#'*([0-9])$'
 f=trainList[0]
 import pandas as pd
 for i, f in enumerate(trainList):
@@ -28,8 +28,11 @@ for i, f in enumerate(trainList):
     df=pd.read_csv(f,low_memory=False,sep='\t')
     print(df.head())
     print(df.columns)
-    df=df[df["Reverse"]!='+']
-    df=df[df["Potential contaminant"]!='+']
+    if "Reverse" in df: df=df[df["Reverse"]!='+']
+    if "Confidence" in df: df=df[df["Confidence"]=='High']
+    if "Potential contaminant" in df: df=df[df["Potential contaminant" ]!='+']
+    if "Contaminant" in df: df=df[df["Contaminant"]!='TRUE']
+    #df=df[df[]!='+'|df["Contaminant"]!='TRUE']
     dfPG=df.filter(regex=columnName,axis=1)
     #dfPG=dfPG.rename(columns = lambda x : str(x)[10:])
     writePGCountcsv=f.with_suffix(".count.csv")
@@ -63,17 +66,19 @@ for i, f in enumerate(trainList):
     print(writePGcsv)
     print("Overall\n",dfPG)
     import numpy as np
-    dfK=df[df["Last amino acid"]=='K']
+    if "Last amino acid" in df: dfK=df[df["Last amino acid"]=='K']
+    if "Annotated Sequence" in df: dfK=df[df["Annotated Sequence"].str.contains('K')]
     writeKpng=f.with_suffix(".log2K.png")
-    np.log2(dfK["Ratio H/L"]).hist().figure.savefig(writeKpng,bbox_inches = "tight")
+    if "Ratio H/L" in dfK: np.log2(dfK["Ratio H/L"]).hist().figure.savefig(writeKpng,bbox_inches = "tight")
     dfPG=dfK.filter(regex=columnName,axis=1)
     dfPG=1-(1/dfPG.mean(axis = 0, skipna = True))
     writePGcsv=f.with_suffix(".K.IR.csv")
     dfPG.to_csv(writePGcsv,header=False)
     print("Lysine\n",dfPG)
-    dfR=df[df["Last amino acid"]=='R']
+    if "Last amino acid" in df: dfR=df[df["Last amino acid"]=='R']
+    if "Annotated Sequence" in df: dfR=df[df["Annotated Sequence"].str.contains('R')]
     writeRpng=f.with_suffix(".log2KR.png")
-    np.log2(dfR["Ratio H/L"]).hist().figure.savefig(writeRpng,bbox_inches = "tight")
+    if "Ratio H/L" in dfR: np.log2(dfR["Ratio H/L"]).hist().figure.savefig(writeRpng,bbox_inches = "tight")
     print("writing Log2 H/L histogram to ... ")
     print(writeKpng,writeRpng)
     dfPG=dfR.filter(regex=columnName,axis=1)
