@@ -1,7 +1,11 @@
 ```{r setup, echo = FALSE}
 #lib
 libPaths="L:/promec/Animesh/R/win-library/4.0"
+libPaths="C:/Users/animeshs/GD/libR"
 .libPaths(c(libPaths, .libPaths()))
+#install.packages("readxl")
+#install.packages("remotes")
+#remotes::install_version("rlang","0.4.10", repos = "http://cran.us.r-project.org")
 #install.packages("RcppEigen")
 #PATH="${RTOOLS40_HOME}\usr\bin;${PATH}"
 #writeLines('PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"', con = "~/.Renviron")

@@ -3,8 +3,8 @@
 #renv::deactivate()
 par(mfrow=c(1,2))
 #library/packages
-inpD <-"L:/promec/HF/Lars/2021/mai/MortenH/disc/"
-fName<-"210503_MORTEN_1-(2).xlsx"
+inpD <-"L:/promec/HF/Lars/2021/mai/MortenH/"
+fName<-"210520_MORTEN_G1-(1).xlsx"
 inpF<-paste0(inpD,fName)
 options(nwarnings = 1000000)
 compName<-gsub("[^[:alnum:] ]", "",inpD)
@@ -233,7 +233,7 @@ p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_
 ggplot2::ggsave(paste0(inpF,selection,"HeatMapTestChosenDistE.svg"), p)
 ```
 
-```{r tTest, echo = FALSE}
+```{r tTestIgG, echo = FALSE}
 dataSellog2grpTtest<-log2LFQ
 summary(dataSellog2grpTtest)
 compName<-colnames(dataSellog2grpTtest)
@@ -285,8 +285,135 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=uniprot,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1CTR.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1CTR.txt"),row.names = F,sep="\t")
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestIgGCTR.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestIgGCTR.txt"),row.names = F,sep="\t")
+#writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1CTR.xlsx"))
+#write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1CTR.txt"),row.names = F,sep="\t")
 #limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
+IgGtest=ttest.results
 ```
+
+```{r tTestDisc1, echo = FALSE}
+dataSellog2grpTtest<-log2LFQ
+dataSellog2grpTtest<-dataSellog2grpTtest[,-c(6:10)]
+summary(dataSellog2grpTtest)
+compName<-colnames(dataSellog2grpTtest)
+compName<-toString(compName)
+compName<-gsub(" ", "",compName)
+compName<-gsub(",", "",compName)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-10
+mCol<-5
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-1
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+options(nwarnings = 1000000)
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+  else{NA}
+  )
+summary(warnings())
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hist(log2FCmedianFC)
+ttest.results = data.frame(Uniprot=uniprot,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1CTR.xlsx"))
+#write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1CTR.txt"),row.names = F,sep="\t")
+limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
+Disc1Test<-ttest.results
+```
+
+```{r mergeTtest}
+dataTests<-merge(Disc1Test,IgGtest,all = T,by=0)
+cor.test(dataTests$F1.x,dataTests$F1.y)
+cor.test(dataTests$F1.x,dataTests$Log2MedianChange.x)
+plot(dataTests[["CorrectedPValueBH.x"]],dataTests[["CorrectedPValueBH.y"]])
+dataSellog2grpTtestS<-subset(dataTests,dataTests[["CorrectedPValueBH.x"]]<0.01&dataTests[["Log2MedianChange.x"]]<(-1))
+dataSellog2grpTtest<-dataSellog2grpTtestS[,c(29:38)]
+summary(dataSellog2grpTtest)
+compName<-colnames(dataSellog2grpTtest)
+compName<-toString(compName)
+compName<-gsub(" ", "",compName)
+compName<-gsub(",", "",compName)
+row.names(dataSellog2grpTtest)<-row.names(data)
+sCol<-1
+eCol<-10
+mCol<-5
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-1
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+dim(dataSellog2grpTtest)
+options(nwarnings = 1000000)
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+  else{NA}
+  )
+summary(warnings())
+hist(pValNA)
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(dataSellog2grpTtestS))
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
+logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
+logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
+logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hist(log2FCmedianFC)
+ttest.results = data.frame(Uniprot=dataSellog2grpTtestS$Uniprot.x,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=dataSellog2grpTtestS$Row.names)
+ttest.results = subset(ttest.results,ttest.results$Log2MedianChange<(-1))
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1IgG.xlsx"))
+write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1IgG.txt"),row.names = F,sep="\t")
+limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
+Disc1IgGtest<-ttest.results
+```
+

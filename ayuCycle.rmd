@@ -1,4 +1,5 @@
 ```{r data}
+install.packages("readxl")
 library(readxl)
 inpF<-"/home/animeshs/Downloads/For prediction modeling.xlsx"
 data<-read_excel(inpF, sheet=1)

@@ -1,7 +1,48 @@
-Data:
+```{r data}
+data<-readxl::read_excel("C:/Users/animeshs/GD/Prediction analysis.xlsx", sheet=1)
+data$Class<-"Remission"
+data<-subset(as.data.frame(data), select = -c(1:7) )
+summary(data)
+```
+
+```{r data2}
+data2<-readxl::read_excel("C:/Users/animeshs/GD/Prediction analysis.xlsx", sheet=2)
+data2$Class<-"Relapse"
+data2<-subset(as.data.frame(data2), select = -c(1:7) )
+summary(data2)
+```
+
+```{r data3}
+data3<-readxl::read_excel("C:/Users/animeshs/GD/Prediction analysis.xlsx", sheet=3)
+data3$Class<-"control"
+data3<-subset(as.data.frame(data3), select = -c(1:2) )
+summary(data3)
+```
+
+```{r data4}
+data4<-readxl::read_excel("C:/Users/animeshs/GD/Prediction analysis.xlsx", sheet=4)
+data4$Class<-"Active"
+data4<-subset(as.data.frame(data4), select = -c(1:6) )
+summary(data4)
+```
+
+```{r data5}
+data5<-readxl::read_excel("C:/Users/animeshs/GD/Prediction analysis.xlsx", sheet=5)
+data5$Class<-"ND"
+data5<-subset(as.data.frame(data5), select = -c(1:7) )
+summary(data5)
+```
+
+```{r merge}
+dataM<-rbind(data,data2)
+dataM<-rbind(dataM,data3)
+dataM<-rbind(dataM,data4)
+dataM<-rbind(dataM,data5)
+write.csv(dataM,"C:/Users/animeshs/GD/Prediction analysis.merged_class.csv",row.names = F)
+```
 
 ```{r p.value.2p}
-library(readxl)
+install.pa(readxl)
 ayurP<-read_excel("F:/promec/Animesh/HeLa/ayu/new/P value 0.02.xlsx", sheet=1)
 summary(ayurP)
 ```
@@ -65,6 +106,7 @@ plot.umap(yyt.umap,yyt.label)
 ML:
 
 ```{r }
+#install.packages("randomForest")
 library(randomForest)
 set.seed(100)
 labelRF<-as.data.frame(label$Ayur)
@@ -83,7 +125,7 @@ names(yyt)<- gsub("-", "__", names(yyt))
 yyt<-ayurP
 summary(yyt)
 #random_forest=randomForest(data=yyt,yyt$`label$Ayur`~.,impurity='gini',ntree=150,replace=TRUE)
-random_forest=randomForest(data=yyt,Species~.,ntree=500,replace=TRUE,proximity = TRUE)
+random_forest=randomForest::randomForest(data=dataM,dataM$Class~.,ntree=500,replace=TRUE,proximity = TRUE)
 print(random_forest)
 
 plot(random_forest)
