@@ -39,7 +39,7 @@ while(my $l1=<F4>){
 	if($l1=~/^>/){print "$l1\n";}
 	else{
 		my @st=split(/\t/,$l1);
-		my $pep=$st[5];
+		my $pep=$st[$ARGV[2]-1];
 		#else{next;}
 		$pep=~s/\r//g;
 		chomp($pep);
@@ -66,12 +66,12 @@ while(my $l1=<F4>){
 print "\nProcessed $cntSeq Sequences\nFound $cntMat Matches\n";
 close F4;
 __END__
-C:\Users\animeshs\GD\scripts>perl pep2protmap.pl   "L:\promec\HF\Lars\2021\mai\MortenH\uniprot-mappedsequence__Q9NRI5-1_+OR+mappedsequence__A0A087WYX6-1_+O--.fasta" "L:\promec\HF\Lars\2021\mai\MortenH\Serie 2\New Study\210520_MORTEN_G1-(1)_PeptideGroups.txt"
+C:\Users\animeshs\GD\scripts>perl pep2protmap.pl   "L:\promec\HF\Lars\2021\mai\MortenH\uniprot-mappedsequence__Q9NRI5-1_+OR+mappedsequence__A0A087WYX6-1_+O--.fasta" "L:\promec\HF\Lars\2021\mai\MortenH\Serie 2\combined\txt\peptides.txt" 1
 
 Read# 18 sequences from L:\promec\HF\Lars\2021\mai\MortenH\uniprot-mappedsequence__Q9NRI5-1_+OR+mappedsequence__A0A087WYX6-1_+O--.fasta
 
-Opening peptide list from L:\promec\HF\Lars\2021\mai\MortenH\Serie 2\New Study\210520_MORTEN_G1-(1)_PeptideGroups.txt
+Opening peptide list from L:\promec\HF\Lars\2021\mai\MortenH\Serie 2\combined\txt\peptides.txt
 
 
-Processed 25493 Sequences
+Processed 23266 Sequences
 Found 0 Matches
