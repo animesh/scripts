@@ -21,47 +21,57 @@ while(my $l1=<F2>){
   else{
 	  $seql=~s/\s+|[0-9]|\n//g;
 	  $seql=uc($seql);
+		$seql=~s/I/L/g;
 		$seqh{$st[0]}.=$seql;
 	}
 }
 close F2;
+my $size = keys %seqn;
+print "\nRead# $size sequences from $ARGV[0]\n";
 
-my $pep=$ARGV[1];
-$pep=~s/\r//g;
-chomp($pep);
-
-if($ARGV[2]){
-	open(F1,$ARGV[2]);
-	while(my $l1=<F1>){
-		chomp $l1;
-	        $l1=~s/\r//g;
-	        if($l1=~/^>/){my @st=split(/\s+/,$l1);$seqc=$st[0];}
-	        else{$l1=~s/[0-9]|\s+//g;$seq.=uc($l1);}
+print "\nOpening peptide list from $ARGV[1]\n\n";
+open(F4,$ARGV[1]);
+my $cntSeq=0;
+my $cntMat=0;
+while(my $l1=<F4>){
+	chomp $l1;
+  $l1=~s/\r//g;
+	if($l1=~/^>/){print "$l1\n";}
+	else{
+		my @st=split(/\t/,$l1);
+		my $pep=$st[5];
+		#else{next;}
+		$pep=~s/\r//g;
+		chomp($pep);
+		$pep=uc($pep);
+		$pep=~s/I/L/gi;
+		$pep =~ s/[^A-Z,]//g;
+		foreach(keys %seqn){
+			#print "$_\n$seqn{$_}\n$seqh{$_}\n";
+			my $pos="";
+			my $offset = 0;
+			$seql=$pep;
+			$seq=$seqh{$_};
+			my $res = index($seq, $seql, $offset);
+			while ($res != -1) {
+				$pos.="$res;";
+				$offset = $res + 1;
+				$res = index($seq, $seql, $offset);
+			}
+			if($pos ne ""){print "$_\t$pos\n";$cntMat++;}
+		}
 	}
-	close F1;
+	$cntSeq++;
 }
-
-foreach(keys %seqn){
-	#print "$_\n$seqn{$_}\n$seqh{$_}\n";
-	my $pos="";
-	my $offset = 0;
-	$seql=$pep;
-	$seq=$seqh{$_};
-	$seql=~s/I/L/gi;
-	$seq=~s/I/L/gi;
-	my $res = index($seq, $seql, $offset);
-	while ($res != -1) {
-		$pos.="$res;";
-		$offset = $res + 1;
-		$res = index($seq, $seql, $offset);
-	}
-	if($pos ne ""){print "$_\t$pos\n";}
-}
-
+print "\nProcessed $cntSeq Sequences\nFound $cntMat Matches\n";
+close F4;
 __END__
-#http://computationalbiologynews.blogspot.com/2020/03/novel-insert-in-spike-glycoprotein-of.html
-#setup https://www.uniprot.org/downloads
-wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot_varsplic.fasta.gz
-gunzip uniprot_sprot_varsplic.fasta.gz
-#check for PRRA peptide
-perl pep2protmap.pl uniprot_sprot_varsplic.fasta "PRRA" > PRRA.var.pos.txt
+C:\Users\animeshs\GD\scripts>perl pep2protmap.pl   "L:\promec\HF\Lars\2021\mai\MortenH\uniprot-mappedsequence__Q9NRI5-1_+OR+mappedsequence__A0A087WYX6-1_+O--.fasta" "L:\promec\HF\Lars\2021\mai\MortenH\Serie 2\New Study\210520_MORTEN_G1-(1)_PeptideGroups.txt"
+
+Read# 18 sequences from L:\promec\HF\Lars\2021\mai\MortenH\uniprot-mappedsequence__Q9NRI5-1_+OR+mappedsequence__A0A087WYX6-1_+O--.fasta
+
+Opening peptide list from L:\promec\HF\Lars\2021\mai\MortenH\Serie 2\New Study\210520_MORTEN_G1-(1)_PeptideGroups.txt
+
+
+Processed 25493 Sequences
+Found 0 Matches
