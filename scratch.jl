@@ -1,4 +1,6 @@
 #setup
+using Pkg
+Pkg.add("IJulia")
 #https://julialang-s3.julialang.org/bin/winnt/x64/1.6
 versioninfo()
 #using Pkg

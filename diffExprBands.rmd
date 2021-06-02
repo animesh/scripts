@@ -378,11 +378,11 @@ options(nwarnings = 1000000)
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
-    else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
-      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
     else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
     else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+    else if(sum(!is.na(x[c(sCol:mCol)]))>0&sum(!is.na(x[c((mCol+1):eCol)]))>1){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))>0){
       t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
   else{NA}
   )
@@ -410,7 +410,7 @@ hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
 ttest.results = data.frame(Uniprot=dataSellog2grpTtestS$Uniprot.x,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=dataSellog2grpTtestS$Row.names)
-ttest.results = subset(ttest.results,ttest.results$Log2MedianChange<(-1))
+ttest.results = subset(ttest.results,ttest.results$Log2MedianChange<(-1)&ttest.results$CorrectedPValueBH<0.01)
 writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1IgG.xlsx"))
 write.table(ttest.results,paste0(inpF,selection,sCol,eCol,compName,"tTestDISC1IgG.txt"),row.names = F,sep="\t")
 limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
