@@ -26,6 +26,62 @@ fisher.test(wikiP, alternative="greater")
 fisher.test(wikiP, conf.level = 0.99)$conf.int
 ```
 
+```{r sumGO}
+#https://bioconductor.org/packages/release/bioc/vignettes/GOsummaries/inst/doc/GOsummaries-basics.pdf
+#BiocManager::install("GOsummaries")
+genes1 = c("203485_at", "209469_at", "209470_s_at", "203999_at")
+genes2 = c("201890_at", "202503_s_at", "204170_s_at", "201291_s_at")
+gl = list(List = list(genes1, genes1)) # Two lists per component
+gs = GOsummaries::gosummaries(gl)
+plot(gs, fontsize = 8, filename = "figure2.pdf")
+```
+
+```{r multiEnrich}
+#https://bioconductor.org/packages/release/bioc/vignettes/multiGSEA/inst/doc/multiGSEA.html#tab:resultTable
+BiocManager::install("multiGSEA")
+library( "org.Hs.eg.db")
+library( multiGSEA)
+library( magrittr)
+data( transcriptome)
+data( proteome)
+data( metabolome)
+omics_data <- initOmicsDataStructure( layer = c("transcriptome", 
+                                                "proteome",
+                                                "metabolome"))
+omics_data$transcriptome <- rankFeatures( transcriptome$logFC, 
+                                          transcriptome$pValue)
+names( omics_data$transcriptome) <- transcriptome$Symbol
+omics_data$proteome <- rankFeatures(proteome$logFC, proteome$pValue)
+names( omics_data$proteome) <- proteome$Symbol
+omics_data$metabolome <- rankFeatures(metabolome$logFC, metabolome$pValue)
+names( omics_data$metabolome) <- metabolome$HMDB
+names( omics_data$metabolome) <- gsub( "HMDB", "HMDB00", 
+                                       names( omics_data$metabolome))
+omics_short <- lapply( names( omics_data), function( name){ 
+                        head( omics_data[[name]])
+                      })
+names( omics_short) <- names( omics_data)
+omics_short
+databases <- c( "kegg", "reactome")
+layers <- names( omics_data)
+pathways <- getMultiOmicsFeatures( dbs = databases, layer = layers,
+                                   returnTranscriptome = "SYMBOL",
+                                   returnProteome = "SYMBOL",
+                                   returnMetabolome = "HMDB",
+                                   useLocal = FALSE)
+pathways_short <- lapply( names( pathways), function( name){
+                          head( pathways[[name]], 2)
+                        })
+names( pathways_short) <- names( pathways)
+pathways_short
+enrichment_scores <- multiGSEA( pathways, omics_data)
+df <- extractPvalues( enrichmentScores = enrichment_scores,
+                      pathwayNames = names( pathways[[1]]))
+df$combined_pval <- combinePvalues( df)
+df$combined_padj <- p.adjust( df$combined_pval, method = "BH")
+df <- cbind( data.frame( pathway = names( pathways[[1]])), df)
+```
+
 ```{r packages, echo = FALSE}
 # https://github.com/waldronlab/GSEABenchmarking
 # dplyr complains this required libraries: libudunits2-dev, libmariadb-client-lgpl-dev

@@ -1,7 +1,7 @@
 ```{r setup, echo = FALSE}
 #lib
-libPaths="L:/promec/Animesh/R/win-library/4.0"
 libPaths="C:/Users/animeshs/GD/libR"
+libPaths="L:/promec/Animesh/R/win-library/4.0"
 .libPaths(c(libPaths, .libPaths()))
 #install.packages("readxl")
 #install.packages("remotes")
@@ -34,6 +34,115 @@ plot(A)
 # Matrix multiply
 system.time (B <- crossprod(A))
 plot(B)
+```
+
+```{r sumGO}
+#https://bioconductor.org/packages/release/bioc/vignettes/GOsummaries/inst/doc/GOsummaries-basics.pdf
+#BiocManager::install("GOsummaries")
+genes1 = c("203485_at", "209469_at", "209470_s_at", "203999_at")
+genes2 = c("201890_at", "202503_s_at", "204170_s_at", "201291_s_at")
+gl = list(List = list(genes1, genes1)) # Two lists per component
+gs = GOsummaries::gosummaries(gl)
+plot(gs, fontsize = 8, filename = "figure2.pdf")
+```
+
+```{r multiEnrich}
+#https://bioconductor.org/packages/release/bioc/vignettes/multiGSEA/inst/doc/multiGSEA.html#tab:resultTable
+BiocManager::install("multiGSEA")
+library( "org.Hs.eg.db")
+library( multiGSEA)
+library( magrittr)
+data( transcriptome)
+data( proteome)
+data( metabolome)
+omics_data <- initOmicsDataStructure( layer = c("transcriptome", 
+                                                "proteome",
+                                                "metabolome"))
+omics_data$transcriptome <- rankFeatures( transcriptome$logFC, 
+                                          transcriptome$pValue)
+names( omics_data$transcriptome) <- transcriptome$Symbol
+omics_data$proteome <- rankFeatures(proteome$logFC, proteome$pValue)
+names( omics_data$proteome) <- proteome$Symbol
+omics_data$metabolome <- rankFeatures(metabolome$logFC, metabolome$pValue)
+names( omics_data$metabolome) <- metabolome$HMDB
+names( omics_data$metabolome) <- gsub( "HMDB", "HMDB00", 
+                                       names( omics_data$metabolome))
+omics_short <- lapply( names( omics_data), function( name){ 
+                        head( omics_data[[name]])
+                      })
+names( omics_short) <- names( omics_data)
+omics_short
+databases <- c( "kegg", "reactome")
+layers <- names( omics_data)
+pathways <- getMultiOmicsFeatures( dbs = databases, layer = layers,
+                                   returnTranscriptome = "SYMBOL",
+                                   returnProteome = "SYMBOL",
+                                   returnMetabolome = "HMDB",
+                                   useLocal = FALSE)
+pathways_short <- lapply( names( pathways), function( name){
+                          head( pathways[[name]], 2)
+                        })
+names( pathways_short) <- names( pathways)
+pathways_short
+enrichment_scores <- multiGSEA( pathways, omics_data)
+df <- extractPvalues( enrichmentScores = enrichment_scores,
+                      pathwayNames = names( pathways[[1]]))
+df$combined_pval <- combinePvalues( df)
+df$combined_padj <- p.adjust( df$combined_pval, method = "BH")
+df <- cbind( data.frame( pathway = names( pathways[[1]])), df)
+```
+
+```{r mlr}
+#https://mlr3.mlr-org.com/
+#install.packages("mlr3verse")
+library(mlr3)
+install.packages("palmerpenguins")
+# create learning task
+task_penguins <- TaskClassif$new(id = "penguins", backend = palmerpenguins::penguins, target = "species")
+learner <- lrn("classif.rpart", cp = .01)
+# train/test split
+train_set <- sample(task_penguins$nrow, 0.8 * task_penguins$nrow)
+test_set <- setdiff(seq_len(task_penguins$nrow), train_set)
+
+# train the model
+learner$train(task_penguins, row_ids = train_set)
+
+# predict data
+prediction <- learner$predict(task_penguins, row_ids = test_set)
+
+# calculate performance
+prediction$confusion
+measure <- msr("classif.acc")
+prediction$score(measure)
+## classif.acc 
+##   0.9130435
+Resample
+# automatic resampling
+resampling <- rsmp("cv", folds = 3L)
+rr <- resample(task_penguins, learner, resampling)
+rr$score(measure)
+##                 task  task_id                   learner    learner_id
+## 1: <TaskClassif[46]> penguins <LearnerClassifRpart[34]> classif.rpart
+## 2: <TaskClassif[46]> penguins <LearnerClassifRpart[34]> classif.rpart
+## 3: <TaskClassif[46]> penguins <LearnerClassifRpart[34]> classif.rpart
+##            resampling resampling_id iteration              prediction
+## 1: <ResamplingCV[19]>            cv         1 <PredictionClassif[19]>
+## 2: <ResamplingCV[19]>            cv         2 <PredictionClassif[19]>
+## 3: <ResamplingCV[19]>            cv         3 <PredictionClassif[19]>
+##    classif.acc
+## 1:   0.8956522
+## 2:   0.9130435
+## 3:   0.9473684
+rr$aggregate(measure)
+```
+
+```{r einsum}
+#https://const-ae.github.io/einsum/index.html
+#install.packages("einsum")
+devtools::install_github("const-ae/einsum")
+```
+```{r}
+devtools::install_github("prafols/rMSIproc")
 ```
 
 ```{r table}
