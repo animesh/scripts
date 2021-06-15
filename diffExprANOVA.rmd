@@ -5,8 +5,8 @@
 #plot
 par(mfrow=c(1,2))
 #data
-inpD <-"L:/promec/Qexactive/Mirta/Celine/combined/txtLFQ1/"
-thr<-20
+inpD <-"L:/promec/HF/Lars/2021/june/Siri/combined/txt/"
+thr<-0
 selThr=0.3
 selThrFC=0.0
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
@@ -91,93 +91,42 @@ write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,selection,"
 ```
 
 
-```{r iPC}
-sel<-"iPSC_A"
+```{r Group}
+sel<-"M"
 hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
 summary(hda)
 hist(as.matrix(hda))
-hda1<-apply(hda[,1:3],1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(hda1>thr,na.rm=T)
-hda2<-apply(hda[,4:6],1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(hda1>thr,na.rm=T)
-hdaM<-cbind(hda1,hda2)
+M12<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
+sum(M12>thr,na.rm=T)
+sel<-"WT"
+hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
+summary(hda)
+hist(as.matrix(hda))
+WT<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
+sum(WT>thr,na.rm=T)
+hdaM<-cbind(M12,WT)
 limma::vennDiagram(hdaM>thr)
 inpW<-paste0(inpF,sel,"LFQ.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
 assign(sel,hdaM)
 ```
 
-```{r iPC_B}
-sel<-"iPSC_B"
-hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
-summary(hda)
-hist(as.matrix(hda))
-hda1<-apply(hda[,1:3],1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(hda1>thr,na.rm=T)
-hda2<-apply(hda[,4:6],1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(hda2>thr,na.rm=T)
-hdaM<-cbind(hda1,hda2)
-limma::vennDiagram(hdaM>thr)
-inpW<-paste0(inpF,sel,"LFQ.xlsx")
-writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
-assign(sel,hdaM)
-```
-
-
-```{r iPC_T}
-sel<-"iPSC_T"
-hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
-limma::vennDiagram(hda>thr)
-summary(hda)
-hist(as.matrix(hda))
-hda1<-apply(hda[,1:3],1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(hda1>thr,na.rm=T)
-hdaM<-hda1
-inpW<-paste0(inpF,sel,"LFQ.xlsx")
-writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
-assign(sel,hdaM)
-```
-
-
-```{r iPC_P}
-sel<-"iPC_P"
-hda1<-apply(iPSC_B,1,function(x) if(sum(is.na(x))<ncol(iPSC_B)){median(x,na.rm=T)} else{0})
-summary(hda1)
-sum(hda1>thr,na.rm=T)
-hda2<-iPSC_T
-summary(hda2)
-sum(hda2>thr,na.rm=T)
-hdaM<-cbind(hda1,hda2)
-hist(as.matrix(hdaM))
-limma::vennDiagram(hdaM>thr)
-inpW<-paste0(inpF,sel,"LFQ.xlsx")
-writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
-assign(sel,hdaM)
-```
-
-```{r venn}
-hda<-cbind(iPSC_A,iPC_P)
-hist(hda)
-limma::vennDiagram(hda>thr)
-```
-
-```{r iPCt, echo = FALSE}
-dataSellog2grpTtest<-cbind(iPC_P,iPSC_A)
-comp<-"iPC_P-iPSC_A"
+```{r Mt, echo = FALSE}
+comp<-"M|WT"
+dataSellog2grpTtest<-as.matrix(log2LFQ[,grep(comp,colnames(log2LFQ))])
 dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
 summary(dataSellog2grpTtest)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
-eCol<-4
+eCol<-3
 mCol<-2
 cvThr<-0.05
 t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
-chkr<-1
+chkr<-2
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
-t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value
 dim(dataSellog2grpTtest)
 options(nwarnings = 1000000)
-
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
@@ -206,23 +155,26 @@ pValBHna = p.adjust(pValNA,method = "BH")
 hist(pValBHna)
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
-dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
-logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
-logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
-logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
-logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedianGrp1 = apply(dataSellog2grpTtest[,c(sCol:mCol)],1, function(x) median(x,na.rm=T))
+logFCmedianGrp1=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
+#summary(logFCmedianGrp11-logFCmedianGrp1)
+logFCmedianGrp2=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) median(x,na.rm=T))}
+logFCmedianGrp1[is.na(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
+hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
+plot(hda)
+limma::vennDiagram(hda>0)
 logFCmedian = logFCmedianGrp1-logFCmedianGrp2
 logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
 logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
+
+comp<-gsub("[^[:alnum:] ]", "", comp)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
 writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.xlsx"))
 write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.csv"),row.names = F)
-#limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
-limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
-limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
 data$RowGeneUniProtScorePeps<-data$Gene.names
 ttest.results[is.na(ttest.results)]=selThr
 Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC

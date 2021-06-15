@@ -16,7 +16,7 @@ mdata <- read.perseus(inFile)
 dataSellog2grpTtest <- main(mdata)
 sCol<-1
 eCol<-ncol(dataSellog2grpTtest)
-mCol <- ceiling((eCol-sCol)/2)
+mCol <- ceiling((eCol-sCol)/2)-1
 #outMdata <- matrixData(main=dataSellog2grpTtest[,1:mCol])
 #inFile<-"C:/Users/animeshs/GD/scripts/matrix.txt"
 #outFile<-"C:/Users/animeshs/GD/scripts/matrix.out"
@@ -38,7 +38,9 @@ pValNA = apply(
     t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
   else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
   else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
-  else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+  else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>1){
+    t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+  else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))==1){
     t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
   else{1}
 )

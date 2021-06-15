@@ -35,6 +35,10 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r 4.1}
+#https://towardsdatascience.com/ten-awesome-recent-developments-in-r-6bfad46299a0
+mtcars |> lapply(\(x) mean(x) > 20)
+```
 
 ```{r sumGO}
 #https://bioconductor.org/packages/release/bioc/vignettes/GOsummaries/inst/doc/GOsummaries-basics.pdf

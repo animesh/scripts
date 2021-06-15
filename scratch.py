@@ -1,4 +1,27 @@
 #!pip install --upgrade pip
+set USE_DAAL4PY_SKLEARN=YES
+#python -c 'import sklearn'
+#https://lvwerra.github.io/jupyterplot/
+!pip install jupyterplot
+from jupyterplot import ProgressPlot
+import numpy as np
+pp = ProgressPlot()
+for i in range(1000):
+    pp.update(np.sin(i / 100))
+pp.finalize()
+pp = ProgressPlot(plot_names=['plot 1', 'plot 2'], x_lim=[0, 1000], y_lim=[[0, 10],[0, 100]])
+for i in range(1000):
+    pp.update([[(i/100)], [(i/100)**2]])
+
+#https://www.tensorflow.org/api_docs/python/tf/experimental/numpy
+import  tensorflow.experimental.numpy as tnp
+import numpy as np
+print(tnp.ones([2,1]) + np.ones([1, 2]))
+print(tnp.ones([1, 2], dtype=tnp.int16) + tnp.ones([2, 1], dtype=tnp.uint8))
+@tf.function
+def f(x, y):
+  return tnp.sum(x + y)
+f(tnp.ones([1, 2]), tf.ones([2, 1]))
 #https://towardsdatascience.com/how-to-solve-a-staff-scheduling-problem-with-python-63ae50435ba4
 #admin mamba install pulp gdown -c conda-forge
 import gdown
@@ -25,7 +48,7 @@ for t in range(T):
 prob.solve()
 print("Status:", LpStatus[prob.status])
 for shift in range(n):	print(f"The number of workers needed for shift {shift} is {int(y[shift].value())} workers")
-	
+
 #https://github.com/animesh/openmp_course_2021
 import numpy as np
 import time
