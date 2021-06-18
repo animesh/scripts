@@ -3,6 +3,9 @@
 libPaths="C:/Users/animeshs/GD/libR"
 libPaths="L:/promec/Animesh/R/win-library/4.0"
 .libPaths(c(libPaths, .libPaths()))
+#C:\Program Files\Microsoft\R Open\R-4.0.2\bin\Rscript.exe
+#F:\GD\tools\aovPerseusR\proteinGroupsANOVA.r
+#Abundances \(Normalized\): F(.*): Sample
 #install.packages("readxl")
 #install.packages("remotes")
 #remotes::install_version("rlang","0.4.10", repos = "http://cran.us.r-project.org")

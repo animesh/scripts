@@ -1,5 +1,5 @@
 ```{r setup}
-.libPaths( c( .libPaths(), "L:/promec/Animesh/R/win-library/4.0") )
+.libPaths(c("L:/promec/Animesh/R/win-library/4.0",.libPaths())
 .libPaths()
 #data
 inpD <-"L:/promec/Animesh/Kristian/"
@@ -13,7 +13,10 @@ getwd()
 
 ```{r library}
 install.packages("BiocManager")
+install.packages("scales")
 BiocManager::install("pathview")
+BiocManager::install("org.Hs.eg.db")
+#BiocManager::install(update=T)
 library(pathview)
 ?pathview
 ```
@@ -39,7 +42,7 @@ limma::vennDiagram(dataS>0)
 #https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
 #BiocManager::install("pathview")
 library(pathview)
-#https://www.kegg.jp/kegg-bin/show_pathway?hsa03010
+#https://www.kegg.jp/kegg-bin/show_pathway?hsa04210
 hda=dataS
 rowName<-strsplit(data$T..Protein.IDs, ";")
 rowName<-paste(sapply(rowName, "[", 1))
@@ -49,17 +52,22 @@ protName<-sapply(rowName, "[", 1)
 rowName<-paste(protName,protNum,sep=";")
 #rownames(hda)<-rowName
 hist(hda)
+hda[is.na(hda)]=0
+#hda=hda-hda[,3]
+hda=hda-hda[,2]
 #hda=hda-matrixStats::rowMedians(hda)
-hda=hda-median(hda,na.rm=T)+1e-6
+#hda=hda-median(hda,na.rm=T)+1e-6
 hist(hda)
+write.table(hda,paste0(inpF,".hdaM1M0.txt"),sep="\t")
 hda[hda==0]<-NA
+hda=hda[,1]
 #hda[is.na(hda)]<-0
 hist(hda)
 #heatmap(hda)
 #library(scales)
 #scale(t(hda))
-#hda=squish(as.matrix(hda),c(-10,10))
-#hist(hda)
+hda=scales::squish(as.matrix(hda),c(-5,5))
+hist(hda)
 #rownames(hda)<-protName
 rownames(hda)<-rownames(dataS)
 pathList<-c(
@@ -84,10 +92,10 @@ for(pcode in pathList){
   print(pcode)
 #pcode<-"04064"
 pspecies<-"hsa"
-sfx<-paste(gsub("[^[:alnum:] ]", "",colnames(dataS)), collapse='_' )
+sfx<-"M1MO"#paste(gsub("[^[:alnum:] ]", "",colnames(dataS)), collapse='_' )
 idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
 pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="orange"),both.dirs=list(gene=T), limit = list(gene = 5), bins = list(gene = 5), na.col="grey",out=sfx)
 }
-write.csv(hda,paste0(inpF,sfx,"-median.csv"))
+write.csv(hda,paste0(inpF,sfx,"-M0.csv"))
 ```
 

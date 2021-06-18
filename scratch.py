@@ -1,6 +1,30 @@
 #!pip install --upgrade pip
 set USE_DAAL4PY_SKLEARN=YES
 #python -c 'import sklearn'
+#outlier https://towardsdatascience.com/5-outlier-detection-methods-that-every-data-enthusiast-must-know-f917bf439210
+from sklearn.neighbors import LocalOutlierFactor
+data = [[1, 1], [2, 2.1], [1, 2], [2, 1], [50, 35], [2, 1.5]]
+lof = LocalOutlierFactor(n_neighbors=2, metric='manhattan')
+prediction = lof.fit_predict(data)
+>> [ 1,  1,  1,  1, -1,  1]
+#Geometric Models for Outlier Detection, where I primarily focus on Angle-Based Techniques(ABOD) and Depth-Based Techniques(Convex Hull)
+from sklearn.ensemble import IsolationForest
+data = [[1, 1], [2, 2.1], [1, 2], [2, 1], [50, 35], [2, 1.5]]
+iforest = IsolationForest(n_estimators=5)
+iforest.fit(data)
+actual_data = [[1, 1.5]]
+iforest.predict(actual_data)
+>> 1   (Normal)
+outlier_data = [[45, 55]]
+iforest.predict(outlier_data)
+>> -1   (Outlier)
+import package_outlier as po
+data = [[1, 1], [2, 2.1], [1, 2], [2, 1], [50, 35], [2, 1.5]]
+result = po.LocalOutlierFactorOutlier(data)
+print (result)
+#https://software.intel.com/content/www/us/en/develop/training/course-anomaly-detection.html
+#https://www.analyticsvidhya.com/blog/2019/02/outlier-detection-python-pyod/
+#https://h1ros.github.io/posts/anomaly-detection-by-auto-encoder-deep-learning-in-pyod/
 #https://lvwerra.github.io/jupyterplot/
 !pip install jupyterplot
 from jupyterplot import ProgressPlot

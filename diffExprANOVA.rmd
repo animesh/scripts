@@ -1,11 +1,11 @@
 ```{r setup, include=FALSE}
 #library/packages
-.libPaths( c( .libPaths(), "L:/promec/Animesh/R/win-library/4.0") )
+.libPaths( "L:/promec/Animesh/R/win-library/4.0", c( .libPaths()) )
 .libPaths()
 #plot
 par(mfrow=c(1,2))
 #data
-inpD <-"L:/promec/HF/Lars/2021/june/Siri/combined/txt/"
+inpD <-"L:/promec/Animesh/Kathleen/AGS/"
 thr<-0
 selThr=0.3
 selThrFC=0.0
@@ -25,6 +25,59 @@ t.test(c(20.39459,19.48316),c(NA,25.34495),na.rm=T,var.equal=T)$p.value
 t.test(c(22.39459,20.48316,21.87155),c(NA,17.97),na.rm=T,var.equal=T)$p.value
 t.test(c(21.4316,21.77155),c(NA,17.7),na.rm=T,var.equal=T)$p.value
 t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
+```
+
+```{r convXL}
+inpFL<-list.files(pattern="*.xlsx$",path=inpD,full.names=F,recursive=F)
+sel<-"Normalized"
+dfUni<-"ZZZZZZ"
+for(inpF in inpFL){
+  print(inpF)
+  data<-readxl::read_xlsx(paste0(inpD,inpF))
+  data<-data[- grep("sp",data$Accession,ignore.case=F),]
+  data<-data[!is.na(data[["Marked as"]]),]
+  dataLFQ<-as.matrix(data[,grep(sel,colnames(data))])
+  log2dataLFQ<-log2(dataLFQ)
+  hist(log2dataLFQ)
+  Uniprot<-paste(gsub('[\n\r]',';',data$Accession),data$`Gene Symbol`,data$`Entrez Gene ID`,sep=";")
+  Uniprot<-sapply(strsplit(Uniprot, ";"), "[", 1)
+  log2dataLFQ=as.data.frame(cbind(Uniprot,log2dataLFQ))
+  dfUni<-union(dfUni,log2dataLFQ$Uniprot)
+  write.table(log2dataLFQ,paste0(inpD,inpF,".txt"),quote = F,sep = "\t",row.names=F)
+  assign(inpF,log2dataLFQ)
+}
+hist(sapply(log2dataLFQ[,grep(sel,colnames(log2dataLFQ))],as.numeric))
+write.table(dfUni,paste0(inpD,inpF,".uniprots.txt"),quote = F,sep = "\t",row.names=F)
+```
+
+```{r merge}
+data<-data.frame(Uniprot=dfUni)
+write.table(data,paste0(inpD,inpF,".uniprots.txt"),quote = F,sep = "\t",row.names=F)
+for (obj in inpFL) {
+  print(obj)
+  data<-merge(data,get(obj),by="Uniprot",all=T)
+  #data<-merge(get(inpFL[6]),get(inpFL[1]),by="Uniprot",all=T)
+  #data<-merge(data,get(inpFL[1]),by="Uniprot",all=T)
+}
+#28+49+28+29+49+6-6
+#27+27+48+5+28+48
+hist(sapply(data[,grep(sel,colnames(data))],as.numeric))
+write.table(data,paste0(inpD,inpF,".combined.txt"),quote = F,sep = "\t",row.names=F)
+```
+
+```{r chkNA}
+final <- na.omit(data)
+hist(sapply(final[,grep(sel,colnames(final))],numeric))
+```
+```{r code}
+file<-read.csv(paste0(inpD,"FileCode.txt"),sep="\t")
+bcode<-read.csv(paste0(inpD,"Bcodes.txt"),sep="\t")
+label<-merge(file,bcode,by.x = "B",by.y = "Name",all = T)
+write.table(label,paste0(inpD,"label.combined.txt"),quote = F,sep = "\t",row.names=F)
+bcode$noB<-gsub("B","",bcode$Name)
+label2<-merge(label,bcode,by.x = "B",by.y = "noB",all = T)
+names(label2)[2]="Name"
+write.table(label2,paste0(inpD,"label2.combined.txt"),quote = F,sep = "\t",row.names=F)
 ```
 
 ```{r proteinGroups, echo=FALSE}
