@@ -1,6 +1,9 @@
 #!pip install --upgrade pip
 set USE_DAAL4PY_SKLEARN=YES
 #python -c 'import sklearn'
+#https://towardsdatascience.com/do-not-use-print-for-debugging-in-python-anymore-6767b6f1866d
+#pip install icecream
+from icecream import ic
 #outlier https://towardsdatascience.com/5-outlier-detection-methods-that-every-data-enthusiast-must-know-f917bf439210
 from sklearn.neighbors import LocalOutlierFactor
 data = [[1, 1], [2, 2.1], [1, 2], [2, 1], [50, 35], [2, 1.5]]

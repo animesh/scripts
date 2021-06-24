@@ -5,6 +5,7 @@ libPaths="L:/promec/Animesh/R/win-library/4.0"
 .libPaths(c(libPaths, .libPaths()))
 #C:\Program Files\Microsoft\R Open\R-4.0.2\bin\Rscript.exe
 #F:\GD\tools\aovPerseusR\proteinGroupsANOVA.r
+#C:\MR-4.0.2\bin\Rscript.exe
 #Abundances \(Normalized\): F(.*): Sample
 #install.packages("readxl")
 #install.packages("remotes")
@@ -41,6 +42,18 @@ plot(B)
 ```{r 4.1}
 #https://towardsdatascience.com/ten-awesome-recent-developments-in-r-6bfad46299a0
 mtcars |> lapply(\(x) mean(x) > 20)
+```
+```{r}
+#https://github.com/business-science/free_r_tips
+corrmorrant::corrmorrant(data)
+```
+```{r}
+#https://patchwork.data-imaginist.com/
+library(ggplot2)
+library(patchwork)
+p1 <- ggplot(mtcars) + geom_point(aes(mpg, disp))
+p2 <- ggplot(mtcars) + geom_boxplot(aes(gear, disp, group = gear))
+p1 + p2
 ```
 
 ```{r sumGO}
