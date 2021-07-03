@@ -5,7 +5,7 @@
 #plot
 par(mfrow=c(1,2))
 #data
-inpD <-"L:/promec/HF/Lars/2021/june/Siri2/combined/txt/"
+inpD <-"L:/promec/USERS/Synnøve/20201201_16samples/QE/APIM/combined/"
 thr<-0
 selThr=0.3
 selThrFC=0.0
@@ -92,19 +92,19 @@ write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,selection,"
 
 
 ```{r Group}
-sel<-"M"
+sel<-"C"
 hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
 summary(hda)
 hist(as.matrix(hda))
-M12<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(M12>thr,na.rm=T)
-sel<-"WT"
+C<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
+sum(C>thr,na.rm=T)
+sel<-"A"
 hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
 summary(hda)
 hist(as.matrix(hda))
-WT<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(WT>thr,na.rm=T)
-hdaM<-cbind(M12,WT)
+A<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
+sum(A>thr,na.rm=T)
+hdaM<-cbind(A,C)
 limma::vennDiagram(hdaM>thr)
 inpW<-paste0(inpF,sel,"LFQ.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
@@ -112,14 +112,14 @@ assign(sel,hdaM)
 ```
 
 ```{r Mt, echo = FALSE}
-comp<-"M|WT"
+comp<-"A|C"
 dataSellog2grpTtest<-as.matrix(log2LFQ[,grep(comp,colnames(log2LFQ))])
 dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
 summary(dataSellog2grpTtest)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
-eCol<-3
-mCol<-2
+eCol<-6
+mCol<-3
 cvThr<-0.05
 t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
 chkr<-2

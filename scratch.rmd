@@ -44,6 +44,16 @@ plot(B)
 mtcars |> lapply(\(x) mean(x) > 20)
 ```
 ```{r}
+#https://github.com/snystrom/memes
+#remotes::install_github("snystrom/memes", ref = "no-r-4")
+data("example_peaks", package = "memes")
+dm.genome <- BSgenome.Dmelanogaster.UCSC.dm6::BSgenome.Dmelanogaster.UCSC.dm6
+sequences <- example_peaks %>% 
+  resize(200, "center") %>% 
+  get_sequence(dm.genome)
+```
+
+```{r cor}
 #https://github.com/business-science/free_r_tips
 corrmorrant::corrmorrant(data)
 ```

@@ -1,6 +1,36 @@
 #!pip install --upgrade pip
 set USE_DAAL4PY_SKLEARN=YES
 #python -c 'import sklearn'
+#https://towardsdatascience.com/7-data-wrangling-python-functions-in-under-5-minutes-a8d9ec7cf34b
+from gapminder import gapminder
+(
+    gapminder
+	.query("year == 1972")
+    .query("lifeExp < lifeExp.mean()")
+    .query("country == 'Bolivia' | country == 'Angola'").rename(columns = {
+        "year" : "Year",
+        "lifeExp" : "Life Expectancy"
+    })
+    .assign(
+        con_country = lambda x: x.continent + " - " + x.country,
+        rn_lifeExp = lambda x: x.lifeExp.round(0).astype(int)
+    )
+	.sort_values(["lifeExp", "year"], ascending = [True, False])
+    .head(rows)
+)
+(
+    gapminder
+    .query("year > 1989")
+    .groupby(["continent", "year"])
+	.agg(
+        pop_mean = ('pop', 'mean'),
+        pop_sd = ('pop', 'std'),
+        le_mean = ('lifeExp', 'mean'),
+        le_sd = ('lifeExp', 'std')
+    )
+    .T
+)
+#https://pandas.pydata.org/pandas-docs/version/1.2.3/pandas.pdf
 #https://towardsdatascience.com/do-not-use-print-for-debugging-in-python-anymore-6767b6f1866d
 #pip install icecream
 from icecream import ic

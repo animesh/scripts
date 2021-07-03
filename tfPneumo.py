@@ -1,5 +1,5 @@
+# In[74]:
 import numpy as np
-import os
 import tensorflow as tf
 print(tf.__version__)
 from tflite_model_maker import configs
@@ -11,7 +11,7 @@ assert tf.__version__.startswith('2')
 tf.get_logger().setLevel('ERROR')
 #data_path = tf.keras.utils.get_file('flower_photos','https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz',untar=True)
 data_path='F:\\Pneumonia\\chest_xray\\chest_xray\\train'
-data_path='/mnt/f/Pneumonia/chest_xray/chest_xray/train'
+#data_path='/mnt/f/Pneumonia/chest_xray/chest_xray/train'
 data = DataLoader.from_folder(data_path)
 train_data, test_data = data.split(0.5)
 model = image_classifier.create(train_data)
@@ -20,7 +20,7 @@ loss, accuracy = model.evaluate(test_data)
 print(loss,accuracy)
 
 data_path='F:\\Pneumonia\\chest_xray\\chest_xray\\test'
-data_path='/mnt/f/Pneumonia/chest_xray/chest_xray/test'
+#data_path='/mnt/f/Pneumonia/chest_xray/chest_xray/test'
 data = DataLoader.from_folder(data_path)
 train_data, test_data = data.split(0.5)
 print(train_data, test_data)
@@ -28,6 +28,7 @@ loss, accuracy = model.evaluate(test_data)
 print(loss,accuracy)
 
 loss, accuracy = model.evaluate(train_data)
+
 print(loss,accuracy)
 
 
