@@ -5,7 +5,7 @@
 #plot
 par(mfrow=c(1,2))
 #data
-inpD <-"L:/promec/USERS/Synnøve/20201201_16samples/QE/APIM/combined/"
+inpD <-"L:/promec/USERS/Synnøve/20210709_Synnove_6samples/HF/combined/txt/"
 thr<-0
 selThr=0.3
 selThrFC=0.0

@@ -1,12 +1,12 @@
 ```{r setup, echo = FALSE}
 #library/packages
-.libPaths( c( .libPaths(), "L:/promec/Animesh/R/win-library/4.0") )
+.libPaths( c( .libPaths(), "L:/R/library") )
 .libPaths()
 #install.packages("glue")
 #plot
 par(mfrow=c(1,2))
 #data
-inpD <-"L:/promec/Animesh/Kristian/"
+inpD <-"L:/promec/Animesh/Aida/"
 selThr=0.3
 selThrFC=0.5
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
@@ -131,27 +131,254 @@ if(sum(suc) < length(list.of.bio.packages) )
 ```
 
 ```{r data, echo = FALSE}
-inpF<-paste0(inpD,"proteinGroups.txtLpromecAnimeshKristianM1_Mono_MOtestsM.csv")
-data <- read.csv(inpF,header = T)
-data$Gene<-sapply(strsplit(as.character(data$RowGeneUniProtScorePeps),";;"), "[", 5)
-data$Gene<-sapply(strsplit(data$Gene,";"), "[", 1)
-data$GN<-sapply(strsplit(as.character(data$RowGeneUniProtScorePeps),"GN="), "[", 2)
-data$GN<-sapply(strsplit(data$GN,"[:; ]"), "[", 1)
-data$ChkG<-data$GN==data$Gene
-summary(data)
-selection<-"TtestPval"
-LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-protNum<-1:ncol(LFQ)
-colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_")
-dim(LFQ)
-hist(LFQ)
-log2LFQ<-log2(LFQ)
-log2LFQ[log2LFQ==-Inf]=NA
-summary(log2LFQ)
-hist(log2LFQ)
-writexl::write_xlsx(as.data.frame(cbind(data$Gene,log2LFQ,data$ChkG,data$GN,data$RowGeneUniProtScorePeps)),paste0(inpF,"gene.xlsx"))
+inpF<-paste0(inpD,"Supplementary Table 2 for working purpose.xlsx")
+data <- readxl::read_excel(inpF)
+dataLog2<-sapply(data, as.numeric)
+warnings()
 ```
 
+```{r MM, echo = FALSE}
+dataLog2MGUS<-dataLog2[,grep("MGUS[1-9]+",colnames(dataLog2))]
+dataLog2MM<-dataLog2[,grep("MM[1-9]+",colnames(dataLog2))]
+#dataComb<-rbind(t(dataLog2MM[1,]),t(dataLog2MGUS[1,]))
+dataComb<-data.frame(dataLog2[,grep("MGUS[1-9]+|MM[1-9]+",colnames(dataLog2))])#cbind(t(dataLog2MM[1,]),t(dataLog2MGUS[1,]))
+#sample<-factor(substr(colnames(dataComb), start = 1, stop = 2))
+boxplot(dataComb)
+rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nrow(dataComb),sep=";")
+#dataComb<-rbind(dataComb,sample)
+write.csv(dataComb,paste0(inpF,"id.csv"))
+#dataComb$Uniprot<-data$`T: T: Protein IDs`
+dataComb<-data.frame(t(dataComb))
+dataComb$Group<-factor(c("G","G","G","G","G","G","G","G","G","L","L","L","L","L","L","M","M","M","M","M","M","M","M","M","M","M","M","M","C","C","M","M","M","M","C","M","M","M","M","M","M","M","M","M","M","C"))
+dataComb[is.na(dataComb)]<-"NaN"
+write.csv(dataComb,paste0(inpF,"trp.id.csv"))
+boxplot(dataComb$C4orf27.Q9NWY4.A8MVJ9.1200~dataComb$Group)
+stripchart(dataComb$C4orf27.Q9NWY4.A8MVJ9.1200~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+boxplot(dataComb$TFRC.P02786.G3V0E5.H7C3V5.F8WBE5.Q9UP52.2.Q9UP52.3.Q9UP52.1~dataComb$Group)
+stripchart(dataComb$TFRC.P02786.G3V0E5.H7C3V5.F8WBE5.Q9UP52.2.Q9UP52.3.Q9UP52.1~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+boxplot(dataComb$STOM.P27105.P27105.2.F8VSL7.1055~dataComb$Group)
+stripchart(dataComb$STOM.P27105.P27105.2.F8VSL7.1055~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+boxplot(dataComb$LAMP1.P11279.P11279.2.7~dataComb$Group)
+stripchart(dataComb$LAMP1.P11279.P11279.2.7~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+boxplot(dataComb$TPM3.P06753.2.A0A087WWU8.P06753.5.Q5VU61.D6R904.D6RFM2.1125~dataComb$Group)
+stripchart(dataComb$TPM3.P06753.2.A0A087WWU8.P06753.5.Q5VU61.D6R904.D6RFM2.1125~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+boxplot(dataComb$CIRBP.Q14011.K7EMY9.K7EPM4.K7EQR7.D6W5Y5.Q14011.2.K7ENX8.K7EJV5.K7ELT6.K7EJV1.K7ER40.K7ELV6.K7EQX4.K7ENN6.K7EIF7.K7EQL0.F6WMK9.Q14011.3.27~dataComb$Group)
+stripchart(dataComb$CIRBP.Q14011.K7EMY9.K7EPM4.K7EQR7.D6W5Y5.Q14011.2.K7ENX8.K7EJV5.K7ELT6.K7EJV1.K7ER40.K7ELV6.K7EQX4.K7ENN6.K7EIF7.K7EQL0.F6WMK9.Q14011.3.27~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+boxplot(dataComb$SCP2.P22307.7.P22307.8.P22307.P22307.6.P22307.2.H0YF61.E9PLD1.P22307.3.H0YCB0.2~dataComb$Group)
+stripchart(dataComb$SCP2.P22307.7.P22307.8.P22307.P22307.6.P22307.2.H0YF61.E9PLD1.P22307.3.H0YCB0.2~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "orange")
+boxplot(dataComb$NDUFA5.A0A087X1G1.H7BYD0.Q16718.2.Q16718.A0A087WXR5.F8WAS3.C9IZN5.55~dataComb$Group)
+stripchart(dataComb$NDUFA5.A0A087X1G1.H7BYD0.Q16718.2.Q16718.A0A087WXR5.F8WAS3.C9IZN5.55~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "orange")
+dataComb50p<-dataComb[,which(colMeans(!is.na(dataComb)) > 0.9999)]
+dataComb50cv<-dataComb[,which(col(!is.na(dataComb)) > 0.9999)]
+p <- ggplot2::ggplot(dataComb, ggplot2::aes(x="TFRC;1",y=rownames(dataComb),fill=Group)) +  ggplot2::geom_boxplot() + ggplot2::geom_jitter(color="black", size=0.4,width=0.1, alpha=0.9)
+p <- ggplot2::ggplot(dataComb, ggplot2::aes(x="TFRC;1",y=TFRC.1,fill=Group)) +  ggplot2::geom_boxplot() + ggplot2::geom_jitter(color="black", size=1,width=0.1, alpha=0.5)
+p
+#data$Gene<-sapply(strsplit(as.character(data$RowGeneUniProtScorePeps),";;"), "[", 5)
+#data$Gene<-sapply(strsplit(data$Gene,";"), "[", 1)
+#data$GN<-sapply(strsplit(as.character(data$RowGeneUniProtScorePeps),"GN="), "[", 2)
+#data$GN<-sapply(strsplit(data$GN,"[:; ]"), "[", 1)
+#data$ChkG<-data$GN==data$Gene
+summary(dataComb)
+#log2LFQ[log2LFQ==-Inf]=NA
+hist(dataComb$TFRC.1)
+writexl::write_xlsx(dataComb,paste0(inpF,"gene.xlsx"))
+```
+
+```{r MW}
+upMM<-read.csv(paste0(inpD,"uniprot-yourlist_M20210713A084FC58F6BBA219896F365D15F2EB440C40315.txt"),sep="\t")
+upMM$Group<-"up"
+upMM<-upMM[upMM$Mass>0,]
+summary(as.numeric(upMM$Mass))
+downMM<-read.csv(paste0(inpD,"uniprot-yourlist_M202107134ABAA9BC7178C81CEBC9459510EDDEA30C7678U.txt"),sep="\t")
+downMM$Group<-"down"
+downMM<-downMM[downMM$Mass>0,]
+combMM<-rbind(upMM,downMM)
+dataMM<-read.csv(paste0(inpD,"combMM.txt"),sep="\t")
+boxplot(dataMM$Mass~dataMM$C..Group)
+stripchart(dataMM$Mass~dataMM$C..Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "orange")
+boxplot(dataMM$Length~dataMM$C..Group)
+stripchart(dataMM$Length~dataMM$C..Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+t.test(dataMM$Mass~dataMM$C..Group)
+t.test(dataMM$Length~dataMM$C..Group)
+```
+
+```{r gMGUSt, echo = FALSE}
+comp<-"MGUS"
+dataSellog2grpTtest<-as.matrix(dataComb[,grep(comp,colnames(dataComb))])
+dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
+summary(dataSellog2grpTtest)
+boxplot(dataSellog2grpTtest)
+row.names(dataSellog2grpTtest)<-row.names(dataComb)
+sCol<-1
+eCol<-9
+mCol<-5
+cvThr<-0.05
+t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
+chkr<-2
+sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value
+dim(dataSellog2grpTtest)
+options(nwarnings = 1000000)
+pValNA = apply(
+  dataSellog2grpTtest, 1, function(x)
+    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
+    else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1&(sd(x[c(sCol:mCol)],na.rm=T)/mean(x[c(sCol:mCol)],na.rm=T))<cvThr){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1&(sd(x[c((mCol+1):eCol)],na.rm=T)/mean(x[c((mCol+1):eCol)],na.rm=T))<cvThr){0}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+    else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
+      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+  else{NA}
+  )
+summary(warnings())
+hist(pValNA)
+summary(pValNA)
+dfpValNA<-as.data.frame(ceiling(pValNA))
+pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+length(pValNA)-(sum(is.na(pValNA))+sum(ceiling(pValNA)==0,na.rm = T))
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+logFCmedianGrp1 = apply(dataSellog2grpTtest[,c(sCol:mCol)],1, function(x) median(x,na.rm=T))
+logFCmedianGrp1=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
+#summary(logFCmedianGrp11-logFCmedianGrp1)
+logFCmedianGrp2=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) median(x,na.rm=T))}
+logFCmedianGrp1[is.na(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
+hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
+plot(hda)
+limma::vennDiagram(hda>0)
+logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
+logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
+hist(logFCmedianFC)
+log2FCmedianFC=log2(logFCmedianFC)
+hist(log2FCmedianFC)
+rowName<-row.names(dataSellog2grpTtest)
+comp<-gsub("[^[:alnum:] ]", "", comp)
+ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.xlsx"))
+write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.csv"),row.names = F)
+data$RowGeneUniProtScorePeps<-data$Gene.names
+ttest.results[is.na(ttest.results)]=selThr
+Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
+sum(Significance)
+dsub <- subset(ttest.results,Significance)
+p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
+p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+#f=paste(file,proc.time()[3],".jpg")
+ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"VolcanoTest.svg"), p)
+print(p)
+p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
+p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=""),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+#f=paste(file,proc.time()[3],".jpg")
+ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"VolcanoTestNoLabel.svg"), p)
+print(p)
+```
+
+```{r TCGAsurvivalKM}
+#https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7304035/
+#BiocManager::install("TCGAbiolinks")
+#library(TCGAbiolinks)
+clinical_patient_Cancer <- GDCquery_clinic("MMRF-COMMPASS","clinical")
+dataNorm <- TCGAanalyze_Normalization(tabDF = dataMMRF, geneInfo = geneInfo)
+tabSurvKM<-TCGAanalyze_SurvivalKM(clinical_patient_Cancer,dataComb,Genelist =c("UNG") ,Survresult = F,ThreshTop=0.67,ThreshDown=0.33)
+#https://academic.oup.com/bib/advance-article/doi/10.1093/bib/bbab050/6209690
+install.packages("BiocManager")
+BiocManager::install(c("EDASeq","genefilter", "sva", "limma","GenomicFeatures","EnsDb.Hsapiens.v79"))
+install.packages("devtools")
+remotes::install_github("RDocTaskForce/testextra")
+remotes::install_github("RDocTaskForce/parsetools")
+devtools::install_github("halpo/purrrogress")
+install.packages("rmarkdown")
+install.packages("knitr")
+install.packages("sweave")
+install.packages("xtable")
+install.packages("DT")
+BiocManager::install("BiocStyle")
+library(TCGAbiolinks)
+library(SummarizedExperiment)
+library(dplyr)
+library(DT)
+library(ggplot2)
+devtools::install_github("marziasettino/MMRFBiolinks", build_vignettes = TRUE)
+devtools::load_all("C:\\Users\\animeshs\\R\\library\\MMRFBiolinks\\html\\.")
+vignette(package="MMRFBiolinks")
+browseVignettes("MMRFBiolinks")
+library("MMRFBiolinks")
+data(package = "MMRFBiolinks")
+clinical <- MMRFGDC_QueryClinic(type = "clinical")
+#write.csv(data.frame(clinical),paste0(inpD,"clinical.csv"))
+save(file=paste0(inpD,"clinical.rds"),clinical)
+load(paste0(inpD,"clinical.rds"))
+colnames(clinical)
+clinical$bcr_patient_barcode
+assign(data(package = "MMRFBiolinks",dataMM),dM)
+data(package = "MMRFBiolinks",dataGE)
+listSamples <- clinical$bcr_patient_barcode#c("MMRF_2473","MMRF_2111",                 "MMRF_2362","MMRF_1824","MMRF_1458","MRF_1361","MMRF_2203","MMRF_2762","MMRF_2680","MMRF_1797")
+query <- TCGAbiolinks::GDCquery(project = "MMRF-COMMPASS", 
+                               data.category = "Transcriptome Profiling",
+                               data.type = "Gene Expression Quantification",
+                               experimental.strategy = "RNA-Seq",
+                               workflow.type="HTSeq - FPKM",
+                               barcode = listSamples)
+#TCGAbiolinks::GDCdownload(query, method = "api", files.per.chunk = 10)
+#TCGAbiolinks::GDCdownload(query, method = "client", files.per.chunk = 10)
+TCGAbiolinks::GDCdownload(query, method = "api", files.per.chunk = 5)
+dataTCGA<- TCGAbiolinks::GDCprepare(query)
+save(file=paste0(inpD,"data.rds"),dataTCGA)
+load(paste0(inpD,"data.rds"))
+MMRnaseqSE <- MMRFBiolinks::MMRFGDC_prepare(query,
+                              save = TRUE ,
+                              save.filename = paste0(hdr ,"2.rda"),
+                              directory = "GDCdata",
+                              summarizedExperiment = TRUE)
+MMRFdataPrepro <- TCGAanalyze_Preprocessing(MMRnaseqSE)
+library(MMRFBiolinks)
+load(paste0(inpD,hdr ,".rda"))
+MMRnaseqSE <- data
+MMRFdataPrepro <- TCGAbiolinks::TCGAanalyze_Preprocessing(dataTCGA)
+tabSurvKM <- TCGAbiolinks::TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
+TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000196976"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q14657	LAGE3
+ENSG00000172315<-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
+TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000172315"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #Q96S44	 TP53RK C20orf64, PRPK
+ENSG00000170270<-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
+TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000170270"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q9BXV9	GON7 C14orf142
+ENSG00000275619<-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
+TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000275619"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q9BXV9	GON7 C14orf142
+ENSG00000092094<-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
+TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000092094"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #		Q9NPF4	OSGEP GCPL1
+
+MMRFclin <- MMRFGDC_QueryClinic(type = "clinical")
+tokenStop<- 1
+tabSurvKMcomplete <- NULL
+for( i in 1: round(nrow(MMRFdataPrepro)/500)){
+    message( paste( i, "of ", round(nrow(MMRFdataPrepro)/100)))
+    tokenStart <- tokenStop
+    tokenStop <-100*i
+    tabSurvKM <- TCGAanalyze_SurvivalKM(MMRFclin,
+                                         MMRFdataPrepro,
+                                         Genelist = rownames(MMRFdataPrepro)[tokenStart:tokenStop],
+                                        Survresult = F,ThreshTop=0.76,ThreshDown=0.33)
+    tabSurvKMcomplete <- rbind(tabSurvKMcomplete,tabSurvKM)
+}
+write.csv(tabSurvKMcomplete,paste0(inpD,"tabSurvKMcomplete.csv"))
+tabSurvKMcompletePV1p <- tabSurvKMcomplete[tabSurvKMcomplete$pvalue < 0.01,]
+```
+```{r coMMpaSS}
+coMM<-read.csv2(paste0(inpD,"CoMMpass_IA13a_E74GTF_Salmon_Gene_TPM_Sequential_GeneNames.txt"),sep="\t")
+coMMai<-read.csv2(paste0(inpD,"MMRF_CoMMpass_IA13a_E74GTF_Salmon_Gene_Counts_Sequential_AllIncluded.txt"),sep="\t")
+hist(as.numeric(coMM[grep("ENSG00000000003",coMM[,1]),4:ncol(coMM)]))
+coMMai[grep("ENSG00000000003",coMM[,1]),3]
+```
 
 ```{r mapID2pathway}
 library(org.Hs.eg.db)

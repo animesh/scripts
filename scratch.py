@@ -1,6 +1,74 @@
 #!pip install --upgrade pip
 set USE_DAAL4PY_SKLEARN=YES
 #python -c 'import sklearn'
+#https://towardsdatascience.com/feature-engineering-for-machine-learning-3a5e293a5114
+threshold = 0.7
+#Dropping columns with missing value rate higher than threshold
+data = data[data.columns[data.isnull().mean() < threshold]]
+
+#Dropping rows with missing value rate higher than threshold
+data = data.loc[data.isnull().mean(axis=1) < threshold]
+
+#Filling all missing values with 0
+data = data.fillna(0)
+#Filling missing values with medians of the columns
+data = data.fillna(data.median())
+#Max fill function for categorical columns
+data['column_name'].fillna(data['column_name'].value_counts()
+.idxmax(), inplace=True)
+#Dropping the outlier rows with standard deviation
+factor = 3
+upper_lim = data['column'].mean () + data['column'].std () * factor
+lower_lim = data['column'].mean () - data['column'].std () * factor
+
+data = data[(data['column'] < upper_lim) & (data['column'] > lower_lim)]
+#Dropping the outlier rows with Percentiles
+upper_lim = data['column'].quantile(.95)
+lower_lim = data['column'].quantile(.05)
+
+data = data[(data['column'] < upper_lim) & (data['column'] > lower_lim)]
+data.loc[(df[column] > upper_lim),column] = upper_lim
+data.loc[(df[column] < lower_lim),column] = lower_lim
+data['bin'] = pd.cut(data['value'], bins=[0,30,70,100], labels=["Low", "Mid", "High"])
+conditions = [
+    data['Country'].str.contains('Spain'),
+    data['Country'].str.contains('Italy'),
+    data['Country'].str.contains('Chile'),
+    data['Country'].str.contains('Brazil')]
+
+choices = ['Europe', 'Europe', 'South America', 'South America']
+
+data['Continent'] = np.select(conditions, choices, default='Other')
+data['log+1'] = (data['value']+1).transform(np.log)
+data['log'] = (data['value']-data['value'].min()+1) .transform(np.log)
+encoded_columns = pd.get_dummies(data['column'])
+data = data.join(encoded_columns).drop('column', axis=1)
+data.groupby('id').agg(lambda x: x.value_counts().index[0])
+data.pivot_table(index='column_to_group', columns='column_to_encode', values='aggregation_column', aggfunc=np.sum, fill_value = 0)
+grouped = data.groupby('column_to_group')
+
+sums = grouped[sum_cols].sum().add_suffix('_sum')
+avgs = grouped[mean_cols].mean().add_suffix('_avg')
+
+new_df = pd.concat([sums, avgs], axis=1)
+#Extracting last names
+data.name.str.split(" ").map(lambda x: x[-1])
+data.title.str.split("(", n=1, expand=True)[1].str.split(")", n=1, expand=True)[0]
+data['normalized'] = (data['value'] - data['value'].min()) / (data['value'].max() - data['value'].min())
+data['date'] = pd.to_datetime(data.date, format="%d-%m-%Y")
+
+data['day_name'] = data['date'].dt.day_name()
+
+#https://medium.com/fintechexplained/the-problem-of-overfitting-and-how-to-resolve-it-1eb9456b1dfd
+from sklearn import linear_model
+model = linear_model.Lasso(alpha=0.1)
+model.fit([[0,0], [1, 1], [2, 2]], [0, 1, 2])
+2. RIDGE
+Adds a penalty which is the square of the magnitude of the coefficients. As a result, some of the weights will be very close to 0. As a result, it ends up smoothing the effect of the features.
+from sklearn.linear_model import Ridge
+model = Ridge(alpha=1.0)
+model.fit(X, y)
+
 #https://towardsdatascience.com/7-data-wrangling-python-functions-in-under-5-minutes-a8d9ec7cf34b
 from gapminder import gapminder
 (
