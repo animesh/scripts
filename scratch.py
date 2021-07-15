@@ -1,6 +1,22 @@
 #!pip install --upgrade pip
 set USE_DAAL4PY_SKLEARN=YES
 #python -c 'import sklearn'
+#https://medium.com/analytics-vidhya/groupby-in-pandas-your-guide-to-summarizing-and-aggregating-data-in-python-4b702405c440
+obj = df.groupby('Outlet_Location_Type')
+obj.groups
+for name,group in obj:
+    print(name,'contains',group.shape[0],'rows')
+obj.get_group('Tier 1')
+df.groupby('Outlet_Location_Type').agg([np.mean,np.median])
+df.groupby(['Outlet_Type','Item_Type']).agg(mean_MRP=('Item_MRP',np.mean),mean_Sales=('Item_Outlet_Sales',np.mean))
+df['Item_Weight'] = df.groupby(['Item_Fat_Content','Item_Type'])['Item_Weight'].transform(lambda x: x.fillna(x.mean()))
+df.shape
+def filter_func(x):
+    return x['Item_Weight'].std() < 3
+df_filter = df.groupby(['Item_Weight']).filter(filter_func)
+df_filter.shape
+df_apply = df.groupby(['Outlet_Establishment_Year'])['Item_MRP'].apply(lambda x: x - x.mean())
+df_apply
 #https://towardsdatascience.com/feature-engineering-for-machine-learning-3a5e293a5114
 threshold = 0.7
 #Dropping columns with missing value rate higher than threshold

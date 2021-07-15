@@ -288,8 +288,8 @@ print(p)
 #https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7304035/
 #BiocManager::install("TCGAbiolinks")
 #library(TCGAbiolinks)
-clinical_patient_Cancer <- GDCquery_clinic("MMRF-COMMPASS","clinical")
-dataNorm <- TCGAanalyze_Normalization(tabDF = dataMMRF, geneInfo = geneInfo)
+#clinical_patient_Cancer <- GDCquery_clinic("MMRF-COMMPASS","clinical")
+#dataNorm <- TCGAanalyze_Normalization(tabDF = dataMMRF, geneInfo = geneInfo)
 tabSurvKM<-TCGAanalyze_SurvivalKM(clinical_patient_Cancer,dataComb,Genelist =c("UNG") ,Survresult = F,ThreshTop=0.67,ThreshDown=0.33)
 #https://academic.oup.com/bib/advance-article/doi/10.1093/bib/bbab050/6209690
 install.packages("BiocManager")
@@ -323,8 +323,10 @@ colnames(clinical)
 clinical$bcr_patient_barcode
 assign(data(package = "MMRFBiolinks",dataMM),dM)
 data(package = "MMRFBiolinks",dataGE)
-listSamples <- clinical$bcr_patient_barcode#c("MMRF_2473","MMRF_2111",                 "MMRF_2362","MMRF_1824","MMRF_1458","MRF_1361","MMRF_2203","MMRF_2762","MMRF_2680","MMRF_1797")
-query <- TCGAbiolinks::GDCquery(project = "MMRF-COMMPASS", 
+MMRFclin <- MMRFGDC_QueryClinic(type = "clinical")
+save(file=paste0(inpD,"MMRFclin.rds"),MMRFclin)
+listSamples <- MMRFclin$bcr_patient_barcode#c("MMRF_2473","MMRF_2111",                 "MMRF_2362","MMRF_1824","MMRF_1458","MRF_1361","MMRF_2203","MMRF_2762","MMRF_2680","MMRF_1797")
+query <- GDCquery(project = "MMRF-COMMPASS", 
                                data.category = "Transcriptome Profiling",
                                data.type = "Gene Expression Quantification",
                                experimental.strategy = "RNA-Seq",
@@ -332,13 +334,13 @@ query <- TCGAbiolinks::GDCquery(project = "MMRF-COMMPASS",
                                barcode = listSamples)
 #TCGAbiolinks::GDCdownload(query, method = "api", files.per.chunk = 10)
 #TCGAbiolinks::GDCdownload(query, method = "client", files.per.chunk = 10)
-TCGAbiolinks::GDCdownload(query, method = "api", files.per.chunk = 5)
+GDCdownload(query, method = "api", files.per.chunk = 10)
 dataTCGA<- TCGAbiolinks::GDCprepare(query)
 save(file=paste0(inpD,"data.rds"),dataTCGA)
 load(paste0(inpD,"data.rds"))
-MMRnaseqSE <- MMRFBiolinks::MMRFGDC_prepare(query,
+MMRnaseqSE <- MMRFGDC_prepare(query,
                               save = TRUE ,
-                              save.filename = paste0(hdr ,"2.rda"),
+                              save.filename = paste0(hdr ,"data.rda"),
                               directory = "GDCdata",
                               summarizedExperiment = TRUE)
 MMRFdataPrepro <- TCGAanalyze_Preprocessing(MMRnaseqSE)
@@ -346,18 +348,21 @@ library(MMRFBiolinks)
 load(paste0(inpD,hdr ,".rda"))
 MMRnaseqSE <- data
 MMRFdataPrepro <- TCGAbiolinks::TCGAanalyze_Preprocessing(dataTCGA)
-tabSurvKM <- TCGAbiolinks::TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000196976"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q14657	LAGE3
-ENSG00000172315<-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000172315"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #Q96S44	 TP53RK C20orf64, PRPK
+save(file=paste0(inpD,"MMRFdataPrepro.rds"),MMRFdataPrepro)
+tabSurvKM <- TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000196976"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q14657	LAGE3
+ENSG00000172315<-TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000172315"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #Q96S44	 TP53RK C20orf64, PRPK
 ENSG00000170270<-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000170270"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q9BXV9	GON7 C14orf142
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000170270"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q9BXV9	GON7 C14orf142
 ENSG00000275619<-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000275619"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q9BXV9	GON7 C14orf142
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000275619"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q9BXV9	GON7 C14orf142
 ENSG00000092094<-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000092094"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #		Q9NPF4	OSGEP GCPL1
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000092094"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #		Q9NPF4	OSGEP GCPL1
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000136932"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #			Q9BU70	TRMO C9orf156, HSPC219
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000145996"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #			Q5VV42	CDKAL1
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000128694"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #		Q9NPF4	OSGEP GCPL1
 
-MMRFclin <- MMRFGDC_QueryClinic(type = "clinical")
 tokenStop<- 1
 tabSurvKMcomplete <- NULL
 for( i in 1: round(nrow(MMRFdataPrepro)/500)){
@@ -378,6 +383,60 @@ coMM<-read.csv2(paste0(inpD,"CoMMpass_IA13a_E74GTF_Salmon_Gene_TPM_Sequential_Ge
 coMMai<-read.csv2(paste0(inpD,"MMRF_CoMMpass_IA13a_E74GTF_Salmon_Gene_Counts_Sequential_AllIncluded.txt"),sep="\t")
 hist(as.numeric(coMM[grep("ENSG00000000003",coMM[,1]),4:ncol(coMM)]))
 coMMai[grep("ENSG00000000003",coMM[,1]),3]
+```
+
+```{r plotKM}
+library(TCGAbiolinks)
+library(SummarizedExperiment)
+library(dplyr)
+library(DT)
+library(ggplot2)
+library("MMRFBiolinks")
+query <- GDCquery(project = "MMRF-COMMPASS",
+data.category = "Transcriptome Profiling",
+data.type = "Gene Expression Quantification",
+experimental.strategy = "RNA-Seq",
+workflow.type="HTSeq - FPKM",
+barcode = listSamples)
+MMRFclin <- MMRFGDC_QueryClinic(type = "clinical")
+listSamples <- MMRFclin$bcr_patient_barcode#c("MMRF_2473","MMRF_2111",                 "MMRF_2362","MMRF_1824","MMRF_1458","MRF_1361","MMRF_2203","MMRF_2762","MMRF_2680","MMRF_1797")
+query <- GDCquery(project = "MMRF-COMMPASS",
+data.category = "Transcriptome Profiling",
+data.type = "Gene Expression Quantification",
+experimental.strategy = "RNA-Seq",
+workflow.type="HTSeq - FPKM",
+barcode = listSamples)
+#TCGAbiolinks::GDCdownload(query, method = "api", files.per.chunk = 10)
+#TCGAbiolinks::GDCdownload(query, method = "client", files.per.chunk = 10)
+GDCdownload(query, method = "api", files.per.chunk = 10)
+MMRnaseqSE <- MMRFGDC_prepare(query,
+save = TRUE ,
+save.filename = paste0(hdr ,"data.rda"),
+directory = "GDCdata",
+summarizedExperiment = TRUE)
+MMRFdataPrepro <- TCGAanalyze_Preprocessing(MMRnaseqSE)
+TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = c("ENSG00000196976"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q14657	LAGE3
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000196976"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q14657	LAGE3
+ENSG00000172315<-TCGAanalyze_SurvivalKM(clinical,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
+ENSG00000172315<-TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = rownames(MMRFdataPrepro)[3],Survresult = F,ThreshTop=0.9999999,ThreshDown=0.00000001)
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000196976"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q14657	LAGE3
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000172315"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #Q96S44	 TP53RK C20orf64, PRPK
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000170270"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q9BXV9	GON7 C14orf142
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000275619"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q9BXV9	GON7 C14orf142
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000092094"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #		Q9NPF4	OSGEP GCPL1
+save(file=paste0(inpD,".MMRFdataPrepro.rds"),MMRFdataPrepro)
+save(file=paste0(inpD,"MMRFclin.rds"),MMRFclin)
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000136932"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #			Q9BU70	TRMO C9orf156, HSPC219
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000145996"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #			Q5VV42	CDKAL1
+TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000128694"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #		Q9NPF4	OSGEP GCPL1
+savehistory("L:/promec/Animesh/Aida/R.history")
+```
+
+```{r loadPlotKM}
+load(paste0(inpD,"MMRFclin.rds"))
+load(paste0(inpD,"MMRFdataPrepro.rds"))
+TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000128694"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #		Q9NPF4	OSGEP GCPL1
+TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000145996"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q5VV42	CDKAL1
 ```
 
 ```{r mapID2pathway}
