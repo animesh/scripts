@@ -138,41 +138,41 @@ warnings()
 ```
 
 ```{r MM, echo = FALSE}
-dataLog2MGUS<-dataLog2[,grep("MGUS[1-9]+",colnames(dataLog2))]
-dataLog2MM<-dataLog2[,grep("MM[1-9]+",colnames(dataLog2))]
+#dataLog2MGUS<-dataLog2[,grep("MGUS[1-9]+",colnames(dataLog2))]
+#dataLog2MM<-dataLog2[,grep("MM[1-9]+",colnames(dataLog2))]
 #dataComb<-rbind(t(dataLog2MM[1,]),t(dataLog2MGUS[1,]))
 dataComb<-data.frame(dataLog2[,grep("MGUS[1-9]+|MM[1-9]+",colnames(dataLog2))])#cbind(t(dataLog2MM[1,]),t(dataLog2MGUS[1,]))
 #sample<-factor(substr(colnames(dataComb), start = 1, stop = 2))
 boxplot(dataComb)
 rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nrow(dataComb),sep=";")
 #dataComb<-rbind(dataComb,sample)
-write.csv(dataComb,paste0(inpF,"id.csv"))
+#write.csv(dataComb,paste0(inpF,"id.csv"))
 #dataComb$Uniprot<-data$`T: T: Protein IDs`
 dataComb<-data.frame(t(dataComb))
 dataComb$Group<-factor(c("G","G","G","G","G","G","G","G","G","L","L","L","L","L","L","M","M","M","M","M","M","M","M","M","M","M","M","M","C","C","M","M","M","M","C","M","M","M","M","M","M","M","M","M","M","C"))
 dataComb[is.na(dataComb)]<-"NaN"
 write.csv(dataComb,paste0(inpF,"trp.id.csv"))
-boxplot(dataComb$C4orf27.Q9NWY4.A8MVJ9.1200~dataComb$Group)
-stripchart(dataComb$C4orf27.Q9NWY4.A8MVJ9.1200~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+#boxplot(dataComb$C4orf27.Q9NWY4.A8MVJ9.1200~dataComb$Group)
+#stripchart(dataComb$C4orf27.Q9NWY4.A8MVJ9.1200~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
 boxplot(dataComb$TFRC.P02786.G3V0E5.H7C3V5.F8WBE5.Q9UP52.2.Q9UP52.3.Q9UP52.1~dataComb$Group)
 stripchart(dataComb$TFRC.P02786.G3V0E5.H7C3V5.F8WBE5.Q9UP52.2.Q9UP52.3.Q9UP52.1~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
-boxplot(dataComb$STOM.P27105.P27105.2.F8VSL7.1055~dataComb$Group)
-stripchart(dataComb$STOM.P27105.P27105.2.F8VSL7.1055~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
-boxplot(dataComb$LAMP1.P11279.P11279.2.7~dataComb$Group)
-stripchart(dataComb$LAMP1.P11279.P11279.2.7~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
-boxplot(dataComb$TPM3.P06753.2.A0A087WWU8.P06753.5.Q5VU61.D6R904.D6RFM2.1125~dataComb$Group)
-stripchart(dataComb$TPM3.P06753.2.A0A087WWU8.P06753.5.Q5VU61.D6R904.D6RFM2.1125~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
-boxplot(dataComb$CIRBP.Q14011.K7EMY9.K7EPM4.K7EQR7.D6W5Y5.Q14011.2.K7ENX8.K7EJV5.K7ELT6.K7EJV1.K7ER40.K7ELV6.K7EQX4.K7ENN6.K7EIF7.K7EQL0.F6WMK9.Q14011.3.27~dataComb$Group)
-stripchart(dataComb$CIRBP.Q14011.K7EMY9.K7EPM4.K7EQR7.D6W5Y5.Q14011.2.K7ENX8.K7EJV5.K7ELT6.K7EJV1.K7ER40.K7ELV6.K7EQX4.K7ENN6.K7EIF7.K7EQL0.F6WMK9.Q14011.3.27~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
-boxplot(dataComb$SCP2.P22307.7.P22307.8.P22307.P22307.6.P22307.2.H0YF61.E9PLD1.P22307.3.H0YCB0.2~dataComb$Group)
-stripchart(dataComb$SCP2.P22307.7.P22307.8.P22307.P22307.6.P22307.2.H0YF61.E9PLD1.P22307.3.H0YCB0.2~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "orange")
-boxplot(dataComb$NDUFA5.A0A087X1G1.H7BYD0.Q16718.2.Q16718.A0A087WXR5.F8WAS3.C9IZN5.55~dataComb$Group)
-stripchart(dataComb$NDUFA5.A0A087X1G1.H7BYD0.Q16718.2.Q16718.A0A087WXR5.F8WAS3.C9IZN5.55~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "orange")
-dataComb50p<-dataComb[,which(colMeans(!is.na(dataComb)) > 0.9999)]
-dataComb50cv<-dataComb[,which(col(!is.na(dataComb)) > 0.9999)]
-p <- ggplot2::ggplot(dataComb, ggplot2::aes(x="TFRC;1",y=rownames(dataComb),fill=Group)) +  ggplot2::geom_boxplot() + ggplot2::geom_jitter(color="black", size=0.4,width=0.1, alpha=0.9)
-p <- ggplot2::ggplot(dataComb, ggplot2::aes(x="TFRC;1",y=TFRC.1,fill=Group)) +  ggplot2::geom_boxplot() + ggplot2::geom_jitter(color="black", size=1,width=0.1, alpha=0.5)
-p
+#boxplot(dataComb$STOM.P27105.P27105.2.F8VSL7.1055~dataComb$Group)
+#stripchart(dataComb$STOM.P27105.P27105.2.F8VSL7.1055~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+#boxplot(dataComb$LAMP1.P11279.P11279.2.7~dataComb$Group)
+#stripchart(dataComb$LAMP1.P11279.P11279.2.7~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+#boxplot(dataComb$TPM3.P06753.2.A0A087WWU8.P06753.5.Q5VU61.D6R904.D6RFM2.1125~dataComb$Group)
+#stripchart(dataComb$TPM3.P06753.2.A0A087WWU8.P06753.5.Q5VU61.D6R904.D6RFM2.1125~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+#boxplot(dataComb$CIRBP.Q14011.K7EMY9.K7EPM4.K7EQR7.D6W5Y5.Q14011.2.K7ENX8.K7EJV5.K7ELT6.K7EJV1.K7ER40.K7ELV6.K7EQX4.K7ENN6.K7EIF7.K7EQL0.F6WMK9.Q14011.3.27~dataComb$Group)
+#stripchart(dataComb$CIRBP.Q14011.K7EMY9.K7EPM4.K7EQR7.D6W5Y5.Q14011.2.K7ENX8.K7EJV5.K7ELT6.K7EJV1.K7ER40.K7ELV6.K7EQX4.K7ENN6.K7EIF7.K7EQL0.F6WMK9.Q14011.3.27~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "blue")
+#boxplot(dataComb$SCP2.P22307.7.P22307.8.P22307.P22307.6.P22307.2.H0YF61.E9PLD1.P22307.3.H0YCB0.2~dataComb$Group)
+#stripchart(dataComb$SCP2.P22307.7.P22307.8.P22307.P22307.6.P22307.2.H0YF61.E9PLD1.P22307.3.H0YCB0.2~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "orange")
+#boxplot(dataComb$NDUFA5.A0A087X1G1.H7BYD0.Q16718.2.Q16718.A0A087WXR5.F8WAS3.C9IZN5.55~dataComb$Group)
+#stripchart(dataComb$NDUFA5.A0A087X1G1.H7BYD0.Q16718.2.Q16718.A0A087WXR5.F8WAS3.C9IZN5.55~dataComb$Group,method = "jitter", vertical=TRUE,add=TRUE,pch = 19, col = "orange")
+#dataComb50p<-dataComb[,which(colMeans(!is.na(dataComb)) > 0.9999)]
+#dataComb50cv<-dataComb[,which(col(!is.na(dataComb)) > 0.9999)]
+#p <- ggplot2::ggplot(dataComb, ggplot2::aes(x="TFRC;1",y=rownames(dataComb),fill=Group)) +  ggplot2::geom_boxplot() + ggplot2::geom_jitter(color="black", size=0.4,width=0.1, alpha=0.9)
+#p <- ggplot2::ggplot(dataComb, ggplot2::aes(x="TFRC;1",y=TFRC.1,fill=Group)) +  ggplot2::geom_boxplot() + ggplot2::geom_jitter(color="black", size=1,width=0.1, alpha=0.5)
+#p
 #data$Gene<-sapply(strsplit(as.character(data$RowGeneUniProtScorePeps),";;"), "[", 5)
 #data$Gene<-sapply(strsplit(data$Gene,";"), "[", 1)
 #data$GN<-sapply(strsplit(as.character(data$RowGeneUniProtScorePeps),"GN="), "[", 2)
@@ -180,8 +180,17 @@ p
 #data$ChkG<-data$GN==data$Gene
 summary(dataComb)
 #log2LFQ[log2LFQ==-Inf]=NA
-hist(dataComb$TFRC.1)
-writexl::write_xlsx(dataComb,paste0(inpF,"gene.xlsx"))
+#hist(dataComb$TFRC.1)
+#writexl::write_xlsx(dataComb,paste0(inpF,"gene.xlsx"))
+```
+```{r PCA}
+#https://cran.r-project.org/web/packages/FactoMineR/FactoMineR.pdf
+#install.packages("FactoMineR")
+#https://www.youtube.com/watch?v=pks8m2ka7Pk&list=PLnZgp6epRBbTsZEFXi_p6W48HhNyqwxIu&index=6
+FactoMineR::PCA(t(dataComb[,1:10]))
+#http://factominer.free.fr/missMDA/appendix_These_Audigier.pdf
+#install.packages("missMDA")
+missMDA::plot.MIMCA(t(dataComb[,1:10]),graph=F)
 ```
 
 ```{r MW}
@@ -398,6 +407,7 @@ data.type = "Gene Expression Quantification",
 experimental.strategy = "RNA-Seq",
 workflow.type="HTSeq - FPKM",
 barcode = listSamples)
+MMRFGDC_QueryClinic(type = "clinical")#has more information compared to the previous dataset (e.g Best overall response)
 MMRFclin <- MMRFGDC_QueryClinic(type = "clinical")
 listSamples <- MMRFclin$bcr_patient_barcode#c("MMRF_2473","MMRF_2111",                 "MMRF_2362","MMRF_1824","MMRF_1458","MRF_1361","MMRF_2203","MMRF_2762","MMRF_2680","MMRF_1797")
 query <- GDCquery(project = "MMRF-COMMPASS",
@@ -406,6 +416,9 @@ data.type = "Gene Expression Quantification",
 experimental.strategy = "RNA-Seq",
 workflow.type="HTSeq - FPKM",
 barcode = listSamples)
+MMRFGDC_QuerySummary(query)
+MMRFclin[MMRFclin$bcr_patient_barcode=="MMRF_2137","treatments"]
+barplot(summary(as.factor(unlist(MMRFclin$treatments))))
 #TCGAbiolinks::GDCdownload(query, method = "api", files.per.chunk = 10)
 #TCGAbiolinks::GDCdownload(query, method = "client", files.per.chunk = 10)
 GDCdownload(query, method = "api", files.per.chunk = 10)
@@ -431,12 +444,29 @@ TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000145996"),S
 TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000128694"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #		Q9NPF4	OSGEP GCPL1
 savehistory("L:/promec/Animesh/Aida/R.history")
 ```
-
-```{r loadPlotKM}
-load(paste0(inpD,"MMRFclin.rds"))
-load(paste0(inpD,"MMRFdataPrepro.rds"))
-TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000128694"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #		Q9NPF4	OSGEP GCPL1
-TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000145996"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q5VV42	CDKAL1
+```{r loadPlotDrugKM}
+load(paste0(inpD,"MMRFBiolinks/plotKM/MMRFclin.rds"))
+load(paste0(inpD,"MMRFBiolinks/plotKM/MMRFdataPrepro.rds"))
+TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFclin,Genelist = c("ENSG00000196449"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q86U90 (YRDC_HUMAN)
+#MMRFclinDrug$treatments
+MMRFclinDrug<- MMRFclin[which(unlist(MMRFclin[,"treatments"]) %in% c("Dexamethasone")==TRUE),]
+MMRFclinDrug<- MMRFclinDrug[!is.na(MMRFclinDrug$bcr_patient_barcode),]
+TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFclin,Genelist = c("ENSG00000196449"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q86U90 (YRDC_HUMAN)
+```
+```{r writeDataKM}
+write.csv(data.frame(MMRFclin),paste0(inpD,"MMRFclin.csv"))
+write.csv(MMRFdataPrepro,paste0(inpD,"MMRFdataPrepro.csv"))
+```
+```{r drugs}
+library(MMRFBiolinks)
+barplot(summary(as.factor(clinMMGateway$trtname)),horiz = T)
+summary(as.factor(clinMMGateway$trtname))
+MMRFRG_GetBorInfo(clinMMGateway)
+MMRFRG_TimeBorPlot(clinMMGateway,"Dexamethasone","days")
+MMRFBiolinks::MMRFRG_BorPlot(clinMMGateway,filename = "GBP")
+#daratumumab is more immunemodulating vs bortezomib based treatments.  
+#https://ashpublications.org/blood/article/128/22/194/100519/Molecular-Predictors-of-Outcome-and-Drug-Response
+MMRFGDC_QuerySummary(query)
 ```
 
 ```{r mapID2pathway}

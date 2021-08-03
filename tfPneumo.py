@@ -2,12 +2,16 @@
 import numpy as np
 import tensorflow as tf
 print(tf.__version__)
+
+# In[74]:
 from tflite_model_maker import configs
 from tflite_model_maker import ExportFormat
 from tflite_model_maker import model_spec
 from tflite_model_maker import image_classifier
 from tflite_model_maker.image_classifier import DataLoader
 assert tf.__version__.startswith('2')
+
+# In[74]:
 tf.get_logger().setLevel('ERROR')
 #data_path = tf.keras.utils.get_file('flower_photos','https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz',untar=True)
 data_path='F:\\Pneumonia\\chest_xray\\chest_xray\\train'

@@ -1,6 +1,193 @@
 #!pip install --upgrade pip
 set USE_DAAL4PY_SKLEARN=YES
 #python -c 'import sklearn'
+
+df['Item_Weight'] = df.groupby(['Item_Fat_Content','Item_Type'])['Item_Weight'].transform(lambda x: x.fillna(x.mean()))
+
+#https://towardsdatascience.com/hyperparameter-tuning-the-random-forest-in-python-using-scikit-learn-28d2aa77dd74
+from sklearn.ensemble import RandomForestRegressor
+rf = RandomForestRegressor(random_state = 42)
+from pprint import pprint
+# Look at parameters used by our current forest
+print('Parameters currently in use:\n')
+pprint(rf.get_params())
+
+from sklearn.model_selection import RandomizedSearchCV
+# Number of trees in random forest
+n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
+# Number of features to consider at every split
+max_features = ['auto', 'sqrt']
+# Maximum number of levels in tree
+max_depth = [int(x) for x in np.linspace(10, 110, num = 11)]
+max_depth.append(None)
+# Minimum number of samples required to split a node
+min_samples_split = [2, 5, 10]
+# Minimum number of samples required at each leaf node
+min_samples_leaf = [1, 2, 4]
+# Method of selecting samples for training each tree
+bootstrap = [True, False]
+# Create the random grid
+random_grid = {'n_estimators': n_estimators,
+               'max_features': max_features,
+               'max_depth': max_depth,
+               'min_samples_split': min_samples_split,
+               'min_samples_leaf': min_samples_leaf,
+               'bootstrap': bootstrap}
+pprint(random_grid)
+
+# Use the random grid to search for best hyperparameters
+# First create the base model to tune
+rf = RandomForestRegressor()
+# Random search of parameters, using 3 fold cross validation, 
+# search across 100 different combinations, and use all available cores
+rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
+# Fit the random search model
+rf_random.fit(train_features, train_labels)
+
+rf_random.best_params_
+{'bootstrap': True,
+ 'max_depth': 70,
+ 'max_features': 'auto',
+ 'min_samples_leaf': 4,
+ 'min_samples_split': 10,
+ 'n_estimators': 400}
+def evaluate(model, test_features, test_labels):
+    predictions = model.predict(test_features)
+    errors = abs(predictions - test_labels)
+    mape = 100 * np.mean(errors / test_labels)
+    accuracy = 100 - mape
+    print('Model Performance')
+    print('Average Error: {:0.4f} degrees.'.format(np.mean(errors)))
+    print('Accuracy = {:0.2f}%.'.format(accuracy))
+    
+    return accuracy
+base_model = RandomForestRegressor(n_estimators = 10, random_state = 42)
+base_model.fit(train_features, train_labels)
+base_accuracy = evaluate(base_model, test_features, test_labels)
+Model Performance
+Average Error: 3.9199 degrees.
+Accuracy = 93.36%.
+best_random = rf_random.best_estimator_
+random_accuracy = evaluate(best_random, test_features, test_labels)
+Model Performance
+Average Error: 3.7152 degrees.
+Accuracy = 93.73%.
+print('Improvement of {:0.2f}%.'.format( 100 * (random_accuracy - base_accuracy) / base_accuracy))
+Improvement of 0.40%.
+
+from sklearn.model_selection import GridSearchCV
+# Create the parameter grid based on the results of random search 
+param_grid = {
+    'bootstrap': [True],
+    'max_depth': [80, 90, 100, 110],
+    'max_features': [2, 3],
+    'min_samples_leaf': [3, 4, 5],
+    'min_samples_split': [8, 10, 12],
+    'n_estimators': [100, 200, 300, 1000]
+}
+# Create a based model
+rf = RandomForestRegressor()
+# Instantiate the grid search model
+grid_search = GridSearchCV(estimator = rf, param_grid = param_grid, 
+                          cv = 3, n_jobs = -1, verbose = 2)
+
+try out 1 * 4 * 2 * 3 * 3 * 4 = 288 combinations
+# Fit the grid search to the data
+grid_search.fit(train_features, train_labels)
+grid_search.best_params_
+{'bootstrap': True,
+ 'max_depth': 80,
+ 'max_features': 3,
+ 'min_samples_leaf': 5,
+ 'min_samples_split': 12,
+ 'n_estimators': 100}
+best_grid = grid_search.best_estimator_
+grid_accuracy = evaluate(best_grid, test_features, test_labels)
+Model Performance
+Average Error: 3.6561 degrees.
+Accuracy = 93.83%.
+print('Improvement of {:0.2f}%.'.format( 100 * (grid_accuracy - base_accuracy) / base_accuracy))
+Improvement of 0.50%.
+#https://github.com/WillKoehrsen/Machine-Learning-Projects/blob/master/random_forest_explained/Improving%20Random%20Forest%20Part%202.ipynb 
+#https://towardsdatascience.com/ensemble-learning-bagging-boosting-3098079e5422
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import BaggingClassifier
+
+# Load the well-known Breast Cancer dataset
+# Split into train and test sets
+x, y = load_breast_cancer(return_X_y=True)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=23)
+
+# For simplicity, we are going to use as base estimator a Decision Tree with fixed parameters
+tree = DecisionTreeClassifier(max_depth=3, random_state=23)
+
+# The baggging ensemble classifier is initialized with:
+# base_estimator = DecisionTree
+# n_estimators = 5 : it's gonna be created 5 subsets to train 5 Decision Tree models
+# max_samples = 50 : it's gonna be taken randomly 50 items with replacement
+# bootstrap = True : means that the sampling is gonna be with replacement
+bagging = BaggingClassifier(base_estimator=tree, n_estimators=5, max_samples=50, bootstrap=True)
+
+# Training
+bagging.fit(x_train, y_train)
+
+# Evaluating
+print(f"Train score: {bagging.score(x_train, y_train)}")
+print(f"Test score: {bagging.score(x_test, y_test)}")
+
+# For this basic implementation, we only need these modules
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
+
+# Load the well-known Breast Cancer dataset
+# Split into train and test sets
+x, y = load_breast_cancer(return_X_y=True)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=23)
+
+# The base learner will be a decision tree with depth = 2
+tree = DecisionTreeClassifier(max_depth=2, random_state=23)
+
+# AdaBoost initialization
+# It's defined the decision tree as the base learner
+# The number of estimators will be 5
+# The penalizer for the weights of each estimator is 0.1
+adaboost = AdaBoostClassifier(base_estimator=tree, n_estimators=5, learning_rate=0.1, random_state=23)
+
+# Train!
+adaboost.fit(x_train, y_train)
+
+# Evaluation
+print(f"Train score: {adaboost.score(x_train, y_train)}")
+print(f"Test score: {adaboost.score(x_test, y_test)}")
+
+# For this basic implementation, we only need these modules
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import GradientBoostingClassifier
+
+# Load the well-known Breast Cancer dataset
+# Split into train and test sets
+x, y = load_breast_cancer(return_X_y=True)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=23)
+
+# Gradient Boosting initialization
+# The base learner is a decision tree as default
+# The number of estimators is 5
+# The depth for each deciion tree is 2
+# The learning rate for each estimator in the sequence is 1
+gradientBoosting = GradientBoostingClassifier(n_estimators=5, learning_rate=1, max_depth=2, random_state=23)
+
+# Train!
+gradientBoosting.fit(x_train, y_train)
+
+# Evaluation
+print(f"Train score: {gradientBoosting.score(x_train, y_train)}")
+print(f"Test score: {gradientBoosting.score(x_test, y_test)}")
+
 #https://medium.com/analytics-vidhya/groupby-in-pandas-your-guide-to-summarizing-and-aggregating-data-in-python-4b702405c440
 obj = df.groupby('Outlet_Location_Type')
 obj.groups
