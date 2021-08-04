@@ -143,6 +143,7 @@ warnings()
 #dataComb<-rbind(t(dataLog2MM[1,]),t(dataLog2MGUS[1,]))
 dataComb<-data.frame(dataLog2[,grep("MGUS[1-9]+|MM[1-9]+",colnames(dataLog2))])#cbind(t(dataLog2MM[1,]),t(dataLog2MGUS[1,]))
 #sample<-factor(substr(colnames(dataComb), start = 1, stop = 2))
+#hist(dataComb[,1])
 boxplot(dataComb)
 rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nrow(dataComb),sep=";")
 #dataComb<-rbind(dataComb,sample)
@@ -187,10 +188,37 @@ summary(dataComb)
 #https://cran.r-project.org/web/packages/FactoMineR/FactoMineR.pdf
 #install.packages("FactoMineR")
 #https://www.youtube.com/watch?v=pks8m2ka7Pk&list=PLnZgp6epRBbTsZEFXi_p6W48HhNyqwxIu&index=6
-FactoMineR::PCA(t(dataComb[,1:10]))
+dataComb<-data.frame(dataLog2[,grep("MGUS[1-9]+|MM[1-9]+",colnames(dataLog2))])#cbind(t(dataLog2MM[1,]),t(dataLog2MGUS[1,]))
+rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nrow(dataComb),sep=";")
+dataComb<-data.frame(t(dataComb))
+#FactoMineR::PCA(dataComb)
+FactoMineR::PCA(dataComb[,1:10])
+dataComb$Group<-factor(c("G","G","G","G","G","G","G","G","G","L","L","L","L","L","L","M","M","M","M","M","M","M","M","M","M","M","M","M","C","C","M","M","M","M","C","M","M","M","M","M","M","M","M","M","M","C"))
+#dataComb<-data.frame(t(dataComb))
+FactoMineR::PCA(dataComb,quanti.sup = 1:10,quali.sup = 3957)
+summary(.Last.value)
+resPCA<-FactoMineR::PCA(dataComb,quali.sup = 3957)
+summary(resPCA)
+FactoMineR::dimdesc(resPCA,proba = 0.01)
 #http://factominer.free.fr/missMDA/appendix_These_Audigier.pdf
 #install.packages("missMDA")
 missMDA::plot.MIMCA(t(dataComb[,1:10]),graph=F)
+```
+```{r featSel}
+#https://youtu.be/_6XvNMmpU7Q?t=1280
+#todo: allow handling missing data? For example, using the rfImpute call/combine the highly correlated features rather than dropping them completely
+install.packages("FeatureTerminatoR")
+dataCombCC<-dataComb
+dataCombCC[is.na(dataCombCC)]<-0
+rfeFit<-FeatureTerminatoR::rfeTerminator(dataCombCC,x_cols = 1:3956, y_cols = "Group",alter_df = TRUE, eval_funcs = rfFuncs)
+print(rfeFit$rfe_model_fit_results)
+print(rfeFit$rfe_model_fit_results$optVariables)
+print(rfeFit$rfe_reduced_data)
+```
+```{r featRem}
+mcFit<-FeatureTerminatoR::mutlicol_terminator(dataCombCC,x_cols = 1:3956, y_cols =  "Group",alter_df = TRUE,cor_sig = 0.6)
+mcFit$corr_quant_chart
+dataCombCCrf<-mcFit$feature_removed_df
 ```
 
 ```{r MW}
@@ -451,8 +479,15 @@ TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFclin,Genelist = c("ENSG0000019
 #MMRFclinDrug$treatments
 MMRFclinDrug<- MMRFclin[which(unlist(MMRFclin[,"treatments"]) %in% c("Dexamethasone")==TRUE),]
 MMRFclinDrug<- MMRFclinDrug[!is.na(MMRFclinDrug$bcr_patient_barcode),]
-TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFclin,Genelist = c("ENSG00000196449"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q86U90 (YRDC_HUMAN)
+TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000196449"),Survresult = T,ThreshTop=0.76,ThreshDown=0.33) #	Q86U90 (YRDC_HUMAN)
+TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000196449"),Survresult = T,ThreshTop=0.66,ThreshDown=0.33) #	Q86U90 (YRDC_HUMAN)
 ```
+
+```{r distrib}
+hist(log2(MMRFdataPrepro))
+
+```
+
 ```{r writeDataKM}
 write.csv(data.frame(MMRFclin),paste0(inpD,"MMRFclin.csv"))
 write.csv(MMRFdataPrepro,paste0(inpD,"MMRFdataPrepro.csv"))
