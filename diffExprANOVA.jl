@@ -3,16 +3,21 @@
 #[density estimators](https://en.wikipedia.org/wiki/Density_estimation)
 #[probit model](https://en.wikipedia.org/wiki/Probit_model)
 #[bootstrapping](https://en.wikipedia.org/wiki/Bootstrapping_(statistics))
-using Bootstrap
-using CSV
-using CategoricalArrays
-using Chain
+#using Pkg
+#Pkg.add("DataFrames")
 using DataFrames
-using GLM
+#Pkg.add("CSV")
+using CSV
+#Pkg.add("CategoricalArrays")
+using CategoricalArrays
+#Pkg.add("Plots")
 using Plots
-using Random
-using StatsPlots
-using Statistics
+#using Bootstrap
+#using Chain
+#using GLM
+#using Random
+#using StatsPlots
+#using Statistics
 cd("L:/promec/Animesh/Aida/")
 pwd()
 fileName="Supplementary Table 2 for working purpose.xlsxgene.csv"
@@ -22,11 +27,12 @@ describe(df_raw)
 df = select(df_raw,
 #:Group => x -> recode(x, "M" => 1, "G" => 0  => :M²),
 #:TFRC.1  => ByRow(x -> x^2) => :TFRC²,
-Between(1,5),
+Between(1,5),# => isnumeric,
 #Between(:TFRC.1, :PLOD3.5),
             :Group => categorical,
             renamecols=false)
 describe(df)
+plot(df[:,3], df[:,1])
 @chain df begin
     groupby(:Group)
     combine([:1, :5] .=> mean)
@@ -62,20 +68,18 @@ gd[Dict(:Group => 0)]
 gd[(0,)]
 @df df density(:"SCP2.2",group=:Group)
 #probit = glm(@formula(Group ~ lnnlinc + age + age² + educ + nyc + noc + foreign),df, Binomial(), ProbitLink())
-probit = glm(Term(:Group) ~ sum(Term.(propertynames(df)[1:end-1])),
-             df, Binomial(), ProbitLink())
-Term(:Group) ~ sum(Term.(propertynames(df)[2:end]))
-@formula(Group ~ lnnlinc + age + age² + educ + nyc + noc + foreign)
-probit = glm(@formula(Group ~ lnnlinc + age + age^2 + educ + nyc + noc + foreign),
-             df, Binomial(), ProbitLink())
+probit = glm(Term(:Group) ~ sum(Term.(propertynames(df)[1:end-1])),df)
+Term(:Group) ~ sum(Term.(propertynames(df)[1:end-1]))
+#@formula(Group ~ lnnlinc + age + age² + educ + nyc + noc + foreign)
+#probit = glm(@formula(Group ~ lnnlinc + age + age^2 + educ + nyc + noc + foreign),df, Binomial(), ProbitLink())
 #@formula(Group ~ lnnlinc + age + age^2 + educ + nyc + noc + foreign)
-df_pred = DataFrame(lnnlinc=10.0, age= 2.0:0.01:6.2, educ = 9, nyc = 0, noc = 1, foreign = "yes")
+#df_pred = DataFrame(lnnlinc=10.0, age= 2.0:0.01:6.2, educ = 9, nyc = 0, noc = 1, foreign = "yes")
 probit_pred = predict(probit, df_pred, interval=:confidence)
 plot(df_pred.age, Matrix(probit_pred), labels=["Group" "lower" "upper"],
      xlabel="age", ylabel="Pr(Group=1)")
 function boot_sample(df)
     df_boot = df[rand(1:nrow(df), nrow(df)), :]
-    probit_boot = glm(@formula(Group ~ lnnlinc + age + age^2 + educ + nyc + noc + foreign),
+    probit_boot = glm(Term(:Group) ~ sum(Term.(propertynames(df)[1:end-1])),
                       df_boot, Binomial(), ProbitLink())
     return (; (Symbol.(coefnames(probit_boot)) .=> coef(probit_boot))...)
 end

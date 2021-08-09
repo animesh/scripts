@@ -1,6 +1,31 @@
+BigInt(9)^9^9
 #setup
 using Pkg
+Pkg.add("DataSets")
+FeatureTransforms
+MLJModels
+Impute
+Pkg.add("Dagger")#distributed array 
+Pkg.add("Checkpoint")
+Pkg.add("DECAES")
+Pkg.add("Genify")
+Pkg.add("Julog")
+Pkg.add("POMDP")
+Pkg.add("AstroTime")#https://youtu.be/BdEWCxt8C0M?t=3
+Pkg.add("PRISM")
+Pkg.add("JuliaSim")
 Pkg.add("IJulia")
+Pkg.add("FastAI")
+Pkg.add("DeconvOptim.jl")#microscopy
+Pkg.add("PlutRESTClient.jl")
+nb=PlutNotebook("file.jl")
+Pkg.add("InvertibleNetworks.jl")
+Pkg.add("MLJ.jl")
+Pkg.add("ChainRUles.jl")
+Pkg.add("HighFrequencyCovariance.jl")
+#https://github.com/animesh/NonlinearDynamicsTextbook
+Pkg.add("DynamicalSystems.jl")#delay coord embed https://youtu.be/04HAQXl5aj4?t=615
+#https://github.com/JuliaDynamics/NonlinearDynamicsTextbook/blob/master/sample/sample.pdf
 #https://julialang-s3.julialang.org/bin/winnt/x64/1.6
 versioninfo()
 #using Pkg

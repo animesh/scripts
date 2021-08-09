@@ -1,9 +1,231 @@
 #!pip install --upgrade pip
 set USE_DAAL4PY_SKLEARN=YES
 #python -c 'import sklearn'
+import sys
+import time
+import logging
+from watchdog.observers import Observer
+from watchdog.events import LoggingEventHandler
 
-df['Item_Weight'] = df.groupby(['Item_Fat_Content','Item_Type'])['Item_Weight'].transform(lambda x: x.fillna(x.mean()))
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+    path = sys.argv[1] if len(sys.argv) > 1 else '.'
+    event_handler = LoggingEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path, recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    finally:
+        observer.stop()
+        observer.join()
 
+#https://github.com/QuentinAndre/pysprite
+from pysprite import Sprite
+npart = 20
+m = 3.02
+sd = 2.14
+m_prec = 2
+sd_prec = 2
+min_val = 1
+max_val = 7
+s = Sprite(npart, m, sd, m_prec, sd_prec, min_val, max_val)
+
+#https://towardsdatascience.com/a-python-tool-for-data-processing-analysis-and-ml-automation-in-a-few-lines-of-code-da04b3ba904f
+import dabl
+df_clean = dabl.clean(df, verbose=1)
+df_type=dabl.detect_types(df_clean)
+dabl.plot(df_clean, target_col="Group")
+groupClass=dabl.SimpleClassifier(random_state=42).fit(df_clean, target_col="Group")
+dabl.explain(groupClass)#https://dabl.github.io/0.1.9/user_guide.html
+
+#https://github.com/IBM/lale/blob/master/docs/installation.rst https://nbviewer.jupyter.org/github/IBM/lale/blob/master/examples/talk_2019-1105-lale.ipynb
+from sklearn.preprocessing import Normalizer as Norm
+from sklearn.preprocessing import OneHotEncoder as OneHot
+from sklearn.linear_model import LogisticRegression as LR
+import lale
+lale.wrap_imported_operators()
+from lale.lib.lale import Project
+from lale.lib.lale import ConcatFeatures as Concat
+manual_trainable = (
+       (  Project(columns={'type': 'number'}) >> Norm()
+        & Project(columns={'type': 'string'}) >> OneHot())
+    >> Concat
+    >> LR(LR.enum.penalty.l2, C=0.001))
+manual_trainable#.visualize()
+from sklearn.model_selection import train_test_split
+#train, test = train_test_split(df.transpose(), test_size=0.2)
+dfNAR=df.dropna(axis=1, how="any", thresh=None, subset=None, inplace=False)
+train, test = train_test_split(dfNAR, test_size=0.2)
+
+import sklearn.metrics
+manual_trained = manual_trainable.fit(train, test)
+manual_trained = manual_trainable.fit(dfNAR.iloc[:,1:2028],dfNAR.iloc[:,-1])
+manual_y = manual_trained.predict(dfNAR.iloc[:,1:2028])
+print(f'accuracy {sklearn.metrics.accuracy_score(dfNAR.iloc[:,1:2028], manual_y):.1%}')
+
+#https://plotly.com/python/network-graphs/
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+import dash_cytoscape as cyto
+from dash.dependencies import Input, Output
+import plotly.express as px
+app = dash.Dash(__name__)
+app.layout = html.Div([
+    html.P("Dash Cytoscape:"),
+    cyto.Cytoscape(
+        id='cytoscape',
+        elements=[
+            {'data': {'id': 'ca', 'label': 'Canada'}}, 
+            {'data': {'id': 'on', 'label': 'Ontario'}}, 
+            {'data': {'id': 'qc', 'label': 'Quebec'}},
+            {'data': {'source': 'ca', 'target': 'on'}}, 
+            {'data': {'source': 'ca', 'target': 'qc'}}
+        ],
+        layout={'name': 'breadthfirst'},
+        style={'width': '400px', 'height': '500px'}
+    )
+])
+app.run_server(debug=True)
+#https://towardsdatascience.com/fraud-detection-with-graph-analytics-2678e817b69e
+nodes_info_dict = {
+  'closeness_centrality': nx.closeness_centrality,
+  'eigenvector_centrality': nx.eigenvector_centrality_numpy,
+  'pagerank': nx.pagerank
+}
+
+columns_with_node_infos = ['degree'] + list(nodes_info_dict.keys())
+
+nodes_info = pd.DataFrame.from_dict(dict(nx.degree(G)), orient='index').rename(columns = {0 : 'degree'}).reset_index()
+
+# computing graph features for each node
+for info, fun in nodes_info_dict.items():
+    temp = pd.DataFrame.from_dict(fun(G), orient='index').rename(columns = {0 : info}).reset_index()
+    nodes_info = nodes_info.merge(temp, on='index')
+    
+nodes_info = nodes_info.rename(columns = {'index': 'Physician'})
+
+# adding graph features to the dataframe
+df_enriched = df[['Provider','PotentialFraud', 'AttendingPhysician']].merge(nodes_info, left_on = 'Provider',  
+                           right_on='Physician', how='left').drop('Physician', axis=1)
+df_enriched.rename(columns = {k:'Provider_'+k for k in columns_with_node_infos}, inplace = True)
+
+df_enriched = df_enriched.merge(nodes_info, left_on = 'AttendingPhysician', 
+                           right_on='Physician', how='left').drop('Physician', axis=1)
+df_enriched.rename(columns = {k:'AttendingPhysician_'+k for k in columns_with_node_infos}, inplace = True)
+#random-walk
+from igraph import *
+
+G = Graph.DataFrame(df[[source,target]], directed=False)
+
+# computing the clustering
+communities = G.community_infomap()
+                    # G.community_multilevel()
+                    # G.community_infomap()
+                    # G.community_walktrap()
+
+# summary of the clustering
+communities.summary()
+# ex: 'Clustering with y elements and n clusters'
+
+# get the cluster of each node
+clusters = {n: c for n,c in zip(G.vs["name"], communities.membership)}
+
+#https://betterprogramming.pub/deploy-interactive-real-time-data-visualizations-on-flask-with-bokeh-311239273838
+from flask import Flask, render_template
+from easybase import get
+from bokeh.models import ColumnDataSource, Select, Slider
+from bokeh.resources import INLINE
+from bokeh.embed import components
+from bokeh.plotting import figure
+from bokeh.layouts import column, row
+from bokeh.models.callbacks import CustomJS
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    
+    genre_list = ['All', 'Comedy', 'Sci-Fi', 'Action', 'Drama', 'War', 'Crime', 'Romance', 'Thriller', 'Music', 'Adventure', 'History', 'Fantasy', 'Documentary', 'Horror', 'Mystery', 'Family', 'Animation', 'Biography', 'Sport', 'Western', 'Short', 'Musical']
+
+    controls = {
+        "reviews": Slider(title="Min # of reviews", value=10, start=10, end=200000, step=10),
+        "min_year": Slider(title="Start Year", start=1970, end=2021, value=1970, step=1),
+        "max_year": Slider(title="End Year", start=1970, end=2021, value=2021, step=1),
+        "genre": Select(title="Genre", value="All", options=genre_list)
+    }
+
+    controls_array = controls.values()
+
+    def selectedMovies():
+        res = get("Dt-p-a0jVTBSVQji", 0, 2000, "password")
+        return res
+
+    source = ColumnDataSource()
+
+    callback = CustomJS(args=dict(source=source, controls=controls), code="""
+        if (!window.full_data_save) {
+            window.full_data_save = JSON.parse(JSON.stringify(source.data));
+        }
+        var full_data = window.full_data_save;
+        var full_data_length = full_data.x.length;
+        var new_data = { x: [], y: [], color: [], title: [], released: [], imdbvotes: [] }
+        for (var i = 0; i < full_data_length; i++) {
+            if (full_data.imdbvotes[i] === null || full_data.released[i] === null || full_data.genre[i] === null)
+                continue;
+            if (
+                full_data.imdbvotes[i] > controls.reviews.value &&
+                Number(full_data.released[i].slice(-4)) >= controls.min_year.value &&
+                Number(full_data.released[i].slice(-4)) <= controls.max_year.value &&
+                (controls.genre.value === 'All' || full_data.genre[i].split(",").some(ele => ele.trim() === controls.genre.value))
+            ) {
+                Object.keys(new_data).forEach(key => new_data[key].push(full_data[key][i]));
+            }
+        }
+        
+        source.data = new_data;
+        source.change.emit();
+    """)
+
+    fig = figure(plot_height=600, plot_width=720, tooltips=[("Title", "@title"), ("Released", "@released")])
+    fig.circle(x="x", y="y", source=source, size=5, color="color", line_color=None)
+    fig.xaxis.axis_label = "IMDB Rating"
+    fig.yaxis.axis_label = "Rotten Tomatoes Rating"
+
+    currMovies = selectedMovies()
+
+    source.data = dict(
+        x = [d['imdbrating'] for d in currMovies],
+        y = [d['numericrating'] for d in currMovies],
+        color = ["#FF9900" for d in currMovies],
+        title = [d['title'] for d in currMovies],
+        released = [d['released'] for d in currMovies],
+        imdbvotes = [d['imdbvotes'] for d in currMovies],
+        genre = [d['genre'] for d in currMovies]
+    )
+
+    for single_control in controls_array:
+        single_control.js_on_change('value', callback)
+
+    inputs_column = column(*controls_array, width=320, height=1000)
+    layout_row = row([ inputs_column, fig ])
+
+    script, div = components(layout_row)
+    return render_template(
+        'index.html',
+        plot_script=script,
+        plot_div=div,
+        js_resources=INLINE.render_js(),
+        css_resources=INLINE.render_css(),
+    )
+
+if __name__ == "__main__":
+    app.run(debug=True)
+    
 #https://towardsdatascience.com/hyperparameter-tuning-the-random-forest-in-python-using-scikit-learn-28d2aa77dd74
 from sklearn.ensemble import RandomForestRegressor
 rf = RandomForestRegressor(random_state = 42)
