@@ -3,7 +3,7 @@
 import pandas as pd
 df=pd.read_csv("L:\promec\Animesh\Aida\Supplementary Table 2 for working purpose.xlsxgene.csv")
 print(df["Group"])
-df.groupby(["Group"])['NDUFB7.6'].transform(lambda x: x.fillna(x.mean()))
+print(df.groupby(["Group"])['NDUFB7.6'].transform(lambda x: x.fillna(x.mean())))
 dfNAR=df.groupby(["Group"]).transform(lambda x: x.fillna(x.mean()))
 print(min(dfNAR.min())
 dfNARM=dfNAR.fillna(int(min(dfNAR.min())-1))

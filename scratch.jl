@@ -2,6 +2,9 @@ BigInt(9)^9^9
 #setup
 using Pkg
 Pkg.add("DataSets")
+#https://youtu.be/ZRFIMGW88Co?t=303
+Distributed
+AutoMLPipeline
 FeatureTransforms
 MLJModels
 Impute

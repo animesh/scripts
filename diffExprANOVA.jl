@@ -32,7 +32,7 @@ Between(1,5),# => isnumeric,
             :Group => categorical,
             renamecols=false)
 describe(df)
-plot(df[:,3], df[:,1])
+histogram(df[:,1])
 @chain df begin
     groupby(:Group)
     combine([:1, :5] .=> mean)
