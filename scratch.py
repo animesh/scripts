@@ -1,4 +1,182 @@
 #!pip install --upgrade pip
+# https://towardsdatascience.com/best-practices-for-setting-up-a-python-environment-d4af439846a Create a directory and setup python version
+#pyenv local 3.8.2
+# Initiate poetry. This will ask meta info related to the project. DreamProject>poetry init
+#https://towardsdatascience.com/data-scientists-guide-to-efficient-coding-in-python-670c78a7bf79
+#tqdm for loops
+from tqdm import tqdm
+files = list()
+fpaths = ["dir1/subdir1", "dir2/subdir3", ......]
+for fpath in tqdm(fpaths, desc="Looping over fpaths")):
+         files.extend(os.listdir(fpath))
+#type-hinting
+def update_df(df: pd.DataFrame, 
+              clf: str, 
+              acc: float,
+              remarks: List[str] = []
+              split:float = 0.5) -> pd.DataFrame:
+    new_row = {'Classifier':clf, 
+               'Accuracy':acc, 
+               'split_size':split,
+               'Remarks':remarks}
+    df = df.append(new_row, ignore_index=True)
+    return df
+#show options
+def dummy_args(*args: list[int], option = True) -> None | int:
+     if option:
+          print(args)
+     else:
+          return 10
+def myfunc(a, b, flag, **kwargs):
+       if flag:
+           a, b = do_some_computation(a,b)
+        
+       actual_function(a,b, **kwargs)
+image_data_dir: path/to/img/dir
+# the following paths are relative to images_data_dir
+fnames:
+      fnames_fname: fnames.txt
+      fnames_label: labels.txt
+      fnames_attr: attr.txt
+synthetic:
+       edit_method: interface_edits
+       expression: smile.pkl
+       pose: pose.pkl
+You can read this file like:
+# open the yml file
+with open(CONFIG_FPATH) as f:
+     dictionary = yaml.safe_load(f)
+# print elements in dictionary
+for key, value in dictionary.items():
+     print(key + " : " + str(value))
+     print()
+https://marketplace.visualstudio.com/items?itemName=njqdev.vscode-python-typehint
+https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.todo-tree
+https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance
+https://marketplace.visualstudio.com/items?itemName=KevinRose.vsc-python-indent
+https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring
+https://marketplace.visualstudio.com/items?itemName=christian-kohler.path-intellisense
+https://marketplace.visualstudio.com/items?itemName=CoenraadS.bracket-pair-colorizer
+
+#https://github.com/alteryx/evalml
+import evalml
+X, y = evalml.demos.load_breast_cancer()
+X_train, X_test, y_train, y_test = evalml.preprocessing.split_data(X, y, problem_type='binary')
+from evalml.automl import AutoMLSearch
+automl = AutoMLSearch(X_train=X_train, y_train=y_train, problem_type='binary')
+automl.search()
+automl.rankings
+pipeline = automl.best_pipeline
+pipeline.predict(X_test)
+#Time Series support with Facebook's Prophet To support the Prophet time series estimator, be sure to install it as an extra requirement. Please note that this may take a few minutes. Prophet is currently only supported via pip installation in EvalML.
+#pip install evalml[prophet]
+
+#https://github.com/animesh/book_sample/blob/master/code/chapter4/qr_solver.py
+import numpy as np
+def qr_solver(x,y):
+  q,r=np.linalg.qr(x)
+  p = np.dot(q.T,y)
+  return np.dot(np.linalg.inv(r),p)
+
+#https://towardsdatascience.com/7-cool-python-packages-kagglers-are-using-without-telling-you-e83298781cf4
+import umap  # pip install umap-learn
+# Create the mapper
+mapper = umap.UMAP()
+# Fit to the data
+mapper.fit(X, y)
+# Plot as a scatterplot
+umap.plot.points(mapper)
+
+import datatable as dt  # pip install datatable
+frame = dt.fread("data/station_day.csv")
+frame.head(5)
+from datatable import by, f, sum
+tips = sns.load_dataset("tips")
+frame = dt.Frame(tips)
+frame[:, sum(f.total_bill), by(f.size)]
+
+from lazypredict.Supervised import (  # pip install lazypredict
+    LazyClassifier,
+    LazyRegressor,
+)
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+# Load data and split
+X, y = load_boston(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# Fit LazyRegressor
+reg = LazyRegressor(
+    ignore_warnings=True, random_state=1121218, verbose=False
+  )
+models, predictions = reg.fit(X_train, X_test, y_train, y_test)  # pass all sets
+models.head(10)
+
+import optuna  # pip install optuna
+
+def objective(trial):
+    x = trial.suggest_float("x", -7, 7)
+    y = trial.suggest_float("y", -7, 7)
+    return (x - 1) ** 2 + (y + 3) ** 2
+
+study = optuna.create_study()
+study.optimize(objective, n_trials=200)  # number of iterations
+
+>>> study.best_params
+{'x': 1.0292346846493052, 'y': -2.969875637298915}
+
+>>> study.best_value
+0.0017621440146908432
+
+import shap  # pip install shap
+import xgboost as xgb
+
+# Load and train a model
+X, y = shap.datasets.diabetes()
+clf = xgb.XGBRegressor().fit(X, y)
+
+# Explain model's predictions with SHAP
+explainer = shap.Explainer(clf)
+shap_values = explainer(X)
+
+# Visualize the predictions' explanation
+shap.plots.beeswarm(shap_values)
+
+
+import cudf, io, requests
+from io import StringIO
+
+url = "https://github.com/plotly/datasets/raw/master/tips.csv"
+content = requests.get(url).content.decode('utf-8')
+
+tips_df = cudf.read_csv(StringIO(content))
+tips_df['tip_percentage'] = tips_df['tip'] / tips_df['total_bill'] * 100
+
+# display average tip by dining party size
+print(tips_df.groupby('size').tip_percentage.mean())
+
+#https://www.kaggle.com/andreshg/automatic-eda-libraries-comparisson/notebook#6.-%F0%9F%93%8A-D-Tale-%F0%9F%93%9A
+#Initially, this section was supposed to be only about AutoViz, which uses XGBoost under the hood to display the most important information of the dataset (that’s why I chose it). Later, I decided to include a few others as well. Here is a list of the best auto EDA libraries I have found: DataPrep — the most comprehensive auto EDA [GitHub, Documentation] AutoViz — the fastest auto EDA [GitHub] PandasProfiling — the earliest and one of the best auto EDA tools [GitHub, Documentation] Lux — the most user-friendly and luxurious EDA [GitHub, Documentation]
+from pandas_profiling import ProfileReport
+report = ProfileReport(df)
+import sweetviz as sv
+advert_report = sv.analyze([df, 'Data'])
+advert_report.show_html()
+
+from autoviz.AutoViz_Class import AutoViz_Class
+AV = AutoViz_Class()
+dftc = AV.AutoViz(
+    filename='', 
+    sep='' , 
+    depVar='Class', 
+    dfte=df, 
+    header=0, 
+    verbose=1, 
+    lowess=False, 
+    chart_format='png', 
+    max_rows_analyzed=300000, 
+    max_cols_analyzed=30
+)
+
 set USE_DAAL4PY_SKLEARN=YES
 #python -c 'import sklearn'
 import sys
@@ -6,7 +184,6 @@ import time
 import logging
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(message)s',

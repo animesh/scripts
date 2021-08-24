@@ -2,6 +2,7 @@
 #!pip3 install pathlib --user
 import pandas as pd
 df=pd.read_csv("L:\promec\Animesh\Aida\Supplementary Table 2 for working purpose.xlsxgene.csv")
+df.corr('spearman').style.background_gradient(cmap="Blues")
 print(df["Group"])
 print(df.groupby(["Group"])['NDUFB7.6'].transform(lambda x: x.fillna(x.mean())))
 dfNAR=df.groupby(["Group"]).transform(lambda x: x.fillna(x.mean()))

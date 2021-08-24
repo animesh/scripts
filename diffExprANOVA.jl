@@ -12,6 +12,10 @@ using CSV
 using CategoricalArrays
 #Pkg.add("Plots")
 using Plots
+#Pkg.add("PlotThemes")
+using PlotThemes
+#Plots.showtheme(:dark)
+theme(:gruvbox_dark)
 #using Bootstrap
 #using Chain
 #using GLM

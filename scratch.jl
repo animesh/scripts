@@ -1,6 +1,18 @@
 BigInt(9)^9^9
 #setup
 using Pkg
+]add https://github.com/kskyten/Transpilers.jl
+using Transpilers
+transpile(Expr, py"1 + 1")
+transpile(String, py"lambda x, y: x * y")
+open("output.jl", "w") do f
+    transpile(f,
+    py"""
+    import numpy as np
+    def foo(x, y):
+        x + y * np.dot(x, y)
+    """)
+end
 Pkg.add("DataSets")
 #https://youtu.be/ZRFIMGW88Co?t=303
 Distributed

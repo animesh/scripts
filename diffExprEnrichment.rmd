@@ -152,6 +152,9 @@ rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nro
 dataComb<-data.frame(t(dataComb))
 #dataComb$Group<-factor(c("G","G","G","G","G","G","G","G","G","L","L","L","L","L","L","M","M","M","M","M","M","M","M","M","M","M","M","M","C","C","M","M","M","M","C","M","M","M","M","M","M","M","M","M","M","C"))
 dataComb$Group<-factor(c("G","G","G","G","G","G","G","G","G","L","L","L","L","L","L","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M","M"))
+plot(dataComb$LAMP1.P11279.P11279.2.7,dataComb$STOM.P27105.P27105.2.F8VSL7.1055)
+text(dataComb$LAMP1.P11279.P11279.2.7,dataComb$STOM.P27105.P27105.2.F8VSL7.1055,dataComb$Group,cex = 0.5,pos=2, col="red")
+text(dataComb$LAMP1.P11279.P11279.2.7,dataComb$STOM.P27105.P27105.2.F8VSL7.1055,row.names(dataComb),cex = 0.5,pos=4, col="blue")
 dataComb[is.na(dataComb)]<-"NaN"
 write.csv(dataComb,paste0(inpF,"trp.id.csv"))
 #boxplot(dataComb$C4orf27.Q9NWY4.A8MVJ9.1200~dataComb$Group)

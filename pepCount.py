@@ -1,32 +1,24 @@
 import sys
 from pathlib import Path
-if len(sys.argv)!=2:    sys.exit("USAGE: python dePepMascot.py <path to peptides containing mascot exported file>, \n e.g.,\npython dePepMascot.py L:/promec/Elite/LARS/2021/april/Garima/RopacusPD630gelBands4/210427_GELBAND_91KDA_PeptideGroups.txt\n")
+if len(sys.argv)!=2:    sys.exit("USAGE: python pepCount.py <path to peptides containing mascot exported file>, \n e.g.,\npython dePepMascot.py L:/promec/Elite/LARS/2021/april/Garima/RopacusPD630gelBands4/210427_GELBAND_91KDA_PeptideGroups.txt\n")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("F:/promec/Elite/LARS/2021/april/Garima/RopacusPD630gelBands4/210427_GELBAND_91KDA_PeptideGroups.txt")
+pathFiles = Path("L:/promec/HF/Lars/2021/march/Ingrid/KO/210317_Ingrid2-(1)_PeptideGroups.txt")
 import pandas as pd
 df=pd.read_csv(pathFiles,low_memory=False,doublequote=True,sep='\t')
 print(df.columns)
 print(df.dtypes)
 df = df.convert_dtypes(convert_boolean=False)
 print(df.dtypes)
-import numpy as np
-def scale(dfT, column_name):
-   dfT[column_name] = (dfT[column_name]-np.min(dfT[column_name]))/(np.max(dfT[column_name])-np.min(dfT[column_name]))
-   return dfT
-def drop_missing(dfT):
-   dfT.dropna(axis=0, how='any', inplace=True)
-   return dfT
-def to_category(dfT):
-   cols = dfT.select_dtypes(include='string').columns
-   for col in cols:
-      ratio = len(dfT[col].value_counts()) / len(dfT)
-      if ratio < 0.05:
-         dfT[col] = dfT[col].astype('category')
-   return dfT
-#df_processed = df.pipe(scale,'Delta M in ppm by Search Engine A20 Mascot')#).pipe(drop_missing).pipe(to_category)
-#dfG=df.groupby(['Modifications','Delta M in ppm by Search Engine A20 Mascot'],as_index=False).agg({'Modifications':pd.Series.mode,'Delta M in ppm by Search Engine A20 Mascot':np.mean})
-#dfG["Delta M in ppm by Search Engine A20 Mascot"].hist()
-#dfG=df.groupby("Modifications")
+df=df[df["PSM Ambiguity"]=="Unambiguous"]
+df['Modifications'] = df['Modifications'].fillna("UnMod")
+#dfSeqs=df["Sequence"].count()
+dfSeqs=df.groupby(["Sequence"])['Modifications'].apply(list).to_frame()#.transform(lambda x: x.fillna(x.mean())))
+dfSeqs.explode("Modifications").Modifications.str.contains(r"UnMod").sum()
+dfSeqs.explode("Modifications").Modifications.str.contains(r"UnMod|Deamidat").sum()
+dfSeqs.explode("Modifications").Modifications.str.contains(r'(~UnMod)|(Deamidat)',regex=True).sum()
+dfSeqs.explode("Modifications").Modifications.str.contains(r'~(UnMod)').sum()
+dfSeqs.explode("Modifications").Modifications.str.contains(r"Deamidat").sum()/dfSeqs.explode("Modifications").Modifications.str.contains(r"UnMod").sum()
+#dfSeqs=df.groupby(["Sequence","Modifications"]).count()
 dfGm0ds=df["Modifications"].str.split('];', expand=True)
 dfGm0ds=dfGm0ds.replace('^ ','',regex=True)
 dfGm0ds=dfGm0ds.fillna(value=' ')

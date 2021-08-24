@@ -632,6 +632,13 @@ uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[[Transpilers]]
+git-tree-sha1 = "4881e1cb79aba263034458d2b712b2a2e5190bb5"
+repo-rev = "master"
+repo-url = "https://github.com/kskyten/Transpilers.jl"
+uuid = "d3aac2a4-f011-4350-a40c-e4e1a2b7092e"
+version = "0.1.0"
+
 [[URIs]]
 git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
 uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
