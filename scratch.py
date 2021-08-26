@@ -1,4 +1,44 @@
 #!pip install --upgrade pip
+#https://towardsdatascience.com/feature-engineering-for-machine-learning-3a5e293a5114
+#Dropping the outlier rows with standard deviation
+#Max fill function for categorical columns
+#Filling missing values with medians of the columns
+data = data.fillna(data.median())
+data['column_name'].fillna(data['column_name'].value_counts()
+.idxmax(), inplace=True)
+factor = 3
+upper_lim = data['column'].mean () + data['column'].std () * factor
+lower_lim = data['column'].mean () - data['column'].std () * factor
+data = data[(data['column'] < upper_lim) & (data['column'] > lower_lim)]
+#Capping the outlier rows with Percentiles
+upper_lim = data['column'].quantile(.95)
+lower_lim = data['column'].quantile(.05)
+data.loc[(df[column] > upper_lim),column] = upper_lim
+data.loc[(df[column] < lower_lim),column] = lower_lim
+data['bin'] = pd.cut(data['value'], bins=[0,30,70,100], labels=["Low", "Mid", "High"])
+encoded_columns = pd.get_dummies(data['column'])
+data = data.join(encoded_columns).drop('column', axis=1)
+data.groupby('id').agg(lambda x: x.value_counts().index[0])
+#categorical
+data.groupby('id').agg(lambda x: x.value_counts().index[0])
+#Pivot table Pandas Example
+data.pivot_table(index='column_to_group', columns='column_to_encode', values='aggregation_column', aggfunc=np.sum, fill_value = 0)
+#sum_cols: List of columns to sum
+#mean_cols: List of columns to average
+grouped = data.groupby('column_to_group')
+sums = grouped[sum_cols].sum().add_suffix('_sum')
+avgs = grouped[mean_cols].mean().add_suffix('_avg')
+new_df = pd.concat([sums, avgs], axis=1)
+#Extracting first names
+data.name.str.split(" ").map(lambda x: x[0])
+#Extracting last names
+data.name.str.split(" ").map(lambda x: x[-1])
+#data.title.head() "0                      Toy Story (1995)"
+data.title.str.split("(", n=1, expand=True)[1].str.split(")", n=1, expand=True)[0]
+#z
+data['standardized'] = (data['value'] - data['value'].mean()) / data['value'].std()
+#Extracting the weekday name of the date
+data['day_name'] = data['date'].dt.day_name()
 # https://towardsdatascience.com/best-practices-for-setting-up-a-python-environment-d4af439846a Create a directory and setup python version
 #pyenv local 3.8.2
 # Initiate poetry. This will ask meta info related to the project. DreamProject>poetry init

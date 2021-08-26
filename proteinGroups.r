@@ -1,6 +1,8 @@
-print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <SILAC>")
-print("default LFQ")
-#example: "c:\Program Files\Microsoft\R Open\R-4.0.2\bin\Rscript.exe" "L:\promec\HF\Lars\2020\oktober\kathleen tot shotgun\combined\txt\proteinGroups.txt"
+print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
+#example:
+#c:\Users\animeshs\R\bin\Rscript.exe proteinGroups.r "L:/promec/_Training-tims-TOF-Pro/PreviousAttempt/_v1617/txt/proteinGroups.txt"
+#supplying input file for testing
+#inpF<-file.path("L:/promec/_Training-tims-TOF-Pro/PreviousAttempt/_v1617/txt/proteinGroups.txt")
 #parse argument(s)
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -9,7 +11,6 @@ print(args[1])
 if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #read MaxQuant output
-#inpF<-file.path("L:/promec/_Training-tims-TOF-Pro/PreviousAttempt/_v1617/txt/proteinGroups.txt")
 options(nwarnings = 1000000)
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
@@ -31,22 +32,24 @@ row.names(data)<-paste(protNum,data$Fasta.headers,protNum,sep=";")
 print("Converted Fasta.headers to rownames")
 #summary(data)
 #select raw intensity
+selection="Intensity.";
 print("Selecting Raw Intensity Values(s)")
-if(sum(grep("Intensity.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Intensity.",colnames(data))])}  else if(sum(grep("Abundance.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Abundance.",colnames(data))])}  else{print('Neither Abundance[PD] nor Intensity[MQ] columns detected!')}
+if(sum(grep(selection,colnames(data)))>0){intensity<-as.matrix(data[,grep(selection,colnames(data))])}  else if(sum(grep("Abundance.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Abundance.",colnames(data))])}  else{print('Neither Abundance[PD] nor Intensity[MQ] columns detected!')}
 protNum<-1:ncol(intensity)
-colnames(intensity)=paste(protNum,sub("Intensity.","",colnames(intensity)),sep="_")
+colnames(intensity)=paste(protNum,sub(selection,"",colnames(intensity)),sep="_")
 intensityLFQ<-log2(intensity)
 intensityLFQ[intensityLFQ==-Inf]=NA
 colSums(!is.na(intensityLFQ))
 colSums(is.na(intensityLFQ))
-print(colSums(is.na(intensityLFQ))/colSums(!is.na(intensityLFQ)))
+isNA<-colSums(is.na(intensityLFQ))/colSums(!is.na(intensityLFQ))
+print(isNA)
 #hist(intensity[,1])
 #select from arg[]
+rownames(intensity)<-rownames(data)
 if(sum(grep("LFQ",colnames(data)))>0){
   selection="LFQ.intensity";print(paste("No columns to select, using"));
   LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-  protNum<-1:ncol(LFQ);colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_");print(selection)}
-else if (sum(grep("Ratio",colnames(data)))>0){
+  protNum<-1:ncol(LFQ);colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_");print(selection)} else if (sum(grep("Ratio",colnames(data)))>0){
     selection1="Ratio."
     LFQ<-as.matrix(data[,grep(selection1,colnames(data))])
     selection2=".normalized."
@@ -59,8 +62,7 @@ else if (sum(grep("Ratio",colnames(data)))>0){
     protNum<-1:ncol(LFQ)
     colnames(LFQ)=paste(protNum,colnames(LFQ),protNum,sep="_")
     print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))
-}
-else{LFQ=intensity}
+} else{LFQ=intensity}
 summary(LFQ)
 dim(LFQ)
 #select certain marker proteins and calculate their intensity proportion, e.g. using histone as a protein ruler http://www.coxdocs.org/doku.php?id=perseus:user:plugins:proteomicruler
@@ -85,6 +87,7 @@ print(paste("Selected and log2 transformed columns",selection))
 if(dim(log2LFQ)[2]>0){
   outP<-paste(inpF,selection,"pdf",sep = ".")
   pdf(outP)
+  barplot(isNA,main=paste("Protein group #",paste(t(colSums(!is.na(intensityLFQ)))),paste(t(colSums(is.na(intensityLFQ))))))
   boxplot(intensity)
   boxplot(intensityLFQ)
   boxplot(log2LFQ)
