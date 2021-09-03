@@ -1,4 +1,63 @@
 #!pip install --upgrade pip
+#https://stackoverflow.com/questions/7571635/fastest-way-to-check-if-a-value-exists-in-a-list
+s = set(b)
+#https://towardsdatascience.com/18-common-python-anti-patterns-i-wish-i-had-known-before-44d983805f0f
+with open("./data.csv", "wb") as f:
+    f.write("some data")
+    v = d["bar"]
+# python still executes f.close() even if the KeyError exception occurs
+def append_to(element, to=None):
+    if to is None:
+        to = []
+    to.append(element)
+    return to
+def get_code(username):
+    if username != "ahmed":
+        return "Medium2021"
+    else:
+        raise ValueError
+try:
+    secret_code = get_code("besbes")
+    print("The secret code is {}".format(secret_code))
+except ValueError:
+    print("Wrong username.")
+access = age > 30 and user == "ahmed" and job == "data scientist"
+user_id = user_ids.get(name, None)
+for i, fruit in enumerate(list_of_fruits):
+    print(f"fruit number {i+1}: {fruit}")
+for letter, id_ in zip(list_of_letters, list_of_ids):
+    process_letters(letter, id_)
+#https://python.plainenglish.io/how-to-track-phone-number-location-with-python-526bbf06c89e
+import phonenumbers
+from text import number
+from phonenumbers import geocoder
+ch_number = phonenumbers.parse(number, "CH")
+print(geocoder.description_for_number(ch_number, "en"))
+from phonenumbers import carrier
+service_provider = phonenumbers.parse(number, "RO")
+print(carrier.name_for_number(service_provider, "en"))
+#https://python.plainenglish.io/textblob-a-package-every-python-programmer-should-know-da1f42bf4b5e
+#!pip install textblob
+from textblob import TextBlob
+blob = TextBlob("Spellling is hardd")
+blob_corrected  = blob.correct()
+print(blob_corrected.string)
+#TextBlob is built on top of NLTK, sometimes we must import resources from NLTK before using it. In this case, we must download a resource called “punkt.”
+import nltk
+nltk.download('punkt')
+blob = TextBlob("TextBlob is built on top of NLTK. It makes it easy to perform common NLP tasks. ")
+print(blob.words)
+print(blob.sentences)
+#Output:[‘TextBlob’, ‘is’, ‘built’, ‘on’, ‘top’, ‘of’, ‘NLTK’, ‘It’, ‘makes’, ‘it’, ‘easy’, ‘to’, ‘perform’, ‘common’, ‘NLP’, ‘tasks’] [Sentence(“TextBlob is built on top of NLTK.”), Sentence(“It makes it easy to perform common NLP tasks.”)]
+from textblob import Word
+import nltk
+nltk.download('wordnet')
+nlp_word = Word("nlp")
+print(nlp_word.definitions)
+#Output: [‘the branch of information science that deals with natural language information’]
+#create and train text classification models with TextBlob in only a few lines of code. You can also use a premade sentiment analysis model, which has many different applications. Below shows how to get the sentiment of text. The output is a score between -1 to 1, where -1 is negative and 1 is positive.
+positive_blob = TextBlob("I really enjoy performing NLP with TextBlob")
+print(positive_blob.sentiment.polarity)
 #https://towardsdatascience.com/feature-engineering-for-machine-learning-3a5e293a5114
 #Dropping the outlier rows with standard deviation
 #Max fill function for categorical columns

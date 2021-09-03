@@ -506,13 +506,25 @@ TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG0
 TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist = c("ENSG00000196449"),Survresult = T,ThreshTop=0.66,ThreshDown=0.33) #	Q86U90 (YRDC_HUMAN)
 ```
 
+```{r bcr_patient_barcode}
+cor(MMRFclin$days_to_last_follow_up,MMRFclin$days_to_death,use = "complete")
+dClin<-cbind(Name=gsub("MMRF_","",MMRFclin$bcr_patient_barcode),Follow=MMRFclin$days_to_last_follow_up,Days=MMRFclin$days_to_death,Censor=MMRFclin$vital_status)
+write.table(dClin,paste0(inpD,"MMRFclinBFD.txt"),row.names = F,sep="\t",quote = F)
+```
+
+```{r ENSG00000196449}
+dENSG00000196449<-read.table(paste0(inpD,"ENSG00000196449.txt"),sep="\t",header=T)
+hist(dENSG00000196449$ENSG00000196449)
+hist(dENSG00000196449$T..Name)
+```
+
 ```{r distrib}
 hist(log2(MMRFdataPrepro))
-
 ```
 
 ```{r writeDataKM}
-write.csv(data.frame(MMRFclin),paste0(inpD,"MMRFclin.csv"))
+dfMMRFclin <- apply(data.frame(MMRFclin),2,as.character)
+write.csv(dfMMRFclin,paste0(inpD,"MMRFclin.csv"),quote = T)
 write.csv(MMRFdataPrepro,paste0(inpD,"MMRFdataPrepro.csv"))
 ```
 ```{r drugs}

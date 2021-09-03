@@ -43,7 +43,24 @@ plot(B)
 #https://towardsdatascience.com/ten-awesome-recent-developments-in-r-6bfad46299a0
 mtcars |> lapply(\(x) mean(x) > 20)
 ```
-```{r}
+```{r FS}
+#https://twitter.com/thedataprof/status/1431996682858729477/photo/2
+stats::prcomp
+gifi::princals#CATPCA
+FactoMineR::(M)CA
+stats::cmdscale
+ecodist::nmds
+vegan::isomap
+diffusionMap::diffuse
+Rtsne::Rtsne
+MASS::lda
+mixOmics::pls
+DistatisR::distasis
+vegan::procrustes
+
+```
+
+```{r motifs}
 #https://github.com/snystrom/memes
 #remotes::install_github("snystrom/memes", ref = "no-r-4")
 data("example_peaks", package = "memes")
@@ -52,7 +69,8 @@ sequences <- example_peaks %>%
   resize(200, "center") %>% 
   get_sequence(dm.genome)
 ```
-```{r https://www.metaboanalyst.ca/MetaboAnalyst/faces/Secure/process/NormalizationView.xhtml}
+```{r metaboanalyst}
+#https://www.metaboanalyst.ca/MetaboAnalyst/faces/Secure/process/NormalizationView.xhtml
 #I. Open the Metaboanalyst Link II. Data Type: Peak intensity table III. Format: Samples in column [Samples in column (Unpaired)] V. Click Submit
 #Click on the Missing Value Estimation Step 1: Remove features with >30% missing values Step 2: Select “kNN (feature wise)” Skip the Data filtering by clicking “Proceed” Select “Quantile normalization” and “Log transformation” Click on Normalize Click on View result
 mSet<-InitDataObjects("pktable", "stat", FALSE)
@@ -106,7 +124,7 @@ mSet<-PlotRSVM.Cmpd(mSet, "svm_imp_0_", "png", 72, width=NA)
 #https://github.com/business-science/free_r_tips
 corrmorrant::corrmorrant(data)
 ```
-```{r}
+```{r patchplot}
 #https://patchwork.data-imaginist.com/
 library(ggplot2)
 library(patchwork)
