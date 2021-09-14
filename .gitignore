@@ -66,3 +66,7 @@ Homo*
 *pickle
 *pkl
 .ipynb_checkpoints
+*.exe
+*.dll
+*.key
+*.def

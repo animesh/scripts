@@ -1,4 +1,60 @@
 #!pip install --upgrade pip
+#https://python.plainenglish.io/these-python-data-structures-will-be-your-new-best-friends-45c770a6bf14
+https://www.ncbi.nlm.nih.gov/nuccore/NC_045512.2?report=fasta&log$=seqview&format=text
+#sars-cov-2 https://www.ncbi.nlm.nih.gov/nuccore/NC_045512.2?report=fasta&format=text
+import requests
+url="http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=NC_045512&rettype=fasta&retmode=text"
+fasta = requests.get(url,headers={'user-agent':'Python'}).text
+name=fasta[fasta.find(">"):fasta.find("\n")]
+sequence=fasta.strip(name)
+sequence=sequence.replace("\n","")
+from collections import Counter
+c = Counter(sequence)
+print(name,c)
+#>NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome Counter({'T': 9594, 'A': 8954, 'G': 5863, 'C': 5492})
+#cf. earlier sars https://www.ncbi.nlm.nih.gov/nucleotide/AY395003.1?report=genbank&log$=nuclalign&blast_rank=62&RID=675M66YC016 Counter({'T': 9106, 'A': 8454, 'G': 6167, 'C': 5920})
+url="http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=AY395003&rettype=fasta&retmode=text"
+fasta = requests.get(url,headers={'user-agent':'Python'}).text
+name=fasta[fasta.find(">"):fasta.find("\n")]
+sequence=fasta.strip(name)
+sequence=sequence.replace("\n","")
+c.subtract("sequence")
+print(c.most_common(2))
+from collections import defaultdict
+toAdd =[("key1", 3), ("key2", 5), ("key3", 6), ("key2", 7)]
+d = defaultdict(list)
+for key, val in toAdd:
+  d[key].append(val)
+print(d) # {"key1":[3], "key2":[5, 7], "key3":[6]}
+from collections import deque
+a = deque(maxlen=10)
+#https://towardsdatascience.com/scheduling-all-kinds-of-recurring-jobs-with-python-b8784c74d5dc
+import sched
+import threading
+import time
+scheduler = sched.scheduler(time.time, time.sleep)
+def some_deferred_task(name):
+    print('Event time:', time.time(), name)
+print('Start:', time.time())
+now = time.time()
+#      delay in seconds -----v  v----- priority
+event_1_id = scheduler.enter(2, 2, some_deferred_task, ('first',))
+event_2_id = scheduler.enter(2, 1, some_deferred_task, ('second',))  # If first 2 events run at the exact same time, then "second" is ran first
+event_3_id = scheduler.enter(5, 1, some_deferred_task, ('third',))
+# Start a thread to run the events
+t = threading.Thread(target=scheduler.run)
+t.start()
+# Event has to be canceled in main thread
+scheduler.cancel(event_2_id)
+# Terminate the thread when tasks finish
+t.join()
+# Output:
+# Start: 1604045721.7161775
+# Event time: 1604045723.718353 first
+# Event time: 1604045726.7194896 third
+#https://docs.trymito.io/getting-started/installing-mito
+import mitosheet
+mitosheet.sheet()
 #https://stackoverflow.com/questions/7571635/fastest-way-to-check-if-a-value-exists-in-a-list
 s = set(b)
 #https://towardsdatascience.com/18-common-python-anti-patterns-i-wish-i-had-known-before-44d983805f0f

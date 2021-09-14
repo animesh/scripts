@@ -6,7 +6,7 @@ from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("USAGE: python pepCountTTP.py <path to MSn containing directory>, \n e.g.,\npython pepCountTTP.py \"F:/promec/LARS/TIMSTOF/Morten/210902 Morten 1 _Slot1-37_1_176.d\"\n")
 #python pepCountTTP.py C:\Users\animeshs\Desktop\Morten\210902_Morten_1__Slot1-37_1_176.d
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path('C:/Users/animeshs/Desktop/210902 sudhl5 silac/210902_sudhl5_tot_1_Slot1-28_1_179.d')
+#pathFiles = Path('C:/Users/animeshs/Desktop/210902 sudhl5 silac/210902_sudhl5_tot_2_Slot1-29_1_180.d')
 from pprint import pprint
 from timspy.df import TimsPyDF
 D = TimsPyDF(pathFiles) # get data handle
@@ -37,7 +37,7 @@ pprint(D.query(frames=[1], columns=all_columns))
 # Get all MS1 frames 
 # pprint(D.query(frames=D.ms1_frames, columns=all_columns))
 #pprint(D.query(frames=slice(2,1000,10), columns=('tof','intensity',)))
-#it = D.query_iter(slice(10,100,10), columns=all_columns)
+it = D.query_iter(slice(10,10,10), columns=all_columns)
 #pprint(next(it))
 # All MS1 frames, but one at a time
 iterator_over_MS1 = D.query_iter(D.ms1_frames, columns=all_columns)
