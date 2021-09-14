@@ -1,8 +1,8 @@
-#USAGE: bash mqrun.sh <full path to MaxQuantCmd.exe> <full path to directory containing raw files/> <full path to the fasta file> <mqpar file in working directory> <number of cpu to use>
+#USAGE: bash mqrun.sh <full path to MaxQuantCmd.exe> <full path to directory containing *.raw files/> <full path to the fasta file> <mqpar file in working directory> <number of cpu to use>
 #make sure mqrun.xml is in the directory where the script is and CHANGE following paths according to the MaxQuant Installation and representative parameter file for that version respectively
 #CANNOT handle path containing spaces! create a symlink in such cases e.g. 
-#ln -s /home/ash022/PD/USERS/STAMI/2021-02-23\ 6\ test\ samples /home/ash022/PD/USERS/STAMI/2021-02-23-6testsamples
-#bash mqrun.sh $HOME/MaxQuant_v.2.0.2.0/bin/MaxQuantCmd.exe $HOME/Animesh/OrbitrapElite_PeptideDDA/OrbitrapElite_PeptideDDA/ $HOME/FastaDB/uniprot-human-iso-june21.fasta mqpar.xml 2
+#for i in $HOME/PD/HF/Lars/2021/SEPTEMBER/Finn*/*.raw ; do echo $i; j=${i// /_}; echo $j; k=$(basename $j) ; echo $k; ln -s "$i" "$k"; done
+#bash mqrun.sh $HOME/MaxQuant_2.0.3.0/bin/MaxQuantCmd.exe $PWD $PWD/CelS2HisTageCOLIsLIVIDUS.fasta mqpar.xml 16
 MAXQUANTCMD=$1
 DATADIR=$2
 FASTAFILE=$3
