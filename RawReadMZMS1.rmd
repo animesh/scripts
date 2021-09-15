@@ -4,7 +4,7 @@
 #plot
 par(mfrow=c(1,2))
 #data
-inpD<-"L:/promec/Elite/LARS/2021/april/olej/210506 BSA SCCA/"
+inpD<-"L:/promec/Qexactive/LARS/2021/september/ole J/"
 ```
 
 ```{r getRawRead}
@@ -14,7 +14,7 @@ unzip(paste0(inpD,"RawRead.zip"),exdir = paste0(inpD,"RawRead"))
 
 ```{r data}
 #generate in windows prompt using cmd
-## for %i in ("L:\promec\Elite\LARS\2021\april\olej\210506 BSA SCCA\*.raw") do ("L:\promec\Elite\LARS\2021\april\olej\210506 BSA SCCA\RawRead\RawRead-blazor\RawRead.exe" "%i")
+## for %i in ("L:\promec\Qexactive\LARS\2021\september\ole J\*.raw") do ("L:\promec\Elite\LARS\2021\april\olej\210506 BSA SCCA\RawRead\RawRead-blazor\RawRead.exe" "%i")
 #or in bash with mono something like
 ## cd dir;for i in *.raw; do mono RawRead.exe $i; done
 inpFL<-list.files(pattern="*MZ1R.csv$",path=inpD,full.names=F,recursive=F)
@@ -41,6 +41,7 @@ for (obj in inpFL) {
     data<-merge(data,get(obj),by="MZ1",all=T)
 }
 hist(data$MZ1)
+data<-data[order(rowSums(data),decreasing=T),]
 write.csv(data,paste0(inpD,inpF,".combined.csv"))
 ```
 

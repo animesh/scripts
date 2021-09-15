@@ -5,7 +5,7 @@ from pathlib import Path
 if len(sys.argv)!=2: sys.exit("\n\nREQUIRED: pandas, pathlib, tcl==8.6.9; tested with Python 3.7.9 \n\nUSAGE: python proteinGroupsCombineTTP.py <path to folder containing protein_label_quant.tsv file(s) like \"L:\promec\Animesh\Samah\mqpar.xml.1623227664.results\" >\n\nExample\n\npython proteinGroupsCombineTTP.py L:\promec\Animesh\Samah\mqpar.xml.1623227664.results")
 #python proteinGroupsCombineTTP.py C:/Users/animeshs/Desktop/FP2
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("C:/Users/animeshs/Desktop/FP2")
+#pathFiles=Path("C:/Users/animeshs/Downloads/Fp")
 fileName='protein_label_quant.tsv'
 trainList=list(pathFiles.rglob(fileName))
 #!pip3 install pandas --user
@@ -21,11 +21,12 @@ for f in trainList:
         proteinHits.rename({'Protein':'ID'},inplace=True,axis='columns')
         proteinHits.rename({'Median Log2 Ratios HL':'MedianLog2SILAC'},inplace=True,axis='columns')
         proteinHits=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.MedianLog2SILAC).stack().reset_index(level=0, name='ID')
-        proteinHits['Name']=f.parts[-2]
+        proteinHits['Name']=f.parts[-3]
         df=pd.concat([df,proteinHits],sort=False)
 print(df.columns)
 print(df.head())
 df=df.pivot(index='ID', columns='Name', values='MedianLog2SILAC')
+#df=df.pivot_table(index='ID', columns='Name', values='MedianLog2SILAC', aggfunc='median')
 #df.to_csv(pathFiles.with_suffix('.combined.txt'),sep="\")#,rownames=FALSE)
 plotcsv=pathFiles/(fileName+".MedianLog2SILAC.histogram.svg")
 df.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(plotcsv,dpi=100,bbox_inches = "tight")
