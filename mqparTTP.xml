@@ -3,7 +3,7 @@
    <fastaFiles>
       <FastaFileInfo>
          <fastaFilePath>SequencesFasta</fastaFilePath>
-         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
+         <identifierParseRule>>([^\s]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
@@ -39,15 +39,15 @@
    <matchBetweenRuns>False</matchBetweenRuns>
    <matchUnidentifiedFeatures>False</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
-   <dependentPeptides>True</dependentPeptides>
-   <dependentPeptideFdr>0.01</dependentPeptideFdr>
-   <dependentPeptideMassBin>0.0065</dependentPeptideMassBin>
+   <dependentPeptides>False</dependentPeptides>
+   <dependentPeptideFdr>0</dependentPeptideFdr>
+   <dependentPeptideMassBin>0</dependentPeptideMassBin>
    <dependentPeptidesBetweenRuns>False</dependentPeptidesBetweenRuns>
    <dependentPeptidesWithinExperiment>False</dependentPeptidesWithinExperiment>
    <dependentPeptidesWithinParameterGroup>False</dependentPeptidesWithinParameterGroup>
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
-   <ibaq>False</ibaq>
+   <ibaq>True</ibaq>
    <top3>False</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
@@ -55,18 +55,18 @@
    <taxonomyLevel>Species</taxonomyLevel>
    <avalon>False</avalon>
    <nModColumns>3</nModColumns>
-   <ibaqLogFit>False</ibaqLogFit>
-   <ibaqChargeNormalization>False</ibaqChargeNormalization>
+   <ibaqLogFit>True</ibaqLogFit>
+   <ibaqChargeNormalization>True</ibaqChargeNormalization>
    <razorProteinFdr>True</razorProteinFdr>
    <deNovoSequencing>True</deNovoSequencing>
    <deNovoVarMods>True</deNovoVarMods>
-   <deNovoCompleteSequence>False</deNovoCompleteSequence>
-   <deNovoCalibratedMasses>False</deNovoCalibratedMasses>
-   <deNovoMaxIterations>0</deNovoMaxIterations>
-   <deNovoProteaseReward>0</deNovoProteaseReward>
-   <deNovoProteaseRewardTof>0</deNovoProteaseRewardTof>
-   <deNovoAgPenalty>0</deNovoAgPenalty>
-   <deNovoGgPenalty>0</deNovoGgPenalty>
+   <deNovoCompleteSequence>True</deNovoCompleteSequence>
+   <deNovoCalibratedMasses>True</deNovoCalibratedMasses>
+   <deNovoMaxIterations>750000</deNovoMaxIterations>
+   <deNovoProteaseReward>2</deNovoProteaseReward>
+   <deNovoProteaseRewardTof>2</deNovoProteaseRewardTof>
+   <deNovoAgPenalty>0.5</deNovoAgPenalty>
+   <deNovoGgPenalty>0.5</deNovoGgPenalty>
    <deNovoUseComplementScore>True</deNovoUseComplementScore>
    <deNovoUseProteaseScore>True</deNovoUseProteaseScore>
    <deNovoUseWaterLossScore>True</deNovoUseWaterLossScore>
@@ -92,12 +92,11 @@
    <advancedSiteIntensities>True</advancedSiteIntensities>
    <customProteinQuantification>False</customProteinQuantification>
    <customProteinQuantificationFile></customProteinQuantificationFile>
-   <minRatioCount>1</minRatioCount>
+   <minRatioCount>2</minRatioCount>
    <restrictProteinQuantification>True</restrictProteinQuantification>
    <restrictMods>
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
-      <string>Deamidation (NQ)</string>
    </restrictMods>
    <matchingTimeWindow>0</matchingTimeWindow>
    <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
@@ -105,7 +104,7 @@
    <alignmentIonMobilityWindow>0</alignmentIonMobilityWindow>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
-   <quantMode>2</quantMode>
+   <quantMode>1</quantMode>
    <massDifferenceMods>
    </massDifferenceMods>
    <mainSearchMaxCombinations>200</mainSearchMaxCombinations>
@@ -128,14 +127,15 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.0.2.0</maxQuantVersion>
+   <maxQuantVersion>2.0.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
    <numThreads>1</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
+   <emailFromAddress></emailFromAddress>
    <fixedCombinedFolder>LocalCombinedFolder</fixedCombinedFolder>
-   <fullMinMz>-1.79589544172745E+308</fullMinMz>
-   <fullMaxMz>1.79589544172745E+308</fullMaxMz>
+   <fullMinMz>-1.79769313486232E+308</fullMinMz>
+   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
