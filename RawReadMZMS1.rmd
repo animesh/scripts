@@ -42,7 +42,9 @@ for (obj in inpFL) {
 }
 hist(data$MZ1)
 data<-data[order(rowSums(data),decreasing=T),]
-write.csv(data,paste0(inpD,inpF,".combined.csv"))
+write.csv(data,paste0(inpD,inpF,".sort.combined.csv"))
+data1000<-data[c(1:1000),]
+write.csv(data1000,paste0(inpD,inpF,".combined.top1000.csv"))
 ```
 
 ```{r plot}

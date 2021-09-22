@@ -1,11 +1,9 @@
 #source https://www.bruker.com/protected/en/services/software-downloads/mass-spectrometry/raw-data-access-libraries.html
 import sys
-from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("USAGE: python pepCountTTP.py <path to MSn containing directory>, \n e.g.,\npython pepCountTTP.py \"F:/promec/LARS/TIMSTOF/Morten/210902 Morten 1 _Slot1-37_1_176.d\"\n")
-#python pepCountTTP.py C:\Users\animeshs\Desktop\Morten\210902_Morten_1__Slot1-37_1_176.d
-pathFiles = Path(sys.argv[1])
-#pathFiles = Path('C:/Users/animeshs/Desktop/210902 sudhl5 silac/210902_sudhl5_tot_2_Slot1-29_1_180.d')
-analysis_dir = 'C:/Users/animeshs/Desktop/210902 sudhl5 silac/210902_sudhl5_tot_2_Slot1-29_1_180.d'
+#python pepCountTTP.py "C:/Users/animeshs/Desktop/210902 sudhl5 silac/210902_sudhl5_tot_2_Slot1-29_1_180.d"
+analysis_dir = sys.argv[1]
+#analysis_dir = 'C:/Users/animeshs/Desktop/210902 sudhl5 silac/210902_sudhl5_tot_2_Slot1-29_1_180.d'
 import sqlite3, sys, time
 import numpy as np, matplotlib.pyplot as plt
 import numpy as np
@@ -327,8 +325,8 @@ class TimsData:
         
         return result
 #convert 1/K0 to CCS
-ccs = TimsData.oneOverK0ToCCS(1.1846, 1, 946.7764)
-print("CCS for 1/K0 1.1846, charge 1, mass 946.7764 : {0}".format(ccs))
+#ccs = TimsData.oneOverK0ToCCS(1.1846, 1, 946.7764)
+#print("CCS for 1/K0 1.1846, charge 1, mass 946.7764 : {0}".format(ccs))
 
 td = TimsData(analysis_dir)
 conn = td.conn

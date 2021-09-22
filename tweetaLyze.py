@@ -1,6 +1,149 @@
+#https://towardsdatascience.com/how-to-download-and-visualize-your-twitter-network-f009dbbf107b
+keyz = {k:v for k, v in (l.split('=') for l in open("keyz"))}
+#C:\\Users\\animeshs\\AppData\\Local\\Programs\\Spyder\\Python\\python.exe -m pip install tweepy
 #add long BEARER_TOKEN from https://developer.twitter.com/en/portal/register/welcome as environment variable
-#https://github.com/twitterdev/Twitter-API-v2-sample-code/blob/master/Sampled-Stream/sampled-stream.py
-import requests
+import tweepy
+import pandas as pd
+consumer_key = keyz['consumer_key'].strip()
+consumer_secret = keyz['consumer_secret'].strip()
+bearer_token = keyz['bearer_token'].strip()
+access_token = keyz['access_token'].strip()
+access_token_secret = keyz['access_token_secret'].strip()
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
+api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, compression=True)
+me = api.get_user(screen_name = "animesh1977")
+user_list = [me.id]
+follower_list = []
+for user in user_list:
+    followers = []
+    try:
+        for page in tweepy.Cursor(api.followers_ids, user_id=user).pages():
+            followers.extend(page)
+            print(len(followers))
+    except tweepy.TweepError:
+        print("error")
+        continue
+    follower_list.append(followers)
+
+following_list = []
+for user in user_list:
+    following = []
+    try:
+        for page in tweepy.Cursor(api.friends, user_id=user).pages():
+            following.extend(page)
+            print(len(following))
+    except tweepy.TweepError:
+        print("error")
+        continue
+    following_list.append(following)
+
+import json
+json.dump(following_list[0])#.text  
+df = pd.DataFrame(columns=['source','target']) #Empty DataFrame
+df['target'] = following_list[0] #Set the list of followers as the target column
+df['target'] = follower_list[0] #Set the list of followers as the target column
+df['source'] = me.id #Set my user ID as the source 
+df.to_csv("C:/Users/animeshs/GD/scripts/writeFollowers.csv")#.with_suffix('.combo.csv'))
+df=pd.read_csv("C:/Users/animeshs/GD/scripts/writeFollowers.csv")
+import networkx as nx
+G = nx.from_pandas_edgelist(df, 'source', 'target') #Turn df into graph
+pos = nx.spring_layout(G) #specify layout for visual
+import matplotlib.pyplot as plt
+f, ax = plt.subplots(figsize=(10, 10))
+plt.style.use('ggplot')
+nodes = nx.draw_networkx_nodes(G, pos,alpha=0.8)
+nodes.set_edgecolor('k')
+nx.draw_networkx_labels(G, pos, font_size=8)
+nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.2)
+df['target'].json()#['statuses']
+df['target'] = following_list[0] #Set the list of followers as the target column
+api.get_user("animesh1977")
+user_list = ["15936294"]
+follower_list = []
+for user in user_list:
+    followers = []
+    try:
+        #for page in tweepy.Cursor(api.followers_ids, user_id=user).pages():
+        for page in tweepy.Cursor(api.friends_ids, user_id=user).pages():
+            followers.extend(page)
+            print(len(followers))
+    except tweepy.TweepError:
+        print("error")
+        continue
+    follower_list.append(followers)
+friends=follower_list
+user_list = friends[0]
+for userID in user_list:
+    print(userID)
+    followers = []
+    follower_list = []
+    # fetching the user
+    user = api.get_user(userID)
+    # fetching the followers_count
+    followers_count = user.followers_count
+    try:
+        for page in tweepy.Cursor(api.followers_ids, user_id=userID).pages():
+            followers.extend(page)
+            print(len(followers))
+            if followers_count >= 5000: #Only take first 5000 followers
+                break
+    except tweepy.TweepError:
+        print("error")
+        continue
+    follower_list.append(followers)
+    temp = pd.DataFrame(columns=['source', 'target'])
+    temp['target'] = follower_list[0]
+    temp['source'] = userID
+    temp.to_csv("C:/Users/animeshs/GD/scripts/networkOfFollowersList.csv")
+
+df = pd.read_csv(“networkOfFollowers.csv”) #Read into a df
+G = nx.from_pandas_edgelist(df, 'source', 'target')
+
+G.number_of_nodes() #Find the total number of nodes in this graph
+
+G_sorted = pd.DataFrame(sorted(G.degree, key=lambda x: x[1], reverse=True))
+G_sorted.columns = [‘nconst’,’degree’]
+G_sorted.head()
+
+u = api.get_user(37728789)
+u.screen_name
+
+G_tmp = nx.k_core(G, 10) #Exclude nodes with degree less than 10
+
+from community import community_louvain
+partition = community_louvain.best_partition(G_tmp)
+#Turn partition into dataframe
+partition1 = pd.DataFrame([partition]).T
+partition1 = partition1.reset_index()
+partition1.columns = ['names','group']
+
+G_sorted = pd.DataFrame(sorted(G_tmp.degree, key=lambda x: x[1], reverse=True))
+G_sorted.columns = ['names','degree']
+G_sorted.head()
+dc = G_sorted
+
+combined = pd.merge(dc,partition1, how='left', left_on="names",right_on="names")
+
+pos = nx.spring_layout(G_tmp)
+f, ax = plt.subplots(figsize=(10, 10))
+plt.style.use('ggplot')
+#cc = nx.betweenness_centrality(G2)
+nodes = nx.draw_networkx_nodes(G_tmp, pos,
+                               cmap=plt.cm.Set1,
+                               node_color=combined['group'],
+                               alpha=0.8)
+nodes.set_edgecolor('k')
+nx.draw_networkx_labels(G_tmp, pos, font_size=8)
+nx.draw_networkx_edges(G_tmp, pos, width=1.0, alpha=0.2)
+plt.savefig('twitterFollowers.png')
+
+combined = combined.rename(columns={"names": "Id"}) #I've found Gephi really likes when your node column is called 'Id'
+edges = nx.to_pandas_edgelist(G_tmp)
+nodes = combined['Id']
+edges.to_csv("edges.csv")
+combined.to_csv("nodes.csv")
+    
 import os
 import json
 BEARER_TOKEN=os.environ.get("BEARER_TOKEN")

@@ -1,4 +1,27 @@
 #!pip install --upgrade pip
+import sys
+sys.executable 
+#C:\\Users\\animeshs\\AppData\\Local\\Programs\\Spyder\\Python\\python.exe https://bootstrap.pypa.io/get-pip.py
+#https://www.proxiesapi.com/blog/how-to-scrape-wikipedia-using-python-scrapy.html.php
+import scrapy
+from bs4 import BeautifulSoup
+import urllib
+class OurfirstbotSpider(scrapy.Spider):
+    name = 'ourfirstbot'
+    start_urls = [
+        'https://en.wikipedia.org/wiki/List_of_common_misconceptions',
+    ]
+    def parse(self, response):
+        #yield response
+        headings = response.css('.mw-headline').extract()       
+        datas = response.css('ul').extract()       
+        for item in zip(headings, datas):
+            all_items = {
+                'headings' : BeautifulSoup(item[0]).text,
+                'datas' : BeautifulSoup(item[1]).text,
+            }
+#We use BeautifulSoup to remove HTML tags and get pure text and now lets run this with the command (Notice we are turning off obeying Robots.txt)
+#scrapy crawl ourfirstbot -s USER_AGENT="Mozilla/5.0 (Windows NT 6.1; WOW64)/ AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36" /-s ROBOTSTXT_OBEY=False  -o data.csv
 #https://python.plainenglish.io/these-python-data-structures-will-be-your-new-best-friends-45c770a6bf14
 https://www.ncbi.nlm.nih.gov/nuccore/NC_045512.2?report=fasta&log$=seqview&format=text
 #sars-cov-2 https://www.ncbi.nlm.nih.gov/nuccore/NC_045512.2?report=fasta&format=text

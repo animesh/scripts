@@ -69,6 +69,201 @@ sequences <- example_peaks %>%
   resize(200, "center") %>% 
   get_sequence(dm.genome)
 ```
+```{r SelectizeInput}
+#https://www.davidsolito.com/post/conditional-drop-down-in-shiny/
+library(tidyverse)
+library(shiny)
+a_df <- tibble(
+     var_one = c("hadley", "charlotte", "rené", "raymond"),
+     var_two = c("mutate", "filter", "slice", "spread"),
+     var_three = c("an apple", "a pipe", "a cocktail", "a dog"),
+     var_four = c("with", "without", "thanks", "out of"),
+     var_five = c("tidyr", "magrittr", "purrr", "dplyr")
+     )
+ex_df <- expand.grid(a_df) # create a df with the 64 combinaisons
+tib <- as_tibble(sample_n(ex_df, 40))
+shinyApp(
+  ui = pageWithSidebar(
+        headerPanel("Painting 1"),
+        sidebarPanel(
+          selectizeInput('var1', 'Select variable 1', choices = c("choose" = "", levels(tib$var_one))), 
+          selectizeInput('var2', 'Select variable 2', choices = c("choose" = "", levels(tib$var_two))),
+          selectizeInput('var3', 'Select variable 3', choices = c("choose" = "", levels(tib$var_three)))
+          ),
+
+    mainPanel(
+      tableOutput("table")
+  )
+),
+
+ server = function(input, output, session) {
+   
+    output$table <- renderTable({ 
+       
+       head(tib, 10)
+       
+    })
+   
+ },
+
+options = list(height = 500)
+
+)
+Code:
+
+shinyApp(
+  ui = pageWithSidebar(
+        headerPanel("Painting 6"),
+        sidebarPanel(
+          uiOutput("select_var1"), 
+          uiOutput("select_var2"),
+          uiOutput("select_var3"),
+          uiOutput("select_var4"),
+          uiOutput("select_var5")
+          ),
+
+    mainPanel(
+      tableOutput("table")
+  )
+),
+
+ server = function(input, output, session) {
+   
+    tab <- reactive({ 
+         
+         tib %>% 
+         filter(var_one == input$var1) %>% 
+         filter(var_two == input$var2) %>% 
+         filter(var_three == input$var3) %>% 
+         filter(var_four == input$var4) %>% 
+         filter(var_five == input$var5)
+           
+    })
+   
+    output$select_var1 <- renderUI({
+  
+    selectizeInput('var1', 'Select variable 1', choices = c("select" = "", levels(tib$var_one)))
+  
+    })
+    
+    output$select_var2 <- renderUI({
+      
+      
+      choice_var2 <- reactive({
+      tib %>% 
+      filter(var_one == input$var1) %>% 
+      pull(var_two) %>% 
+      as.character()
+        
+      })
+      
+    selectizeInput('var2', 'Select variable 2', choices = c("select" = "", choice_var2())) # <- put the reactive element here
+  
+    })
+    
+    output$select_var3 <- renderUI({
+      
+      choice_var3 <- reactive({
+      tib %>% 
+      filter(var_one == input$var1) %>% 
+      filter(var_two == input$var2) %>% 
+      pull(var_three) %>% 
+      as.character()
+        
+      })
+      
+    selectizeInput('var3', 'Select variable 3', choices = c("select" = "", choice_var3()))
+  
+    })
+    
+    output$select_var4 <- renderUI({
+      
+      choice_var4 <- reactive({
+      tib %>% 
+      filter(var_one == input$var1) %>% 
+      filter(var_two == input$var2) %>% 
+      filter(var_three == input$var3) %>% 
+      pull(var_four) %>% 
+      as.character()
+        
+      })
+  
+    selectizeInput('var4', 'Select variable 4', choices = c("select" = "", choice_var4()))
+  
+    })
+    
+    output$select_var5 <- renderUI({
+      
+      choice_var5 <- reactive({
+      tib %>% 
+      filter(var_one == input$var1) %>% 
+      filter(var_two == input$var2) %>% 
+      filter(var_three == input$var3) %>% 
+      filter(var_four == input$var4) %>% 
+      pull(var_five) %>% 
+      as.character()
+        
+      })  
+  
+    selectizeInput('var5', 'Select variable 5', choices = c("select" = "", choice_var5()))
+  
+    })
+    
+    output$table <- renderTable({ 
+       
+       tab()
+      
+    })
+    
+ },
+
+options = list(height = 500)
+
+)
+library(shinyWidgets)
+shinyApp(
+ui = pageWithSidebar(
+headerPanel("Painting 8"),
+sidebarPanel(
+selectizeGroupUI(
+id = "my-filters",
+inline = FALSE,
+params = list(
+var_one = list(inputId = "var_one", title = "Select variable 1", placeholder = 'select'),
+var_two = list(inputId = "var_two", title = "Select variable 2", placeholder = 'select'),
+var_three = list(inputId = "var_three", title = "Select variable 3", placeholder = 'select'),
+var_four = list(inputId = "var_four", title = "Select variable 4", placeholder = 'select'),
+var_five = list(inputId = "var_five", title = "Select variable 5", placeholder = 'select')
+)
+)
+),
+
+mainPanel(
+tableOutput("table")
+)
+),
+
+server = function(input, output, session) {
+
+res_mod <- callModule(
+module = selectizeGroupServer,
+id = "my-filters",
+data = tib,
+vars = c("var_one", "var_two", "var_three", "var_four", "var_five")
+)
+
+output$table <- renderTable({
+res_mod()
+})
+
+},
+
+options = list(height = 500)
+)
+
+
+```
+
 ```{r metaboanalyst}
 #https://www.metaboanalyst.ca/MetaboAnalyst/faces/Secure/process/NormalizationView.xhtml
 #I. Open the Metaboanalyst Link II. Data Type: Peak intensity table III. Format: Samples in column [Samples in column (Unpaired)] V. Click Submit

@@ -560,6 +560,10 @@ dataSezWP<-merge(sort=F,dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
 #rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
 #dataS<-dataSezWP
 ```
+```{r}
+completeKM<-read.csv("L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/tabSurvKMcomplete.csv")
+completeKM[completeKM[,1]=="ENSG00000000460",]#http://10.20.93.118:3838/plotKM/
+```
 
 ```{r geneListTestFE, echo = FALSE}
 #ORA: ORA’s propensity for type I error rate inflation when genes tend to be co-expressed within sets
