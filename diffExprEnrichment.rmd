@@ -560,9 +560,45 @@ dataSezWP<-merge(sort=F,dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
 #rownames(dataSezWP)<-paste(dataSezWP$T..T..Uniprot,dataSezWP$T..T..Line,dataSezWP$ENTREZID,dataSezWP$name,sep = "_")
 #dataS<-dataSezWP
 ```
-```{r}
-completeKM<-read.csv("L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/tabSurvKMcomplete.csv")
-completeKM[completeKM[,1]=="ENSG00000000460",]#http://10.20.93.118:3838/plotKM/
+
+```{r completeKM}
+load(paste0(inpD,"MMRFBiolinks/plotKM/MMRFclin.rds"))
+load(paste0(inpD,"MMRFBiolinks/plotKM/MMRFdataPrepro.rds"))
+tabSurvKMcomplete <- NULL
+for( i in 1: nrow(MMRFdataPrepro)){
+    message( paste( i, "of ", nrow(MMRFdataPrepro), rownames(MMRFdataPrepro)[i]))
+    tabSurvKM=TCGAbiolinks::TCGAanalyze_SurvivalKM(MMRFclin,MMRFdataPrepro,Genelist=rownames(MMRFdataPrepro)[i],Survresult = F,ThreshTop=0.76,ThreshDown=0.33,p.cut=2)
+    tabSurvKMcomplete <- rbind(tabSurvKMcomplete,tabSurvKM)
+}
+hist(tabSurvKMcomplete$pvalue,breaks = 100)
+write.csv(tabSurvKMcomplete,paste0(inpD,"completeKM.csv"))
+```
+
+```{r loadMapCompleteKM}
+completeKMload<-tabSurvKMcomplete
+tabSurvKMcomplete<-read.csv("L:/promec/Animesh/Aida/completeKM.csv")
+hist(tabSurvKMcomplete$pvalue,breaks = 100)
+tabSurvKMcomplete[tabSurvKMcomplete[,1]=="ENSG00000196976",]#http://10.20.93.118:3838/plotKM/
+#X       pvalue Group2.Deaths Group2.Deaths.with.Top Group2.Deaths.with.Down Mean.Group2.Top
+#5521 ENSG00000196976 1.449573e-05           100                     61                      39        37.74869
+#     Mean.Group2.Down Mean.Group1
+#5521         12.88386    22.53076
+ensG<-tabSurvKMcomplete$X
+ensG <- lapply(ensG, as.character)
+unlist(ensG)
+ensG[[1]]
+#BiocManager::install("org.Hs.eg.db")
+library(org.Hs.eg.db)
+keytypes(org.Hs.eg.db)
+select(org.Hs.eg.db, unlist(ensG[[1]]), c('ENTREZID','SYMBOL','GENENAME'), "ENSEMBL")
+ensL<-select(org.Hs.eg.db, unlist(ensG), c('ENTREZID','SYMBOL','GENENAME'), "ENSEMBL")
+#uniprots <- Rkeys(org.Hs.egUNIPROT)
+dataSez<-merge(sort=F,tabSurvKMcomplete, ensL, by.x="X", by.y="ENSEMBL",all=T)
+#dataSez<-merge(sort=F,dataSez, wp2gene, by.x="ENTREZID", by.y="gene")
+write.csv(dataSez,paste0(inpD,"completeKMmap.csv"))
+#install.packages("writexl")
+#install.packages("readxl")
+writexl::write_xlsx(dataSez,paste0(inpD,"completeKMmap.xlsx"))
 ```
 
 ```{r geneListTestFE, echo = FALSE}

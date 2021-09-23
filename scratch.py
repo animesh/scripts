@@ -2,6 +2,15 @@
 import sys
 sys.executable 
 #C:\\Users\\animeshs\\AppData\\Local\\Programs\\Spyder\\Python\\python.exe https://bootstrap.pypa.io/get-pip.py
+#https://towardsdatascience.com/9-reasons-why-you-should-start-using-python-dataclasses-98271adadc66%20Keep%20in%20mind%20that%20fields%20without%20default%20values%20cannot%20appear%20before%20fields%20with%20default%20values.%20For%20example,%20the%20following%20code%20won%E2%80%99t%20work:
+from dataclasses import dataclass
+@dataclass
+class Person:
+     first_name: str = "Ahmed"
+     last_name: str = "Besbes"
+     age: int = 30
+     job: str = "Data Scientist"
+     hobbies: str
 #https://www.proxiesapi.com/blog/how-to-scrape-wikipedia-using-python-scrapy.html.php
 import scrapy
 from bs4 import BeautifulSoup
