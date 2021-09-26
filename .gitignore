@@ -70,3 +70,6 @@ Homo*
 *.dll
 *.key
 *.def
+*.so
+*.lib
+*.jpg

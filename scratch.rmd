@@ -59,6 +59,73 @@ DistatisR::distasis
 vegan::procrustes
 
 ```
+```{r treePlot}
+#http://blog.phytools.org/2021/09/a-hacky-method-to-plot-states-of-one-or.html
+#install.packages("phytools")
+library(phytools)
+#install.packages("geiger")
+library(geiger)
+lizard.tree<-read.nexus("lizard_tree.nex")
+lizard.data<-read.csv("lizard_spines.csv",row.names=1,stringsAsFactors=TRUE)
+head(lizard.data)
+chk<-name.check(lizard.tree,lizard.data)
+summary(chk)
+lizard.tree<-drop.tip(lizard.tree,chk$tree_not_data)
+habitat<-setNames(lizard.data$habitat,rownames(lizard.data))
+tail.spines<-setNames(lizard.data$tail.spines,rownames(lizard.data))
+plotTree(lizard.tree,type="fan",lwd=1,ftype="off")
+obj<-get("last_plot.phylo",envir=.PlotPhyloEnv)
+n<-Ntip(lizard.tree)
+col.hab<-setNames(c("darkgreen","grey"),levels(habitat))
+col.morph<-setNames(palette()[c(4,2)],levels(tail.spines))
+par(lend=3)
+for(i in 1:Ntip(lizard.tree)){
+    cc<-if(obj$xx[i]>0) 5 else -5
+    th<-atan(obj$yy[i]/obj$xx[i])
+    segments(obj$xx[i],obj$yy[i],
+        obj$xx[i]+cc*cos(th),
+        obj$yy[i]+cc*sin(th),
+        lwd=4,
+        col=col.hab[habitat[lizard.tree$tip.label[i]]])
+    segments(obj$xx[i]+cc*cos(th),
+        obj$yy[i]+cc*sin(th),
+        obj$xx[i]+2*cc*cos(th),
+        obj$yy[i]+2*cc*sin(th),lwd=4,
+        col=col.morph[tail.spines[lizard.tree$tip.label[i]]])
+}
+legend("topleft",c(levels(habitat),levels(tail.spines)),
+    pch=15,col=c(col.hab,col.morph),
+    pt.cex=1.5,cex=0.8,bty="n")
+```
+```{r pcaExplorer}
+#install.packages("devtools")
+#install.packages("cachem")
+#devtools::install_github("federicomarini/pcaExplorer")
+pcaExplorer::pcaExplorer()
+library(airway)
+data(airway)
+airway
+#> class: RangedSummarizedExperiment 
+#> dim: 64102 8 
+#> metadata(1): ''
+#> assays(1): counts
+#> rownames(64102): ENSG00000000003 ENSG00000000005 ... LRG_98 LRG_99
+#> rowData names(0):
+#> colnames(8): SRR1039508 SRR1039509 ... SRR1039520 SRR1039521
+#> colData names(9): SampleName cell ... Sample BioSample
+dds_airway <- DESeq2::DESeqDataSetFromMatrix(assay(airway),
+                                             colData = colData(airway),
+                                             design = ~dex+cell)
+if (FALSE) {
+rld_airway <- DESeq2::rlogTransformation(dds_airway)
+
+pcaExplorer(dds_airway, rld_airway)
+
+pcaExplorer(countmatrix = counts(dds_airway), coldata = colData(dds_airway))
+
+pcaExplorer() # and then upload count matrix, covariate matrix (and eventual annotation)
+}
+```
 
 ```{r motifs}
 #https://github.com/snystrom/memes

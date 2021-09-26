@@ -6,11 +6,12 @@ sys.executable
 from dataclasses import dataclass
 @dataclass
 class Person:
-     first_name: str = "Ahmed"
-     last_name: str = "Besbes"
-     age: int = 30
-     job: str = "Data Scientist"
      hobbies: str
+     first_name: str = "Name"
+     last_name: str = "Family"
+     age: int = 0
+     job: str = "Data Scientist"
+person = Person("DNA")
 #https://www.proxiesapi.com/blog/how-to-scrape-wikipedia-using-python-scrapy.html.php
 import scrapy
 from bs4 import BeautifulSoup

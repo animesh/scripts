@@ -6,17 +6,17 @@ from pyteomics import fasta, parser, mass, achrom, electrochem, auxiliary
 import sys
 fastaF = sys.argv[1]
 #fastaF = "C:/Users/animeshs/Desktop/FinnA/CelS2HisTageCOLIsLIVIDUS.fasta"
-fastaFO=fastaF+".cleave.fasta"
+fastaFO=fastaF+".cleave.KRE2.fasta"
 print('Cleaving ', fastaF ,'sequences with Trypsin&GluC and writing to... \n',fastaFO,'...\n')
 f= open(fastaFO,"w+")
 unique_peptides = set()
 for description, sequence in fasta.FASTA(fastaF):
     #new_peptides = parser.cleave(sequence, 'Trypsin/P', 2,min_length=6)
-    new_peptides = parser.cleave(sequence, '[KR]', 2,min_length=6)
+    new_peptides = parser.cleave(sequence, '[KRE]', 2,min_length=6)
     new_peptides2 = [peptide for peptide in new_peptides if len(peptide) <= 60]
-    new_peptides3 =[parser.cleave(peptide, 'E', 2,min_length=6) for peptide in new_peptides2]
-    new_peptides4 = [item for sublist in new_peptides3 for item in sublist]
-    new_peptides5 = set(new_peptides4)
+    #new_peptides3 =[parser.cleave(peptide, 'E', 2,min_length=6) for peptide in new_peptides2]
+    #new_peptides4 = [item for sublist in new_peptides3 for item in sublist]
+    new_peptides5 = set(new_peptides2)
     unique_peptides.update(new_peptides5)
     [f.write(">T"+str(len(new_peptides5))+"F"+str(sequence.find(peptide))+"L"+str(len(peptide))+"O"+str(len(sequence))+"S"+description+"\n"+peptide+"\n") for peptide in new_peptides5]
     #f.write(description+sequence+new_peptides5)
