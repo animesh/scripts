@@ -1,7 +1,26 @@
 #!pip install --upgrade pip
 import sys
 sys.executable 
+#https://betterprogramming.pub/how-to-run-ssh-commands-with-python-8111ee8ab405
+import time
+from subprocess import Popen, PIPE
+def run_ssh_cmd(host, cmd):
+    cmds = ['ssh', '-t', host, cmd]
+    return Popen(cmds, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+results = run_ssh_cmd('10.20.93.118', 'ls -l').stdout.read()
+print(results)
 #C:\\Users\\animeshs\\AppData\\Local\\Programs\\Spyder\\Python\\python.exe https://bootstrap.pypa.io/get-pip.py
+from numba import jit
+import numpy as np
+x = np.arange(100).reshape(10, 10)
+@jit(nopython=True) # Set "nopython" mode for best performance, equivalent to @njit
+def go_fast(a): # Function is compiled to machine code when called the first time
+    trace = 0.0
+    for i in range(a.shape[0]):   # Numba likes loops
+        trace += np.tanh(a[i, i]) # Numba likes NumPy functions
+    return a + trace              # Numba likes NumPy broadcasting
+print(go_fast(x))
+
 #https://towardsdatascience.com/9-reasons-why-you-should-start-using-python-dataclasses-98271adadc66%20Keep%20in%20mind%20that%20fields%20without%20default%20values%20cannot%20appear%20before%20fields%20with%20default%20values.%20For%20example,%20the%20following%20code%20won%E2%80%99t%20work:
 from dataclasses import dataclass
 @dataclass

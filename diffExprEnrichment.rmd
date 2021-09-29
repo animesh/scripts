@@ -137,7 +137,50 @@ dataLog2<-sapply(data, as.numeric)
 warnings()
 ```
 
-```{r MM, echo = FALSE}
+```{r MM}
+colnames(dataLog2)
+dataComb<-data.frame(dataLog2[,grep("^MM",colnames(dataLog2))])
+dataComb<-sapply(dataComb[,-(1:6)],as.numeric)
+boxplot(dataComb)
+rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nrow(dataComb),sep=";")
+hist(dataComb)
+log2LFQimpCorr<-cor(t(dataComb),use="pairwise.complete.obs",method="spearman")
+hist(log2LFQimpCorr)
+```
+
+```{r dist}
+dsubCor<-as.dist(log2LFQimpCorr)
+#dsubCor[is.na(dsubCor)]<-0
+dsubCor
+#https://stackoverflow.com/questions/5813156/convert-and-save-distance-matrix-to-a-specific-format/5815379#5815379
+dsubCorM <- data.frame(t(combn(rownames(log2LFQimpCorr),2)), as.numeric(dsubCor))
+names(dsubCorM) <- c("P1", "P2", "dist")
+dsubCorMna<-dsubCorM[!is.na(dsubCorM$dist),]
+write.csv(data.frame(dsubCorMna),paste0(inpD,"dsubCorMna.csv"))
+dsubCorM50p<-dsubCorM[abs(dsubCorM$dist)>0.5,]
+write.csv(data.frame(dsubCorM50p),paste0(inpD,"dsubCorM50p.csv"))
+#dsubCor<-dist(dsub,method="euclidean")
+hist(dsubCor)
+summary(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDist.svg"), p)
+pE<-as.matrix(100*dsub$Count/dsub$Length)
+rownames(pE)<-uniprot
+hist(pE)
+dsubCor<-dist(pE,method="euclidean")
+dsubCorM<-as.matrix(dist(pE,method="euclidean",diag = T,upper = T))
+hist(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDistE.svg"), p)
+```
+
+```{r lMGUS, echo = FALSE}
 #dataLog2MGUS<-dataLog2[,grep("MGUS[1-9]+",colnames(dataLog2))]
 #dataLog2MM<-dataLog2[,grep("MM[1-9]+",colnames(dataLog2))]
 #dataComb<-rbind(t(dataLog2MM[1,]),t(dataLog2MGUS[1,]))
