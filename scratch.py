@@ -1,6 +1,46 @@
 #!pip install --upgrade pip
 import sys
-sys.executable 
+sys.executable
+import logging, sys
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+logging.debug('A debug message!')
+logging.info('We processed %d records', len(processed_records))
+#https://towardsdatascience.com/all-top-python-libraries-for-data-science-explained-with-code-40f64b363663
+from imblearn.under_sampling import  RandomUnderSampler
+rus = RandomUnderSampler(random_state=0)
+df_review_bal, df_review_bal['sentiment']=rus.fit_resample(df_review_imb[['review']],df_review_imb['sentiment'])
+df_review_bal
+import pandas as pd
+import cufflinks as cf
+from IPython.display import display,HTML
+cf.set_config_file(sharing='public',theme='white',offline=True) 
+df_population = df_population.set_index('States')
+df_population.iplot(kind='bar', color='red',
+                    xTitle='States', yTitle='Population')
+import stylecloud
+stylecloud.gen_stylecloud(file_path='SJ-Speech.txt',
+                          icon_name= "fas fa-apple-alt")
+from nltk import WordNetLemmatizer
+lemmatizer = WordNetLemmatizer()
+words = ['papers', 'friendship', 'parties', 'tables']
+for word in words:
+    print(lemmatizer.lemmatize(word))
+import spacy
+nlp = spacy.load("en_core_web_sm")
+doc = nlp("Messi will go to Paris next summer")
+print([(X.text, X.label_) for X in doc.ents])
+from sklearn.linear_model import LogisticRegression
+log_reg = LogisticRegression()
+log_reg.fit(train_x_vector, train_y)
+    
+#https://towardsdatascience.com/weird-python-stuff-you-might-not-have-seen-before-950a965235fd 
+def factorial(n):
+    return n * factorial(n-1) if n else 1
+from functools import lru_cache
+@lru_cache
+def fact(n):return n * factorial(n-1) if n else 1
+@timeit factorial(20)
+print("check {Ds} {nm}".format(Ds = "d", nm="a"))
 #https://betterprogramming.pub/how-to-run-ssh-commands-with-python-8111ee8ab405
 import time
 from subprocess import Popen, PIPE

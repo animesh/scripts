@@ -88,7 +88,7 @@ end
 genes
 
 # ╔═╡ 5a83cb57-79e1-437e-bb9b-09b6b902f15f
-@time network = InferredNetwork(algorithm, genes);
+#@time network = InferredNetwork(algorithm, genes);
 
 # ╔═╡ 6dcf9df1-748b-44d0-a983-e371e6578dde
 network
@@ -106,6 +106,9 @@ end
 
 # ╔═╡ 389d31b9-f5db-442f-9c8a-da6fafdf14ce
 gplot(graph, nodelabel = nodelabels)
+
+# ╔═╡ e9aadaff-620c-430c-a745-c4ca1182a8e6
+dataset_name
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -540,17 +543,17 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─18e4f150-1eaf-11ec-0dfa-5feeb4c0626b
 # ╠═9caf1d37-8d66-42f4-9159-01ab5e1b1ae1
 # ╠═5e78af02-24a5-4a50-85f3-71d6aa797fde
-# ╟─555dd90a-d544-4357-93b2-322c395f8c25
-# ╟─33ca448d-20a0-4319-af45-227af15d1364
-# ╠═48eab231-0206-49c2-a8ce-799db2912ebc
-# ╟─58ab8844-8e6a-48bf-a9e0-7393e2e55c40
-# ╟─ca27fd47-444b-4201-9c74-f007aa4b18ee
+# ╠═555dd90a-d544-4357-93b2-322c395f8c25
+# ╠═33ca448d-20a0-4319-af45-227af15d1364
+# ╟─48eab231-0206-49c2-a8ce-799db2912ebc
+# ╠═58ab8844-8e6a-48bf-a9e0-7393e2e55c40
+# ╠═ca27fd47-444b-4201-9c74-f007aa4b18ee
 # ╟─ffa9a6f3-9d66-4ccc-9a93-7f5a1216fbca
-# ╠═07efee21-ba84-4971-8776-ba54d6d762f0
+# ╟─07efee21-ba84-4971-8776-ba54d6d762f0
 # ╠═8073be21-c42d-4616-9c62-32f47115334a
 # ╟─91f79dc5-e7e4-42cb-891d-e56e2c7986d3
 # ╟─3319b0df-f753-442e-a82c-537e27c91748
-# ╠═b79e8c18-38dd-468e-b3c2-bd9a5582a537
+# ╟─b79e8c18-38dd-468e-b3c2-bd9a5582a537
 # ╠═bee744f2-1edc-4e71-8168-73f90eb2fea3
 # ╠═d38addd2-9c87-4629-80a4-8fadfdba6734
 # ╠═8bb6a7a6-4a14-4dd3-8b12-bf20f2033971
@@ -560,5 +563,6 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═ad2c4547-1e59-4b33-9631-cccaa908df78
 # ╠═41d548a8-4260-44fd-99fa-6aa14d5c2b8b
 # ╠═389d31b9-f5db-442f-9c8a-da6fafdf14ce
+# ╠═e9aadaff-620c-430c-a745-c4ca1182a8e6
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

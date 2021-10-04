@@ -157,8 +157,14 @@ dsubCorM <- data.frame(t(combn(rownames(log2LFQimpCorr),2)), as.numeric(dsubCor)
 names(dsubCorM) <- c("P1", "P2", "dist")
 dsubCorMna<-dsubCorM[!is.na(dsubCorM$dist),]
 write.csv(data.frame(dsubCorMna),paste0(inpD,"dsubCorMna.csv"))
-dsubCorM50p<-dsubCorM[abs(dsubCorM$dist)>0.5,]
+dsubCorM50p<-dsubCorMna[abs(dsubCorMna$dist)>0.5,]
+dsubCorM50p$SOURCE<-paste(sapply(strsplit(paste(sapply(strsplit(dsubCorM50p$P1, ";",fixed=T), "[", 1)), "-"), "[", 1))
+dsubCorM50p$TARGET<-paste(sapply(strsplit(paste(sapply(strsplit(dsubCorM50p$P2, ";",fixed=T), "[", 1)), "-"), "[", 1))
 write.csv(data.frame(dsubCorM50p),paste0(inpD,"dsubCorM50p.csv"))
+dsubCorM75p<-dsubCorMna[abs(dsubCorMna$dist)>0.75,]
+dsubCorM75p$SOURCE<-paste(sapply(strsplit(paste(sapply(strsplit(dsubCorM75p$P1, ";",fixed=T), "[", 1)), "-"), "[", 1))
+dsubCorM75p$TARGET<-paste(sapply(strsplit(paste(sapply(strsplit(dsubCorM75p$P2, ";",fixed=T), "[", 1)), "-"), "[", 1))
+write.csv(data.frame(dsubCorM75p),paste0(inpD,"dsubCorM75p.csv"),quote = F)
 #dsubCor<-dist(dsub,method="euclidean")
 hist(dsubCor)
 summary(dsubCor)
