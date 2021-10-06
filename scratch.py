@@ -1,6 +1,65 @@
 #!pip install --upgrade pip
 import sys
 sys.executable
+#https://medium.com/sfu-cspmp/getting-familiar-with-unique-visualizations-a9bbbd9c9be
+import plotly.express as px
+import pandas as pd
+
+df = pd.read_excel('fifa.xlsx')
+
+#setting the parameters of the chart
+fig = px.bar_polar(df, r="goals", theta="player",  #r is the values, theta= data you wish to compare
+                   color="year", template="plotly_dark")  #color is the value of stacked columns 
+
+#adding title, circular grid shape and labels
+fig.update_layout(
+    title='Comparison of number of goals during 2014 and 2018 FIFA Worldcup',
+    template=None,
+    polar = dict(gridshape='circular',bgcolor='lightgray',
+        radialaxis = dict(range=[0, 7], ticks='')  #setting the scale
+    ))
+fig.show()
+import plotly.graph_objects as go
+label = ["Coal", "Gas", "Hydro", "Nuclear", "Solar & Wind", "Oil","Total Electricity generated"]  #total nodes involved in the graph
+
+#creating a sankey diagram using plotly
+fig = go.Figure(data=[go.Sankey(       
+    node = dict(            #editing properties of the node
+      thickness = 15,
+      line = dict(color = "black"),
+      label = ["Coal", "Gas", "Hydro", "Nuclear", "Solar & Wind", "Oil","Total Electricity generated"], #total nodes
+    ),
+    #editing properties of the connecting link
+    link = dict(               
+      source = [0,1,2,3,4,5],  #source nodes
+      target = [6, 6, 6, 6, 6, 6],   #target node
+      value = [10146, 6141, 5073, 2670, 1869, 801,26700],  #value of the links
+      color = '#eee0e5'
+  ))])
+
+#setting figure title and font style
+fig.update_layout(title_text="Sources of electricity genration in 2018", font=dict(size = 12, color = 'maroon'),paper_bgcolor='white')
+fig.show()
+import plotly.graph_objects as go
+
+#plotting the chart
+fig =go.Figure(go.Sunburst(
+    labels = ["USA","California","Texas","Florida","New York","Canada","Ontario","Quebec","British Columbia"],
+    parents = ["", "USA","USA","USA","USA","", "Canada", "Canada", "Canada"],
+    values=[327.2,39,28,21,19,37.06,13,8,4],
+    textinfo='label+value'
+))
+
+fig.update_layout( title={
+        'text': "Top four highly populated provinces of USA and Canada - 2018",
+        'y':0.9,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'} #set the title
+        )
+
+#to show the figure
+fig.show()''
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 logging.debug('A debug message!')
