@@ -1,6 +1,30 @@
 #!pip install --upgrade pip
 import sys
 sys.executable
+#https://medium.com/@souravbit3366/walmart-store-sales-forecasting-fa44df505b32
+raw=final_data.groupby([‘Type’,’Date’,’IsHoliday’])[‘Weekly_Sales’].sum().reset_index()
+type_A=raw[raw[‘Type’]==’A’]
+type_B=raw[raw[‘Type’]==’B’]
+type_C=raw[raw[‘Type’]==’C’]
+sns.distplot(type_A[‘Weekly_Sales’],label=’type_A’)
+sns.distplot(type_B[‘Weekly_Sales’],label=’type_B’)
+sns.distplot(type_C[‘Weekly_Sales’],label=’type_C’)
+sns.set(rc={‘figure.figsize’:(12.7,6.27)})
+plt.legend()
+plt.title(‘Distribution of weekly sales of type of store’)
+plt.show()
+# random forest for feature importance on a regression problem
+from sklearn.datasets import make_regression
+from sklearn.ensemble import RandomForestRegressor
+from matplotlib import pyplot
+final_data_train['Date']=pd.to_numeric(pd.to_datetime(final_data_train['Date']))
+y = final_data_train['Weekly_Sales']
+X = final_data_train.drop(['Weekly_Sales'], axis=1)
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.3)
+model = RandomForestRegressor()
+model.fit(X_train, y_train)
+importance = model.feature_importances_
+
 #https://medium.com/sfu-cspmp/getting-familiar-with-unique-visualizations-a9bbbd9c9be
 import plotly.express as px
 import pandas as pd
