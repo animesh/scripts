@@ -1,6 +1,100 @@
 #!pip install --upgrade pip
 import sys
 sys.executable
+sys.setrecursionlimit(1000)
+#https://medium.com/analytics-vidhya/are-you-writing-print-statements-to-debug-your-python-code-690e6ba098e9
+def add_num(listA,num):
+    sum=[]
+    for i in listA:
+        sum.append(i*num)
+    return sum
+listA = [2, 4, 6, 8]
+num=10
+breakpoint()
+#n — move to next line/step over definitions
+#s — step into definitions (built-in / user defined)
+#u — to skip remaining iterations in a loop
+#c — continue execution or till the next breakpoint() is encountered
+#l — Shows the current line of code to be executed with arrow “->”
+#q — to quit the debugger
+#result=add_num(listA,num)
+print(result)
+#https://python.plainenglish.io/22-python-code-snippets-for-everyday-problems-2f6e5025cd70
+a = list()
+b = tuple()
+c = set()
+d = dict()
+print(a, b, c, d) # [] () set() {}
+invert = {v: k for k, v in dictO.items()}
+lst = list(map(lambda x:int(x) ,input().split()))
+print(lst[::-1])
+reversed(lst)
+dict3 = {**dict1, **dict2}
+print(invert) # {'Py': 1, 'Js': 2, 'C++': 3, 'Dart': 4}
+string = "Hi My Name is {} and {}".format(name, profession)
+def Extract_Vowels(data):
+    return [each for each in data if each in 'aeiou']
+print(Extract_Vowels("langauge"))  # ['a', 'a', 'u', 'e']
+newlst = list(itertools.chain.from_iterable(mylist))#flatten
+transpose = list(zip(*lst))
+print("Y") if 100 > 5 else print("N")
+even_num = [i for i in mylst if i%2 == 0]
+emoji.emojize('Yoo Python Coder :wave:')
+list(dict.fromkeys(mylst))# rem dup
+#https://towardsdatascience.com/4-amazing-python-libraries-that-you-should-try-right-now-872df6f1c93
+# Import Faker
+from faker import Faker
+from faker.providers import internet
+fake = Faker()
+# Create fake name
+fake.name()
+# Create fake address
+fake.address()
+# Create fake job title
+fake.job()
+# Create fake SSN
+fake.ssn()
+# Create fake phone number
+fake.phone_number()
+# Create fake time
+fake.date_time()
+# Create fake text
+fake.text()
+import opendatasets as od
+od.download('kaggle_url')
+Now, we can add the dataset URL on Kaggle.
+import opendatasets as odod.download("https://www.kaggle.com/rashikrahmanpritom/heart-attack-analysis-prediction-dataset")
+# Create conda environment
+!conda create -n bamboolib python=3.7 -y
+# Activate the environment
+!conda activate bamboolib
+# Add the IPython kernel to Jupyter
+!conda install jupyter -y
+!conda install ipykernel -y
+!python -m ipykernel install — user — name bamboolib
+# Run this if you use Jupyterlab
+!conda install jupyterlab -y
+# Install bamboolib …
+!pip install — upgrade bamboolib — user
+# Jupyter Notebook extensions
+!python -m bamboolib install_nbextensions
+# Run this if you use Jupyterlab: JupyterLab extensions
+!python -m bamboolib install_labextensions
+Now, let’s import Bamboolib, Pandas, and the famous Titanic dataset to explore Bamboolib a bit.
+# Import bamboolib, Pandas, and the Titanic dataset
+import bamboolib as bam
+import pandas as pd
+df = pd.read_csv(bam.titanic_csv)
+# Import Tensorflow Data Validation
+import tensorflow_data_validation as tfdv
+# Import Pandas
+import pandas as pd
+# Import Titanic dataset
+df = pd.read_csv('train.csv')
+Ok, now we are good to go. To see TFDV in action, type the following code, and once you run the cell, you will see that TFDV will return a nice-looking descriptive statistics table.
+stats = tfdv.generate_statistics_from_dataframe(df)
+ 
+tfdv.visualize_statistics(stats)
 #https://medium.com/@souravbit3366/walmart-store-sales-forecasting-fa44df505b32
 raw=final_data.groupby([‘Type’,’Date’,’IsHoliday’])[‘Weekly_Sales’].sum().reset_index()
 type_A=raw[raw[‘Type’]==’A’]

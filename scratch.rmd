@@ -1,5 +1,7 @@
 ```{r setup, echo = FALSE}
 #lib
+Sys.getenv()
+Sys.setenv(R_USER="C:/Users/animeshs/")
 libPaths="C:/Users/animeshs/GD/libR"
 libPaths="L:/promec/Animesh/R/win-library/4.0"
 .libPaths(c(libPaths, .libPaths()))
@@ -43,6 +45,16 @@ plot(B)
 #https://towardsdatascience.com/ten-awesome-recent-developments-in-r-6bfad46299a0
 mtcars |> lapply(\(x) mean(x) > 20)
 ```
+```{r}
+#install.packages("shinythemes")
+shiny::runGitHub('gsarefdb', 'gsa-central')
+```
+```{r iceR}
+#devtools::install_github("mathiaskalxdorf/IceR")
+library(IceR)
+runIceR()
+```
+
 ```{r FS}
 #https://twitter.com/thedataprof/status/1431996682858729477/photo/2
 stats::prcomp

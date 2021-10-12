@@ -7,9 +7,6 @@ using InteractiveUtils
 # ╔═╡ 18e4f150-1eaf-11ec-0dfa-5feeb4c0626b
 using Distributed
 
-# ╔═╡ ca27fd47-444b-4201-9c74-f007aa4b18ee
-using BenchmarkTools
-
 # ╔═╡ 8073be21-c42d-4616-9c62-32f47115334a
 using NetworkInference
 
@@ -18,6 +15,9 @@ using LightGraphs
 
 # ╔═╡ ad2c4547-1e59-4b33-9631-cccaa908df78
 using GraphPlot
+
+# ╔═╡ 78a6ff1e-8d1d-4867-b5c6-16d4070213df
+using CUDA
 
 # ╔═╡ 9caf1d37-8d66-42f4-9159-01ab5e1b1ae1
 nprocs()
@@ -91,7 +91,7 @@ genes
 #@time network = InferredNetwork(algorithm, genes);
 
 # ╔═╡ 6dcf9df1-748b-44d0-a983-e371e6578dde
-network
+#network
 
 # ╔═╡ 41d548a8-4260-44fd-99fa-6aa14d5c2b8b
 begin
@@ -110,10 +110,50 @@ gplot(graph, nodelabel = nodelabels)
 # ╔═╡ e9aadaff-620c-430c-a745-c4ca1182a8e6
 dataset_name
 
+# ╔═╡ a484c4d5-faae-42cb-9786-69edd863f2f5
+CUDA.version()
+
+# ╔═╡ 48d9686f-302e-4f08-8009-52d98f361724
+M = rand(2^11, 2^11)
+
+# ╔═╡ e9543d87-3ca8-4ca4-9422-ad661fafc89a
+	function benchmark_matmul_cpu(M)
+	    M * M
+	    return
+	end
+
+# ╔═╡ a46c5ec1-7eef-44b6-a542-34b465c45120
+@btime benchmark_matmul_cpu(M)
+
+# ╔═╡ 1a21170f-3951-489f-a550-541e3b825d55
+M_on_gpu = cu(M)
+
+# ╔═╡ 93df6236-6c83-41ef-87a9-0dae84a91af4
+M_on_gpu
+
+# ╔═╡ 68bc963e-dafc-4d7b-be59-493de7925f95
+function benchmark_matmul_gpu(M)
+    CUDA.@sync M * M
+    return
+end
+
+# ╔═╡ b71d46aa-8bad-427b-a095-47af59e61804
+@btime benchmark_matmul_gpu($M_on_gpu)
+
+# ╔═╡ fd011728-9eb5-4dc1-a707-3c8fa0b890b0
+benchmark_matmul_gpu(M_on_gpu)
+
+# ╔═╡ 80ec80f3-74ea-481f-86dd-5a1f4a63c143
+using BenchmarkTools
+
+# ╔═╡ ca27fd47-444b-4201-9c74-f007aa4b18ee
+using BenchmarkTools
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 GraphPlot = "a2cc645c-3eea-5389-862e-a155d0052231"
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
@@ -121,6 +161,7 @@ NetworkInference = "6b44d3db-2bc5-5ac3-b70f-26aa69b1b11b"
 
 [compat]
 BenchmarkTools = "~1.2.0"
+CUDA = "~2.6.3"
 GraphPlot = "~0.4.4"
 LightGraphs = "~1.3.5"
 NetworkInference = "~0.1.0"
@@ -129,6 +170,18 @@ NetworkInference = "~0.1.0"
 # ╔═╡ 00000000-0000-0000-0000-000000000002
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
+
+[[AbstractFFTs]]
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "485ee0867925449198280d4af84bdb46a2a404d0"
+uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
+version = "1.0.1"
+
+[[Adapt]]
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "84918055d15b3114ede17ac6a7182f68870c16f7"
+uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
+version = "3.3.1"
 
 [[ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -142,6 +195,12 @@ version = "0.1.0"
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 
+[[BFloat16s]]
+deps = ["LinearAlgebra", "Test"]
+git-tree-sha1 = "4af69e205efc343068dc8722b8dfec1ade89254a"
+uuid = "ab4f0b2a-ad5b-11e8-123f-65d77653426b"
+version = "0.1.0"
+
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
@@ -150,6 +209,17 @@ deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
 git-tree-sha1 = "61adeb0823084487000600ef8b1c00cc2474cd47"
 uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 version = "1.2.0"
+
+[[CEnum]]
+git-tree-sha1 = "215a9aa4a1f23fbd05b92769fdd62559488d70e9"
+uuid = "fa961155-64e5-5f13-b03f-caf6b980ea82"
+version = "0.4.1"
+
+[[CUDA]]
+deps = ["AbstractFFTs", "Adapt", "BFloat16s", "CEnum", "CompilerSupportLibraries_jll", "DataStructures", "ExprTools", "GPUArrays", "GPUCompiler", "LLVM", "LazyArtifacts", "Libdl", "LinearAlgebra", "Logging", "MacroTools", "Memoize", "NNlib", "Printf", "Random", "Reexport", "Requires", "SparseArrays", "Statistics", "TimerOutputs"]
+git-tree-sha1 = "6893a46f357eabd44ce0fc1f9a264120a1a3a732"
+uuid = "052768ef-5323-5732-b1bb-66c8b64840ba"
+version = "2.6.3"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
@@ -230,6 +300,11 @@ version = "0.8.5"
 deps = ["ArgTools", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 
+[[ExprTools]]
+git-tree-sha1 = "b7e3d17636b348f005f11040025ae8c6f645fe92"
+uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
+version = "0.1.6"
+
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
 git-tree-sha1 = "502b3de6039d5b78c76118423858d981349f3823"
@@ -241,6 +316,18 @@ deps = ["Statistics"]
 git-tree-sha1 = "335bfdceacc84c5cdf16aadc768aa5ddfc5383cc"
 uuid = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
 version = "0.8.4"
+
+[[GPUArrays]]
+deps = ["AbstractFFTs", "Adapt", "LinearAlgebra", "Printf", "Random", "Serialization", "Statistics"]
+git-tree-sha1 = "df5b8569904c5c10e84c640984cfff054b18c086"
+uuid = "0c68f7d7-f131-5f86-a1c3-88cf8149b2d7"
+version = "6.4.1"
+
+[[GPUCompiler]]
+deps = ["DataStructures", "ExprTools", "InteractiveUtils", "LLVM", "Libdl", "Logging", "Scratch", "Serialization", "TimerOutputs", "UUIDs"]
+git-tree-sha1 = "ef2839b063e158672583b9c09d2cf4876a8d3d55"
+uuid = "61eb1bfa-7361-4325-ad38-22787b887f55"
+version = "0.10.0"
 
 [[GraphPlot]]
 deps = ["ArnoldiMethod", "ColorTypes", "Colors", "Compose", "DelimitedFiles", "LightGraphs", "LinearAlgebra", "Random", "SparseArrays"]
@@ -284,6 +371,16 @@ deps = ["Dates", "Mmap", "Parsers", "Unicode"]
 git-tree-sha1 = "8076680b162ada2a031f707ac7b4953e30667a37"
 uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 version = "0.21.2"
+
+[[LLVM]]
+deps = ["CEnum", "Libdl", "Printf", "Unicode"]
+git-tree-sha1 = "f57ac3fd2045b50d3db081663837ac5b4096947e"
+uuid = "929cbde3-209d-540e-8aea-75f648917ca0"
+version = "3.9.0"
+
+[[LazyArtifacts]]
+deps = ["Artifacts", "Pkg"]
+uuid = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 
 [[LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -342,6 +439,12 @@ git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
 uuid = "442fdcdd-2543-5da2-b0f3-8c86c306513e"
 version = "0.3.1"
 
+[[Memoize]]
+deps = ["MacroTools"]
+git-tree-sha1 = "2b1dfcba103de714d31c033b5dacc2e4a12c7caa"
+uuid = "c03570c3-d221-55d1-a50c-7939bbd78826"
+version = "0.4.4"
+
 [[Missings]]
 deps = ["DataAPI"]
 git-tree-sha1 = "bf210ce90b6c9eed32d25dbcae1ebc565df2687f"
@@ -353,6 +456,12 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+
+[[NNlib]]
+deps = ["Adapt", "ChainRulesCore", "Compat", "LinearAlgebra", "Pkg", "Requires", "Statistics"]
+git-tree-sha1 = "5203a4532ad28c44f82c76634ad621d7c90abcbd"
+uuid = "872c559c-99b0-510c-b3b7-b6c96a88d5cd"
+version = "0.7.29"
 
 [[NetworkInference]]
 deps = ["DelimitedFiles", "Distributed", "Distributions", "InformationMeasures", "Pkg", "SharedArrays", "Test"]
@@ -444,6 +553,12 @@ version = "0.3.0+0"
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
+[[Scratch]]
+deps = ["Dates"]
+git-tree-sha1 = "0b4b7f1393cff97c33891da2a0bf69c6ed241fda"
+uuid = "6c6a2e73-6563-6170-7368-637461726353"
+version = "1.1.0"
+
 [[Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
@@ -519,6 +634,12 @@ uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[[TimerOutputs]]
+deps = ["ExprTools", "Printf"]
+git-tree-sha1 = "7cb456f358e8f9d102a8b25e8dfedf58fa5689bc"
+uuid = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
+version = "0.5.13"
+
 [[UUIDs]]
 deps = ["Random", "SHA"]
 uuid = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
@@ -564,5 +685,16 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═41d548a8-4260-44fd-99fa-6aa14d5c2b8b
 # ╠═389d31b9-f5db-442f-9c8a-da6fafdf14ce
 # ╠═e9aadaff-620c-430c-a745-c4ca1182a8e6
+# ╠═78a6ff1e-8d1d-4867-b5c6-16d4070213df
+# ╠═a484c4d5-faae-42cb-9786-69edd863f2f5
+# ╠═80ec80f3-74ea-481f-86dd-5a1f4a63c143
+# ╠═48d9686f-302e-4f08-8009-52d98f361724
+# ╠═e9543d87-3ca8-4ca4-9422-ad661fafc89a
+# ╠═a46c5ec1-7eef-44b6-a542-34b465c45120
+# ╠═1a21170f-3951-489f-a550-541e3b825d55
+# ╠═93df6236-6c83-41ef-87a9-0dae84a91af4
+# ╠═68bc963e-dafc-4d7b-be59-493de7925f95
+# ╠═b71d46aa-8bad-427b-a095-47af59e61804
+# ╠═fd011728-9eb5-4dc1-a707-3c8fa0b890b0
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

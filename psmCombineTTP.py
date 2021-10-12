@@ -48,11 +48,12 @@ writeScores=pathFiles/(fileName+".dMASS.median.csv")
 df.to_csv(writeScores)#.with_suffix('.combo.csv'))
 print("dMASS in\n",writeScores,"\n",plotcsv)
 #select for Fe-2H delta-mass
-peptide=df[df['Median'].between(57.91,53.93)]
+peptide=df[df['Median'].between(53.91,53.93)]
 peptides=''.join(peptide.index)
 from collections import Counter
 c = Counter(peptides)
 cf=pd.DataFrame(c.items())
 cf=cf[cf.iloc[:,0].str.contains('[a-z]')]
+cf=cf.sort_values(1)
 print(cf,"\nmedian delta-mass between",peptide['Median'].min(),peptide['Median'].max())
 #dfID=df.assign(ID=df.ID.str.split(';')).explode('ID')
