@@ -2,6 +2,24 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+#https://towardsdatascience.com/three-python-built-in-function-tricks-reducing-our-workloads-60fe54c55cf3
+import functools
+import re
+find_A = functools.partial(re.findall, r'A\w+')
+print(find_A('ATGC CGTA AGCT TGCA'))#['ATGC', 'AGCT']
+@functools.singledispatch
+def greeting(name):
+    print(f'Hi, {name}!')
+greeting(['Alice', 'Bob', 'Chris'])
+@total_ordering
+class Employee:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+def __lt__(self, other):
+        return self.age < other.age
+def __eq__(self, other):
+        return self.age == other.age
 #https://medium.com/analytics-vidhya/are-you-writing-print-statements-to-debug-your-python-code-690e6ba098e9
 def add_num(listA,num):
     sum=[]

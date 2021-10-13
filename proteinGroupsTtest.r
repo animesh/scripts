@@ -16,7 +16,7 @@ mdata <- read.perseus(inFile)
 dataSellog2grpTtest <- main(mdata)
 sCol<-1
 eCol<-ncol(dataSellog2grpTtest)
-mCol <- ceiling((eCol-sCol)/2)-1
+mCol <- ceiling((eCol-sCol)/2)
 #outMdata <- matrixData(main=dataSellog2grpTtest[,1:mCol])
 #inFile<-"C:/Users/animeshs/GD/scripts/matrix.txt"
 #outFile<-"C:/Users/animeshs/GD/scripts/matrix.out"

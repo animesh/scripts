@@ -1,11 +1,20 @@
-# -*- coding: utf-8 -*-
-# From HuggingFace 🤗 Datasets library - Quick overview
-
-
-#C:\Users\animeshs\AppData\Local\Programs\Spyder\Python\python.exe -m pip install datasets
-from datasets import load_dataset
-dataset = load_dataset('animesh/autonlp-data-peptides', split='train')
-
+#git lfs install
+#git clone https://huggingface.co/datasets/animesh/autonlp-data-peptides
+#https://www.tensorflow.org/tutorials/load_data/csv
+import pandas as pd
+peptideCCS_train=pd.read_csv("L:\promec\Animesh\pepCCS.csv")
+peptideCCS_train.info()
+peptideCCS_train[' CCS'].hist()
+peptideCCS_train_scores = peptideCCS_train.pop(' CCS')
+peptideCCS_train_scores.hist()
+peptideCCS_train=peptideCCS_train.pop('Sequence ')
+del peptideCCS_train
+peptides=''.join(peptideCCS_train)
+from collections import Counter
+c = Counter(peptides)
+cf=pd.DataFrame(c.items())
+cf=cf.sort_values(1)
+print(cf)
 import tensorflow as tf
 print(tf.__version__)
 #C:\Users\animeshs\AppData\Local\Programs\Spyder\Python\python.exe -m pip install tensorflow-text
