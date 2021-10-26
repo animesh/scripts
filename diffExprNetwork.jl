@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.16.1
+# v0.16.4
 
 using Markdown
 using InteractiveUtils
@@ -72,7 +72,7 @@ begin
 	# ...Or override dataset_name to point to your data file:
 	#dataset_name = string("../simulated_datasets/", number_of_genes, "_", organism, "_", dataset_size, ".txt")
 	#dataset_name = string("50_yeast1_large.txt")
-	dataset_name = string("log2proteinGroups.txt")
+	dataset_name = string("dataMManno.txt")
 	# Choose an algorithm
 	# PIDCNetworkInference(), PUCNetworkInference(), CLRNetworkInference() or MINetworkInference()
 	algorithm = PIDCNetworkInference()
@@ -88,10 +88,7 @@ end
 genes
 
 # ╔═╡ 5a83cb57-79e1-437e-bb9b-09b6b902f15f
-#@time network = InferredNetwork(algorithm, genes);
-
-# ╔═╡ 6dcf9df1-748b-44d0-a983-e371e6578dde
-#network
+@time network = InferredNetwork(algorithm, genes);
 
 # ╔═╡ 41d548a8-4260-44fd-99fa-6aa14d5c2b8b
 begin
@@ -114,7 +111,7 @@ dataset_name
 CUDA.version()
 
 # ╔═╡ 48d9686f-302e-4f08-8009-52d98f361724
-M = rand(2^11, 2^11)
+M = rand(2^12, 2^12)
 
 # ╔═╡ e9543d87-3ca8-4ca4-9422-ad661fafc89a
 	function benchmark_matmul_cpu(M)
@@ -670,21 +667,20 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═58ab8844-8e6a-48bf-a9e0-7393e2e55c40
 # ╠═ca27fd47-444b-4201-9c74-f007aa4b18ee
 # ╟─ffa9a6f3-9d66-4ccc-9a93-7f5a1216fbca
-# ╟─07efee21-ba84-4971-8776-ba54d6d762f0
+# ╠═07efee21-ba84-4971-8776-ba54d6d762f0
 # ╠═8073be21-c42d-4616-9c62-32f47115334a
-# ╟─91f79dc5-e7e4-42cb-891d-e56e2c7986d3
-# ╟─3319b0df-f753-442e-a82c-537e27c91748
-# ╟─b79e8c18-38dd-468e-b3c2-bd9a5582a537
+# ╠═91f79dc5-e7e4-42cb-891d-e56e2c7986d3
+# ╠═3319b0df-f753-442e-a82c-537e27c91748
+# ╠═b79e8c18-38dd-468e-b3c2-bd9a5582a537
 # ╠═bee744f2-1edc-4e71-8168-73f90eb2fea3
+# ╠═e9aadaff-620c-430c-a745-c4ca1182a8e6
 # ╠═d38addd2-9c87-4629-80a4-8fadfdba6734
 # ╠═8bb6a7a6-4a14-4dd3-8b12-bf20f2033971
 # ╠═5a83cb57-79e1-437e-bb9b-09b6b902f15f
-# ╠═6dcf9df1-748b-44d0-a983-e371e6578dde
 # ╠═33b974c0-ad65-4ef4-ba75-d6a00a184664
 # ╠═ad2c4547-1e59-4b33-9631-cccaa908df78
 # ╠═41d548a8-4260-44fd-99fa-6aa14d5c2b8b
 # ╠═389d31b9-f5db-442f-9c8a-da6fafdf14ce
-# ╠═e9aadaff-620c-430c-a745-c4ca1182a8e6
 # ╠═78a6ff1e-8d1d-4867-b5c6-16d4070213df
 # ╠═a484c4d5-faae-42cb-9786-69edd863f2f5
 # ╠═80ec80f3-74ea-481f-86dd-5a1f4a63c143

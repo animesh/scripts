@@ -8,13 +8,23 @@ peptideCCS_train[' CCS'].hist()
 peptideCCS_train_scores = peptideCCS_train.pop(' CCS')
 peptideCCS_train_scores.hist()
 peptideCCS_train=peptideCCS_train.pop('Sequence ')
-del peptideCCS_train
+len(peptideCCS_train)
+peptideCCS_train_len= peptideCCS_train.str.len()
+peptideCCS_train_len.hist()
+import matplotlib.pyplot as plt
+plt.scatter(peptideCCS_train,peptideCCS_train_scores)
 peptides=''.join(peptideCCS_train)
 from collections import Counter
 c = Counter(peptides)
 cf=pd.DataFrame(c.items())
 cf=cf.sort_values(1)
 print(cf)
+#C:\\Users\\animeshs\\AppData\\Local\\Programs\\Spyder\\Python\\python.exe -m pip install torch
+import torch
+from torch import autograd
+from torch import quantization
+#from torch import autocast
+from torch import autonlp
 import tensorflow as tf
 print(tf.__version__)
 #C:\Users\animeshs\AppData\Local\Programs\Spyder\Python\python.exe -m pip install tensorflow-text

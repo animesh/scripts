@@ -2,6 +2,209 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+#https://medium.com/nerd-for-tech/a-data-scientist-view-on-stocks-bc90af3244eb
+import os
+directory = 'path'
+all_dfs = []
+for filename in os.listdir(directory):
+    full_path = os.path.join(directory, filename)
+    df_name = '_'.join(filename.split('_')[:-2])
+    all_dfs.append(df_name+'_df')
+    df_str = "{}_df1 = pd.read_csv('{}')".format(df_name,full_path)
+    exec(df_str)
+    print("")
+def dfCleanup(df):
+    
+    df.rename({'ticker': 'Symbol', 'Ticker':'Symbol', 'symbol':'Symbol'}, axis=1, inplace=True)
+
+    df.rename({'name': 'Name','Company':'Name', 'Company Name':'Name'}, axis=1, inplace=True)
+    
+    try:
+        df = df[ ['Symbol'] + [ col for col in df.columns if col not in ['Symbol'] ] ]
+
+        df = df[ ['Name'] + [ col for col in df.columns if col not in ['Name'] ] ]
+
+    except Exception as e:
+        pass
+
+    return df
+
+#https://pub.towardsai.net/3-different-approaches-for-train-test-splitting-of-a-pandas-dataframe-d5e544a5316
+Y_col = 'output'
+X_cols = df.loc[:, df.columns != Y_col].columns
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(df[X_cols], df[Y_col],test_size=0.2, random_state=42)
+df_train = df.sample(frac=0.8, random_state=1)
+df_test=df.drop(df_train.index)
+X_train = df_train[X_cols]
+X_test = df_test[X_cols]
+y_train = df_train[Y_col]
+y_test = df_test[Y_col]3 np.random.rand()
+import numpy as np
+mask = np.random.rand(len(df)) < 0.8
+df_train = df[mask]
+df_test = df[~mask]
+#https://github.com/srush/streambook/blob/main/example.py
+@__st.cache()
+def slow_function():
+    for i in range(10):
+        time.sleep(0.1)
+    return None
+#https://github.com/bsolomon1124/pyfinance
+slow_function()
+from pyfinance import ols
+model = ols.OLS(y=y, x=data)
+model.alpha  # the intercept - a scalar 0.0012303204434167458
+model.beta  # the coefficients array([-0.0006, -0.0949])
+model.fstat #33.42923069295481
+model.resid
+#https://gradio.app/
+import gradio as gr
+def answer_question(paragraph, question):
+    # ... implement Q&A model
+    # ... return answer to question
+gr.Interface(fn=answer_question, inputs=["textbox", "text"], outputs="text").launch()
+#https://github.com/IDSIA/sacred/
+from numpy.random import permutation
+from sklearn import svm, datasets
+from sacred import Experiment
+ex = Experiment('iris_rbf_svm')
+
+@ex.config
+def cfg():
+  C = 1.0
+  gamma = 0.7
+
+@ex.automain
+def run(C, gamma):
+  iris = datasets.load_iris()
+  per = permutation(iris.target.size)
+  iris.data = iris.data[per]
+  iris.target = iris.target[per]
+  clf = svm.SVC(C, 'rbf', gamma=gamma)
+  clf.fit(iris.data[:90],
+          iris.target[:90])
+  return clf.score(iris.data[90:],
+                   iris.target[90:])
+
+#https://app.community.clear.ml/profile
+from clearml import Task
+task = Task.init(project_name="my project", task_name="my task")
+#https://towardsdatascience.com/bayesian-optimization-a-step-by-step-approach-a1cb678dd2ec
+import numpy as np
+def costly_function(x):
+    total = np.array([])
+    for x_i in x:
+        total = np.append(total, np.sum(np.exp(-(x_i - 5) ** 2)))
+    return total + np.random.randn()
+x = np.random.randn(5,2)
+y = costly_function(x)
+import pandas as pd
+pd.DataFrame(data={'y':y, 'x0':x[:,0], 'x1':x[:,1]})
+from sklearn.gaussian_process import GaussianProcessRegressor
+from scipy.stats import norm
+from scipy.optimize import minimize
+import sys
+import pandas as pd
+
+class BayesianOptimizer():
+      
+    def __init__(self, target_func, x_init, y_init, n_iter, scale, batch_size):
+        self.x_init = x_init
+        self.y_init = y_init
+        self.target_func = target_func
+        self.n_iter = n_iter
+        self.scale = scale
+        self.batch_size = batch_size
+        self.gauss_pr = GaussianProcessRegressor()
+        self.best_samples_ = pd.DataFrame(columns = ['x', 'y', 'ei'])
+        self.distances_ = []
+    def _get_expected_improvement(self, x_new):
+
+        # Using estimate from Gaussian surrogate instead of actual function for 
+        # a new trial data point to avoid cost 
+ 
+        mean_y_new, sigma_y_new = self.gauss_pr.predict(np.array([x_new]), return_std=True)
+        sigma_y_new = sigma_y_new.reshape(-1,1)
+        if sigma_y_new == 0.0:
+            return 0.0
+        
+        # Using estimates from Gaussian surrogate instead of actual function for 
+        # entire prior distribution to avoid cost
+        
+        mean_y = self.gauss_pr.predict(self.x_init)
+        max_mean_y = np.max(mean_y)
+        z = (mean_y_new - max_mean_y) / sigma_y_new
+        exp_imp = (mean_y_new - max_mean_y) * norm.cdf(z) + sigma_y_new * norm.pdf(z)
+        
+        return exp_imp
+(df.
+ filter(regex='^f', axis="index").
+ filter(["species","bill_length_mm"]))
+#https://raw.githubusercontent.com/JCardenasRdz/Data-Science-Penguins-Dataset/main/2-Bayesian%20Networks/Bayesian_Networks-PMGPy.py
+# C:\\Users\\animeshs\\AppData\\Local\\Programs\\Spyder\\Python\\python.exe -m pip install git+https://github.com/pgmpy/pgmpy.git@dev
+from pgmpy.models import BayesianNetwork
+from pgmpy.factors.discrete.CPD import TabularCPD
+student = BayesianNetwork([('diff', 'grades'), ('intel', 'grades')])
+grades_cpd = TabularCPD('grades', 3, [[0.1,0.1,0.1,0.1,0.1,0.1],
+                                      [0.1,0.1,0.1,0.1,0.1,0.1],
+                                      [0.8,0.8,0.8,0.8,0.8,0.8]],
+evidence=['diff', 'intel'], evidence_card=[2, 3])
+student.add_cpds(grades_cpd)
+import seaborn as sns
+import pandas as pd
+import numpy as np
+peng = sns.load_dataset('penguins', cache=True, data_home=None)
+print(peng.shape)
+def joint_probs(DF, index, cols ):
+    all_cols = index + cols
+    N = DF.shape[0]
+    joint_counts = pd.pivot_table( DF[all_cols] , index = index , columns= cols , aggfunc= 'size' ).replace(np.nan,0)
+    joint_prob = np.round( joint_counts / N, 3)
+    return joint_prob
+JP = joint_probs(peng, ['species'], ['island'] )
+print(JP,'\n')
+cont_cols = list( peng.select_dtypes('float64').columns )
+levels = 2
+for col in cont_cols:
+    peng[col] = pd.cut(  peng[col], levels )
+from skimpy import skim, generate_test_data
+df = sns.load_dataset("tips")
+skim(df)
+def cond_prob_dist(joint_probs):
+    CPD = joint_probs.copy()
+    col_totals = joint_probs.sum(axis=0)
+    for col in col_totals.index:
+        CPD[col] =   CPD[col] / col_totals.loc[col]
+    CPD.columns = [ f'b{i+1} = {x}' for i,x in enumerate(CPD.columns) ]
+    CPD.index   = [ f'a{i+1} = {x}' for i,x in enumerate(CPD.index) ]
+    return CPD.round(3)
+print( cond_prob_dist(JP.T).T  )
+# sex
+JP = joint_probs(peng, ['species','sex'], ['island'] )
+print( cond_prob_dist(JP) , '\n'*2)
+## possible combinations
+print( peng.nunique().to_string() )
+#https://blog.quantinsti.com/portfolio-optimization-maximum-return-risk-ratio-python/
+#Import relevant libraries
+import pandas as pd
+import numpy as np
+import pandas_datareader.data as web
+import matplotlib.pyplot as plt
+#Fetch data from yahoo and save under DataFrame named 'data'
+stock = ['BAC', 'GS', 'JPM', 'MS']
+data = web.DataReader(stock,data_source="yahoo",start='12/01/2017',end='12/31/2017')['Adj Close']
+#Arrange the data in ascending order
+data=data.iloc[::-1]
+print (data.round(2))
+#Compute stock returns and print the returns in percentage format
+stock_ret = data.pct_change()
+print (stock_ret.round(4)*100)
+#Calculate mean returns and covariances of all four the stocks
+mean_returns = stock_ret.mean()
+cov_matrix = stock_ret.cov()
+print (mean_returns)
+print (cov_matrix)
 #https://towardsdatascience.com/three-python-built-in-function-tricks-reducing-our-workloads-60fe54c55cf3
 import functools
 import re

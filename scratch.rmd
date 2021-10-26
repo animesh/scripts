@@ -1,10 +1,11 @@
 ```{r setup, echo = FALSE}
 #lib
 Sys.getenv()
-Sys.setenv(R_USER="C:/Users/animeshs/")
-libPaths="C:/Users/animeshs/GD/libR"
-libPaths="L:/promec/Animesh/R/win-library/4.0"
-.libPaths(c(libPaths, .libPaths()))
+#Sys.setenv(R_USER="C:/Users/animeshs/")
+#libPaths="C:/Users/animeshs/OneDrive/libR"
+#libPaths="L:/promec/Animesh/R/win-library/4.0"
+#.libPaths(
+  c(libPaths, .libPaths()))
 #C:\Program Files\Microsoft\R Open\R-4.0.2\bin\Rscript.exe
 #F:\GD\tools\aovPerseusR\proteinGroupsANOVA.r
 #C:\MR-4.0.2\bin\Rscript.exe
@@ -41,6 +42,21 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r iDEP}
+source("https://raw.githubusercontent.com/iDEP-SDSU/idep/master/classes/librarySetup.R")
+```
+
+```{r score}
+https://towardsdatascience.com/an-ultimate-guide-to-matching-and-propensity-score-matching-644395c46616
+result_0 <- matchit(treat ~ age + educ + race + married +  nodegree + re74 + re75, data = lalonde, method = NULL, distance = 'glm')
+#install.packages(“MatchIt”)
+#install.packages(‘optmatch’)
+library(“MatchIt”)
+library(“optmatch”)
+data(“lalonde”)
+head(lalonde)
+```
+
 ```{r 4.1}
 #https://towardsdatascience.com/ten-awesome-recent-developments-in-r-6bfad46299a0
 mtcars |> lapply(\(x) mean(x) > 20)
