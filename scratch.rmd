@@ -42,6 +42,16 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r varImp}
+#https://advstats.psychstat.org/book/mregression/importance.php
+library('relaimpo')
+> usedata('gpa')
+> 
+> gpa.model<-lm(c.gpa~h.gpa+SAT+recommd, data=gpa)
+> calc.relimp(gpa.model)
+```
+
+
 ```{r iDEP}
 source("https://raw.githubusercontent.com/iDEP-SDSU/idep/master/classes/librarySetup.R")
 ```

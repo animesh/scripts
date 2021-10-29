@@ -81,6 +81,9 @@ begin
 	threshold = 0.1
 end
 
+# ╔═╡ e9aadaff-620c-430c-a745-c4ca1182a8e6
+dataset_name
+
 # ╔═╡ d38addd2-9c87-4629-80a4-8fadfdba6734
 @time genes = get_nodes(dataset_name);
 
@@ -103,9 +106,6 @@ end
 
 # ╔═╡ 389d31b9-f5db-442f-9c8a-da6fafdf14ce
 gplot(graph, nodelabel = nodelabels)
-
-# ╔═╡ e9aadaff-620c-430c-a745-c4ca1182a8e6
-dataset_name
 
 # ╔═╡ a484c4d5-faae-42cb-9786-69edd863f2f5
 CUDA.version()
@@ -140,10 +140,10 @@ end
 # ╔═╡ fd011728-9eb5-4dc1-a707-3c8fa0b890b0
 benchmark_matmul_gpu(M_on_gpu)
 
-# ╔═╡ 80ec80f3-74ea-481f-86dd-5a1f4a63c143
+# ╔═╡ ca27fd47-444b-4201-9c74-f007aa4b18ee
 using BenchmarkTools
 
-# ╔═╡ ca27fd47-444b-4201-9c74-f007aa4b18ee
+# ╔═╡ 80ec80f3-74ea-481f-86dd-5a1f4a63c143
 using BenchmarkTools
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001

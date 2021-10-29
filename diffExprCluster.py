@@ -1,3 +1,13 @@
+#https://github.com/bendemeo/shannonca
+#reduce function accepts a (num genes) x (num cells) matrix X, and outputs a dimensionality-reduced version 
+from shannonca.dimred import reduce
+from scipy.io import mmread
+import os
+os.chdir('F:/GD/OneDrive/Dokumenter/GitHub/scripts/')
+os.getcwd()
+X = mmread('Supplementary Table 2 for working purpose.xlsxtrp.id.wekG3.csv.arff.csv')#.transpose() #reduction is an (num cells) x (n_comps)-dimensional matrix. The function optionally returns SCA's score matrix (if keep_scores=True), metagene loadings (if keep_loadings=True), or intermediate results (if iters>1 and keep_all_iters=True). If at least one of these is returned, the return type is a dictionary with keys for 'reduction', 'scores', and 'loadings'. If keep_all_iters=True, the reductions after each iteration will be keyed by 'reduction_i' for each iteration
+sreduction = reduce(X, n_comps=50, n_pcs=50, iters=1, nbhd_size=15, metric='euclidean', model='wilcoxon', chunk_size=1000, n_tests='auto')
+
 #https://github.com/microsoft/FLAML
 from flaml import AutoML
 from sklearn.datasets import load_iris

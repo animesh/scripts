@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("USAGE: python dePepGUI.py <path to tab-sep-peptide-hits>, \n e.g.,\npython dePepGUI.py F:\promec\TIMSTOF\LARS\2021\Oktober\211021Finn\n")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("F:/promec/TIMSTOF/LARS/2021/Oktober/211021Finn")
+#pathFiles = Path("L:/promec/TIMSTOF/LARS/2021/Oktober/211021Finn")
 fileName='peptides.txt'
 protName='cel'
 trainList=list(pathFiles.rglob(fileName))
@@ -22,17 +22,31 @@ for f in trainList:
         df=pd.concat([df,proteinHits],sort=False)
 print(df.columns)
 print(df.head())
-#df=df.pivot(index='ID', columns='Name', values='uniqPSMs')
 #df=df.pivot_table(index='ID', columns='Name', values='MedianLog2SILAC', aggfunc='median')
-#df.to_csv(pathFiles.with_suffix('.combined.txt'),sep="\")#,rownames=FALSE)
-plotcsv=pathFiles/(fileName+".positionLFQ.svg")
-import matplotlib.pyplot as plt
+df.to_csv(pathFiles/(fileName+'.combined.csv'))#,sep="\")#,rownames=FALSE)
 plt.scatter(df["LFQ intensity Ecol"],df["LFQ intensity Sliv"])
 plt.scatter(df["Start position"],df["LFQ intensity Ecol"],c=df['Length'])
-plt.scatter(df["Start position"],df["LFQ intensity Sliv"])
-df.plot(kind='scatter',alpha=0.5,bins=100).figure.savefig(plotcsv,dpi=100,bbox_inches = "tight")
-print(df.head())
-print(df.columns)
+plt.annotate(df['ID'],df["Start position"],df["LFQ intensity Ecol"])
+plotcsv=pathFiles/(fileName+".eColiPositionLFQ.svg")
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.scatter(df["Start position"],df["LFQ intensity Ecol"],c=df['Length'])
+ax.set_xlabel('Start position')
+ax.set_ylabel('LFQ')
+for idx, row in df.iterrows(): ax.annotate(row['ID'], (row["Start position"],row["LFQ intensity Ecol"]))
+# force matplotlib to draw the graph
+plt.savefig(plotcsv,dpi=100,bbox_inches = "tight")
+plt.show()
+plotcsv=pathFiles/(fileName+".sCLivPositionLFQ.svg")
+fig, ax = plt.subplots()
+ax.scatter(df["Start position"],df["LFQ intensity Sliv"],c=df['Length'])
+ax.set_xlabel('Start position')
+ax.set_ylabel('LFQ')
+for idx, row in df.iterrows(): ax.annotate(row['ID'], (row["Start position"],row["LFQ intensity Sliv"]))
+# force matplotlib to draw the graph
+plt.savefig(plotcsv,dpi=100,bbox_inches = "tight")
+plt.show()
+
 df = df.convert_dtypes(convert_boolean=False)
 print(df.dtypes)
 df['Position']=df["Positions in Master Proteins"].str.split('[', expand=True)[1].str.split('-', expand=True)[0].fillna(value='0').astype(int)
