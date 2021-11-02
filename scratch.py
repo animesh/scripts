@@ -2,6 +2,29 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+#https://analyticsindiamag.com/primer-ensemble-learning-bagging-boosting/
+rfm = RandomForestClassifier(n_estimators=80, oob_score=True, n_jobs=-1, random_state=101, max_features = 0.50, min_samples_leaf = 5)
+fit(x_train, y_train)
+predicted = rfm.predict_proba(x_test)
+#https://monkeylearn.com/blog/what-is-tf-idf/q
+from xgboost import XGBClassifier
+xgb = XGBClassifier(objective=’binary:logistic’, n_estimators=70, seed=101)
+fit(x_train, y_train)
+predicted = xgb.predict_proba(x_test)
+#pip install scikit-learn-intelex
+import numpy as np
+from sklearnex import patch_sklearn
+patch_sklearn()#["SVC", "KMeans"]
+# You need to re-import scikit-learn algorithms after the patch
+from sklearn.cluster import KMeans
+
+X = np.array([[1,  2], [1,  4], [1,  0],
+              [10, 2], [10, 4], [10, 0]])
+kmeans = KMeans(n_clusters=2, random_state=0).fit(X)
+print(f"kmeans.labels_ = {kmeans.labels_}")
+sklearnex.unpatch_sklearn()
+# You need to re-import scikit-learn algorithms after the unpatch:
+from sklearn.cluster import KMeans
 #https://medium.com/artificialis/build-a-security-camera-with-python-and-opencv-83e69f676216
 import cv2
 from datetime import datetime

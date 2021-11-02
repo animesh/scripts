@@ -15,7 +15,7 @@ getwd()
 #https://en.wikipedia.org/wiki/Hypergeometric_distribution
 fisher.test(rbind(c(1,9),c(11,3)), alternative="less")$p.value
 (choose(10,1)*choose(14,11))/(choose(24,12))+(choose(10,0)*choose(14,12))/(choose(24,12))
-(choose(628,6)*choose(4458,11))/(choose(5028,17))
+(choose(628,6)*choose(4458,11))/(choose(5086,17))
 wikiP <- matrix(c(13,16,3806,1137), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
 sum(wikiP)
 plot(wikiP)
@@ -24,6 +24,22 @@ table(wikiP)
 fisher.test(wikiP)
 fisher.test(wikiP, alternative="greater")
 fisher.test(wikiP, conf.level = 0.99)$conf.int
+```
+```{r ratData}
+fileI<-"L:/promec/Animesh/Atle/Heidelberg/Q25D165-17-27-01-(1)_Proteins.txt"
+data<-read.table(fileI,header = T)
+table(unlist(strsplit(data$Cellular.Component, split = ";")))
+dataM<-data.frame(data[data$Master=="IsMasterProtein",])
+hist(dataM$Abundance.Ratio.log2.Serotonin..Control)
+hist(dataM$Abundance.Ratio.P.Value.Serotonin..Control)
+hist(dataM$Abundance.Ratio.Adj.P.Value.Serotonin..Control)
+table(unlist(strsplit(dataM$Cellular.Component, split = ";")))
+dataS<-dataM[dataM$Abundance.Ratio.log2.Serotonin..Control>9&!is.na(dataM$Abundance.Ratio.log2.Serotonin..Control),]#&dataM$Abundance.Ratio.Adj.P.Value.Serotonin..Control<0.01,]
+table(unlist(strsplit(dataS$Cellular.Component, split = ";")))
+dataC<-dataM[dataM$Abundance.Ratio.log2.Serotonin..Control<(-9)&!is.na(dataM$Abundance.Ratio.log2.Serotonin..Control),]#&dataM$Abundance.Ratio.Adj.P.Value.Serotonin..Control<0.01,]
+table(unlist(strsplit(dataC$Cellular.Component, split = ";")))
+(choose(105,5)*choose(7471,899))/(choose(7576,904))#https://www.wolframalpha.com/input/?i=%28choose%28105%2C5%29*choose%287471%2C899%29%29%2F%28choose%287576%2C904%29%29 for cytoskeleton
+fisher.test(rbind(c(5,100),c(899,6572)), alternative="less")$p.value
 ```
 
 ```{r sumGO}
