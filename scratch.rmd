@@ -42,6 +42,12 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r}
+data<-read.csv("L:/promec/TIMSTOF/LARS/2021/November/uncal/uncalMGF/cel.combinedScore.csv",row.names = 0)
+data<-data[,-1]
+boxplot(log2(data))
+```
+
 ```{r varImp}
 #https://advstats.psychstat.org/book/mregression/importance.php
 

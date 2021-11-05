@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("USAGE: python pepXscoreProtMap.py <path to tab-sep-peptide-hits>, \n e.g.,\npython pepXscoreProtMap.py L:\promec\TIMSTOF\LARS\2021\Oktober\211031FinnFinal\gluCtryP")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("L:/promec/TIMSTOF/LARS/2021/Oktober/211031FinnFinal/\gluCtryP")
+#pathFiles = Path("L:/promec/TIMSTOF/LARS/2021/November/uncal/uncalMGF")
 fileName='*PeptideGroups.txt'
 protName='cel'
 trainList=list(pathFiles.rglob(fileName))
@@ -14,7 +14,7 @@ for f in trainList:
     if Path(f).stat().st_size > 0:
         proteinHits=pd.read_csv(f,low_memory=False,sep='\t')
         #proteinHits['Protein Accessions'].isnull()
-        proteinHits=proteinHits[proteinHits['Protein Accessions'].str.contains(protName,case=False)]
+        #proteinHits=proteinHits[proteinHits['Protein Accessions'].str.contains(protName,case=False)]
         proteinHits['Name']=f.parts[-1]
         print(proteinHits['Name'])
         proteinHits.rename({'Sequence':'ID'},inplace=True,axis='columns')
@@ -22,13 +22,16 @@ for f in trainList:
 print(df.columns)
 print(df.head())
 df.to_csv(pathFiles/(protName+'peptides.combined.csv'))#,sep="\")#,rownames=FALSE)
-dfP=df.pivot_table(index='ID', columns='Name', values='XCorr (by Search Engine): Sequest HT', aggfunc='sum')
+dfP=df.pivot_table(index='ID', columns='Name', values='XCorr by Search Engine Sequest HT', aggfunc='sum')
 dfP.to_csv(pathFiles/(protName+'.combinedScore.csv'))#,sep="\")#,rownames=FALSE)
+dfP.hist()
+dfP.plot.bar()
+import matplotlib.pyplot as plt
+plt.plot(dfP,type="bar")
 plt.scatter(df["LFQ intensity Ecol"],df["LFQ intensity Sliv"])
 plt.scatter(df["Start position"],df["LFQ intensity Ecol"],c=df['Length'])
 plt.annotate(df['ID'],df["Start position"],df["LFQ intensity Ecol"])
 plotcsv=pathFiles/(fileName+".eColiPositionLFQ.svg")
-import matplotlib.pyplot as plt
 fig, ax = plt.subplots()
 ax.scatter(df["Start position"],df["LFQ intensity Ecol"],c=df['Length'])
 ax.set_xlabel('Start position')
