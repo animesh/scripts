@@ -1,15 +1,18 @@
-##MQ
 ```{r setup, include=FALSE}
 #library/packages
-.libPaths( c( .libPaths(), "L:/promec/Animesh/R/win-library/4.0") )
+.libPaths( "L:/promec/Animesh/R/win-library/4.0", c( .libPaths()) )
 .libPaths()
+#install.packages("BiocManager")
+#install.packages("writexl")
+#install.packages("readxl")
+#BiocManager::install("limma")
 #plot
 par(mfrow=c(1,2))
 #data
-inpD <-"L:/promec/HF/Lars/2021/march/Ingrid/combined/txtLFQ1/"
-thr<-20
-selThr=0.1
-selThrFC=1
+inpD <-"L:/promec/HF/Lars/2021/june/Siri2/combined/txt/"
+thr<-0
+selThr=0.3
+selThrFC=0.0
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 setwd(inpD)
 getwd()
@@ -26,66 +29,6 @@ t.test(c(20.39459,19.48316),c(NA,25.34495),na.rm=T,var.equal=T)$p.value
 t.test(c(22.39459,20.48316,21.87155),c(NA,17.97),na.rm=T,var.equal=T)$p.value
 t.test(c(21.4316,21.77155),c(NA,17.7),na.rm=T,var.equal=T)$p.value
 t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
-t.test(c(24.00049729, 23.97020359, 24.91145672), c(24.93876407, 24.84723287, 23.98674622),var.equal = T)$p.value
-#[1] 0.5304706
-t.test(c(24.00049729, 23.97020359, 24.91145672), c(24.93876407, 24.84723287, 23.98674622),var.equal = F)$p.value
-#[1] 0.5304824
-vs<-c(-0.267558, -1.34843, -0.736034, -0.950788, -0.631172, -1.35648, -0.338978, 0.179467, -1.38368, -0.374963, -0.0118891, 0.583722, 0.646115, 2.28853, -0.117149)
-hist(vs)
-mean(vs)
-summary(vs)
-v1<-vs[1:5]
-v2<-vs[6:10]
-v3<-vs[11:15]
-mean(v1)
-(mean(v3)-mean(c(v1,v2,v3)))/(sqrt(var(c(v1,v2,v3))/15))
-(mean(c(v1,v3))-mean(c(v1,v2,v3)))/(sqrt(var(c(v1,v2,v3))/5))
-((mean(v3)-mean(v1))/1.72025)*((mean(v3)-mean(v1))/1.72025)
-median(v1)
-median(v1)-median(vs)+sum(v1)/3
-exp(mean(log(v1)))
-mean(v3)
-median(v1)-median(vs)
-(mean(v3)-mean(v2))/0.3227073
-(mean(v3)-mean(v1))/(sqrt(var(c(v3,v1))/10))
-sem(v3,v2)/2
-sem(v3,v1)
-(mean(v3)-mean(v1))/se(c(v1,v3))
-vsm<-c(mean(v1),mean(v2),mean(v3))
-vsm<-c(median(v1),median(v2),median(v3))
-max(vsm)
-scale(vsm)
-se <- function(x) sqrt(var(x)/((length(x)-2)/2))
-sem <- function(x,y) (mean(x)-mean(y))/(sqrt(var(c(x,y))/(1*(length(c(x,y)))-0)))
-se(v1)
-se(v2)
-median(v2)
-median(v3)
-summary(v1)
-summary(v2)
-summary(v3)
-mean(v1)/sd(v1)
-median(v1)/sd(v1)
-summary(v1)
-summary(v2)
-summary(v3)
-summary(vs)
-aovt<-anova(lm(vs~c(rep("g1",5),rep("g2",5),rep("g3",5))))
-summary(aovt)
-aovt<-aov(vs~c(rep("g1",5),rep("g2",5),rep("g3",5))) #0.0134
-summary.lm(aovt)
-summary(aovt)[[1]][["Pr(>F)"]][[1]] #0.0134
-postHoc<-TukeyHSD(aovt,ordered = TRUE)
-names(postHoc)<-"compare"
-postHoc<-data.frame(postHoc$compare)
-diff<-t(postHoc["diff"])
-plot(TukeyHSD(aovt))
-padj<-sapply(postHoc["p.adj"],as.numeric)
--log10(padj) 
-#        p.adj
-#[1,] 0.019911
-#[2,] 1.720245
-#[3,] 1.495404
 ```
 
 ```{r proteinGroups, echo=FALSE}
@@ -112,13 +55,13 @@ log2LFQ[log2LFQ==-Inf]=NA
 log2LFQ[log2LFQ==0]=NA
 summary(log2LFQ)
 hist(log2LFQ)
-inpW<-paste0(inpD,hdr,"log2LFQ.xlsx")
+inpW<-paste0(inpD,"log2LFQ.xlsx")
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),inpW)
 ```
 
 ```{r label}
-inpL<-paste0(inpD,"SampleKey.txt")
+inpL<-paste0(inpD,"label.txt")
 label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
 label
 ```
@@ -146,75 +89,53 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 #pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,labels_row = paste(label$RawFnum,label$ID_ROLF,label$Tank,label$Diet,label$Fish))
-ggplot2::ggsave(file=paste0(inpF,hdr,selection,"log2spearClust.svg"),plot=svgPHC)#,  
+ggplot2::ggsave(file=paste0(inpF,selection,"log2spearClust.svg"),plot=svgPHC)#,  
 assign(paste0(selection,"clusterData"),log2LFQimpCorr)
-write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,hdr,selection,"log2spearClust.csv"),row.names=F)
+write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,selection,"log2spearClust.csv"),row.names=F)
 ```
 
 
-```{r Ctr}
-sel<-"Ctr"
-#colSel<-paste(rownames(label[grep(sel,label$Diet),]),collapse=",")
-hda<-as.matrix(log2LFQ[,grep(sel,label$Group)])
+```{r Group}
+sel<-"M"
+hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
 summary(hda)
-sum(hda>thr,na.rm=T)
 hist(as.matrix(hda))
-limma::vennDiagram(hda[,1:5]>thr)
-hdaM<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(hdaM>thr,na.rm=T)
-inpW<-paste0(inpF,hdr,sel,"LFQ.xlsx")
-writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
-assign(paste0(sel,"median"),hdaM)
-assign(paste0(sel,"all"),hda)
-```
-
-```{r KO}
-sel<-"KO"
-hda<-as.matrix(log2LFQ[,grep(sel,label$Group)])
+M12<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
+sum(M12>thr,na.rm=T)
+sel<-"WT"
+hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
 summary(hda)
-sum(hda>thr,na.rm=T)
 hist(as.matrix(hda))
-limma::vennDiagram(hda[,1:5]>thr)
-hdaM<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(hdaM[,1:5>thr,na.rm=T)
-inpW<-paste0(inpF,hdr,sel,"LFQ.xlsx")
+WT<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
+sum(WT>thr,na.rm=T)
+hdaM<-cbind(M12,WT)
+limma::vennDiagram(hdaM>thr)
+inpW<-paste0(inpF,sel,"LFQ.xlsx")
 writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
-assign(paste0(sel,"median"),hdaM)
-assign(paste0(sel,"all"),hda)
+assign(sel,hdaM)
 ```
 
-```{r vennMedians}
-hda<-cbind(Ctrmedian,KOmedian)
-hist(hda)
-limma::vennDiagram(hda>thr)
-writexl::write_xlsx(as.data.frame(cbind(Fasta=rownames(data),hda,Ctrall,KOall)),paste0(inpF,hdr,selection,"median.xlsx"))
-write.csv(cbind(Fasta=rownames(data),hda,Ctrall,KOall),paste0(inpF,hdr,selection,"median.csv"),row.names = F)
-```
-
-```{r tKO, echo = FALSE}
-dataSellog2grpTtest<-cbind(KOall[,c(1,2,3,5)],Ctrall[,c(2,3,5,6)])
-comp<-"Ctr_KO"
+```{r Mt, echo = FALSE}
+comp<-"M|WT"
+dataSellog2grpTtest<-as.matrix(log2LFQ[,grep(comp,colnames(log2LFQ))])
 dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
 summary(dataSellog2grpTtest)
 row.names(dataSellog2grpTtest)<-row.names(data)
 sCol<-1
-eCol<-8
-mCol<-4
+eCol<-3
+mCol<-2
 cvThr<-0.05
 t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
-chkr<-1
+chkr<-2
 sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
-t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
+t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value
 dim(dataSellog2grpTtest)
 options(nwarnings = 1000000)
-
 pValNA = apply(
   dataSellog2grpTtest, 1, function(x)
     if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
     else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
       t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>1&(min(x[c(sCol:mCol)],na.rm=T)==max(x[c(sCol:mCol)],na.rm=T))){0}
-    else if(sum(!is.na(x[c((mCol+1):eCol)]))>1&(min(x[c((mCol+1):eCol)],na.rm=T)==max(x[c((mCol+1):eCol)],na.rm=T))){0}
     else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1&(sd(x[c(sCol:mCol)],na.rm=T)/mean(x[c(sCol:mCol)],na.rm=T))<cvThr){0}
     else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1&(sd(x[c((mCol+1):eCol)],na.rm=T)/mean(x[c((mCol+1):eCol)],na.rm=T))<cvThr){0}
     else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
@@ -238,23 +159,26 @@ pValBHna = p.adjust(pValNA,method = "BH")
 hist(pValBHna)
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
-dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
-logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
-logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
-logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
-logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
+logFCmedianGrp1 = apply(dataSellog2grpTtest[,c(sCol:mCol)],1, function(x) median(x,na.rm=T))
+logFCmedianGrp1=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
+#summary(logFCmedianGrp11-logFCmedianGrp1)
+logFCmedianGrp2=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) median(x,na.rm=T))}
+logFCmedianGrp1[is.na(logFCmedianGrp1)]=0
+logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
+hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
+plot(hda)
+limma::vennDiagram(hda>0)
 logFCmedian = logFCmedianGrp1-logFCmedianGrp2
 logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
 logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
 log2FCmedianFC=log2(logFCmedianFC)
 hist(log2FCmedianFC)
+
+comp<-gsub("[^[:alnum:] ]", "", comp)
 ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.xlsx"))
-write.csv(ttest.results,paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.csv"),row.names = F)
-#limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
-limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
-limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
+writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.xlsx"))
+write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.csv"),row.names = F)
 data$RowGeneUniProtScorePeps<-data$Gene.names
 ttest.results[is.na(ttest.results)]=selThr
 Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
@@ -263,570 +187,280 @@ dsub <- subset(ttest.results,Significance)
 p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
 p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
 #f=paste(file,proc.time()[3],".jpg")
-ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"VolcanoTest.svg"), p)
+ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"VolcanoTest.svg"), p)
 print(p)
-```
-
-```{r wKO, echo = FALSE}
-dataSellog2grpTtest<-cbind(KOall,Ctrall)
-comp<-"Ctr_KO"
-dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
-summary(dataSellog2grpTtest)
-row.names(dataSellog2grpTtest)<-row.names(data)
-sCol<-1
-eCol<-12
-mCol<-6
-qThr<-1.5
-t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
-chkr<-1
-sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
-t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
-dim(dataSellog2grpTtest)
-options(nwarnings = 1000000)
-pValNA = apply(
-  dataSellog2grpTtest, 1, function(x)
-    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
-    else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
-      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=F)$p.value}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>1&(min(x[c(sCol:mCol)],na.rm=T)==max(x[c(sCol:mCol)],na.rm=T))){0}
-    else if(sum(!is.na(x[c((mCol+1):eCol)]))>1&(min(x[c((mCol+1):eCol)],na.rm=T)==max(x[c((mCol+1):eCol)],na.rm=T))){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(qThr*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(qThr*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(qThr*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(qThr*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(qThr*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(qThr*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
-    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(qThr*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
-    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(qThr*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
-      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
-  else{NA}
-  )
-summary(warnings())
-hist(pValNA)
-pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
-pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
-hist(pValNAminusLog10)
-library(scales)
-pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
-hist(pValNAminusLog10)
-pValBHna = p.adjust(pValNA,method = "BH")
-hist(pValBHna)
-pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
-hist(pValBHnaMinusLog10)
-dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
-logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
-logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
-logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
-logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
-logFCmedian = logFCmedianGrp1-logFCmedianGrp2
-logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
-logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
-hist(logFCmedianFC)
-log2FCmedianFC=log2(logFCmedianFC)
-hist(log2FCmedianFC)
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,hdr,selection,sCol,eCol,qThr,comp,selThr,selThrFC,"wTestBH.xlsx"))
-write.csv(ttest.results,paste0(inpF,hdr,selection,sCol,eCol,qThr,comp,selThr,selThrFC,"wTestBH.csv"),row.names = F)
-#limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
-limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
-limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
-data$RowGeneUniProtScorePeps<-data$Gene.names
-ttest.results[is.na(ttest.results)]=selThr
-Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
-sum(Significance)
-dsub <- subset(ttest.results,Significance)
-p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
-p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
-#f=paste(file,proc.time()[3],".jpg")
-ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,qThr,comp,selThr,selThrFC,"WolcanoTest.svg"), p)
-print(p)
-```
-
-```{r aov}
-options(nwarnings = 1000000)
-#pValANOVA=apply(mainMatrix, 1,function(x) summary(aov(as.double(x)~as.character(samples)))[[1]][["Pr(>F)"]][[1]])
-resANOVA=apply(mainMatrix, 1,function(x){
-    aovt=aov(as.double(x)~as.character(samples))
-    pval=summary(aovt)[[1]][["Pr(>F)"]][[1]]
-    postHoc<-TukeyHSD(aovt)
-    names(postHoc)<-"compare"
-    postHoc<-data.frame(postHoc$compare)
-    padj<-postHoc["p.adj"]
-    diff<-postHoc["diff"]
-    paste(pval,padj,diff,paste(rownames(postHoc),collapse="--GROUPS--"),sep="--VALS--")
-  }
-)
-pValANOVA<-sapply(strsplit(resANOVA, "--VALS--",fixed=T), "[", 1)
-pValANOVA<-sapply(pValANOVA,as.numeric)
-#hist(pValANOVA)
-groupsANOVA<-sapply(strsplit(resANOVA, "--VALS--",fixed=T), "[", 4)
-groupsANOVA<-strsplit(groupsANOVA, "--GROUPS--",fixed=T)
-if(unique(unique(groupsANOVA)[[1]]==unique(groupsANOVA[[1]]))){
-  padjv=sapply(strsplit(resANOVA, "--VALS--",fixed=T), "[", 2)
-  padjv=data.frame(padjv)
-  #eval(padjv)
-  padjv=data.frame(do.call("rbind", strsplit(as.character(padjv$padjv), "c|\\(|\\)|\\,")))
-  padjv=padjv[,3:ncol(padjv)]
-  padjv=sapply(padjv, as.numeric)
-  #hist(padjv)
-  mlog10padjv=-log10(padjv)
-  #hist(mlog10padjv)
-  colnames(padjv)<-paste(groupsANOVA[[1]],"PvalueTukeyHSD",sep="-")
-  colnames(mlog10padjv)<-paste(groupsANOVA[[1]],"mLog10PvalueTukeyHSD",sep="-")
-  diffv=sapply(strsplit(resANOVA, "--VALS--",fixed=T), "[", 3)
-  diffv=data.frame(diffv)
-  diffv=data.frame(do.call("rbind", strsplit(as.character(diffv$diffv), "c|\\(|\\)|\\,")))
-  diffv=diffv[,3:ncol(diffv)]
-  diffv=sapply(diffv, as.numeric)
-  #hist(diffv)
-  colnames(diffv)<-paste(groupsANOVA[[1]],"Difference",sep="-")
-  #hist(padjv$X2)
-  #eval(padjv$padjv[1])
-  #strsplit(as.character(padjv[,1]), " ",fixed=T)
-  #split(padjv, " ")
-  #unique(sapply(strsplit(groupsANOVA, "---",fixed=T), "[", c(1)))
-}
-#summary(warnings())
-#tc=apply(mainMatrix, 1, function(x)   tryCatch(TukeyHSD(aov(x~samples,"Sample", ordered = TRUE)),error=function(x){return(rep(1,20))})}) tryCatch(TukeyHSD(aov(x~factorC,"factorC")),error=function(x){return(rep(1,20))})})
-#outMdata <- matrixData(main=as.data.frame(pValANOVA))
-#anova(lm(as.numeric(dataNorm[2,])~factorC*factorS))
-#aov((as.numeric(dataNorm[2,])~factorC*factorS))
-#TukeyHSD(aov((as.numeric(dataNorm[2,])~factorC*factorS)))
-#tc=apply(dataNorm,1,function(x){
-  #tc=apply(dataNorm, 1, function(x)
-#  tryCatch(TukeyHSD(aov(x~factorC*factorS),"factorC:factorS", ordered = TRUE),error=function(x){return(rep(1,15))})})
-#wval=t(sapply(names(tc),function(x){tryCatch(tc[[x]]$`factorC:factorS`[46:60],error=function(x){return(rep(1,15))})}))
-#write.table(wval,outF,sep="\t")
-#tc$`F7A0B0;P04370-9;F6ZIA4;P04370-7`
-#dataNorm[grep("F7A",row.names(data)),]
-#try(TukeyHSD(aov((x~factorC*factorS)))))
-#tcold$`A0A087WNP6;Q4VAA2-2;Q4VAA2;A0A087WRM0;F8WGL9;A0A087WS49`
-#plot(tc$`A0A087WNP6;Q4VAA2-2;Q4VAA2;A0A087WRM0;F8WGL9;A0A087WS49`)
-#write.table(t(tc),sep = "\t")
-#outF = paste0(inpF,"anovaTukey.txt")
-#class(tc)
-#names(tc)
-#do.call(rbind, lapply(names(tc), function(x) data.frame(c(ID=x, tc$x$`factorC:factorS`))))
-#lapply(names(tc), function(x) write.table(t(t(tcold[[x]]$`factorC:factorS`)[4,]),outF,sep = "\t"))
-#write.table(t(sapply(tc,
-#                     function(x){tryCatch(x$`factorC:factorS`)})),sep="\t")
-#function(x){tryCatch(x$`factorC:factorS`,error=function(x){return(NULL)})})),outF,sep="\t")
-#write.table(t(t(tc$x$`factorC:factorS`)[4,]),sep = "\t")
-#write.table(t(t(tc$`A0A087WNP6;Q4VAA2-2;Q4VAA2;A0A087WRM0;F8WGL9;A0A087WS49`$`factorC:factorS`)[4,]),sep = "\t")
-#dump(tc, file=outF)
-#log10(.Machine$double.xmin)
-pValNAminusdif10 = -log10(pValANOVA+.Machine$double.xmin)
-#hist(pValNAminusdif10)
-pValBHna = p.adjust(pValANOVA,method = "BH")
-#hist(pValBHna)
-pValBHnaMinusdif10 = -log10(pValBHna+.Machine$double.xmin)
-#hist(pValBHnaMinusdif10)
-logFCmedianGrp = apply(
-  mainMatrix, 1, function(x)
-    median(x[c(1:ncol(mainMatrix))],na.rm=T)    )
-#hist(logFCmedianGrp)
-
-logFCmedianGrp[is.nan(logFCmedianGrp)]=0
-
-logFCmedian = logFCmedianGrp#-logFCmedianGrp
-logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
-#hist(logFCmedianFC)
-log2FCmedianFC=log2(logFCmedianFC)
-#hist(log2FCmedianFC)
-aov.results = data.frame(mainMatrix,medianVal=logFCmedian,MinusLog10PValue=pValNAminusdif10,medianFold=logFCmedianFC,CorrectedPValueBH=pValBHna,ANOVApVal=pValANOVA,diffv,padjv,mlog10padjv)#,resANOVA)
-#dim(aov.results)
-#dim(mainMatrix)
-dfANOVA=data.frame(matrix("AOV", nrow = (ncol(aov.results)-ncol(mainMatrix)), ncol = ncol(mdata@annotRows)))
-colnames(dfANOVA)=colnames(mdata@annotRows)
-dfANOVA=rbind(mdata@annotRows,dfANOVA)
-#dim(dfANOVA)
-#df[nrow(df) + 1,] = rep("ANOVA",ncol(df))
-write.perseus(aov.results, outFile,imputeData=mdata@imputeData,qualityData = mdata@qualityData,annotCols=mdata@annotCols,annotRows=dfANOVA)
-```
-
-
-##PD
-```{r setup, include=FALSE}
-#library/packages
-.libPaths( c( "L:/promec/Animesh/R/win-library/4.0", .libPaths()) )
-.libPaths()
-#plot
-par(mfrow=c(1,2))
-#library/packages
-inpD <-"L:/promec/HF/Lars/2021/march/Ingrid/KO/"
-fName<-"210317_Ingrid1.xlsx"
-inpF<-paste0(inpD,fName)
-thr<-2
-selThr=0.1
-selThrFC=1
-options(nwarnings = 1000000)
-hdr<-gsub("[^[:alnum:] ]", "",inpD)
-.libPaths( c( .libPaths(), inpD) )
-.libPaths()
-#install.packages("lattice", repos="http://cran.r-project.org", lib=inpD)
-#install.packages("rlang")
-#install.packages("writexl")
-#install.packages("readxl")
-#install.packages("devtools")
-#install.packages("BiocManager")
-#BiocManager::install("limma")
-#install.packages("matrixStats")
-#directory/home
-setwd(inpD)
-getwd()
-chkrVector<-c(22.39459,20.48316,21.87155,NA,20.34495)
-chkrDF<-as.data.frame(chkrVector)
-plot(chkrDF)
-hist(as.matrix(chkrDF))
-chkrDF[,1]
-apply(chkrDF, 2, function(x) t.test(as.numeric(x[c(1:3)]),as.numeric(x[4:5]),na.rm=T,var.equal=T)$p.value)
-t.test(as.numeric(chkrVector[c(1:3)]),as.numeric(chkrVector[4:5]),na.rm=T,var.equal=T)$p.value
-t.test(as.numeric(c(22.39459,20.48316,21.87155)),as.numeric(c(NA,20.34495)),na.rm=T,var.equal=T)$p.value
-t.test(c(22.39459,20.48316,21.87155),c(NA,20.34495),na.rm=T,var.equal=T)$p.value
-t.test(c(22.39459,20.48316,21.87155),c(NA,17.97),na.rm=T,var.equal=T)$p.value
-t.test(c(21.4316,21.77155),c(NA,17.7),na.rm=T,var.equal=T)$p.value
-t.test(c(21.4316,21.77155),c(17.6,17.7),na.rm=T,var.equal=F)$p.value
-#https://biocorecrg.github.io/CRG_RIntroduction/volcano-plots.html
-```
-
-```{r proteinGroups, echo=FALSE}
-data <- readxl::read_xlsx(inpF)
-#clean
-#data = data[!data$Reverse=="+",]
-#data = data[!data$Potential.contaminant=="+",]
-#data = data[!data$Only.identified.by.site=="+",]
-#row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
-summary(data)
-dim(data)
-selection<-"Abundance."
-hist(as.matrix(log2(data[,grep(selection,colnames(data))])))
-summary(log2(data[,grep(selection,colnames(data))]))
-#selection<-"Scaled"
-selection<-"Normalized"
-selThr<-5
-LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-#protNum<-1:ncol(LFQ)
-colnames(LFQ)=sub(paste0("Abundances \\(",selection,"\\)\\: "),"",colnames(LFQ))
-colnames(LFQ)=sub("\\: Sample","",colnames(LFQ))
-dim(LFQ)
-log2LFQ<-log2(LFQ)
-log2LFQ[log2LFQ==-Inf]=NA
-log2LFQ[log2LFQ==0]=NA
-summary(log2LFQ)
-Means<-apply(log2LFQ,1, mean, na.rm = TRUE)
-Stdevs<-apply(log2LFQ,1, sd, na.rm = TRUE)
-NAs<-rowSums(is.na(log2LFQ))
-summary(NAs)
-CVs<-Stdevs/Means
-hist(log2LFQ)
-rowName<-data$`FASTA Title Lines`
-rowName<-sub("ProteinCenter:sp_tr_incl_isoforms\\|","",rowName)
-rowName<-gsub("\r","",rowName)
-rowName<-gsub("\n","",rowName)
-rownames(data)<-rowName
-uniprot<-paste(sapply(strsplit(paste(sapply(strsplit(rowName, ">",fixed=T), "[", 2)), " "), "[", 1))
-writexl::write_xlsx(as.data.frame(cbind(rownames(data),Uniprot=uniprot,log2LFQ,NAs,CVs)),paste0(inpF,selection,selThr,"log2LFQ.xlsx"))
-write.table(as.data.frame(cbind(Uniprot=rowName,log2LFQ,NAs,CVs)),paste0(inpF,selection,selThr,"log2LFQ.txt"),row.names = F,sep="\t",quote = FALSE)
-```
-
-```{r impLFQHeatMap}
-#select c(2,3,5,6,8,10:12) of KO/WT, impute 13 and pheatmap with scale row
-log2LFQ13<-log2LFQ
-log2LFQ13<-log2LFQ13[,c(2,3,5,6,8,10:12)]
-summary(log2LFQ13)
-naCnt <- apply(log2LFQ13, 1, function(x){all(is.na(x))})
-summary(naCnt)
-log2LFQ13 <- log2LFQ13[!naCnt,]
-#log2LFQ13<-log2LFQ13[complete.cases(log2LFQ13), ]
-summary(log2LFQ13)
-log2LFQ13[is.na(log2LFQ13)]<-13
-summary(log2LFQ13)
-#dsub[dsub==13]<-NA
-#dsub[is.na(dsub)]<-13
-#install.packages("svglite")
-p<-pheatmap::pheatmap(log2LFQ13,scale="row",clustering_distance_rows="correlation",clustering_distance_cols = "correlation",cluster_cols=T,cluster_rows=T,fontsize_col=6,fontsize_row=1)
-ggplot2::ggsave(paste0(inpF,hdr,selection,"log2HeatMap.svg"), p)
-```
-
-
-```{r corHC}
-corrplot::corrplot(cor(log2LFQ))
-log2LFQ0=log2LFQ
-log2LFQ0[log2LFQ0==NA]=0
-pheatmap::pheatmap(log2LFQ0,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
-scale=3
-log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
-log2LFQimp[log2LFQimp<0]<-0
-bk1 <- c(seq(-3,-0.01,by=0.01))
-bk2 <- c(seq(0.01,3,by=0.01))
-bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
-my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
-              "gray", "gray",
-              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
-pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
-colnames(log2LFQimp)<-colnames(log2LFQ)
-pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample_Name__)
-log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
-colnames(log2LFQimpCorr)<-colnames(log2LFQ)
-rownames(log2LFQimpCorr)<-colnames(log2LFQ)
-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6)
-ggplot2::ggsave(file=paste0(inpF,selection,selThr,"log2spearClust.svg"),plot=svgPHC)
-fn<-as.data.frame(label$File.Name[-1])
-fn$`label$File.Name`<-sub("F\\:\\\\promec\\\\Qexactive\\\\Mirta\\\\Katja\\\\20210302_DDA_","",fn$`label$File.Name`)
-rownames(fn)<-label$Study.File.ID[-1]
-svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8,labels_col = fn$`label$File.Name`,labels_row = fn$`label$File.Name`)
-ggplot2::ggsave(file=paste0(inpF,selection,selThr,"log2spearClust.svg"),plot=svgPHC)#,  
-assign(paste0(selection,"clusterData"),log2LFQimpCorr)
-write.txt(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,selection,selThr,"log2spearClust.txt"),row.names=F)
-```
-
-
-```{r Ctr}
-sel<-"Ctr"
-hda<-as.matrix(log2LFQ[,c(1:6)])
-hist(as.matrix(hda))
-hdaM<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(hdaM>thr,na.rm=T)
-limma::vennDiagram(hda[,1:5]>thr)
-inpW<-paste0(inpF,hdr,sel,"LFQ.xlsx")
-writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$`FASTA Title Lines`)),inpW)
-assign(paste0(sel,"median"),hdaM)
-assign(paste0(sel,"all"),hda)
-```
-
-```{r KO}
-sel<-"KO"
-hda<-as.matrix(log2LFQ[,c(7:12)])
-hist(as.matrix(hda))
-hdaM<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
-sum(hdaM>thr,na.rm=T)
-limma::vennDiagram(hda[,1:5]>thr)
-inpW<-paste0(inpF,hdr,sel,"LFQ.xlsx")
-writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$`FASTA Title Lines`)),inpW)
-assign(paste0(sel,"median"),hdaM)
-assign(paste0(sel,"all"),hda)
-```
-
-
-```{r vennMedians}
-hda<-cbind(Ctrmedian,KOmedian)
-hist(hda)
-limma::vennDiagram(hda>thr)
-writexl::write_xlsx(as.data.frame(cbind(Fasta=rownames(data),hda,Ctrall,KOall)),paste0(inpF,hdr,selection,"median.xlsx"))
-write.csv(cbind(Fasta=rownames(data),hda,Ctrall,KOall),paste0(inpF,hdr,selection,"median.csv"),row.names = F)
-```
-
-```{r wKO, echo = FALSE}
-dataSellog2grpTtest<-cbind(KOall[,c(2,4,5,6)],Ctrall[,c(2,3,5,6)])
-summary(dataSellog2grpTtest)
-compName<-colnames(dataSellog2grpTtest)
-compName<-toString(compName)
-compName<-gsub(" ", "",compName)
-compName<-gsub("[^[:alnum:] ]", "",compName)
-row.names(dataSellog2grpTtest)<-row.names(data)
-sCol<-1
-eCol<-8
-mCol<-4
-qThr<-3
-t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
-chkr<-1
-sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
-t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
-dim(dataSellog2grpTtest)
-options(nwarnings = 1000000)
-pValNA = apply(
-  dataSellog2grpTtest, 1, function(x)
-    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
-    else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
-      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=F)$p.value}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(qThr*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(qThr*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(qThr*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(qThr*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[1])-(qThr*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))<=max(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))==1&(as.numeric(quantile(as.numeric(x[c(sCol:mCol)]),na.rm=T)[5])+(qThr*IQR(as.numeric(x[c(sCol:mCol)]),na.rm=T)))>=min(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)){1}
-    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[1])-(qThr*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))<=max(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
-    else if(sum(!is.na(x[c(sCol:mCol)]))==1&sum(!is.na(x[c((mCol+1):eCol)]))>=2&(as.numeric(quantile(as.numeric(x[c((mCol+1):eCol)]),na.rm=T)[5])+(qThr*IQR(as.numeric(x[c((mCol+1):eCol)]),na.rm=T))>=min(as.numeric(x[c(sCol:mCol)]),na.rm=T))){1}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
-      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=F)$p.value}
-  else{NA}
-  )
-summary(warnings())
-hist(pValNA)
-pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
-pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
-hist(pValNAminusLog10)
-library(scales)
-pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
-hist(pValNAminusLog10)
-pValBHna = p.adjust(pValNA,method = "BH")
-hist(pValBHna)
-pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
-hist(pValBHnaMinusLog10)
-dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
-logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
-logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
-logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
-logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
-logFCmedian = logFCmedianGrp1-logFCmedianGrp2
-logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
-logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
-hist(logFCmedianFC)
-log2FCmedianFC=log2(logFCmedianFC)
-hist(log2FCmedianFC)
-ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-writexl::write_xlsx(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswKO.xlsx"))
-write.table(ttest.results,paste0(inpF,selection,selThr,sCol,eCol,qThr,compName,"tTeswKO.txt"),row.names = F,sep="\t")
-#limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
-limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
-ttest.results[is.na(ttest.results)]=0.1
-Significance=ttest.results$CorrectedPValueBH<0.1&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>1
-sum(Significance)
-```
-
-```{r tKO, echo = FALSE}
-dataSellog2grpTtest<-cbind(KOall[,c(2,4,5,6)],Ctrall[,c(2,3,5,6)])
-comp<-"Ctr_KO"
-dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
-summary(dataSellog2grpTtest)
-row.names(dataSellog2grpTtest)<-row.names(data)
-sCol<-1
-eCol<-8
-mCol<-4
-cvThr<-0.05
-t.test(as.numeric(dataSellog2grpTtest[1,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[1,c((mCol+1):eCol)]),na.rm=T)$p.value
-chkr<-1
-sum(!is.na(dataSellog2grpTtest[chkr,c(1:eCol)]))
-t.test(as.numeric(dataSellog2grpTtest[chkr,c(sCol:mCol)]),as.numeric(dataSellog2grpTtest[chkr,c((mCol+1):eCol)]),na.rm=T)$p.value
-dim(dataSellog2grpTtest)
-options(nwarnings = 1000000)
-
-pValNA = apply(
-  dataSellog2grpTtest, 1, function(x)
-    if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
-    else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
-      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>1&(min(x[c(sCol:mCol)],na.rm=T)==max(x[c(sCol:mCol)],na.rm=T))){0}
-    else if(sum(!is.na(x[c((mCol+1):eCol)]))>1&(min(x[c((mCol+1):eCol)],na.rm=T)==max(x[c((mCol+1):eCol)],na.rm=T))){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1&(sd(x[c(sCol:mCol)],na.rm=T)/mean(x[c(sCol:mCol)],na.rm=T))<cvThr){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1&(sd(x[c((mCol+1):eCol)],na.rm=T)/mean(x[c((mCol+1):eCol)],na.rm=T))<cvThr){0}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
-      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
-    else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
-      t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
-  else{NA}
-  )
-summary(warnings())
-hist(pValNA)
-summary(pValNA)
-dfpValNA<-as.data.frame(ceiling(pValNA))
-pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
-pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
-hist(pValNAminusLog10)
-library(scales)
-pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
-hist(pValNAminusLog10)
-length(pValNA)-(sum(is.na(pValNA))+sum(ceiling(pValNA)==0,na.rm = T))
-pValBHna = p.adjust(pValNA,method = "BH")
-hist(pValBHna)
-pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
-hist(pValBHnaMinusLog10)
-dataSellog2grpTtestNum<-apply(dataSellog2grpTtest, 2,as.numeric)
-logFCmedianGrp1 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c(sCol:mCol)],na.rm=T)
-logFCmedianGrp2 = matrixStats::rowMedians(dataSellog2grpTtestNum[,c((mCol+1):eCol)],na.rm=T)
-logFCmedianGrp1[is.nan(logFCmedianGrp1)]=0
-logFCmedianGrp2[is.nan(logFCmedianGrp2)]=0
-logFCmedian = logFCmedianGrp1-logFCmedianGrp2
-logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
-logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
-hist(logFCmedianFC)
-log2FCmedianFC=log2(logFCmedianFC)
-hist(log2FCmedianFC)
-ttest.results = data.frame(Uniprot=uniprot,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,Description=rowName)
-writexl::write_xlsx(ttest.results,paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.xlsx"))
-write.csv(ttest.results,paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.csv"),row.names = F,quote = F)
-#limma::vennDiagram(cbind(as.matrix(dataSellog2grpTtest[,c(sCol:mCol)]),as.matrix(dataSellog2grpTtest[,c((mCol+1):eCol)])))
-limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
-limma::vennDiagram(cbind(logFCmedianGrp1,logFCmedianGrp2))
-data$RowGeneUniProtScorePeps<-data$Gene.names
-ttest.results[is.na(ttest.results)]=selThr
-Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
-sum(Significance)
-dsub <- subset(ttest.results,Significance)
 p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance)) 
 p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=""),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
 #f=paste(file,proc.time()[3],".jpg")
-ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"VolcanoTest.svg"), p)
+ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"VolcanoTestNoLabel.svg"), p)
 print(p)
 ```
 
-```{r selHeatMap}
-Significance=ttest.results$CorrectedPValueBH<selThr&abs(ttest.results$Log2MedianChange)>selThrFC
-Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
-sum(Significance)
-dsub <- subset(ttest.results,Significance)
-rownames(dsub)<-dsub$Uniprot
-dsub<-dsub[,grep("^F[0-9]+",colnames(dsub))]
-summary(dsub)
-dsub[dsub==selThr]<-13
-#dsub[dsub==13]<-NA
-#dsub[is.na(dsub)]<-13
-p<-pheatmap::pheatmap(dsub,clustering_distance_rows="euclidean",clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
-ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTest.svg"), p)
+
+```{r M12any}
+sel<-"M"
+hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
+summary(hda)
+hist(as.matrix(hda))
+hdaM1<-apply(hda[,grep("M1",colnames(hda))],1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{NA})
+sum(hdaM1>thr,na.rm=T)
+hdaM2<-apply(hda[,grep("M2",colnames(hda))],1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{NA})
+sum(hdaM2>thr,na.rm=T)
+hdaM<-cbind(hdaM1,hdaM2)
+summary(hdaM==thr)
+limma::vennDiagram(hdaM>thr)
+inpW<-paste0(inpF,sel,"LFQ.xlsx")
+writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
+assign(sel,hdaM)
 ```
 
-```{r choseDist-mRNA}
-dsub<-readxl::read_xlsx(paste0(inpD,"BvL_210409_Ingrid1.AAGandfasta.count.E.xlsx"))
-uniprot<-dsub$Uniprot
-pE<-as.matrix(100*dsub$Count/dsub$Length)
-rownames(pE)<-uniprot
-hist(pE)
-dsub<-dsub[,grep("^F[0-9]+",colnames(dsub))]
-dsub<-sapply(dsub,as.numeric)
-rownames(dsub)<-uniprot
-summary(dsub)
-#dsub[dsub==selThr]<-14
-#dsub[dsub==13]<-NA
-hist(dsub)
-dsub[is.na(dsub)]<-14
-summary(dsub)
-hist(dsub)
-#dsub<-dsub-matrixStats::rowMedians(dsub)
-#dsub<-dsub/matrixStats::rowSds(dsub)
-dsubMeds<-matrixStats::rowMedians(dsub)
-summary(dsubMeds)
-hist(dsubMeds)
-dsubSD<-matrixStats::rowSds(dsub)
-summary(dsubSD)
-hist(dsubSD)
-dsub<-(dsub-dsubMeds)/dsubSD
-summary(dsub)
-hist(dsub)
-p<-pheatmap::pheatmap(dsub,clustering_distance_rows="euclidean",clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
-ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTest.svg"), p)
-dsubCor<-as.dist(cor(t(dsub),method="pearson",use="pairwise.complete.obs",))
-dsubCor[is.na(dsubCor)]<-0
-dsubCor<-dist(dsub,method="euclidean")
-hist(dsubCor)
-summary(dsubCor)
-#check
-nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
-#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
-p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
-ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDist.svg"), p)
-dsubCor<-dist(pE,method="euclidean")
-dsubCorM<-as.matrix(dist(pE,method="euclidean",diag = T,upper = T))
-hist(dsubCor)
-#check
-nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
-#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
-p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
-ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDistE.svg"), p)
+```{r WTany}
+sel<-"W"
+hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
+summary(hda)
+hist(as.matrix(hda))
+hdaM<-apply(hda,1,function(x) if(sum(is.na(x))<ncol(hda)){median(x,na.rm=T)} else{0})
+sum(hdaM>thr,na.rm=T)
+limma::vennDiagram(hdaM>thr)
+inpW<-paste0(inpF,sel,"LFQ.xlsx")
+writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
+assign(sel,hdaM)
+```
+
+```{r M12all}
+sel<-"M"
+hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
+summary(hda)
+hist(as.matrix(hda))
+hdaM1<-apply(hda[,grep("M1",colnames(hda))],1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(hdaM1>thr,na.rm=T)
+hdaM2<-apply(hda[,grep("M2",colnames(hda))],1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(hdaM2>thr,na.rm=T)
+hdaM<-cbind(hdaM1,hdaM2)
+limma::vennDiagram(hdaM>thr)
+inpW<-paste0(inpF,sel,"LFQ.xlsx")
+writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
+assign(sel,hdaM)
+```
+
+```{r WTall}
+sel<-"W"
+hda<-as.matrix(log2LFQ[,grep(sel,colnames(log2LFQ))])
+summary(hda)
+hist(as.matrix(hda))
+hdaM<-apply(hda,1,function(x) if(sum(is.na(x))==0){median(x,na.rm=T)} else{0})
+sum(hdaM>thr,na.rm=T)
+limma::vennDiagram(hdaM>thr)
+inpW<-paste0(inpF,sel,"LFQ.xlsx")
+writexl::write_xlsx(as.data.frame(cbind(hdaM,hda,data$Fasta.headers)),inpW)
+assign(sel,hdaM)
+```
+
+```{r venn}
+hda<-cbind(M,W)
+hda[is.na(hda)]=0
+hist(hda)
+limma::vennDiagram(hda>thr)
+comb=data.frame(hda)
+```
+
+```{r writeXL}
+cWM12<-comb[comb$hdaM1>0&comb$hdaM2>0&comb$W>0,]
+rN<-rownames(cWM12)
+uniProt<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "|",fixed=T), "[", 2)), "-"), "[", 1))
+geneName<-paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), " "), "[", 1)), ";",fixed=T), "[", 1))
+writexl::write_xlsx(cbind(rN,cWM12,uniProt,geneName),paste0(inpF,"cWM12.xlsx"))
+cWM12UP<-cWM12[cWM12$hdaM1-cWM12$W>0&cWM12$hdaM2-cWM12$W>0&cWM12$W>0,]
+rN<-rownames(cWM12UP)
+uniProt<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "|",fixed=T), "[", 2)), "-"), "[", 1))
+geneName<-paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), " "), "[", 1)), ";",fixed=T), "[", 1))
+cWM12UPM1<-cWM12UP$hdaM1-cWM12UP$W
+cWM12UPM2<-cWM12UP$hdaM2-cWM12UP$W
+cWM12UPmean<-(cWM12UPM1+cWM12UPM2)/2
+df<-cbind(rN,cWM12UP,cWM12UPM1,cWM12UPM2,cWM12UPmean,uniProt,geneName)
+df<-df[order(df$cWM12UPmean,decreasing = T),]
+writexl::write_xlsx(df,paste0(inpF,"cWM12UP.xlsx"))
+cWM12down<-cWM12[cWM12$hdaM1-cWM12$W<0&cWM12$hdaM2-cWM12$W<0&cWM12$W>0,]
+rN<-rownames(cWM12down)
+uniProt<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "|",fixed=T), "[", 2)), "-"), "[", 1))
+geneName<-paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), " "), "[", 1)), ";",fixed=T), "[", 1))
+cWM12downM1<-cWM12down$hdaM1-cWM12down$W
+cWM12downM2<-cWM12down$hdaM2-cWM12down$W
+cWM12downmean<-(cWM12downM1+cWM12downM2)/2
+df<-cbind(rN,cWM12down,cWM12downM1,cWM12downM2,cWM12downmean,uniProt,geneName)
+df<-df[order(df$cWM12downmean,decreasing = F),]
+writexl::write_xlsx(df,paste0(inpF,"cWM12down.xlsx"))
+xWM1<-comb[comb$hdaM1>0&comb$hdaM2==0&comb$W>0,]
+xWM1down<-xWM1[xWM1$hdaM1-xWM1$W<0,]
+xWM1up<-xWM1[xWM1$hdaM1-xWM1$W>0,]
+xWM2<-comb[comb$hdaM2>0&comb$hdaM1==0&comb$W>0,]
+xWM2down<-xWM2[xWM2$hdaM2-xWM2$W<0,]
+xWM2up<-xWM2[xWM2$hdaM2-xWM2$W>0,]
+xW<-comb[comb$hdaM1==0&comb$hdaM2==0&comb$W>0,]
+writexl::write_xlsx(cbind(rownames(xW),xW),paste0(inpF,"W42.xlsx"))
+xM<-comb[comb$hdaM1>0&comb$hdaM2>0&comb$W==0,]
+writexl::write_xlsx(cbind(rownames(xM),xM),paste0(inpF,"M242.xlsx"))
+```
+
+```{r mito}
+download.file(url="ftp://ftp.broadinstitute.org/distribution/metabolic/papers/Pagliarini/MitoCarta3.0/Human.MitoCarta3.0.xls",destfile = paste0(inpF,"mito.xlsx"))
+mito<-readxl::read_xlsx(paste0(inpF,"mito.xlsx"))
+```
+
+```{r GOxM}
+#https://github.com/Proteomicslab57357/UniprotR
+#install.packages("UniprotR")
+xM$Fasta <- rownames(xM)
+xM$ID<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(xM), "|",fixed=T), "[", 2)), "-"), "[", 1))
+GeneOntologyObj <- UniprotR::GetProteinGOInfo(ID) 
+GeneOntologyObj$ID <- rownames(GeneOntologyObj)
+writexl::write_xlsx(GeneOntologyObj,paste0(inpF,"GeneOntologyObj.M242.xlsx"))
+grep("glyco",GeneOntologyObj$Gene.ontology..biological.process.,ignore.case=T)
+GeneOntologyObj$glyco <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("glyco",x,ignore.case=T))))
+sum(GeneOntologyObj$glyco)
+GeneOntologyObj$glycol <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("glycol",x,ignore.case=T))))
+sum(GeneOntologyObj$glycol)
+GeneOntologyObj$glycog <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("glycog",x,ignore.case=T))))
+sum(GeneOntologyObj$glycog)
+GeneOntologyObj$TCA <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("TCA",x,ignore.case=T))))
+sum(GeneOntologyObj$TCA)
+GeneOntologyObj$mitocho <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("mitocho",x,ignore.case=T))))
+sum(GeneOntologyObj$mitocho)
+combGO<-merge(xM,GeneOntologyObj,by="ID")
+writexl::write_xlsx(combGO,paste0(inpF,"M242GO.xlsx"))
+```
+
+```{r GOxW}
+xW$Fasta <- rownames(xW)
+xW$ID<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(xW), "|",fixed=T), "[", 2)), "-"), "[", 1))
+GeneOntologyObj <- UniprotR::GetProteinGOInfo(xW$ID) 
+GeneOntologyObj$ID <- rownames(GeneOntologyObj)
+writexl::write_xlsx(GeneOntologyObj,paste0(inpF,"GeneOntologyObj.W42.xlsx"))
+grep("glyco",GeneOntologyObj$Gene.ontology..biological.process.,ignore.case=T)
+GeneOntologyObj$glyco <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("glyco",x,ignore.case=T))))
+sum(GeneOntologyObj$glyco)
+GeneOntologyObj$glycol <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("glycol",x,ignore.case=T))))
+sum(GeneOntologyObj$glycol)
+GeneOntologyObj$glycog <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("glycog",x,ignore.case=T))))
+sum(GeneOntologyObj$glycog)
+GeneOntologyObj$TCA <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("TCA",x,ignore.case=T))))
+sum(GeneOntologyObj$TCA)
+GeneOntologyObj$mitocho <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("mitocho",x,ignore.case=T))))
+sum(GeneOntologyObj$mitocho)
+combGO<-merge(xW,GeneOntologyObj,by="ID")
+writexl::write_xlsx(combGO,paste0(inpF,"W42GO.xlsx"))
+```
+
+```{r GOcWM12up}
+cWM12UP$Fasta <- rownames(cWM12UP)
+cWM12UP$ID<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(cWM12UP), "|",fixed=T), "[", 2)), "-"), "[", 1))
+GeneOntologyObj <- UniprotR::GetProteinGOInfo(cWM12UP$ID) 
+GeneOntologyObj$ID <- rownames(GeneOntologyObj)
+writexl::write_xlsx(GeneOntologyObj,paste0(inpF,"GeneOntologyObj.GOcWM12up.xlsx"))
+grep("ampk",GeneOntologyObj$Gene.ontology..biological.process.,ignore.case=T)
+GeneOntologyObj$ampk <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampk",x,ignore.case=T))))
+sum(GeneOntologyObj$ampk)
+GeneOntologyObj$ampd <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampd",x,ignore.case=T))))
+sum(GeneOntologyObj$ampd)
+GeneOntologyObj$pi3 <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("pi3",x,ignore.case=T))))
+sum(GeneOntologyObj$pi3)
+GeneOntologyObj$akt <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("akt",x,ignore.case=T))))
+sum(GeneOntologyObj$akt)
+GeneOntologyObj$metabo <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("metabo",x,ignore.case=T))))
+sum(GeneOntologyObj$metabo)
+GeneOntologyObj$mitocho <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("mitocho",x,ignore.case=T))))
+sum(GeneOntologyObj$mitocho)
+combGO<-merge(cWM12UP,GeneOntologyObj,by="ID")#,all.x = T)
+writexl::write_xlsx(combGO,paste0(inpF,"GOcWM12up.xlsx"))
+```
+
+```{r GOcWM12down}
+cWM12down$Fasta <- rownames(cWM12down)
+cWM12down$ID<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(cWM12down), "|",fixed=T), "[", 2)), "-"), "[", 1))
+GeneOntologyObj <- UniprotR::GetProteinGOInfo(cWM12down$ID) 
+GeneOntologyObj$ID <- rownames(GeneOntologyObj)
+writexl::write_xlsx(GeneOntologyObj,paste0(inpF,"GeneOntologyObj.GOcWM12down.xlsx"))
+grep("ampk",GeneOntologyObj$Gene.ontology..biological.process.,ignore.case=T)
+GeneOntologyObj$ampk <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampk",x,ignore.case=T))))
+sum(GeneOntologyObj$ampk)
+GeneOntologyObj$ampd <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampd",x,ignore.case=T))))
+sum(GeneOntologyObj$ampd)
+GeneOntologyObj$pi3 <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("pi3",x,ignore.case=T))))
+sum(GeneOntologyObj$pi3)
+GeneOntologyObj$akt <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("akt",x,ignore.case=T))))
+sum(GeneOntologyObj$akt)
+GeneOntologyObj$metabo <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("metabo",x,ignore.case=T))))
+sum(GeneOntologyObj$metabo)
+GeneOntologyObj$mitocho <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("mitocho",x,ignore.case=T))))
+sum(GeneOntologyObj$mitocho)
+combGO<-merge(cWM12down,GeneOntologyObj,by="ID")#,all.x = T)
+writexl::write_xlsx(combGO,paste0(inpF,"GOcWM12down.xlsx"))
+```
+
+```{r GOxW}
+xW$Fasta <- rownames(xW)
+xW$ID<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(xW), "|",fixed=T), "[", 2)), "-"), "[", 1))
+GeneOntologyObj <- UniprotR::GetProteinGOInfo(xW$ID) 
+GeneOntologyObj$ID <- rownames(GeneOntologyObj)
+writexl::write_xlsx(GeneOntologyObj,paste0(inpF,"GeneOntologyObj.GOxW.xlsx"))
+grep("ampk",GeneOntologyObj$Gene.ontology..biological.process.,ignore.case=T)
+GeneOntologyObj$ampk <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampk",x,ignore.case=T))))
+sum(GeneOntologyObj$ampk)
+GeneOntologyObj$ampd <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampd",x,ignore.case=T))))
+sum(GeneOntologyObj$ampd)
+GeneOntologyObj$pi3 <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("pi3",x,ignore.case=T))))
+sum(GeneOntologyObj$pi3)
+GeneOntologyObj$akt <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("akt",x,ignore.case=T))))
+sum(GeneOntologyObj$akt)
+GeneOntologyObj$metabo <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("metabo",x,ignore.case=T))))
+sum(GeneOntologyObj$metabo)
+GeneOntologyObj$mitocho <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("mitocho",x,ignore.case=T))))
+sum(GeneOntologyObj$mitocho)
+combGO<-merge(xW,GeneOntologyObj,by="ID")#,all.x = T)
+writexl::write_xlsx(combGO,paste0(inpF,"GOxW.xlsx"))
+```
+```{r GOxWM1}
+xWM1$Fasta <- rownames(xWM1)
+xWM1$ID<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(xWM1), "|",fixed=T), "[", 2)), "-"), "[", 1))
+GeneOntologyObj <- UniprotR::GetProteinGOInfo(xWM1$ID) 
+GeneOntologyObj$ID <- rownames(GeneOntologyObj)
+writexl::write_xlsx(GeneOntologyObj,paste0(inpF,"GeneOntologyObj.GOxWM1.xlsx"))
+grep("ampk",GeneOntologyObj$Gene.ontology..biological.process.,ignore.case=T)
+GeneOntologyObj$ampk <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampk",x,ignore.case=T))))
+sum(GeneOntologyObj$ampk)
+GeneOntologyObj$ampd <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampd",x,ignore.case=T))))
+sum(GeneOntologyObj$ampd)
+GeneOntologyObj$pi3 <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("pi3",x,ignore.case=T))))
+sum(GeneOntologyObj$pi3)
+GeneOntologyObj$akt <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("akt",x,ignore.case=T))))
+sum(GeneOntologyObj$akt)
+GeneOntologyObj$metabo <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("metabo",x,ignore.case=T))))
+sum(GeneOntologyObj$metabo)
+GeneOntologyObj$mitocho <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("mitocho",x,ignore.case=T))))
+sum(GeneOntologyObj$mitocho)
+combGO<-merge(xWM1,GeneOntologyObj,by="ID")#,all.x = T)
+writexl::write_xlsx(combGO,paste0(inpF,"GOxWM1.xlsx"))
+```
+```{r GOxWM2}
+xWM2$Fasta <- rownames(xWM2)
+xWM2$ID<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(xWM2), "|",fixed=T), "[", 2)), "-"), "[", 1))
+GeneOntologyObj <- UniprotR::GetProteinGOInfo(xWM2$ID) 
+GeneOntologyObj$ID <- rownames(GeneOntologyObj)
+writexl::write_xlsx(GeneOntologyObj,paste0(inpF,"GeneOntologyObj.GOxWM2.xlsx"))
+grep("ampk",GeneOntologyObj$Gene.ontology..biological.process.,ignore.case=T)
+GeneOntologyObj$ampk <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampk",x,ignore.case=T))))
+sum(GeneOntologyObj$ampk)
+GeneOntologyObj$ampd <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("ampd",x,ignore.case=T))))
+sum(GeneOntologyObj$ampd)
+GeneOntologyObj$pi3 <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("pi3",x,ignore.case=T))))
+sum(GeneOntologyObj$pi3)
+GeneOntologyObj$akt <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("akt",x,ignore.case=T))))
+sum(GeneOntologyObj$akt)
+GeneOntologyObj$metabo <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("metabo",x,ignore.case=T))))
+sum(GeneOntologyObj$metabo)
+GeneOntologyObj$mitocho <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep("mitocho",x,ignore.case=T))))
+sum(GeneOntologyObj$mitocho)
+combGO<-merge(xWM2,GeneOntologyObj,by="ID")#,all.x = T)
+writexl::write_xlsx(combGO,paste0(inpF,"GOxWM2.xlsx"))
 ```
 
