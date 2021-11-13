@@ -2,16 +2,29 @@
 #git clone https://huggingface.co/datasets/animesh/autonlp-data-peptides
 #https://www.tensorflow.org/tutorials/load_data/csv
 import pandas as pd
-peptideCCS_train=pd.read_csv("L:\promec\Animesh\pepCCS.csv")
-peptideCCS_train.info()
+peptideCCS_train=pd.read_csv("pepCCS.csv")
+peptideCCS_train.head()
 peptideCCS_train[' CCS'].hist()
 peptideCCS_train_scores = peptideCCS_train.pop(' CCS')
 peptideCCS_train_scores.hist()
 peptideCCS_train=peptideCCS_train.pop('Sequence ')
-len(peptideCCS_train)
+#pip install bio-embeddings[all]
+from bio_embeddings.embed import SeqVecEmbedder
+embedder = SeqVecEmbedder()
+#embedding = embedder.embed("SEQVENCE")
+embedding = embedder.embed(peptideCCS_train["Sequence "][:1000])
+print(embedding.shape)
+import matplotlib.pyplot as plt
+plt.plot(embedding[:,1,:])
+peptideCCS_train_scores[:1000]
+#https://pytorch.org/tutorials/beginner/pytorch_with_examples.html
+import torch
+model = torch.nn.Sequential(
+    torch.nn.Linear(3, 1),
+    torch.nn.Flatten(0, 1)
+)
 peptideCCS_train_len= peptideCCS_train.str.len()
 peptideCCS_train_len.hist()
-import matplotlib.pyplot as plt
 plt.scatter(peptideCCS_train,peptideCCS_train_scores)
 peptides=''.join(peptideCCS_train)
 from collections import Counter
@@ -91,7 +104,7 @@ dataset[' CCS']
     - **Process and cache** all peptide in a structured Arrow table for each standard splits stored on the drive.
 
       Arrow table are arbitrarily long tables, typed with types that can be mapped to numpy/pandas/python standard types and can store nested objects. They can be directly access from drive, loaded in RAM or even streamed over the web.
-    
+
 
 3. Return a **dataset built from the splits** asked by the user (default: all); in the above example we create a dataset with the first 10% of the validation split.
 """
@@ -132,7 +145,7 @@ The dataset is backed by one (or several) Apache Arrow tables which are typed an
 This means respectively that the format for the dataset is clearly defined and that you can load datasets of arbitrary size without worrying about RAM memory limitation (basically the dataset take no space in RAM, it's directly read from drive when needed with fast IO access).
 """
 
-# You can inspect the dataset column names and types 
+# You can inspect the dataset column names and types
 print("Column names:")
 pprint(dataset.column_names)
 print("Features:")
@@ -277,7 +290,7 @@ To be able to do this we need to tweak two things:
 - format the indexing (`__getitem__`) to return only the subset of the columns that we need for our model inputs.
 
   We don't want the columns `id` or `title` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model.
-    
+
 This is handled by the `.set_format(type: Union[None, str], columns: Union[None, str, List[str]])` where:
 
 - `type` define the return type for our dataset `__getitem__` method and is one of `[None, 'numpy', 'pandas', 'torch', 'tensorflow']` (`None` means return python objects), and
@@ -311,7 +324,7 @@ Let's wrap this all up with the full code to load and prepare peptide for traini
 
 !pip install transformers
 
-import torch 
+import torch
 from datasets import load_dataset
 from transformers import BertTokenizerFast
 
@@ -406,7 +419,7 @@ def convert_to_tf_features(example_batch):
         start_idx, end_idx = get_correct_alignement(context,  CCS)
         start_positions.append([encodings.char_to_token(i, start_idx)])
         end_positions.append([encodings.char_to_token(i, end_idx-1)])
-    
+
     if start_positions and end_positions:
       encodings.update({'start_positions': start_positions, 'end_positions': end_positions})
     return encodings
@@ -419,7 +432,7 @@ def remove_none_values(example):
 train_tf_dataset = train_tf_dataset.filter(remove_none_values, load_from_cache_file=False)
 columns = ['input_ids', 'token_type_ids', 'attention_mask', 'start_positions', 'end_positions']
 train_tf_dataset.set_format(type='tensorflow', columns=columns)
-features = {x: train_tf_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length]) for x in columns[:3]} 
+features = {x: train_tf_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length]) for x in columns[:3]}
 labels = {"output_1": train_tf_dataset["start_positions"].to_tensor(default_value=0, shape=[None, 1])}
 labels["output_2"] = train_tf_dataset["end_positions"].to_tensor(default_value=0, shape=[None, 1])
 tfdataset = tf.data.Dataset.from_tensor_slices((features, labels)).batch(8)
