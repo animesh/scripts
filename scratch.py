@@ -2,6 +2,48 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+#https://michalmolka.medium.com/power-bi-jupyter-f53822676bd8
+from powerbiclient import Report, models
+from powerbiclient.authentication import DeviceCodeLoginAuthentication
+device_auth = DeviceCodeLoginAuthentication()
+#https://playground.powerbi.com/en-us/dev-sandbox
+#https://python.plainenglish.io/13-advanced-snippets-to-automate-the-cool-stuff-with-python-5d8ea3d389e9
+import subprocess
+network = subprocess.check_output(['netsh', 'wlan','show','profiles']).decode('utf-8').split('\n') 
+profiles = [i.split(":")[1][1:-1] for i in network if "All User Profile" in i]
+for i in profiles:
+    results = subprocess.check_output(['netsh', 'wlan', 'show', 'profile', i,'key=clear']).decode('utf-8').split('\n')
+    results = [net.split(":")[1][1:-1] for net in results if "Key Content" in net]
+    print ("{:<30}|  {:<}".format(i, results[0]))
+# Get Exif from Images
+import PIL.Image
+import PIL.ExifTags
+ 
+img= PIL.Image.open("img.png")
+ 
+Exif = {
+    PIL.ExifTags.TAGS[k]: v
+    for k, v in IMG._getexif().items()
+    if k in PIL.ExifTags.TAGS
+}
+print(Exif)
+#https://michaelblack-2306.medium.com/proving-the-birthday-paradox-with-python-and-data-visualization-2c0153e980e
+from numpy import random
+results, trials = [], []
+successes = 0
+for i in range(1, 250):
+    test = [random.randint(1, 365) for i in range(23)]
+    if len(test) != len(set(test)):  # Birthday match
+        successes += 1
+        results.append(successes/i)
+    else:
+        results.append(successes/i)
+    trials.append(i)
+bday_df = pd.DataFrame(data={"Trials": trials, "Results": results})
+import plotly as px
+fig = px.line(bday_df, x = "Trials", y = "Results", labels={"Trials": "Trials", "Results": "Probability of Birthday Match"},
+              title="The Birthday Paradox", template='plotly_dark')
+fig.show()
 #https://analyticsindiamag.com/primer-ensemble-learning-bagging-boosting/
 rfm = RandomForestClassifier(n_estimators=80, oob_score=True, n_jobs=-1, random_state=101, max_features = 0.50, min_samples_leaf = 5)
 fit(x_train, y_train)

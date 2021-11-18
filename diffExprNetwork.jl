@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.16.4
+# v0.17.1
 
 using Markdown
 using InteractiveUtils
@@ -140,10 +140,10 @@ end
 # ╔═╡ fd011728-9eb5-4dc1-a707-3c8fa0b890b0
 benchmark_matmul_gpu(M_on_gpu)
 
-# ╔═╡ ca27fd47-444b-4201-9c74-f007aa4b18ee
+# ╔═╡ 80ec80f3-74ea-481f-86dd-5a1f4a63c143
 using BenchmarkTools
 
-# ╔═╡ 80ec80f3-74ea-481f-86dd-5a1f4a63c143
+# ╔═╡ ca27fd47-444b-4201-9c74-f007aa4b18ee
 using BenchmarkTools
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001

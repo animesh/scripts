@@ -268,3 +268,97 @@ cytGOcomb[is.na(cytGOcomb)]<-(-1)
 limma::vennDiagram(cytGOcomb[,c("term.x","term.y")]>0)
 orgGOcomb[is.na(orgGOcomb)]<-(-1)
 limma::vennDiagram(orgGOcomb[,c("term.x","term.y")]>0)
+#https://www.cell.com/the-innovation/fulltext/S2666-6758(21)00066-7?_returnURL=https://linkinghub.elsevier.com/retrieve/pii/S2666675821000667%3Fshowall%3Dtrue
+library(clusterProfiler)
+data(geneList, package="DOSE")
+## fold change > 2 as DE genes
+de <- names(geneList)[abs(geneList) > 2]
+ego <- enrichGO(de, OrgDb = "org.Hs.eg.db", ont="BP", readable=TRUE)
+## use simplify to remove redundant terms
+ego2 <- simplify(ego, cutoff=0.7, by="p.adjust", select_fun=min)
+kk <- gseKEGG(geneList, organism = "hsa")
+gmt <- ‘wikipathways-20210310-gmt-Homo_sapiens.gmt’
+wp <- read.gmt.wp(gmt)
+ewp <- GSEA(geneList, TERM2GENE=wp[,c("wpid", "gene")], TERM2NAME=wp[,c("wpid", "name")])
+library(ChIPseeker)
+## the file can be downloaded using ‘downloadGSMbedFiles("GSM1295076")’
+file <- "GSM1295076_CBX6_BF_ChipSeq_mergedReps_peaks.bed.gz"
+gr <- readPeakFile(file)
+library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+TxDb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+genes <- seq2gene(gr, tssRegion=c(-1000, 1000), flankDistance = 3000, TxDb)
+library(clusterProfiler)
+g <- bitr(genes, ‘ENTREZID’, ‘SYMBOL’, ‘org.Hs.eg.db’)
+## downloaded from
+https://maayanlab.cloud/Enrichr/geneSetLibrary?mode=text&libraryName=ENCODE_and_ChEA_Consensus_TFs_from_ChIP-X
+encode <- read.gmt("ENCODE_and_ChEA_Consensus_TFs_from_ChIP-X.txt")
+enricher(g$SYMBOL, TERM2GENE=encode)
+data(DE_GSE8057)
+xx <- compareCluster(Gene∼time+treatment, data=DE_GSE8057, fun = enricher,
+                     TERM2GENE=wp[,c("wpid", "gene")], TERM2NAME=wp[,c("wpid", "name")])
+## head or tail to print first or last n rows
+head(ego, 2)
+## ID Description GeneRatio BgRatio pvalue
+## GO:0140014 GO:0140014 mitotic nuclear division 34/194 286/18866 2.171838e-26
+## GO:0000280 GO:0000280 nuclear division 36/194 428/18866 1.099719e-22
+## p.adjust qvalue
+## GO:0140014 6.700119e-23 5.710790e-23
+## GO:0000280 1.696316e-19 1.445841e-19
+## geneID
+## GO:0140014 CDCA8/CDC20/KIF23/CENPE/MYBL2/CCNB2/NDC80/NCAPH/DLGAP5/UBE2C/NUSAP1/TPX2/TACC3/NEK2/UBE2S/CDK1/MAD2L1/KIF18A/CDT1/BIRC5/KIF11/TTK/NCAPG/AURKB/CHEK1/TRIP13/PRC1/KIFC1/KIF18B/AURKA/CCNB1/KIF4A/PTTG1/BMP4
+## GO:0000280 CDCA8/CDC20/KIF23/CENPE/MYBL2/CCNB2/NDC80/TOP2A/NCAPH/ASPM/DLGAP5/UBE2C/NUSAP1/TPX2/TACC3/NEK2/UBE2S/CDK1/MAD2L1/KIF18A/CDT1/BIRC5/KIF11/TTK/NCAPG/AURKB/CHEK1/TRIP13/PRC1/KIFC1/KIF18B/AURKA/CCNB1/KIF4A/PTTG1/BMP4
+## Count
+## GO:0140014 34
+## GO:0000280 36
+## subset result using ‘[’ and ‘$’
+ego[1:2, c("ID", "Description", "pvalue", "p.adjust")]
+## ID Description pvalue p.adjust
+## GO:0140014 GO:0140014 mitotic nuclear division 2.171838e-26 6.700119e-23
+## GO:0000280 GO:0000280 nuclear division 1.099719e-22 1.696316e-19
+head(ego$Description)
+## [1] "mitotic nuclear division"
+## [2] "nuclear division"
+## [3] "organelle fission"
+## [4] "mitotic sister chromatid segregation"
+## [5] "sister chromatid segregation"
+## [6] "chromosome segregation"
+## genes annotated by specific term
+ego[["GO:0140014"]]
+## [1] "CDCA8" "CDC20" "KIF23" "CENPE" "MYBL2" "CCNB2" "NDC80" "NCAPH"
+## [9] "DLGAP5" "UBE2C" "NUSAP1" "TPX2" "TACC3" "NEK2" "UBE2S" "CDK1"
+## [17] "MAD2L1" "KIF18A" "CDT1" "BIRC5" "KIF11" "TTK" "NCAPG" "AURKB"
+## [25] "CHEK1" "TRIP13" "PRC1" "KIFC1" "KIF18B" "AURKA" "CCNB1" "KIF4A"
+## [33] "PTTG1" "BMP4"
+dim(ego)
+## [1] 197 9
+ego2 <- filter(ego, p.adjust < 0.001, Count > 10)
+dim(ego2)
+## [1] 44 9
+ego3 <- mutate(ego, richFactor = Count / as.numeric(sub("/\\d+", "", BgRatio)))
+ewp2 <- arrange(ewp, desc(abs(NES))) %>%
+  group_by(sign(NES)) %>%
+  slice(1:5)
+library(ggplot2)
+library(forcats)
+ggplot(ego3, showCategory = 10,
+       aes(richFactor, fct_reorder(Description, richFactor))) +
+  geom_segment(aes(xend=0, yend = Description)) +
+  geom_point(aes(color=p.adjust, size = Count)) +
+  scale_color_gradientn(colours=c("#f7ca64", "#46bac2", "#7e62a3"),
+                        trans = "log10",
+                        guide=guide_colorbar(reverse=TRUE, order=1)) +
+  scale_size_continuous(range=c(2, 10)) +
+  theme_dose(12) +
+  xlab("Rich Factor") +
+  lab(NULL) +
+  ggtitle("Biological Processes")
+ggplot(ewp2, showCategory=10,
+       aes(NES, fct_reorder(Description, NES), fill=qvalues)) +
+  geom_col() +
+  scale_fill_gradientn(colours=c("#b3eebe", "#46bac2", "#371ea3"),
+                       guide=guide_colorbar(reverse=TRUE)) +
+  theme_dose(12) +
+  xlab("Normalized Enrichment Score") +
+  ylab(NULL) +
+  ggtitle("WikiPathways")
+#compare https://github.com/animesh/enrichment4GTEx_clusterProfiler
