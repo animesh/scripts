@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("Z:/SIGRID/combined/txt/evidence.txt")
+#pathFiles = Path("L:/promec/TIMSTOF/LARS/2021/November/Kristine/combined/txt/evidence.txt")
 import pandas as pd
 df=pd.read_csv(pathFiles,low_memory=False,sep='\t')
 print(df.columns)
@@ -19,19 +19,20 @@ dfP=dfS.pivot_table(index='ID', columns='Raw file', values='Intensity', aggfunc=
 dfP.to_csv(pathFiles.with_suffix('.combinedIntensity.csv'))#,sep="\")#,rownames=FALSE)
 dfPep=pd.read_csv(pathFiles.parent/"peptides.txt",low_memory=False,sep='\t')
 dfM=dfPep.merge(dfP,left_on='Sequence', right_on='ID',how='outer',indicator=True)
-print(dfM.columns)
+dfM.to_csv(pathFiles.with_suffix('.mergedIntensity.csv'))#,sep="\")#,rownames=FALSprint(dfM.columns)
 print(dfM['_merge'])
 print(dfM[dfM['_merge']=="right_only"])
 print(dfM[dfM['_merge']=="left_only"])
 dfC=dfM[dfM['_merge']=="left_only"]
-diffInt=dfM.iloc[:,-2]-dfM['Intensity']
+df1A_Slot2=dfM[dfM['_merge']=="both"].filter(regex='1A_Slot2-1_1',axis=1)
+diffInt=df1A_Slot2.iloc[:,-1]-df1A_Slot2.iloc[:,-3]
 print("\nDff Intensity Summary\n",diffInt.describe())
 #dfC[dfC['Sequence']=="AVFADLDLR"]
 #!grep "AVFADLDLR" /mnt/z/SIGRID/combined/txt/*
 #/mnt/z/SIGRID/combined/txt/accumulatedMsmsScans.txt:211105_hela_Slot1-54_1_365  20592   1879.9  30.843049327354255      +               AVFADLDLR       9       531.2830031301097       1060.5514533270193   2       209063  89.8104248046875        0.2916503906249943      0.8855212679223398      0.023857869449965263    29807.587139867555      Acetyl (Protein N-term) _(Acetyl (Protein N-term))AVFADLDLR_ P78346  51.066213193756575      0.04979819692857459                     20592
 #/mnt/z/SIGRID/combined/txt/peptides.txt:AVFADLDLR       ______________________________  ______________________________  M       A       V       L       R       A       2       1       0   1018.5447        P78346  P78346  2       10      RPP30   Ribonuclease P protein subunit p30      no      no              1       NaN     0                       2752    1878                0
 #plt.plot(dfC['PEP'])
-plt.plot(dfM.iloc[:,-2],dfM['Intensity'],"o")
+plt.plot(df1A_Slot2.iloc[:,-1],df1A_Slot2.iloc[:,-3],"o")
 #fig, ax = plt.subplots()
 #ax.scatter(dfM.iloc[:,-2],dfM['Intensity'],c=dfM['PEP'])
 #ax.set_xlabel('Evidence')

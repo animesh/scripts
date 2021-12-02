@@ -3,7 +3,7 @@ import sys
 if len(sys.argv)!=2:    sys.exit("USAGE: python pepCountTTP.py <path to MSn containing directory>, \n e.g.,\npython pepCountTTP.py \"F:/promec/LARS/TIMSTOF/Morten/210902 Morten 1 _Slot1-37_1_176.d\"\n")
 #python pepCountTTP.py "C:/Users/animeshs/Desktop/210902 sudhl5 silac/210902_sudhl5_tot_2_Slot1-29_1_180.d"
 analysis_dir = sys.argv[1]
-#analysis_dir = 'C:/Users/animeshs/Desktop/210902 sudhl5 silac/210902_sudhl5_tot_2_Slot1-29_1_180.d'
+analysis_dir = 'Z:/SIGRID/211102_blank_Slot1-53_1_408.d'
 import sqlite3, sys, time
 import numpy as np, matplotlib.pyplot as plt
 import numpy as np

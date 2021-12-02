@@ -2,6 +2,169 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+#https://towardsdatascience.com/interactive-data-visualization-in-python-with-pygal-4696fccc8c96
+from pygal.style import Style
+custom_style = Style(
+  background='transparent',
+  plot_background='transparent',
+  font_family = 'googlefont:Bad Script',
+  colors=('#05668D', '#028090', '#00A896', '#02C39A', '#F0F3BD'))
+import pygal
+import pandas as pd
+#Parse the dataframe
+data = pd.read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv") 
+#Get the mean number of cases per states
+mean_per_state = data.groupby('state')['cases'].mean()
+#The donut shape gauge chart
+gauge = pygal.SolidGauge(inner_radius=0.70)
+[gauge.add(x[0], [{"value" : x[1] * 100}] ) for x in mean_per_state.head().iteritems()]
+display(HTML(base_html.format(rendered_chart=gauge.render(is_unicode=True))))
+#The needle shape gquge chart
+gauge = pygal.Gauge(human_readable=True)
+[gauge.add(x[0], [{"value" : x[1] * 100}] ) for x in mean_per_state.head().iteritems()]
+display(HTML(base_html.format(rendered_chart=gauge.render(is_unicode=True))))
+#https://medium.com/casual-inference/the-most-time-efficient-ways-to-import-csv-data-in-python-cc159b44063d  of which was already covered above:
+import pandas as pd
+import time
+import csv
+import paratext
+import dask.dataframe
+input_file = "random.csv"
+start_time = time.time()
+data = csv.DictReader(open(input_file))
+print("csv.DictReader took %s seconds" % (time.time() - start_time))
+start_time = time.time()
+data = pd.read_csv(input_file)
+print("pd.read_csv took %s seconds" % (time.time() - start_time))
+start_time = time.time()
+data = pd.read_csv("random.csv", chunksize=100000)
+print("pd.read_csv with chunksize took %s seconds" % (time.time() - start_time))
+start_time = time.time()
+data = dask.dataframe.read_csv(input_file)
+print("dask.dataframe took %s seconds" % (time.time() - start_time))
+#https://danilzherebtsov.medium.com/parallelise-like-a-boss-with-a-single-line-of-code-in-python-30af0d640511
+# iterate over a pd.DataFrame and a list
+iterable_list = list(range(0,10))
+import pandas as pd
+iterable_df = pd.DataFrame(
+    {'col1':range(5,15), 
+     'col2':range(10,20), 
+     'col3':list('abcdefghij')})
+def iterate_dataframe_and_iterable(iterable, df):
+    result = df['col1'] * iterable / (df['col2']**2)
+    return result    
+from verstack import Multicore
+worker = Multicore(multiple_iterables = True,workers = 2) # notice the workers parameter
+result = worker.execute(iterate_dataframe_and_iterable, [iterable_list, iterable_df])
+iterable = range(0,1000000)
+def func(n):
+    # Real hard work here
+    return n**2
+
+def execute_func_using_verstack():
+    from verstack import Multicore
+    import pickle
+    worker = Multicore()
+    result = worker.execute(func, iterable)
+    pickle.dump(result, open('iteration_result.p', 'wb'))
+
+if __name__ == '__main__':
+    execute_func_using_verstack()
+
+#NaNImputerwill deploy machine learning models based on XGBoost and predict missing values
+#verstack.ThreshTuner — tune threshold for binary classification models automatically
+#verstack.ThreshTuner — automatic threshold selection for improving loss function
+#stratified_continuous_split — continuous data stratification (by far the most popular tool)
+#timer
+#https://medium.com/fandom-engineering/sroka-a-python-library-to-simplify-data-access-5a2fdc8542a0
+# Athena API
+from sroka.api.athena.athena_api import query_athena, done_athena
+# GAM API
+from sroka.api.google_ad_manager.gam_api import get_data_from_admanager
+# data wrangling
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import matplotlib.dates as mdates
+# GAM query
+start_day = '01'
+end_day = '31'
+start_month = '03'
+end_month = '03'
+year = '2019'
+query = """WHERE CUSTOM_TARGETING_VALUE_ID IN ([wiki_ids])"""
+dimensions = ['DATE']
+columns = ['TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS']
+start_date = {'year': year,
+              'month': start_month,
+              'day': start_day}
+stop_date = {'year': year,
+             'month': end_month,
+             'day': end_day}
+print('starting...')
+data_raw_gam = get_data_from_admanager(query, dimensions, columns, start_date, stop_date)
+print('data gathered')
+# create df copy
+df_gam = data_raw_gam.copy()
+# change column names
+df_gam.rename(
+    columns={
+        'Dimension.DATE': 'Date',
+        'Column.TOTAL_LINE_ITEM_LEVEL_IMPRESSIONS': 'Impressions'
+    },
+    inplace=True)
+# change column format to datetime, it is needed to plot
+df_gam['Date'] = pd.to_datetime(df_gam['Date'])
+# set index
+df_gam.set_index('Date', inplace=True)
+# check first rows
+df_gam.head()
+Querying and preparing data from Athena:
+# download Athena data
+df_athena = query_athena(
+'''
+SELECT 
+    concat(year, '-', month, '-', day) AS day,
+    count([ad_impressions])
+FROM [fandom_ads_data_table]
+WHERE 
+    year = '2019'
+    AND month = '03'
+    AND wiki_id IN ([wiki_ids])
+GROUP BY
+    CONCAT(year, '-', month, '-', day)
+ORDER BY
+    day ASC
+''')
+# change column names
+df_athena.rename(
+    columns={
+        'day': 'Date',
+        'count[ad_impressions]': 'Impressions'
+    }, 
+    inplace=True)
+# change column format to datetime, it is needed to plot
+df_athena['Date'] = pd.to_datetime(df_athena['Date'])
+# set index
+df_athena.set_index('Date', inplace=True)
+df_athena.head()
+Having both data sets prepared, we can visualise and compare the results.
+# initiate plot
+fig, ax = plt.subplots(figsize=(15,6))
+ax.plot(df_athena['Impressions'], label='Athena')
+ax.plot(df_gam['Impressions'], label='Google Ad Manager')
+# plot elements, title, labels etc.
+plt.ylabel('# impressions', fontsize=13)
+plt.title('[wiki_id] all ad impressions by source',  fontsize=16, pad=20)
+plt.xticks(rotation=30)
+plt.legend(bbox_to_anchor=(1.25, 0.5), frameon=False, fontsize=14)
+plt.ylim(0)
+plt.yticks([])
+ax.xaxis.set_major_locator(mdates.DayLocator(interval=3))
+ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y/%m/%d'));
+# seaborn default plot design
+sns.set()
 #https://michalmolka.medium.com/power-bi-jupyter-f53822676bd8
 from powerbiclient import Report, models
 from powerbiclient.authentication import DeviceCodeLoginAuthentication
