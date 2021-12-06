@@ -1,5 +1,6 @@
 #setup####
 inpD <-"L:/promec/TIMSTOF/LARS/2021/November/Kristine/combined/txt/"
+#inpD <-"L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/"
 inpF<-paste0(inpD,"proteinGroups.txt")
 thr=0.0#count
 selThr=0.05#pValue-tTest
@@ -30,10 +31,15 @@ summary(log2LFQ)
 hist(log2LFQ)
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpD,"log2LFQ.xlsx"))
+data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Gene.names, ";",fixed=T), "[", 1)), " "), "[", 1))
+data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$Protein.IDs, ";",fixed=T), "[", 1)), "-"), "[", 1))
+data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
 #label####
 inpL<-paste0(inpD,"label.txt")
-label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
-label
+label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
+rownames(label)=sub(selection,"",rownames(label))
+#label$group<-label$GroupTime
+print(label)
 #corHC####
 scale=3
 log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
@@ -47,9 +53,11 @@ log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
-#T1C24####
+#WT0C####
 colnames(log2LFQ)
 table(label$group)
+ttWT0WC=testT(log2LFQ,"WT0h","WTctrl",0.05)#threshold for coefficient-of-variation
+#T1C24####
 ttT1C24=testT(log2LFQ,"24hT1Arg4","24hC400Arg",0.05)#threshold for coefficient-of-variation
 #T2C24####
 ttT2C24=testT(log2LFQ,"24hT2Arg0","24hC400Arg",0.05)
@@ -118,16 +126,16 @@ testT <- function(log2LFQ,sel1,sel2,cvThr) {
   hist(logFCmedianFC)
   log2FCmedianFC=log2(logFCmedianFC)
   hist(log2FCmedianFC)
-  ttest.results = data.frame(Uniprot=rowName,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+  ttest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
   writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.xlsx"))
   write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"tTestBH.csv"),row.names = F)
-  data$RowGeneUniProtScorePeps<-data$Gene.names
+  ttest.results$RowGeneUniProtScorePeps<-data$geneName
   ttest.results[is.na(ttest.results)]=selThr
   Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
   sum(Significance)
   dsub <- subset(ttest.results,Significance)
   p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance))
-  p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+  p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
   #f=paste(file,proc.time()[3],".jpg")
   #install.packages("svglite")
   ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"VolcanoTest.svg"), p)

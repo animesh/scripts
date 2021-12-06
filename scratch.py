@@ -1,8 +1,155 @@
 #!pip install --upgrade pip
+#!pip install spyder
+#C:\Users\sharm\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\Scripts\spyder.exe
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+!pip install pymotif
+To verify that the installation was successful, run this in a new cell:
+from pymotif import Motif
+motif = Motif()
+motif.plot()
+#https://medium.com/spatial-data-science/styling-pandas-dataframe-elegantly-with-tabulator-c66f33b1905f
+
+#https://medium.com/@pranjallk1995/a-complete-introduction-to-plotly-from-beginner-to-advanced-34e506cc1f94
+#‘pip install jupyterthemes’. Then do ‘jt -t onedork’
 #https://towardsdatascience.com/interactive-data-visualization-in-python-with-pygal-4696fccc8c96
+#visualizing daily correlation matrix
+from google.colab import drive
+drive.mount('/content/drive')
+Then we will import the required libraries and set the default renderer as Google Colab as shown:
+#importing libararies
+import numpy as np
+import pandas as pd
+import datetime as dt
+import plotly.io as pio
+import plotly.graph_objs as go
+
+from plotly import subplots
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+X_appartment = np.array(dataset_train["Squaremeter"]).reshape(-1, 1)
+Y_appartment = np.array(dataset_train["Price"]).reshape(-1, 1)
+regressor = LinearRegression()
+regressor.fit(X_appartment, Y_appartment)
+trace0 = go.Scatter(
+    x = dataset_train["Squaremeter"], 
+    y = dataset_train["Price"], 
+    mode = "markers",
+    name = "Price vs Squaremeter"
+)
+X = np.linspace(start = 5, stop = 120, num = 500).reshape(-1, 1)
+trace1 = go.Scatter(
+    x = X.reshape(len(X),),
+    y = regressor.predict(X).reshape(len(X),),
+    mode = "lines",
+    name = "Trendline"
+)
+data = [trace0, trace1]
+fig = go.Figure(data)
+fig.update_layout(title = "Apartment Prices", 
+                  xaxis_title = "Sq. meters", yaxis_title = "Price", 
+                  template = "plotly_dark")
+fig.show()
+#setting the rederer as colab
+pio.renderers.default = "colab"
+date = "08"
+month = "01"
+corr_daily = dataset_train_day.corr()
+corr_daily[np.isnan(corr_daily)] = 0
+mask = np.triu(np.ones_like(corr_daily, dtype = bool))
+annotations_daily = []
+for n, row in enumerate(corr_daily):
+    for m, col in enumerate(corr_daily):
+        if n >= m or abs(corr_daily[row][col]) <= 0.35:
+            annotations_daily.append(go.layout.Annotation(text = "", 
+                                         xref = "x",
+                                         yref = "y",
+                                         x = row,
+                                         y = col,
+                                         showarrow = False))
+        else:
+            annotations_daily.append(go.layout.Annotation(
+                         text = str(round(corr_daily[row][col], 2)),
+                                         xref = "x",
+                                         yref = "y",
+                                         x = row,
+                                         y = col,
+                                         showarrow = False))
+trace0 = go.Heatmap(
+    z = corr_daily.mask(mask),
+    x = corr_daily.index.values,
+    y = corr_daily.columns.values,
+    colorscale = "RdBu",
+    ygap = 1, 
+    xgap = 1,
+    showscale = False,
+    xaxis = "x",
+    yaxis = "y"
+)
+
+
+#visualizing yearly correlation matrix
+corr = dataset_train_group.corr()
+mask = np.triu(np.ones_like(corr, dtype = bool))
+annotations = []
+for n, row in enumerate(corr):
+    for m, col in enumerate(corr):
+        if n >= m or abs(corr[row][col]) <= 0.35:
+            annotations.append(go.layout.Annotation(text = "",
+                                         xref = "x2",
+                                         yref = "y2",
+                                         x = row,
+                                         y = col,
+                                         showarrow = False))
+        else:
+            annotations.append(go.layout.Annotation(
+                               text = str(round(corr[row][col], 2)),
+                                         xref = "x2",
+                                         yref = "y2",
+                                         x = row,
+                                         y = col,
+                                         showarrow = False))
+trace1 = go.Heatmap(
+    z = corr.mask(mask),
+    x = corr.index.values,
+    y = corr.columns.values,
+    colorscale = "RdBu",
+    ygap = 1, 
+    xgap = 1,
+    xaxis = "x2",
+    yaxis = "y2"
+)
+
+
+fig = subplots.make_subplots(rows = 2, cols = 1, 
+                             shared_xaxes = True, 
+                             vertical_spacing = 0.1,
+                             subplot_titles = (
+                             "Heatmap for " + date + "-" \
+                             + str(dt.datetime.strptime(
+                                   month, "%m").strftime("%b")),
+                             "Yearly Heatmap"))
+fig.add_trace(trace0, row = 1, col = 1)
+fig.add_trace(trace1, row = 2, col = 1)
+fig["layout"].update(title = "Correlation Matrices", 
+                     template = "plotly_dark", 
+                     annotations = [annotations[0]] + \  
+                                   [annotations[1]] + \
+                                    annotations + annotations_daily,
+                     #seems to be a bug, had to add annotations[0] 
+                     #and annotations[1] explicitly... 
+                     #wasted more than 3hrs easily T_T
+                     xaxis = {"visible": False}, 
+                     xaxis2 = {"visible": False},
+                     yaxis = {"visible": False}, 
+                     yaxis2 = {"visible": False},
+                     yaxis_autorange = "reversed", 
+                     yaxis2_autorange = "reversed",
+                     xaxis_showgrid = False, yaxis_showgrid = False,
+                     xaxis2_showgrid = False, 
+                     yaxis2_showgrid = False, height = 900)
+fig.show()
 from pygal.style import Style
 custom_style = Style(
   background='transparent',
