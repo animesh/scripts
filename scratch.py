@@ -4,6 +4,101 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+df.progress_apply(lambda x: pass)
+verstack
+#https://datas-science.medium.com/a-swiss-knife-python-package-for-fast-data-science-4bc3295d830a
+from utilmy import np_list_intersection
+np_list_intersection([1, 2, 3, 4], [3, 4, 5, 6])
+#https://medium.com/analytics-vidhya/calendar-heatmaps-a-perfect-way-to-display-your-time-series-quantitative-data-ad36bf81a3ed
+!pip install calplot july
+#read the data
+import pandas as pd
+df = pd.read_csv('C:/Users/~sales_data_sample.csv')
+df['ORDERDATE'] = pd.to_datetime(df['ORDERDATE'])
+#Set orderdate as index
+df.set_index('ORDERDATE', inplace = True)
+import calplot
+pl1 = calplot.calplot(data = df['SALES'],how = 'sum', cmap = 'Reds', figsize = (16, 8), suptitle = "Total Sales by Month and Year")
+#https://chromedriver.chromium.org/downloads/#group the orders by date and count the number of orders per day
+counts = df.groupby('ORDERDATE')['ORDERNUMBER'].agg( 'count').reset_index()
+counts['ORDERDATE'] = pd.to_datetime(counts['ORDERDATE'])
+counts
+#create the plot
+calplot.calplot(counts['ORDERNUMBER'], cmap = 'GnBu', textformat  ={:.0f}', figsize = (16, 8), suptitle = "Total Orders by Month and Year")version-selection
+!pip install ipywidgets
+from ipywidgets import interact, interactive, fixed, interact_manual
+import ipywidgets as widgets
+products = set(list(df['PRODUCTLINE]))
+def draw_calplot(prod):
+   data_subset = df[df['PRODUCTLINE'] == prod]
+   plt = calplot.calplot(data = data_subset['SALES'], how = 'sum',     cmaps = 'Reds', figsize = (16,8), suptitle = 'Total Sales for teh Product '+prod) 
+x = interact(draw_calplot, prod = products) 
+import july
+from july.utils import date_range
+dates = date_range("2004-01-01", "2004-12-31")
+july.heatmap( dates, data =df1['SALES'], title='Total Sales', cmap="golden", month_grid=True, horizontal = True)
+#https://medium.com/geekculture/displaying-altair-charts-in-power-bi-4673e0f80291
+# The following code to create a dataframe and remove duplicated rows is always executed and acts as a preamble for your script:
+
+# dataset = pandas.DataFrame(Emoji, Use Percent, Use Number)
+# dataset = dataset.drop_duplicates()
+
+# Paste or type your script code here:
+
+# The following code to create a dataframe and remove duplicated rows is always executed and acts as a preamble for your script:
+
+
+import altair as alt
+
+plot = (
+    alt.Chart(dataset)
+    .mark_square(color="red", strokeWidth=3,)
+    .encode(
+        x=alt.X("Emoji:N", axis=alt.Axis(title=None, labelFontSize=30, labelAngle=0)),
+        y=alt.Y(
+            "Use Percent:Q",
+            axis=alt.Axis(
+                format=".0%",
+                labelFontSize=12,
+                labelFontWeight="bold",
+                titleFontSize=20,
+                titleFontWeight="bold",
+            ),
+        ),
+        size=alt.Size(
+            "Use Percent:Q",
+            scale=alt.Scale(domain=[0, 0.3], range=[30, 500]),
+            legend=None,
+        ),
+        color=alt.Color(
+            "Use Percent:Q",
+            scale=alt.Scale(range=["green", "yellow", "red"]),
+            legend=alt.Legend(format=".1%"),
+        ),
+    )
+    .properties(width=600, height=400)
+)
+
+
+text = plot.mark_text(
+    align="left",
+    baseline="middle",
+    dx=10,  # Nudges text to right so it doesn't appear on top of the bar
+    dy=-10,
+).encode(
+    # we'll use the percentage as the text
+    text=alt.Text("Use Number:Q"),
+    size=alt.SizeValue(20),
+)
+
+# (text+plot).show()
+
+(text + plot).save("chart.png")
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+img = mpimg.imread("chart.png")
+imgplot = plt.imshow(img)
 !pip install pymotif
 To verify that the installation was successful, run this in a new cell:
 from pymotif import Motif
