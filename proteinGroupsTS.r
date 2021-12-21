@@ -42,3 +42,32 @@ plot(tswapDFwt2$N..q.value,tswapDFwt2$N..Phase)
 tswapDFmut2<-read.csv(paste0(inpD,"proteinGroupsTSwapMUTl2.txt"),sep="\t")
 hist(tswapDFmut2$N..q.value)
 plot(tswapDFmut2$N..q.value,tswapDFmut2$N..Phase)
+#JTK####
+dataM<-read.csv('L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/proteinGroupsTSwapMUTlabelComb.csv')
+dataMT<-t(dataM[,10:500])
+dataMT<-dataMT[,c(2:13,1,14:21)]
+annoMT<-rownames(dataMT)
+group.sizes<-dataM[c(2:13,1,14:21),501]
+# Shewchuk algorithms for adaptive precision summation used in jtkdist
+# http://www.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps
+source("F:/OneDrive - NTNU/Downloads/JTKversion3/JTK_CYCLEv3.1.R")
+jtkdist(length(group.sizes),group.sizes)
+periods <- 4:24
+jtk.init(periods,3)
+print(JTK.DIMS)
+flush.console()
+st <- system.time({
+  res <- apply(dataMT,1,function(z) {
+    jtkx(z)
+    c(JTK.ADJP,JTK.PERIOD,JTK.LAG,JTK.AMP)
+  })
+  res <- as.data.frame(t(res))
+  bhq <- p.adjust(unlist(res[,1]),"BH")
+  res <- cbind(bhq,res)
+  colnames(res) <- c("BH.Q","ADJ.P","PER","LAG","AMP")
+  results <- cbind(annoMT,res,dataMT)
+  results <- results[order(res$ADJ.P,-res$AMP),]
+})
+print(st)
+save(results,file=paste("JTK",project,"rda",sep="."))
+write.table(results,file=paste("JTK",project,"txt",sep="."),row.names=F,col.names=T,quote=F,sep="\t")

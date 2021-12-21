@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("L:/promec/TIMSTOF/LARS/2021/November/Kristine/combined/txt/evidence.txt")
+#pathFiles = Path("L:/promec/TIMSTOF/LARS/2021/Desember/211217_Maria/combined/txt/evidence.txt")
 import pandas as pd
 df=pd.read_csv(pathFiles,low_memory=False,sep='\t')
 print(df.columns)
@@ -10,13 +10,15 @@ print(df.head())
 import matplotlib.pyplot as plt
 #plt.plot(df['PEP'])
 dfS=df[df['PEP']<1]
-print(dfS['Modifications'])
+print(dfS['Modifications'].value_counts())
 #peptidePTM=['Unmodified','Acetyl (Protein N-term)','Oxidation (M)','Deamidation (NQ)']
-peptidePTM="Deamidation \(NQ\)"
-dfS=dfS[~dfS['Modifications'].str.contains(peptidePTM)]
+#peptidePTM="Deamidation \(NQ\)"
+#dfS=dfS[~dfS['Modifications'].str.contains(peptidePTM)]
 dfS.rename({'Sequence':'ID'},inplace=True,axis='columns')
 dfP=dfS.pivot_table(index='ID', columns='Raw file', values='Intensity', aggfunc='sum')
 dfP.to_csv(pathFiles.with_suffix('.combinedIntensity.csv'))#,sep="\")#,rownames=FALSE)
+dfSM=dfS.pivot_table(index='ID', columns='Raw file', values='Score', aggfunc='max')
+dfSM.to_csv(pathFiles.with_suffix('.ScoreMax.csv'))#,sep="\")#,rownames=FALSE)
 dfPep=pd.read_csv(pathFiles.parent/"peptides.txt",low_memory=False,sep='\t')
 dfM=dfPep.merge(dfP,left_on='Sequence', right_on='ID',how='outer',indicator=True)
 dfM.to_csv(pathFiles.with_suffix('.mergedIntensity.csv'))#,sep="\")#,rownames=FALSprint(dfM.columns)
@@ -24,7 +26,7 @@ print(dfM['_merge'])
 print(dfM[dfM['_merge']=="right_only"])
 print(dfM[dfM['_merge']=="left_only"])
 dfC=dfM[dfM['_merge']=="left_only"]
-df1A_Slot2=dfM[dfM['_merge']=="both"].filter(regex='1A_Slot2-1_1',axis=1)
+df1A_Slot2=dfM[dfM['_merge']=="both"].filter(regex='3_Slot2-21_1_648',axis=1)
 diffInt=df1A_Slot2.iloc[:,-1]-df1A_Slot2.iloc[:,-3]
 print("\nDff Intensity Summary\n",diffInt.describe())
 #dfC[dfC['Sequence']=="AVFADLDLR"]
