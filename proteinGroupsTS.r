@@ -45,13 +45,18 @@ plot(tswapDFmut2$N..q.value,tswapDFmut2$N..Phase)
 #JTK####
 dataM<-read.csv('L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/proteinGroupsTSwapMUTlabelComb.csv')
 dataMT<-t(dataM[,10:500])
-dataMT<-dataMT[,c(2:13,1,14:21)]
 annoMT<-rownames(dataMT)
-group.sizes<-dataM[c(2:13,1,14:21),501]
+#dataMT<-t(dataMT[1,c(2:13,1,14:21)])
+dataMT<-(dataMT[,c(2:13,1,14:21)])
+write.csv(dataMT,"dataMT.csv")
+group.sizes<-t(dataM[c(2:13,1,14:21),501])
+plot(group.sizes,dataMT)
+group.sizes<-c(group.sizes,group.sizes,group.sizes)
 # Shewchuk algorithms for adaptive precision summation used in jtkdist
 # http://www.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps
 source("F:/OneDrive - NTNU/Downloads/JTKversion3/JTK_CYCLEv3.1.R")
 jtkdist(length(group.sizes),group.sizes)
+jtkdist(7,3)
 periods <- 4:24
 jtk.init(periods,3)
 print(JTK.DIMS)
@@ -69,5 +74,62 @@ st <- system.time({
   results <- results[order(res$ADJ.P,-res$AMP),]
 })
 print(st)
-save(results,file=paste("JTK",project,"rda",sep="."))
-write.table(results,file=paste("JTK",project,"txt",sep="."),row.names=F,col.names=T,quote=F,sep="\t")
+save(results,file=paste("JTK","rda",sep="."))
+write.table(results,file=paste("JTK","txt",sep="."),row.names=F,col.names=T,quote=F,sep="\t")
+write.csv(dataMT,"dataMT.csv")
+#MetaCycle####
+#devtools::install_github('gangwug/MetaCycle')
+#https://cran.r-project.org/web/packages/MetaCycle/vignettes/implementation.html
+library(MetaCycle)
+?meta2d
+cycMouseLiverRNA
+meta2d(infile, outdir = "metaout", filestyle,
+       timepoints, minper = 20,
+       maxper = 28, cycMethod = c("ARS", "JTK", "LS"),
+       analysisStrategy = "auto", outputFile = TRUE,
+       outIntegration = "both", adjustPhase = "predictedPer",
+       combinePvalue = "fisher", weightedPerPha = FALSE,
+       ARSmle = "auto",
+       ARSdefaultPer = 24, outRawData = FALSE, releaseNote = TRUE,
+       outSymbol = "", parallelize = FALSE, nCores = 1, inDF = NULL)
+?meta3d
+meta3d(datafile, designfile, outdir = "metaout", filestyle,
+       design_libColm, design_subjectColm, minper = 20, maxper = 28,
+       cycMethodOne = "JTK", timeUnit = "hour", design_hrColm,
+       design_dayColm = NULL, design_minColm = NULL,
+       design_secColm = NULL, design_groupColm = NULL,
+       design_libIDrename = NULL, adjustPhase = "predictedPer",
+       combinePvalue = "fisher", weightedMethod = TRUE,
+       outIntegration = "both", ARSmle = "auto", ARSdefaultPer = 24,
+       dayZeroBased = FALSE, outSymbol = "", parallelize = FALSE,
+       nCores = 1)
+head(cycMouseLiverRNA[,1:5])
+row_index <- sample(1:nrow(cycHumanBloodDesign), 4)
+cycHumanBloodDesign[row_index,]
+sample_id <- cycHumanBloodDesign[row_index,1]
+head(cycHumanBloodData[,c("ID_REF", sample_id)])
+#testD####
+testD <- read.csv("dataMT.csv")
+timev <- group.sizes#1:21
+#timev[1:6] <- timev[1:6] +1#group.sizes-1#1:21
+outD <- meta2d(infile="csv", filestyle="csv", timepoints = timev, outputFile=FALSE, inDF=testD)
+min(outD[["meta"]][["LS_BH.Q"]])
+min(outD[["meta"]][["LS_pvalue"]])
+plot(outD[["meta"]][["LS_BH.Q"]],outD[["meta"]][["LS_pvalue"]])
+plot(outD[["meta"]][["LS_pvalue"]],p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
+min(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
+plot(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"),outD[["meta"]][["LS_BH.Q"]])
+#IDH1####
+data <-read.csv(paste0(inpD,"proteinGroupsMUT.txt"),sep="\t")
+testD <-data[,c(36,1:21)]
+#testD[is.null(testD)]<-NA
+#testD[testD==0]<-NA
+timev <- group.sizes#1:21
+#timev[1:6] <- timev[1:6] +1#group.sizes-1#1:21
+outD <- meta2d(infile="csv", filestyle="csv", timepoints = timev, outputFile=FALSE, inDF=testD)
+min(outD[["meta"]][["LS_BH.Q"]])
+hist(outD[["meta"]][["LS_pvalue"]])
+plot(outD[["meta"]][["LS_BH.Q"]],outD[["meta"]][["LS_pvalue"]])
+plot(outD[["meta"]][["LS_pvalue"]],p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
+min(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
+plot(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"),outD[["meta"]][["LS_BH.Q"]])

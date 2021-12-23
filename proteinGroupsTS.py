@@ -25,6 +25,37 @@ import matplotlib.pyplot as plt
 dataM.columns
 plt.plot(dataM['Time'],dataM["Q60FE5;FLNA;3647;0"],'o')
 dataM.to_csv('L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/proteinGroupsTSwapMUTlabelComb.csv')
+
+#https://github.com/jakevdp/PracticalLombScargle/blob/master/figures/LombScargleVsClassical.ipynb
+import numpy as np
+from astropy.timeseries import LombScargle
+rng = np.random.RandomState(5432)
+t = 100 * rng.rand(30)
+y = np.sin(t) + 0.3 * rng.randn(30)
+def schuster_periodogram(t, mag, freq):
+    t, mag, freq = map(np.asarray, (t, mag, freq))
+    return abs(np.dot(mag, np.exp(-2j * np.pi * freq * t[:, None])) / np.sqrt(len(t))) ** 2
+freq, p_ls = LombScargle(t, y).autopower(minimum_frequency=0,maximum_frequency=0.5,normalization='psd',samples_per_peak=20)
+p_schuster = schuster_periodogram(t, y, freq)
+tau = 1. / (4 * np.pi * freq) * np.arctan2(np.sin(4 * np.pi * freq * t[:, None]).sum(0),np.cos(4 * np.pi * freq * t[:, None]).sum(0))
+sin_window = (np.sin(2 * np.pi * freq * (t[:, None] - tau)) ** 2).sum(0)
+cos_window = (np.cos(2 * np.pi * freq * (t[:, None] - tau)) ** 2).sum(0)
+
+fig, ax = plt.subplots(2, figsize=(10, 5), sharex=True)
+ax[0].plot(freq, p_schuster, '-', color='gray', label='Classical Periodogram')
+ax[0].plot(freq, p_ls, '-k', label='Lomb-Scargle Periodogram')
+ax[0].legend();
+ax[0].set(ylabel='Spectral Power')
+ax[1].plot(freq, sin_window, '-', color='black')
+ax[1].plot(freq, cos_window, '-', color='gray')
+ax[1].axhline(len(t) / 2, linestyle=':', color='black')
+ax[1].text(0.49, 29, r'$\sum_n\ \cos^2 [2\pi f (t_n-\tau)]$', ha='right', va='top', size=14)
+ax[1].text(0.49, 1, r'$\sum_n\ \sin^2 [2\pi f (t_n-\tau)]$', ha='right', va='bottom', size=14)
+ax[1].set(xlabel='frequency',
+          xlim=(0, 0.5),
+          ylim=(0, 30))
+
+fig.savefig('fig17_ls_comparison.pdf', left=0.07, right=0.97)
 #https://github.com/rebecca-vickery/machine-learning-tutorials/tree/master/machine-learning-general
 #!pip install https://www.lfd.uci.edu/~gohlke/pythonlibs/#wordcloud
 
