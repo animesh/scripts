@@ -1,6 +1,5 @@
 #setup####
-inpD <-"L:/promec/TIMSTOF/LARS/2021/November/Kristine/combined/txt/"
-#inpD <-"L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/"
+inpD <-"L:/promec/TIMSTOF/LARS/2021/Desember/211207_Apsana/combined/txt/"
 inpF<-paste0(inpD,"proteinGroups.txt")
 thr=0.0#count
 selThr=0.05#pValue-tTest
@@ -10,7 +9,7 @@ hdr<-gsub("[^[:alnum:] ]", "",inpD)
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
 ##clean####
 data = data[!data$Reverse=="+",]
-data = data[!data$Potential.contaminant=="+",]
+#data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
 row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
 summary(data)
@@ -38,7 +37,7 @@ data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
 inpL<-paste0(inpD,"label.txt")
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
 rownames(label)=sub(selection,"",rownames(label))
-#label$group<-label$GroupTime
+label$group<-label$Sample
 print(label)
 #corHC####
 scale=3
@@ -53,18 +52,18 @@ log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
-#WT0C####
+#T48R0####
 colnames(log2LFQ)
 table(label$group)
-ttWT0WC=testT(log2LFQ,"WT0h","WTctrl",0.05)#threshold for coefficient-of-variation
-#T1C24####
-ttT1C24=testT(log2LFQ,"24hT1Arg4","24hC400Arg",0.05)#threshold for coefficient-of-variation
-#T2C24####
-ttT2C24=testT(log2LFQ,"24hT2Arg0","24hC400Arg",0.05)
-#T1C24####
-ttT1C48=testT(log2LFQ,"48hT1Arg4","48hC400Arg",0.05)
-#T2C48####
-ttT2C48=testT(log2LFQ,"48hT2Arg0","48hC400Arg",0.05)
+ttT48R0=testT(log2LFQ,"S0R48h","S400R48h",0.05)#threshold for coefficient-of-variation
+#T48R4####
+ttT48R4=testT(log2LFQ,"S4R48h","S400R48h",0.05)
+#T48R4####
+ttT24R4=testT(log2LFQ,"S4R24h","S400R24h",0.05)
+#T48R4####
+ttT24R0=testT(log2LFQ,"S0R24h","S400R24h",0.05)
+#T48R4####
+ttT67T66=testT(log2LFQ,"T67","T66",0.05)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr) {
   d1<-log2LFQ[,gsub("-",".",rownames(label[label$group==sel1,]))]
