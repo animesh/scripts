@@ -122,14 +122,57 @@ plot(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"),outD[["meta"]][["LS_BH.Q"]])
 #IDH1####
 data <-read.csv(paste0(inpD,"proteinGroupsMUT.txt"),sep="\t")
 testD <-data[,c(36,1:21)]
+summary(testD)
 #testD[is.null(testD)]<-NA
-#testD[testD==0]<-NA
-timev <- group.sizes#1:21
-#timev[1:6] <- timev[1:6] +1#group.sizes-1#1:21
+testD[testD==0]<-NA
+testD<-testD[complete.cases(testD),]#<-NA
+summary(testD)
+timev <- group.sizes-1#+1#1:21
+timev[1:6] <- timev[1:6] +1#group.sizes-1#1:21
 outD <- meta2d(infile="csv", filestyle="csv", timepoints = timev, outputFile=FALSE, inDF=testD)
 min(outD[["meta"]][["LS_BH.Q"]])
 hist(outD[["meta"]][["LS_pvalue"]])
+min(outD[["meta"]][["LS_pvalue"]])
 plot(outD[["meta"]][["LS_BH.Q"]],outD[["meta"]][["LS_pvalue"]])
 plot(outD[["meta"]][["LS_pvalue"]],p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
 min(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
 plot(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"),outD[["meta"]][["LS_BH.Q"]])
+write.csv(outD[["meta"]],paste0(inpD,"proteinGroupsMUT_LS24.csv"))
+#MUT####
+data <-read.csv(paste0(inpD,"proteinGroupsMUT.txt"),sep="\t")
+testD <-data[,c(36,1:21)]
+summary(testD)
+#testD[is.null(testD)]<-NA
+#testD[testD==0]<-NA
+#testD<-testD[complete.cases(testD),]#<-NA
+#summary(testD)
+timev <- group.sizes-1#+1#1:21
+timev[1:6] <- timev[1:6] +1#group.sizes-1#1:21
+outD <- meta2d(infile="csv", filestyle="csv", timepoints = timev, outputFile=FALSE, inDF=testD)
+min(outD[["meta"]][["LS_BH.Q"]])
+hist(outD[["meta"]][["LS_pvalue"]])
+min(outD[["meta"]][["LS_pvalue"]])
+plot(outD[["meta"]][["LS_BH.Q"]],outD[["meta"]][["LS_pvalue"]])
+plot(outD[["meta"]][["LS_pvalue"]],p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
+min(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
+plot(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"),outD[["meta"]][["LS_BH.Q"]])
+write.csv(outD[["meta"]],paste0(inpD,"proteinGroupsMUT_LS024.csv"))
+#WT####
+data <-read.csv(paste0(inpD,"proteinGroupsWT.txt"),sep="\t")
+testD <-data[,c(36,1:21)]
+summary(testD)
+#testD[is.null(testD)]<-NA
+#testD[testD==0]<-NA
+#testD<-testD[complete.cases(testD),]#<-NA
+#summary(testD)
+timev <- group.sizes-1#+1#1:21
+timev[1:6] <- timev[1:6] +1#group.sizes-1#1:21
+outD <- meta2d(infile="csv", filestyle="csv", timepoints = timev, outputFile=FALSE, inDF=testD)
+min(outD[["meta"]][["LS_BH.Q"]])
+hist(outD[["meta"]][["LS_pvalue"]])
+min(outD[["meta"]][["LS_pvalue"]])
+plot(outD[["meta"]][["LS_BH.Q"]],outD[["meta"]][["LS_pvalue"]])
+plot(outD[["meta"]][["LS_pvalue"]],p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
+min(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"))
+plot(p.adjust(outD[["meta"]][["LS_pvalue"]],"BH"),outD[["meta"]][["LS_BH.Q"]])
+write.csv(outD[["meta"]],paste0(inpD,"proteinGroupsWT_LS024.csv"))

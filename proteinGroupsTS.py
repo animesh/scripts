@@ -1,5 +1,5 @@
 import pandas as pd
-data = pd.read_table('L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/proteinGroupsTSwapMUT.txt')
+data = pd.read_table('L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/proteinGroupsWT_CosLS.txt')
 data.head(2)
 data.columns
 data["N: q-value"].hist()
@@ -15,16 +15,23 @@ label=label.set_index('Name')
 label.head(2)
 dataM=label.merge(dataT,left_index=True, right_index=True)#left_on='Name', right_on='Name',how='inner', indicator=True)
 dataM.shape
-dataM['Time']=dataM['Time (hours post treatment withdrawal)'].replace('ctrl','-1')
+dataM['Time']=dataM['Time (hours post treatment withdrawal)'].replace('0h','1h')
+dataM['Time']=dataM['Time'].replace('ctrl','0h')
 dataM['Time']=dataM['Time'].replace('h','', regex=True)
-dataM['Time']=dataM['Time'].astype(int)+1
+dataM['Time']=dataM['Time'].astype(int)#+1
 dataM['Hour']= pd.to_datetime(dataM['Time'])
 dataM['Hour']
 
 import matplotlib.pyplot as plt
 dataM.columns
-plt.plot(dataM['Time'],dataM["Q60FE5;FLNA;3647;0"],'o')
-dataM.to_csv('L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/proteinGroupsTSwapMUTlabelComb.csv')
+plt.plot(dataM['Time'],dataM["Q9NYL2-2;ZAK;4934;102"],'o')
+plt.plot(dataM['Time'],dataM["Q16585;Q16585-2;SGCB;3475;47"],'o')
+
+dataM.to_csv('L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/proteinGroupsTSwapWTlabelComb.csv')
+import numpy as np
+from astropy.timeseries import LombScargle
+frq, pls = LombScargle(np.abs(dataM['Time'].values)+0.0,np.abs(dataM["Q16585;Q16585-2;SGCB;3475;47"].astype(float).values)).autopower()#minimum_frequency=0,maximum_frequency=28,normalization='psd',samples_per_peak=3)
+plt.plot(frq, pls)
 
 #https://github.com/jakevdp/PracticalLombScargle/blob/master/figures/LombScargleVsClassical.ipynb
 import numpy as np
@@ -36,6 +43,7 @@ def schuster_periodogram(t, mag, freq):
     t, mag, freq = map(np.asarray, (t, mag, freq))
     return abs(np.dot(mag, np.exp(-2j * np.pi * freq * t[:, None])) / np.sqrt(len(t))) ** 2
 freq, p_ls = LombScargle(t, y).autopower(minimum_frequency=0,maximum_frequency=0.5,normalization='psd',samples_per_peak=20)
+plt.plot(freq, p_ls)
 p_schuster = schuster_periodogram(t, y, freq)
 tau = 1. / (4 * np.pi * freq) * np.arctan2(np.sin(4 * np.pi * freq * t[:, None]).sum(0),np.cos(4 * np.pi * freq * t[:, None]).sum(0))
 sin_window = (np.sin(2 * np.pi * freq * (t[:, None] - tau)) ** 2).sum(0)
