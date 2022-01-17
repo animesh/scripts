@@ -4,7 +4,7 @@
 #plot
 par(mfrow=c(1,2))
 #data
-inpD<-"L:/promec/Qexactive/LARS/2021/september/ole J/210924 FT_CX_FILTRAT_10MWCO_URT1_ms2/"
+inpD<-"l:/promec/Animesh/Maria/"
 ```
 
 ```{r getRawRead}
@@ -14,7 +14,7 @@ unzip(paste0(inpD,"RawRead.zip"),exdir = paste0(inpD,"RawRead"))
 
 ```{r data}
 #generate in windows prompt using cmd
-## for %i in ("L:\promec\Qexactive\LARS\2021\september\ole J\210924 FT_CX_FILTRAT_10MWCO_URT1_ms2\*.raw") do ("L:\promec\Elite\LARS\2021\april\olej\210506 BSA SCCA\RawRead\RawRead-blazor\RawRead.exe" "%i")
+## for %i in ("l:\promec\Animesh\Maria\*.raw") do ("f:\OneDrive - NTNU\Downloads\RawRead-blazor\RawRead-blazor\RawRead.exe" "%i")
 #or in bash with mono something like
 ## cd dir;for i in *.raw; do mono RawRead.exe $i; done
 inpFL<-list.files(pattern="*MZ1R.csv$",path=inpD,full.names=F,recursive=F)
@@ -40,12 +40,72 @@ for (obj in inpFL) {
     print(obj)
     data<-merge(data,get(obj),by="MZ1",all=T)
 }
-hist(data$MZ1)
+#hist(data$MZ1)
+plot(data$MZ1)
 data<-data[order(rowSums(data),decreasing=T),]
 write.csv(data,paste0(inpD,inpF,".sort.combined.csv"))
 data1000<-data[c(1:1000),]
+#hist(data1000$MZ1)
 plot(data1000$MZ1)
 write.csv(data1000,paste0(inpD,inpF,".combined.top1000.csv"))
+```
+
+
+```{r MGF}
+#BiocManager::install("Spectra")
+#BiocManager::install("MsBackendMgf")
+library(MsBackendMgf)
+library(MSnbase)
+library("doParallel")
+registerDoParallel(3) ## using 3 slave nodes
+sOBj<-readMgfData(paste0(inpD,"MGF/20200909_MKA_H12C_PeptidesDHB_DDA.mgf"))
+sOBj[["X1"]]
+plot3D(sOBj)
+table(fromFile(sOBj))
+#BiocManager::install("CluMSID")
+library(CluMSID)
+clusObj<-as.MS2spectrum(sOBj)
+combSpec<-mergeMS2spectra(sOBj) 
+combSpec<-combineSpectra(sOBj,mzd = 0.05, intensityFun = max)#,method = consensusSpectrum)
+table(fromFile(combSpec))
+#library(Spectra)
+#sObj<-Spectra("L:/promec/Qexactive/LARS/2021/september/ole J/psoMSMS/210913_FT_CX_10MWCO_urt1_MS2_b.mgf",MsBackendMgf())
+#MsBackendMgf::
+peaksData(sOBj)
+plot(sOBj$precursorMz,sOBj$precursorIntensity)
+hist(sOBj$precursorCharge)
+plot(sOBj$precursorMz,sOBj$precursorCharge)
+plot(sOBj$precursorIntensity,sOBj$precursorCharge)
+sOBjWTL<-MsBackendMgf::readMgf(paste0(inpD,"MGF/20200909_MKA_H12C_PeptidesDHB_DDAWTL.mgf"))
+#library(Spectra)
+#sObj<-Spectra("L:/promec/Qexactive/LARS/2021/september/ole J/psoMSMS/210913_FT_CX_10MWCO_urt1_MS2_b.mgf",MsBackendMgf())
+MsBackendMgf::
+peaksData(sOBj)
+plot(sOBjWTL$precursorMz,sOBjWTL$precursorIntensity)
+filterPrecursorCharge()
+compareSpectra()
+spectra mirrorplot
+plotSPecyraMirror()
+MS-coreutils group
+```
+```{r mzML}
+options(nwarnings = 1000000)
+summary(warnings())
+timsTOF1 <- readMSData(paste0(inpD,"MGF/20200909_MKA_H12C_PeptidesDHB_DDA-(1).mzML"))
+table(fromFile(timsTOF1))
+sec=round(rtime(timsTOF1))
+mzML1 <- extractMS2spectra(paste0(inpD,"MGF/20200909_MKA_H12C_PeptidesDHB_DDA-(1).mzML"))#,min_peaks=4, RTlims = c(0,5))
+fData(timsTOF1)$second <- sec
+res <- combineSpectra(timsTOF1, fcol = "second", mzd = 0.01, minProp = 0.1,method = consensusSpectrum)
+table(fromFile(res))
+mzML1merge10ppm <- mergeMS2spectra(mzML1,mz_tolerance=1e-05,t_tolerance=15000)#, rt_tolerance = 20)
+mzML2 <- extractMS2spectra(paste0(inpD,"MGF/20200909_MKA_H12C_PeptidesDHB_DDA2-(1).mzML"))
+mzML2merge10ppm <- mergeMS2spectra(mzML2,mz_tolerance=1e-05,rt_tolerance=100000000000)
+summary(warnings())
+writeFeaturelist(mzML2merge10ppm,paste0(inpD,"MGF/20200909_MKA_H12C_PeptidesDHB_DDA2-(1).csv"))
+writeFeaturelist(mzML1merge10ppm,paste0(inpD,"MGF/20200909_MKA_H12C_PeptidesDHB_DDA-(1).csv"))
+saveRDS(mzML2merge10ppm,paste0(inpD,"MGF/20200909_MKA_H12C_PeptidesDHB_DDA2-(1).rds"))
+saveRDS(mzML1merge10ppm,paste0(inpD,"MGF/20200909_MKA_H12C_PeptidesDHB_DDA-(1).rds"))
 ```
 
 ```{r plot}

@@ -1,6 +1,8 @@
 ```{r setup, echo = FALSE}
 #lib
 Sys.getenv()
+options(nwarnings = 1000000)
+summary(warnings())
 #Sys.setenv(R_USER="C:/Users/animeshs/")
 #libPaths="C:/Users/animeshs/OneDrive/libR"
 #libPaths="L:/promec/Animesh/R/win-library/4.0"

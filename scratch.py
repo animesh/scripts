@@ -4,6 +4,24 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+#https://sivachandan1996.medium.com/text-matching-for-data-manipulation-in-pandas-using-fuzzywuzzy-1a24f00e010
+#!pip install fuzzywuzzy
+from fuzzywuzzy import process
+for state in Indian_Crime_Data['State']:
+    match = process.extract(state,Indian_Population['State'],limit = 1)
+    #print(type(match),match)
+    Indian_Crime_Data['State'] = Indian_Crime_Data['State'].str.replace(state,match[0][0])
+#what process.extract() does. It takes three arguments. A string that we compare with an array of strings An array of strings a limit = n(integer) argument to specify how many matches should we return as a list After passing these arguments and executing process.extract(), it returns a list containing tuples, which has a match along with its score. These tuples are sorted in descending order with respect to their score. Check the example below to see how the process.extract() works Since we passed the argument limit = 1 only one tuple will be present in the list. The Final Data Frame: After we are done with this text/String matching using Fuzzywuzzy. We can now easily merge the data on the ‘State’ column.
+# Merging the Data Frames on State column
+Indian_crime = Indian_Crime_Data.merge(Indian_Population,on = 'State')
+#https://towardsdatascience.com/hiplot-interactive-visualization-tool-by-facebook-f83aea1b639a
+#!pip install -U hiplot
+import hiplot as hip
+import pandas as pd
+from sklearn.datasets import load_iris
+iris = load_iris(as_frame=True)['frame']
+iris.head()
+hip.Experiment.from_dataframe(iris).display()
 df.progress_apply(lambda x: pass)
 verstack
 #https://datas-science.medium.com/a-swiss-knife-python-package-for-fast-data-science-4bc3295d830a

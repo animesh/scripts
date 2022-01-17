@@ -73,3 +73,7 @@ Homo*
 *.so
 *.lib
 *.jpg
+*.json
+*.yaml
+*.rda
+*.db
