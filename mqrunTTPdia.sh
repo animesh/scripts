@@ -1,4 +1,4 @@
-#USAGE: bash mqrunTTPdia.sh $HOME/MaxQuant_2.0.3.0/bin/MaxQuantCmd.exe $PWD $HOME/FastaDB/uniprot-human-iso-june21.fasta $HOME/PD/TIMSTOF/LARS/2021/November/MayBritt/combined/txt/peptides.txt $HOME/PD/TIMSTOF/LARS/2021/November/MayBritt/combined/txt/evidence.txt $HOME/PD/TIMSTOF/LARS/2021/November/MayBritt/combined/txt/msms.txt mqparTTPdia.xml 16
+#USAGE: bash mqrunTTPdia.sh $HOME/MaxQuant_2.0.3.0/bin/MaxQuantCmd.exe $HOME/PD/TIMSTOF/LARS/2021/Oktober/211013_Shengdong/DIA/DIA/DIA $PWD/human.fasta $HOME/PROMEC/promec/libMQ/homo_sapiens/missed_cleavages_1/peptides/peptides.txt $HOME/PROMEC/promec/libMQ/homo_sapiens/missed_cleavages_1/evidence/evidence.txt $HOME/PROMEC/promec/libMQ/homo_sapiens/missed_cleavages_1/msms/msms.txt mqparTTPdia.xml 16
 #CANNOT handle path containing spaces! create a symlink in such cases e.g. 
 #for i in $HOME/PD/TIMSTOF/LARS/2021/SEPTEMBER/*Finn*/try*/*.d; do echo $i; j=${i// /_}; echo $j; k=$(basename $j) ; echo $k; ln -s "$i" "$k"; done
 MAXQUANTCMD=$1
