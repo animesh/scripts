@@ -1,56 +1,45 @@
-import pathlib
 import numpy as np
-
-def parseMGF(mgfData):
-    data = mgfData.read_text().split('\n')
-    _comments = '#;!/'
-    reading_spectrum = False
-    params = {}
-    masses = []
-    intensities = []
-    charges = []
-    out = {}
-    cnt = 0
-    pep_mass = 0
-    pep_intensity = 0
-    out = {}
-    for line in data:
-        if not reading_spectrum:
-            if line.strip() == 'BEGIN IONS': reading_spectrum = True
+data = open("L:/promec/Animesh/Maria/MGF/20200909_MKA_H12C_PeptidesDHB_DDA2.mgf",'r')
+_comments = '#;!/'
+reading_spectrum = False
+params = {}
+masses = []
+intensities = []
+charges = []
+out = {}
+cnt = 0
+pep_mass = 0
+pep_intensity = 0
+out = {}
+for line in data:
+    if not reading_spectrum:
+        if line.strip() == 'BEGIN IONS': reading_spectrum = True
+    else:
+        if not line.strip() or any(line.startswith(c) for c in _comments): pass
+        elif line.strip() == 'END IONS':
+            reading_spectrum = False
+            title = params['title'].split()[0]
+            if 'pepmass' in params:
+                try:
+                    pl = params['pepmass'].split()
+                    if len(pl) > 1:
+                        pep_mass = float(pl[0])
+                        pep_intensity = float(pl[2])
+                    elif len(pl) == 1: pep_mass = float(pl[0])
+                except ValueError: print("Error in parsing pepmass value")
+            out[cnt] = {'pep_mass': pep_mass,'pep_intensity': pep_intensity,'rtinseconds': params['rtinseconds'],'title': params['title'],'charge': params['charge'],'mz_array': np.array(masses),'intensity_array': np.array(intensities)}
+            cnt += 1
         else:
-            if not line.strip() or any(line.startswith(c) for c in _comments): pass
-            elif line.strip() == 'END IONS':
-                reading_spectrum = False
-                title = params['title'].split()[0]
-                if 'pepmass' in params:
+            l = line.split('=', 1)
+            if len(l) > 1: params[l[0].lower()] = l[1].strip()
+            elif len(l) == 1:  # looks like a peak list ;)
+                l = line.split()
+                if len(l) >= 2:
                     try:
-                        pl = params['pepmass'].split()
-                        if len(pl) > 1:
-                            pep_mass = float(pl[0])
-                            pep_intensity = float(pl[2])
-                        elif len(pl) == 1: pep_mass = float(pl[0])
-                    except ValueError: print("Error in parsing pepmass value")
-                out[cnt] = {'pep_mass': pep_mass,'pep_intensity': pep_intensity,'rtinseconds': params['rtinseconds'],'title': params['title'],'charge': params['charge'],'mz_array': np.array(masses),'intensity_array': np.array(intensities)}
-                cnt += 1
-            else:
-                l = line.split('=', 1)
-                if len(l) > 1: params[l[0].lower()] = l[1].strip()
-                elif len(l) == 1:  # looks like a peak list ;)
-                    l = line.split()
-                    if len(l) >= 2:
-                        try:
-                            masses.append(float(l[0]))
-                            intensities.append(float(l[1]))
-                        except ValueError:
-                            print("Error in parsing line "+line)
-    return out
-
-#file = pathlib.Path.cwd().parent.rglob('*.MGF')
-file = pathlib.Path.cwd() / '../RawRead/20150512_BSA_The-PEG-envelope.raw.profile.MGF'
-#file = pathlib.Path('F:/GD/RawRead/20150512_BSA_The-PEG-envelope.raw.profile.MGF')
-#file = pathlib.Path.cwd().parent / 'RawRead/171010_Ip_Hela_ugi.raw.intensity0.charge0.MGF'
-#print(file.read_text().split(' '))
-out=parseMGF(file)
+                        masses.append(float(l[0]))
+                        intensities.append(float(l[1]))
+                    except ValueError:
+                        print("Error in parsing line "+line)
 
 X=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ in out.items()]
 X_mz1=np.array(X).reshape(-1, 1)
