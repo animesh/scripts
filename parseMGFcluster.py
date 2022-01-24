@@ -1,22 +1,34 @@
+#python parseMGFcluster.py L:\promec\Animesh\Maria\MGF\20200909_MKA_H12C_PeptidesDHB_DDA3.mgf 5E-6
+import sys
+if len(sys.argv) != 3: sys.exit("\n\nREQUIRED: numpy, tested with Python 3.9.9 \n\nUSAGE: python parseMGFcluster.py <complete path to MGF file like \"L:\promec\Animesh\Maria\MGF\20200909_MKA_H12C_PeptidesDHB_DDA3.mgf\"> <error-tolerance like 5E-6 for 5 PPM>\n\n")
+file=sys.argv[1]
+errTol=float(sys.argv[2])
+#file="L:/promec/Animesh/Maria/MGF/20200909_MKA_H12C_PeptidesDHB_DDA3.mgf" 
+#errTol=5E-6 #example range (603.071-603.077)/603.07434
+
 import numpy as np
-data = open("L:/promec/Animesh/Maria/MGF/20200909_MKA_H12C_PeptidesDHB_DDA2.mgf",'r')
-_comments = '#;!/'
+data = open(file,'r')
+_comments = '#;!/'  
 reading_spectrum = False
-params = {}
-masses = []
-intensities = []
-charges = []
-out = {}
+mgf = {}
 cnt = 0
-pep_mass = 0
-pep_intensity = 0
-out = {}
 for line in data:
+    line=line.lower()
+    line=line.replace('\t', ' ')
+    line=' '.join(line.split())
+    #print(line)
     if not reading_spectrum:
-        if line.strip() == 'BEGIN IONS': reading_spectrum = True
+        if line.strip() == 'begin ions':
+            reading_spectrum = True
+            params = {}
+            masses = []
+            intensities = []
+            charges = []
+            pep_mass = 0
+            pep_intensity = 0
     else:
         if not line.strip() or any(line.startswith(c) for c in _comments): pass
-        elif line.strip() == 'END IONS':
+        elif line.strip() == 'end ions':
             reading_spectrum = False
             title = params['title'].split()[0]
             if 'pepmass' in params:
@@ -24,33 +36,96 @@ for line in data:
                     pl = params['pepmass'].split()
                     if len(pl) > 1:
                         pep_mass = float(pl[0])
-                        pep_intensity = float(pl[2])
+                        pep_intensity = float(pl[1])
                     elif len(pl) == 1: pep_mass = float(pl[0])
                 except ValueError: print("Error in parsing pepmass value")
-            out[cnt] = {'pep_mass': pep_mass,'pep_intensity': pep_intensity,'rtinseconds': params['rtinseconds'],'title': params['title'],'charge': params['charge'],'mz_array': np.array(masses),'intensity_array': np.array(intensities)}
+            mgf[cnt] = {'pep_mass': pep_mass,'pep_intensity': pep_intensity,'rtinseconds': params['rtinseconds'],'title': params['title'],'charge': params['charge'],'mz_array': np.array(masses),'intensity_array': np.array(intensities)}
             cnt += 1
         else:
             l = line.split('=', 1)
             if len(l) > 1: params[l[0].lower()] = l[1].strip()
             elif len(l) == 1:  # looks like a peak list ;)
                 l = line.split()
-                if len(l) >= 2:
+                if len(l) > 1 and line[0].isdigit():
                     try:
                         masses.append(float(l[0]))
                         intensities.append(float(l[1]))
                     except ValueError:
                         print("Error in parsing line "+line)
+print(mgf[0])
+data.close()
 
-X=[(out[k]['pep_mass']-1.00727647)*int(out[k]['charge'].split('+')[0]) for k, _ in out.items()]
-X_mz1=np.array(X).reshape(-1, 1)
-print(X_mz1.shape)
+#import matplotlib.pyplot as plt
+ionMass=[(mgf[k]['pep_mass']-1.00727647)*int(mgf[k]['charge'].split('+')[0]) for k, _ in mgf.items()]
+print("\nprecursor-histogram\n",np.histogram(ionMass,bins='auto'))#,density=True))
+#plt.hist(X)
+#https://stackoverflow.com/questions/5384914/how-to-delete-items-from-a-dictionary-while-iterating-over-it
+mgfRem=[]
+mgfComb = {}
+#import copy
+#mgfComb=copy.deepcopy(mgf)
+for k1 in mgf:
+    mz = "PEPMASS="+str(mgf[k1]['pep_mass'])
+    intMZ = mgf[k1]['pep_intensity']
+    rt = mgf[k1]['rtinseconds']
+    massList = mgf[k1]['mz_array']
+    intMassList = mgf[k1]['intensity_array']
+    rt = "RTINSECONDS="+mgf[k1]['rtinseconds']
+    charge = "CHARGE="+mgf[k1]['charge']
+    title = "TITLE="+mgf[k1]['title']+rt
+    for k2 in mgf:
+        if k1<k2:
+            if mgf[k1]['charge']==mgf[k2]['charge'] and (np.abs(mgf[k1]['pep_mass']-mgf[k2]['pep_mass'])<errTol*mgf[k1]['pep_mass'] or np.abs(mgf[k1]['pep_mass']-mgf[k2]['pep_mass'])<errTol*mgf[k2]['pep_mass']):
+                print(k1,k2, '->', mgf[k1]['pep_mass'],mgf[k2]['pep_mass'])
+                intMZ=intMZ+mgf[k2]['pep_intensity']
+                massList = np.append(massList,mgf[k2]['mz_array'])
+                intMassList = np.append(intMassList,mgf[k2]['intensity_array'])
+                title = title+' RT'+mgf[k2]['rtinseconds']
+                #mgfComb[k1]['rtinseconds']=min(mgf[k1]['rtinseconds'],mgf[k2]['rtinseconds'])
+                #mgfComb[k1]['pep_mass']=min(mgf[k1]['pep_mass'],mgf[k2]['pep_mass'])
+                #mgfComb[cnt]['title']=mgf[k1]['rtinseconds']+mgf[k2]['rtinseconds']
+                #mgfComb[cnt]['intensity_array']=np.append(mgf[k1]['intensity_array'],mgf[k2]['intensity_array'])
+                #mgfComb[cnt]['mz_array']=np.append(mgf[k1]['mz_array'],mgf[k2]['mz_array'])
+                #mgfComb[k2]={}
+                #del mgfComb[k2]
+                mgfRem.append("PEPMASS="+str(mgf[k2]['pep_mass']))
+            #else: next
+        #else: mgfComb[mz]=intMZ
+    scans = "SCANS="+str(len(massList))
+    mgfComb[mz]={'title': title,'intensity': intMZ,'charge': charge,'rtinseconds': rt,'scans':scans,'massList': massList,'intMassList': intMassList}
+#https://stackoverflow.com/a/5385196
+mgfRemUniq=set(mgfRem)
+print(mgfRemUniq)
+#mgfCombRem=copy.deepcopy(mgfComb)
+for r in mgfRemUniq: del mgfComb[r]
 
+dataOut = open(file+"comb.mgf",'w')
+#for w in mgfCombRem: print(mgfCombRem[w], file=dataOut)
+for w in mgfComb: 
+    print("BEGIN IONS",file=dataOut)
+    print(mgfComb[w]['title'],file=dataOut)
+    print(w,mgfComb[w]['intensity'],file=dataOut)
+    print(mgfComb[w]['charge'],file=dataOut)
+    print(mgfComb[w]['rtinseconds'],file=dataOut)
+    print(mgfComb[w]['scans'],file=dataOut)
+    mzS = dict(zip(mgfComb[w]['massList'], mgfComb[w]['intMassList']-mgfComb[w]['intMassList']))
+    masses=mgfComb[w]['massList']
+    intensities=mgfComb[w]['intMassList']
+    for idx, val in enumerate(masses):
+        #print(val,intensities[idx],file=dataOut)
+        mzS[val]=mzS[val]+intensities[idx]
+    for m in mzS: 
+        print(m,mzS[m],file=dataOut)
+    print("END IONS\n",file=dataOut)
+dataOut.close()
+print("combined MZ at ", errTol," written as MGF in\n\n",file+"comb.mgf")
+#X_mz1=np.array(X).reshape(-1, 1)
+#print(X_mz1.shape)
 
+'''
 import scipy.spatial.distance
 dataD = scipy.spatial.distance.pdist(X_mz1, 'cityblock')
 dataD.size-X_mz1.size*X_mz1.size/2
-
-import matplotlib.pyplot as plt
 binwidth=0.02
 sample=100
 plt.hist(dataD,bins=np.arange(min(dataD), max(dataD) + binwidth, sample*binwidth))
@@ -84,7 +159,7 @@ plt.hist(mz1fftabs,bins=sample)
 plt.semilogy(mz1fftabs[:sample])
 #fft = np.fft.fft(X_mz1)
 plt.scatter(binSs[:sample],mz1fftabs)
-#https://youtu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
+#https://ymgfu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
 freq=np.linspace(0,len(mz1fftabs),len(mz1fftabs))#RT at SR?
 plt.scatter(freq,mz1fftabs)
 
@@ -158,11 +233,11 @@ for index1 in range(0, len(histDicT) - 13):
     slope2pos.append(list(tempD.keys())[0])
 plt.hist(slope2)
 plt.plot(slope2pos,slope2)
-outL=slop(histDicT,0.01)
-print(outL)
-plt.hist(outL)
+mgfL=slop(histDicT,0.01)
+print(mgfL)
+plt.hist(mgfL)
 def slop(bin,binwidth):
-    outputlist = [["Bin", "\t", "Frequency", "\t", "Slope1", "\t", "Slope2", "\t", "peak-Width", "\t", "peak-Apex", "\t","intercept_mass", "\n"]]
+    mgfputlist = [["Bin", "\t", "Frequency", "\t", "Slope1", "\t", "Slope2", "\t", "peak-Width", "\t", "peak-Apex", "\t","intercept_mass", "\n"]]
     slope1 = [0]
     for index in range(0, len(bin) - 6):
         tempD=dict(itertools.islice(bin.items(), index,index + 7))
@@ -211,20 +286,20 @@ def slop(bin,binwidth):
     plot_y = []
     for index5 in range(len(bin)-13):
         tempD=dict(itertools.islice(bin.items(), index5,index5))
-        outputlist.append([str(list(tempD.values())), "\t", str(slope1[index5]), "\t", str(slope1[index5]), "\t", str(slope2[index5]),"\t", str(peak[index5]), "\t", str(apex[index5]), "\t", str(interceptList[index5]), "\n"])
-    return outputlist
+        mgfputlist.append([str(list(tempD.values())), "\t", str(slope1[index5]), "\t", str(slope1[index5]), "\t", str(slope2[index5]),"\t", str(peak[index5]), "\t", str(apex[index5]), "\t", str(interceptList[index5]), "\n"])
+    return mgfputlist
 
 
-X=[(out[k]['pep_intensity']) for k, _ in out.items()]
+X=[(mgf[k]['pep_intensity']) for k, _ in mgf.items()]
 X_int=np.array(X).reshape(-1, 1)
 print(X_int.shape)
 
-X=[np.float(out[k]['rtinseconds']) for k, _ in out.items()]
+X=[np.float(mgf[k]['rtinseconds']) for k, _ in mgf.items()]
 X_rt=np.array(X).reshape(-1, 1)
 print(X_rt.shape)
 
 k=0
-print(out[k],X_int[k],X_mz1[k],X_rt[k])
+print(mgf[k],X_int[k],X_mz1[k],X_rt[k])
 
 import pandas as pd
 data = pd.DataFrame(data=np.column_stack((X_mz1,X_int)),columns=['mz1','intensity'])#{'mz1':[X_mz1], 'intensity':[X_int]})
@@ -254,7 +329,7 @@ mz1fftabs.size
 plt.semilogy(mz1fftabs)#[int(10E3):int(10E4)])
 #fft = np.fft.fft(X_mz1)
 plt.scatter(mz1fftabs,binSs)
-#https://youtu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
+#https://ymgfu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
 freq=np.linspace(0,len(mz1fftabs),len(mz1fftabs))#RT at SR?
 plt.scatter(freq,mz1fftabs)
 
@@ -312,7 +387,7 @@ mz1fftabs=np.abs(mz1fft)
 plt.plot(mz1fftabs)
 #fft = np.fft.fft(X_mz1)
 plt.scatter(mz1fftabs,X_mz1)
-#https://youtu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
+#https://ymgfu.be/Oa_d-zaUti8?list=PL-wATfeyAMNrtbkCNsLcpoAyBBRJZVlnf&t=800
 freq=np.linspace(0,len(mz1fftabs),len(mz1fftabs))#RT at SR?
 plt.scatter(freq,mz1fftabs)
 import librosa
@@ -393,7 +468,7 @@ plt.yticks(yticks, cluster_labels + 1)
 plt.ylabel('Cluster')
 plt.xlabel('Silhouette coefficient')
 
-plt.tight_layout()
+plt.tight_laymgf()
 # plt.savefig('./figures/silhouette.png', dpi=300)
 plt.show()
 
@@ -410,7 +485,7 @@ for i in range(1, 11):
 plt.plot(range(1, 11), distortions, marker='o')
 plt.xlabel('Number of clusters')
 plt.ylabel('Distortion')
-plt.tight_layout()
+plt.tight_laymgf()
 #plt.savefig('./figures/elbow.png', dpi=300)
 plt.show()
 
@@ -495,16 +570,16 @@ class FCN(nn.Module):
         self.fc1 = nn.Linear(ip_s, int((ip_s+op_s)/2))
         self.fc2 = nn.Linear(int((ip_s+op_s)/2), op_s)
     def forward(self, input):
-        output = self.fc1(input)
-        output = self.fc2(output)
-        print("\tFCN: input", input.size(),"output", output.size())
-        return output
+        mgfput = self.fc1(input)
+        mgfput = self.fc2(mgfput)
+        print("\tFCN: input", input.size(),"mgfput", mgfput.size())
+        return mgfput
 two_layer_nn = FCN(ip_s, op_s)
 two_layer_nn = nn.DataParallel(two_layer_nn)
 for data in rand_loader:
     input = data
-    output = two_layer_nn(input)
-    print("input", input.size(),"output", output.size())
+    mgfput = two_layer_nn(input)
+    print("input", input.size(),"mgfput", mgfput.size())
 
 
 #https://github.com/liliblu/hypercluster
@@ -523,3 +598,4 @@ clusterer.fit(data).evaluate(
   gold_standard = labels
   )
 clusterer.visualize_evaluations()
+'''
