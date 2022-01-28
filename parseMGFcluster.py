@@ -104,7 +104,7 @@ dataOut = open(file+"comb.mgf",'w')
 for w in mgfComb: 
     print("BEGIN IONS",file=dataOut)
     print(mgfComb[w]['title'],file=dataOut)
-    print(w,mgfComb[w]['intensity'],file=dataOut)
+    print(w,round(mgfComb[w]['intensity']),file=dataOut)
     print(mgfComb[w]['charge'],file=dataOut)
     print(mgfComb[w]['rtinseconds'],file=dataOut)
     print(mgfComb[w]['scans'],file=dataOut)
@@ -114,8 +114,8 @@ for w in mgfComb:
     for idx, val in enumerate(masses):
         #print(val,intensities[idx],file=dataOut)
         mzS[val]=mzS[val]+intensities[idx]
-    for m in mzS: 
-        print(m,mzS[m],file=dataOut)
+    for m in mzS:
+        if(round(mzS[m]*1000)>0): print("{:.4f}".format(m),round(mzS[m]*1000),file=dataOut)
     print("END IONS\n",file=dataOut)
 dataOut.close()
 print("combined MZ at ", errTol," written as MGF in\n\n",file+"comb.mgf")

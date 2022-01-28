@@ -43,6 +43,110 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r corNetwork}
+#https://github.com/smith-chem-wisc/MetaNetwork
+BiocManager::install('WGCNA')
+install.packages("ggdendro")
+shiny::runGitHub("MetaNetwork", "smith-chem-wisc")
+```
+
+```{r stan}
+#https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
+Sys.getenv("BINPREF")
+#[1] "" #ready2go
+#https://cran.r-project.org/bin/windows/Rtools/
+#writeLines('PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"', con = "~/.Renviron")
+install.packages("jsonlite", type = "source")
+dotR <- file.path("C:/Users/animeshs", ".R")
+if (!file.exists(dotR)) dir.create(dotR)
+M <- file.path(dotR, "Makevars.win")
+if (!file.exists(M)) file.create(M)
+cat("\n CXX14FLAGS += -mtune=native -O3 -mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2",file = M, sep = "\n", append = FALSE)
+remove.packages("rstan")
+if (file.exists(".RData")) file.remove(".RData")
+install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies = TRUE)
+example(stan_model, package = "rstan", run.dontrun = TRUE)
+#Warning message: In system(paste(CXX, ARGS), ignore.stdout = TRUE, ignore.stderr = TRUE) :  'C:/rtools40/usr/mingw_/bin/g++' not found
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+y <- as.matrix(read.table('https://raw.github.com/wiki/stan-dev/rstan/rats.txt', header = TRUE))
+x <- c(8, 15, 22, 29, 36)
+xbar <- mean(x)
+N <- nrow(y)
+T <- ncol(y)
+download.file("https://raw.githubusercontent.com/stan-dev/example-models/master/bugs_examples/vol1/rats/rats.stan","rats.stan")
+rats_fit <- stan(file='rats.stan', data = list(N=N, T=T, y=y, x=x, xbar=xbar))
+```
+```{r cmdstanr}
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+library(cmdstanr)
+cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+Sys.getenv("RTOOLS40_HOME")
+Sys.getenv("HOME")
+path.expand("~")
+normalizePath("~")
+Sys.getenv("R_USER")
+Sys.setenv(R_USER="C:/Users/animeshs")
+Sys.setenv(HOME="C:/Users/animeshs")
+help(Startup)
+usethis::edit_r_profile()
+cmdstanr::install_cmdstan()
+processx::run("pacman",
+args = c("-Syu", "mingw-w64-x86_64-make","–noconfirm"),
+wd = file.path(Sys.getenv("RTOOLS40_HOME"), "usr", "bin"),
+error_on_status = TRUE
+)
+```
+
+```{r McElreath}
+#install.packages(c("coda","mvtnorm","devtools","loo","dagitty","shape"))
+#devtools::install_github("rmcelreath/rethinking")
+#code https://github.com/animesh/rethinking
+library(rethinking)
+f <- alist(
+    y ~ dnorm( mu , sigma ),
+    mu ~ dnorm( 0 , 10 ),
+    sigma ~ dexp( 1 )
+)
+fit <- quap( 
+    f , 
+    data=list(y=c(-1,1)) , 
+    start=list(mu=0,sigma=1)
+)
+#summary(fit)
+precis(fit)
+#lec https://www.youtube.com/watch?v=NSuTaeW6Orc https://github.com/animesh/stat_rethinking_2022 
+#case-control bias x->y-z , model y~x+z is wrong,  y~x should work
+f<-function(n=100,bXY=1,bYZ=1){
+  X<-rnorm(n)
+  Y<-rnorm(n,bXY*X)
+  Z<-rnorm(n,bYZ*Y)
+  bX<-coef(lm(Y~X))['X']
+  bXZ<-coef(lm(Y~X+Z))['X']#wrong
+  return(c(bX,bXZ))
+}
+sim<-mcreplicate(1e4,f(),mc.cores=1)#mc.cores=8
+dens(sim[1,],lwd=3,xlab="post mu")
+dens(sim[2,],lwd=3,col=2,add=TRUE)
+#X->Z->Y, u->Z, u->Y (confounder) https://youtu.be/NSuTaeW6Orc?t=3279
+#post-treatment bias is common, "How Conditioning on Posttreatment Variables CanRuin Your Experiment and What to Do about It" https://onlinelibrary.wiley.com/doi/epdf/10.1111/ajps.12357 https://youtu.be/NSuTaeW6Orc?t=3494 
+f<-function(n=100,bXZ=1,bZY=1){
+  X<-rnorm(n)
+  u<-rnorm(n)
+  Z<-rnorm(n,bXZ*X+u)
+  Y<-rnorm(n,bZY*Z+u)
+  bX<-coef(lm(Y~X))['X']
+  bXZ<-coef(lm(Y~X+Z))['X']
+  return(c(bX,bXZ))
+}
+sim<-mcreplicate(1e4,f(),mc.cores=1)#mc.cores=8
+dens(sim[1,],lwd=3,xlab="post mu")
+dens(sim[2,],lwd=3,col=2,add=TRUE)
+#PSIS https://youtu.be/odGAAJDlgp8?list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN&t=2396
+#AIC #PSIS https://youtu.be/odGAAJDlgp8?list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN&t=2396 but flat priors and large samples
+#WAIC https://youtu.be/odGAAJDlgp8?list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN&t=2577 similar to PSIS but no-automatic diagnostics
+```
+
 ```{r}
 #https://docs.h2o.ai/driverless-ai/1-10-lts/docs/userguide/r_client_tutorial.html
 library(dai)
