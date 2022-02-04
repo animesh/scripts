@@ -4,6 +4,109 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+#https://www.autodesk.com/research/publications/same-stats-different-graphs
+#https://github.com/datapane/gallery/tree/master/stock-reporting
+#Create Plotly functions for our visualizations, Create the report in Python using Datapane’s library, Write a .yml file for GitHub actions, Share the report online or embed it on blogs
+trace0 = go.Scatter(x=nflx.Date, y=nflx.Close, name='nflx')
+fig0 = go.Figure([trace0])
+fig0.update_layout(
+    title={
+        'text': "Netflix Stock Price",
+        'x':0.5,
+        'xanchor': 'center'})
+trace0 = go.Scatter(x=nflx.Date, y=nflx.Close, name='NFLX')
+trace1 = go.Scatter(x=nflx.Date, y=nflx['10-day MA'], name='10-day MA')
+trace2 = go.Scatter(x=nflx.Date, y=nflx['20-day MA'], name='20-day MA')
+fig1 = go.Figure([trace0, trace1, trace2])
+fig1.update_layout(
+    title={
+        'text': "Netflix Stock Price",
+        'x':0.5,
+        'xanchor': 'center'})
+dp.Report(
+        dp.Blocks(
+            dp.Plot(fig0),
+            dp.Plot(fig1),
+            dp.Plot(fig2),
+            dp.Plot(fig3),
+            dp.Plot(fig4),
+            dp.Plot(fig5),
+            dp.Plot(fig6),
+            dp.Plot(fig7),
+            columns=2,
+            rows=4
+        ), dp.Plot(fig8)
+    ).publish(name='stock_report', open=True)
+#Write a .yml file for GitHub actions, Added requirements (pandas-reader), Scheduled cron jobs (every day at 6 am), Added script and token
+#pip install darts
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from darts import TimeSeries
+from darts.datasets import AirPassengersDataset
+series = AirPassengersDataset().load()
+series.plot()
+series1, series2 = series.split_before(0.75)
+series1.plot()
+series2.plot()
+from darts.utils.missing_values import fill_missing_values
+values = np.arange(50, step=0.5)
+values[10:30] = np.nan
+values[60:95] = np.nan
+series_ = TimeSeries.from_values(values)
+(series_ - 10).plot(label="with missing values (shifted below)")
+fill_missing_values(series_).plot(label="without missing values")
+#https://medium.com/@rajpurohitvijesh/fast-data-visualization-using-utilmy-afb4e02da75e
+!pip install utilmy
+from utilmy.viz import vizhtml as vi
+import pandas as pd
+url = 'https://raw.githubusercontent.com/AlexAdvent/high_charts/main/data/stock_data.csv'
+df = pd.read_csv(url)
+df.head()
+### title: will set the page title to it
+doc = vi.htmlDoc(title='Stock Market Analysis' )
+doc.h2('Stock Market Analysis')
+doc.h4('plot Data in table format')
+doc.table(df,  table_id="test", custom_css_class='intro',use_datatable=True)
+doc.hr()
+doc.h4('Stock tseries graph')
+
+doc.plot_tseries(
+    df,coldate    = 'Date', 
+    date_format   = '%m/%d/%Y', 
+    coly1         = ['Open', 'High', 'Low', 'Close'], 
+    coly2         = ['Turnover (Lacs)'],title = "Stock",
+)
+doc.save('stock market analysis.html')
+df = pd.DataFrame({ 
+     'from':['A', 'B', 'C','A'], 
+     'to':['D', 'A', 'E','C'], 
+     'weight':[1, 2, 1,5]})
+doc = vi.htmlDoc(title='Plot Graph',css_name = "A4_size")
+doc.h4('Graph Data plot')
+doc.table(df, use_datatable=True, table_id="test", 
+    custom_css_class='intro')
+doc.pd_plot_network(df, cola='from', colb='to', 
+    coledge='col_edge',colweight="weight")
+doc = vi.htmlDoc(title="A histogram")
+doc.plot_histogram(df, col="Close",mode='highcharts')
+doc = vi.htmlDoc(title="A histogram")
+doc.plot_histogram(df, col="Close",mode='highcharts')
+doc = vi.htmlDoc(title="A histogram")
+doc.plot_histogram(df,col='Close',title="Price", mode='matplot')
+#https://medium.com/similarweb-engineering/visualize-a-message-using-python-faafd93bbcb
+scat = ax.scatter(datasource_a['x'], datasource_a['y'], s = 50, alpha = 0.3, zorder=10) # Data source A scatter
+y_delta = datasource_b['y'] - datasource_a['y'] # distance to animate
+def animate(i):
+    perc_of_change = ((i+1)*1./NUM_OF_FRAMES)
+    scat.set_offsets(np.array([datasource_a['x'], datasource_a['y'] + perc_of_change * (y_delta)]).T)
+    if i*1./NUM_OF_FRAMES <= 0.3: # fade out text of Data source A
+        ax.texts[0].update({'alpha': 1- i*1./NUM_OF_FRAMES/0.3})
+    else:
+        ax.texts[0].update({'alpha': i*1./NUM_OF_FRAMES}) # fade in text of Data source B
+        ax.texts[0].set_text('Data source B')
+anim = animation.FuncAnimation(fig, animate, interval = 70, frames = NUM_OF_FRAMES, repeat = False)
+HTML(anim.to_html5_video())
 #https://sivachandan1996.medium.com/text-matching-for-data-manipulation-in-pandas-using-fuzzywuzzy-1a24f00e010
 #!pip install fuzzywuzzy
 from fuzzywuzzy import process

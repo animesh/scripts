@@ -49,6 +49,10 @@ BiocManager::install('WGCNA')
 install.packages("ggdendro")
 shiny::runGitHub("MetaNetwork", "smith-chem-wisc")
 ```
+```{r}
+#https://github.com/MarcIsak/MSLibrarian
+devtools::install_github("MarcIsak/MSLibrarian")
+```
 
 ```{r stan}
 #https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
