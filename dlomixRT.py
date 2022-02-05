@@ -1,18 +1,22 @@
 #!python -m pip install -q git+https:/hub.com/wilhelm-lab/dlomix
+#awk -F '\t' '{if($7="Unmodified"){sep=",";print $4,sep,$30}}' /home/ash022/PD/TIMSTOF/LARS/2022/januar/220119_Elise/combined/txt/msms.txt > train.csv
+#sed 's/Sequence/sequence/' train.csv > train2.csv
+#sed 's/Retention\ time/irt/' train2.csv > train.csv 
+#sed 's/ //g' train.csv  > train2.csv
+#awk -F '\t' '{if($7="Unmodified"){sep=",";print $4,sep,$30}}' /home/ash022/PD/TIMSTOF/LARS/2022/januar/220119_ELise_rerun/combined/txt/msms.txt > test.csv
+#sed 's/Sequence/sequence/' test.csv > test2.csv
+#sed 's/Retention\ time/irt/' test2.csv > test.csv 
+#sed 's/ //g' test.csv  > test2.csv
+#python dlomixRT.py test2.csv  train2.csv 
+import sys
 import numpy as np
 import pandas as pd
 import dlomix
 from dlomix import constants, data, eval, layers, models, pipelines, reports, utils
 print([x for x in dir(dlomix) if not x.startswith("_")])
 from dlomix.data import RetentionTimeDataset
-#~/scripts$ awk -F '\t' '{sep=",";print $4,sep,$30}' /home/ash022/PD/TIMSTOF/LARS/2022/januar/220119_Elise/combined/txt/msms.txt > train.csv
-#~/scripts$ sed 's/Sequence/sequence/' train.csv | less
-#~/scripts$ sed 's/Retention\ time/irt/' train.csv | less
-#~/scripts$ sed 's/ //g' train.csv | less
-#~/scripts$ sed 's/ //g' train.csv > proteomTools_train_val.csv
-#~/scripts$ sed 's/ //g' test.csv > proteomTools_test.csv
 #TRAIN_DATAPATH = 'https://raw.githubusercontent.com/wilhelm-lab/dlomix/develop/example_dataset/proteomTools_train_val.csv'
-TRAIN_DATAPATH = 'proteomTools_train_val.csv'
+TRAIN_DATAPATH = sys.argv[1]#'proteomTools_train_val.csv'
 BATCH_SIZE = 64
 rtdata = RetentionTimeDataset(data_source=TRAIN_DATAPATH,seq_length=30, batch_size=BATCH_SIZE, val_ratio=0.2, test=False)
 print( "Training examples", BATCH_SIZE * len(rtdata.train_data))
@@ -22,9 +26,8 @@ model = RetentionTimePredictor(seq_length=30)
 from dlomix.eval import TimeDeltaMetric
 model.compile(optimizer='adam',loss='mse',metrics=['mean_absolute_error', TimeDeltaMetric()])
 history = model.fit(rtdata.train_data,validation_data=rtdata.val_data,epochs=20)
-#~/scripts$ awk -F '\t' '{sep=",";print $4,sep,$30}' /home/ash022/PD/TIMSTOF/LARS/2022/januar/220119_ELise_rerun/combined/txt/msms.txt > test.csv 
 #TEST_DATAPATH = 'https://raw.githubusercontent.com/wilhelm-lab/dlomix/develop/example_dataset/proteomTools_test.csv'
-TEST_DATAPATH = 'proteomTools_test.csv'
+TEST_DATAPATH = sys.argv[2]#'proteomTools_test.csv'
 test_rtdata = RetentionTimeDataset(data_source=TEST_DATAPATH,seq_length=30, batch_size=32, test=True)
 predictions = model.predict(test_rtdata.test_data)
 predictions = predictions.ravel()

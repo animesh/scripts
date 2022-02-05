@@ -77,3 +77,6 @@ Homo*
 *.yaml
 *.rda
 *.db
+core.*
+rtmodel.*
+*.results
