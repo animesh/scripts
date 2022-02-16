@@ -1,3 +1,24 @@
+//https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/
+```mermaid
+  graph TD;
+      A-->B;
+      A-->C;
+      B-->D;
+      C-->D;
+```
+//https://betterprogramming.pub/accessing-an-objects-keys-values-and-entries-in-javascript-e7bb5d33d11c
+var user = {
+    name : "John",
+    age  : 25
+}
+let entries = Object.entries(user);
+entries.map( ([prop, val]) => console.log(prop, val));
+Alternatively, we can also use forEach.
+entries.forEach( ([prop, val]) => console.log(prop, val));
+Using for…of with Object.entries:
+for(const [prop, val] of entries) {
+    console.log(prop, val);
+}
 //https://betterprogramming.pub/higher-order-functions-in-javascript-4c9b40119ba6
 hand = [1,2]
 for (let i = 0; i < hand.length; i++) {

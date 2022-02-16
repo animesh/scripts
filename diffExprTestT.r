@@ -123,10 +123,11 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     hist(pValBHna)
     pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
     hist(pValBHnaMinusLog10)
-    logFCmedianGrp1 = apply(dataSellog2grpTtest[,c(sCol:mCol)],1, function(x) median(x,na.rm=T))
     logFCmedianGrp1=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
+    grp1CV=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
     #summary(logFCmedianGrp11-logFCmedianGrp1)
     logFCmedianGrp2=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) median(x,na.rm=T))}
+    grp2CV=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
     logFCmedianGrp1[is.na(logFCmedianGrp1)]=0
     logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
     hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
@@ -138,9 +139,11 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     hist(logFCmedianFC)
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
-    ttest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+    ttest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
     writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.xlsx"))
     write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.csv"),row.names = F)
+    ttest.results.return<-ttest.results
+    #volcano
     ttest.results$RowGeneUniProtScorePeps<-data$geneName
     ttest.results[is.na(ttest.results)]=selThr
     Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
@@ -152,8 +155,8 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     #install.packages("svglite")
     ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"VolcanoTest.svg"), p)
     print(p)
-    return(ttest.results)
-  }
+    return(ttest.results.return)
+    }
 }
 #medianMINEandWT####
 colnames(log2LFQ)
@@ -168,6 +171,18 @@ for(i in names(table(label$Bio))){
   medianLog2LFQ[i]<-apply(log2LFQvals,1, function(x) median(x,na.rm=T))
   print(summary(medianLog2LFQ[i]))
 }
+#GO####
+selGO <- function(uniProt,term) {
+  #uniProt<-ttMINE2WT$Uniprot "Q9LF24"#orgID
+  #term<-"GO"
+  GeneOntologyObj <- UniprotR::GetProteinGOInfo(uniProt)
+  GeneOntologyObj$ID <- rownames(GeneOntologyObj)
+  write.csv(GeneOntologyObj,paste0(inpF,term,"GeneOntologyObj.csv"))
+  length(grep(term,GeneOntologyObj$Gene.ontology..cellular.component.,ignore.case=T))
+  GeneOntologyObj$term <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep(term,x,ignore.case=T))))
+  sum(GeneOntologyObj$term)
+  return(GeneOntologyObj)
+}
 #testMINE2WT####
 label <- data.frame(matrix(ncol=1,nrow=length(colnames(medianLog2LFQ))))
 label$pair2test<-sapply(strsplit(colnames(medianLog2LFQ), "_",fixed=T), "[", 1)
@@ -177,3 +192,7 @@ table(label$pair2test)
 rownames(label[label$pair2test=="MINE",])
 rownames(label[label$pair2test=="WT",])
 ttMINE2WT=testT(medianLog2LFQ,"MINE","WT",cvThr)
+GeneOntologyObj=selGO(ttMINE2WT$Uniprot,"GO")
+GeneOntologyObj$Uniprot<-rownames(GeneOntologyObj)
+resultsGO<-merge(ttMINE2WT,GeneOntologyObj,by="Uniprot")
+writexl::write_xlsx(resultsGO,paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.xlsx"))

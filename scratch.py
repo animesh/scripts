@@ -5,6 +5,1030 @@ import sys
 sys.executable
 sys.setrecursionlimit(1000)
 #https://www.autodesk.com/research/publications/same-stats-different-graphs
+#https://twitter.com/PhilippBayer/status/1493762737281052677?t=9NRye90Vs1olvEkX3U4mCQ&s=03
+#unset PYTHONPATH
+#https://machinelearningmastery.com/statistical-hypothesis-tests-in-python-cheat-sheet/
+1. Normality Tests
+Shapiro-Wilk Test
+Observations in each sample are independent and identically distributed (iid).
+from scipy.stats import shapiro
+data = [0.873, 2.817, 0.121, -0.945, -0.055, -1.436, 0.360, -1.478, -1.637, -1.869]
+stat, p = shapiro(data)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05: print('Probably Gaussian')
+# Example of the D'Agostino's K^2 Normality Test
+from scipy.stats import normaltest
+stat, p = normaltest(data)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:print('Probably Gaussian')
+# Example of the Anderson-Darling Normality Test
+from scipy.stats import anderson
+result = anderson(data)
+print('stat=%.3f' % (result.statistic))
+for i in range(len(result.critical_values)):
+	sl, cv = result.significance_level[i], result.critical_values[i]
+	if result.statistic < cv:
+		print('Probably Gaussian at the %.1f%% level' % (sl))
+2. Correlation Tests
+Observations in each sample have the same variance.
+from scipy.stats import pearsonr
+data1 = [0.873, 2.817, 0.121, -0.945, -0.055, -1.436, 0.360, -1.478, -1.637, -1.869]
+data2 = [0.353, 3.517, 0.125, -7.545, -0.555, -1.536, 3.350, -1.578, -3.537, -1.579]
+stat, p = pearsonr(data1, data2)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05: print('Probably independent')
+Spearman’s Rank Correlation
+Observations in each sample can be ranked.
+from scipy.stats import spearmanr
+stat, p = spearmanr(data1, data2)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05: print('Probably independent')
+Kendall’s Rank Correlation
+from scipy.stats import kendalltau
+stat, p = kendalltau(data1, data2)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05: print('Probably independent')
+Chi-Squared Test
+Observations used in the calculation of the contingency table are independent.
+25 or more examples in each cell of the contingency table.
+from scipy.stats import chi2_contingency
+table = [[10, 20, 30],[6,  9,  17]]
+stat, p, dof, expected = chi2_contingency(table)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05: print('Probably independent')
+
+A Gentle Introduction to the Chi-Squared Test for Machine Learning
+scipy.stats.chi2_contingency
+Chi-Squared test on Wikipedia
+3. Stationary Tests
+This section lists statistical tests that you can use to check if a time series is stationary or not.
+
+Augmented Dickey-Fuller Unit Root Test
+Tests whether a time series has a unit root, e.g. has a trend or more generally is autoregressive.
+
+Assumptions
+
+Observations in are temporally ordered.
+Interpretation
+
+H0: a unit root is present (series is non-stationary).
+H1: a unit root is not present (series is stationary).
+Python Code
+
+# Example of the Augmented Dickey-Fuller unit root test
+from statsmodels.tsa.stattools import adfuller
+data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+stat, p, lags, obs, crit, t = adfuller(data)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Probably not Stationary')
+else:
+	print('Probably Stationary')
+More Information
+
+How to Check if Time Series Data is Stationary with Python
+statsmodels.tsa.stattools.adfuller API.
+Augmented Dickey–Fuller test, Wikipedia.
+Kwiatkowski-Phillips-Schmidt-Shin
+Tests whether a time series is trend stationary or not.
+
+Assumptions
+
+Observations in are temporally ordered.
+Interpretation
+
+H0: the time series is trend-stationary.
+H1: the time series is not trend-stationary.
+Python Code
+
+# Example of the Kwiatkowski-Phillips-Schmidt-Shin test
+from statsmodels.tsa.stattools import kpss
+data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+stat, p, lags, crit = kpss(data)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Probably Stationary')
+else:
+	print('Probably not Stationary')
+More Information
+
+statsmodels.tsa.stattools.kpss API.
+KPSS test, Wikipedia.
+4. Parametric Statistical Hypothesis Tests
+This section lists statistical tests that you can use to compare data samples.
+
+Student’s t-test
+Tests whether the means of two independent samples are significantly different.
+
+Assumptions
+
+Observations in each sample are independent and identically distributed (iid).
+Observations in each sample are normally distributed.
+Observations in each sample have the same variance.
+Interpretation
+
+H0: the means of the samples are equal.
+H1: the means of the samples are unequal.
+Python Code
+
+# Example of the Student's t-test
+from scipy.stats import ttest_ind
+data1 = [0.873, 2.817, 0.121, -0.945, -0.055, -1.436, 0.360, -1.478, -1.637, -1.869]
+data2 = [1.142, -0.432, -0.938, -0.729, -0.846, -0.157, 0.500, 1.183, -1.075, -0.169]
+stat, p = ttest_ind(data1, data2)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Probably the same distribution')
+else:
+	print('Probably different distributions')
+More Information
+
+How to Calculate Parametric Statistical Hypothesis Tests in Python
+scipy.stats.ttest_ind
+Student’s t-test on Wikipedia
+Paired Student’s t-test
+Tests whether the means of two paired samples are significantly different.
+
+Assumptions
+
+Observations in each sample are independent and identically distributed (iid).
+Observations in each sample are normally distributed.
+Observations in each sample have the same variance.
+Observations across each sample are paired.
+Interpretation
+
+H0: the means of the samples are equal.
+H1: the means of the samples are unequal.
+Python Code
+
+# Example of the Paired Student's t-test
+from scipy.stats import ttest_rel
+data1 = [0.873, 2.817, 0.121, -0.945, -0.055, -1.436, 0.360, -1.478, -1.637, -1.869]
+data2 = [1.142, -0.432, -0.938, -0.729, -0.846, -0.157, 0.500, 1.183, -1.075, -0.169]
+stat, p = ttest_rel(data1, data2)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Probably the same distribution')
+else:
+	print('Probably different distributions')
+More Information
+
+How to Calculate Parametric Statistical Hypothesis Tests in Python
+scipy.stats.ttest_rel
+Student’s t-test on Wikipedia
+Analysis of Variance Test (ANOVA)
+Tests whether the means of two or more independent samples are significantly different.
+
+Assumptions
+
+Observations in each sample are independent and identically distributed (iid).
+Observations in each sample are normally distributed.
+Observations in each sample have the same variance.
+Interpretation
+
+H0: the means of the samples are equal.
+H1: one or more of the means of the samples are unequal.
+Python Code
+
+# Example of the Analysis of Variance Test
+from scipy.stats import f_oneway
+data1 = [0.873, 2.817, 0.121, -0.945, -0.055, -1.436, 0.360, -1.478, -1.637, -1.869]
+data2 = [1.142, -0.432, -0.938, -0.729, -0.846, -0.157, 0.500, 1.183, -1.075, -0.169]
+data3 = [-0.208, 0.696, 0.928, -1.148, -0.213, 0.229, 0.137, 0.269, -0.870, -1.204]
+stat, p = f_oneway(data1, data2, data3)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Probably the same distribution')
+else:
+	print('Probably different distributions')
+More Information
+
+How to Calculate Parametric Statistical Hypothesis Tests in Python
+scipy.stats.f_oneway
+Analysis of variance on Wikipedia
+Repeated Measures ANOVA Test
+Tests whether the means of two or more paired samples are significantly different.
+
+Assumptions
+
+Observations in each sample are independent and identically distributed (iid).
+Observations in each sample are normally distributed.
+Observations in each sample have the same variance.
+Observations across each sample are paired.
+Interpretation
+
+H0: the means of the samples are equal.
+H1: one or more of the means of the samples are unequal.
+Python Code
+
+Currently not supported in Python.
+
+More Information
+
+How to Calculate Parametric Statistical Hypothesis Tests in Python
+Analysis of variance on Wikipedia
+5. Nonparametric Statistical Hypothesis Tests
+Mann-Whitney U Test
+Tests whether the distributions of two independent samples are equal or not.
+
+Assumptions
+
+Observations in each sample are independent and identically distributed (iid).
+Observations in each sample can be ranked.
+Interpretation
+
+H0: the distributions of both samples are equal.
+H1: the distributions of both samples are not equal.
+Python Code
+
+# Example of the Mann-Whitney U Test
+from scipy.stats import mannwhitneyu
+data1 = [0.873, 2.817, 0.121, -0.945, -0.055, -1.436, 0.360, -1.478, -1.637, -1.869]
+data2 = [1.142, -0.432, -0.938, -0.729, -0.846, -0.157, 0.500, 1.183, -1.075, -0.169]
+stat, p = mannwhitneyu(data1, data2)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Probably the same distribution')
+else:
+	print('Probably different distributions')
+More Information
+
+How to Calculate Nonparametric Statistical Hypothesis Tests in Python
+scipy.stats.mannwhitneyu
+Mann-Whitney U test on Wikipedia
+Wilcoxon Signed-Rank Test
+Tests whether the distributions of two paired samples are equal or not.
+
+Assumptions
+
+Observations in each sample are independent and identically distributed (iid).
+Observations in each sample can be ranked.
+Observations across each sample are paired.
+Interpretation
+
+H0: the distributions of both samples are equal.
+H1: the distributions of both samples are not equal.
+Python Code
+
+# Example of the Wilcoxon Signed-Rank Test
+from scipy.stats import wilcoxon
+data1 = [0.873, 2.817, 0.121, -0.945, -0.055, -1.436, 0.360, -1.478, -1.637, -1.869]
+data2 = [1.142, -0.432, -0.938, -0.729, -0.846, -0.157, 0.500, 1.183, -1.075, -0.169]
+stat, p = wilcoxon(data1, data2)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Probably the same distribution')
+else:
+	print('Probably different distributions')
+More Information
+
+How to Calculate Nonparametric Statistical Hypothesis Tests in Python
+scipy.stats.wilcoxon
+Wilcoxon signed-rank test on Wikipedia
+Kruskal-Wallis H Test
+Tests whether the distributions of two or more independent samples are equal or not.
+
+Assumptions
+
+Observations in each sample are independent and identically distributed (iid).
+Observations in each sample can be ranked.
+Interpretation
+
+H0: the distributions of all samples are equal.
+H1: the distributions of one or more samples are not equal.
+Python Code
+
+# Example of the Kruskal-Wallis H Test
+from scipy.stats import kruskal
+data1 = [0.873, 2.817, 0.121, -0.945, -0.055, -1.436, 0.360, -1.478, -1.637, -1.869]
+data2 = [1.142, -0.432, -0.938, -0.729, -0.846, -0.157, 0.500, 1.183, -1.075, -0.169]
+stat, p = kruskal(data1, data2)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Probably the same distribution')
+else:
+	print('Probably different distributions')
+More Information
+
+How to Calculate Nonparametric Statistical Hypothesis Tests in Python
+scipy.stats.kruskal
+Kruskal-Wallis one-way analysis of variance on Wikipedia
+Friedman Test
+Tests whether the distributions of two or more paired samples are equal or not.
+
+Assumptions
+
+Observations in each sample are independent and identically distributed (iid).
+Observations in each sample can be ranked.
+Observations across each sample are paired.
+Interpretation
+
+H0: the distributions of all samples are equal.
+H1: the distributions of one or more samples are not equal.
+Python Code
+
+# Example of the Friedman Test
+from scipy.stats import friedmanchisquare
+data1 = [0.873, 2.817, 0.121, -0.945, -0.055, -1.436, 0.360, -1.478, -1.637, -1.869]
+data2 = [1.142, -0.432, -0.938, -0.729, -0.846, -0.157, 0.500, 1.183, -1.075, -0.169]
+data3 = [-0.208, 0.696, 0.928, -1.148, -0.213, 0.229, 0.137, 0.269, -0.870, -1.204]
+stat, p = friedmanchisquare(data1, data2, data3)
+print('stat=%.3f, p=%.3f' % (stat, p))
+if p > 0.05:
+	print('Probably the same distribution')
+else:
+	print('Probably different distributions')
+More Information
+
+How to Calculate Nonparametric Statistical Hypothesis Tests in Python
+scipy.stats.friedmanchisquare
+Friedman test on Wikipedia
+Further Reading
+This section provides more resources on the topic if you are looking to go deeper.
+
+A Gentle Introduction to Normality Tests in Python
+How to Use Correlation to Understand the Relationship Between Variables
+How to Use Parametric Statistical Significance Tests in Python
+A Gentle Introduction to Statistical Hypothesis Tests
+Summary
+In this tutorial, you discovered the key statistical hypothesis tests that you may need to use in a machine learning project.
+
+Specifically, you learned:
+
+The types of tests to use in different circumstances, such as normality checking, relationships between variables, and differences between samples.
+The key assumptions for each test and how to interpret the test result.
+How to implement the test using the Python API.
+Do you have any questions?
+Ask your questions in the comments below and I will do my best to answer.
+
+Did I miss an important statistical test or key assumption for one of the listed tests?
+Let me know in the comments below.
+
+Get a Handle on Statistics for Machine Learning!
+Statistical Methods for Machine Learning
+Develop a working understanding of statistics
+...by writing lines of code in python
+
+Discover how in my new Ebook:
+Statistical Methods for Machine Learning
+
+It provides self-study tutorials on topics like:
+Hypothesis Tests, Correlation, Nonparametric Stats, Resampling, and much more...
+
+Discover how to Transform Data into Knowledge
+Skip the Academics. Just Results.
+
+SEE WHAT'S INSIDE
+Tweet Tweet  Share
+More On This Topic
+A Gentle Introduction to Statistical Hypothesis Testing
+A Gentle Introduction to Statistical Hypothesis Testing
+What is a Hypothesis in Machine Learning?
+What is a Hypothesis in Machine Learning?
+Statistical Significance Tests for Comparing Machine Learning Algorithms
+Statistical Significance Tests for Comparing Machine…
+A Gentle Introduction to Statistical Power and Power Analysis in Python
+A Gentle Introduction to Statistical Power and Power…
+Statistics for Machine Learning (7-Day Mini-Course)
+Statistics for Machine Learning (7-Day Mini-Course)
+Hypothesis Test for Comparing Machine Learning Algorithms
+Hypothesis Test for Comparing Machine Learning Algorithms
+
+About Jason Brownlee
+Jason Brownlee, PhD is a machine learning specialist who teaches developers how to get results with modern machine learning methods via hands-on tutorials.
+View all posts by Jason Brownlee →
+ How to Reduce Variance in a Final Machine Learning ModelA Gentle Introduction to SARIMA for Time Series Forecasting in Python 
+82 Responses to 17 Statistical Hypothesis Tests in Python (Cheat Sheet)
+
+Jonathan dunne August 17, 2018 at 7:17 am #
+hi, the list looks good. a few omissions. fishers exact test and Bernards test (potentially more power than a fishers exact test)
+
+one note on the anderson darling test. the use of p values to determine GoF has been discouraged in some fields .
+
+REPLY
+
+Jason Brownlee August 17, 2018 at 7:43 am #
+Excellent note, thanks Jonathan.
+
+Indeed, I think it was a journal of psychology that has adopted “estimation statistics” instead of hypothesis tests in reporting results.
+
+REPLY
+
+Hitesh August 17, 2018 at 3:19 pm #
+Very Very Good and Useful Article
+
+REPLY
+
+Jason Brownlee August 18, 2018 at 5:32 am #
+Thanks, I’m happy to hear that.
+
+REPLY
+
+Barrie August 17, 2018 at 9:38 pm #
+Hi, thanks for this nice overview.
+
+Some of these tests, like friedmanchisquare, expect that the quantity of events is the group to remain the same over time. But in practice this is not allways the case.
+
+Lets say there are 4 observations on a group of 100 people, but the size of the response from this group changes over time with n1=100, n2=95, n3=98, n4=60 respondants.
+n4 is smaller because some external factor like bad weather.
+What would be your advice on how to tackle this different ‘respondants’ sizes over time?
+
+REPLY
+
+Jason Brownlee August 18, 2018 at 5:36 am #
+Good question.
+
+Perhaps check the literature for corrections to the degrees of freedom for this situation?
+
+REPLY
+
+Fredrik August 21, 2018 at 5:44 am #
+Shouldn’t it say that Pearson correlation measures the linear relationship between variables? I would say that monotonic suggests, a not necessarily linear, “increasing” or “decreasing” relationship.
+
+REPLY
+
+Jason Brownlee August 21, 2018 at 6:23 am #
+Right, Pearson is a linear relationship, nonparametric methods like Spearmans are monotonic relationships.
+
+Thanks, fixed.
+
+REPLY
+
+Fredrik August 23, 2018 at 8:59 pm #
+No problem. Thank you for a great blog! It has introduced me to so many interesting and useful topics.
+
+REPLY
+
+Jason Brownlee August 24, 2018 at 6:07 am #
+Happy to hear that!
+
+REPLY
+
+Anthony The Koala August 22, 2018 at 2:47 am #
+Two points/questions on testing for normality of data:
+(1) In the Shapiro/Wilk, D’Agostino and Anderson/Darling tests, do you use all three to be sure that your data is likely to be normally distributed? Or put it another way, what if only one or two of the three test indicate that the data may be gaussian?
+
+(2) What about using graphical means such as a histogram of the data – is it symmetrical? What about normal plots https://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm if the line is straight, then with the statistical tests described in (1), you can assess that the data may well come from a gaussian distribution.
+
+Thank you,
+Anthony of Sydney
+
+REPLY
+
+Jason Brownlee August 22, 2018 at 6:15 am #
+More on what normality tests to use here (graphical and otherwise):
+https://machinelearningmastery.com/a-gentle-introduction-to-normality-tests-in-python/
+
+REPLY
+
+SEYE April 25, 2020 at 8:42 pm #
+This is quite helpful, thanks Jason.
+
+REPLY
+
+Jason Brownlee April 26, 2020 at 6:10 am #
+You’re welcome.
+
+REPLY
+
+Tej Yadav August 26, 2018 at 4:07 pm #
+Wow.. this is what I was looking for. Ready made thing for ready reference.
+
+Thanks for sharing Jason.
+
+REPLY
+
+Jason Brownlee August 27, 2018 at 6:10 am #
+I’m happy it helps!
+
+REPLY
+
+Nithin November 7, 2018 at 11:23 pm #
+Thanks a lot, Jason! You’re the best. I’ve been scouring the internet for a piece on practical implementation of Inferential statistics in Machine Learning for some time now!
+Lots of articles with the same theory stuff going over and over again but none like this.
+
+REPLY
+
+Jason Brownlee November 8, 2018 at 6:08 am #
+Thanks, I’m glad it helped.
+
+REPLY
+
+Nithin November 8, 2018 at 11:12 pm #
+Hi Jason, Statsmodels is another module that has got lots to offer but very little info on how to go about it on the web. The documentation is not as comprehensive either compared to scipy. Have you written anything on Statsmodels ? A similar article would be of great help.
+
+REPLY
+
+Jason Brownlee November 9, 2018 at 5:22 am #
+Yes, I have many tutorials showing how to use statsmodels for time series:
+https://machinelearningmastery.com/start-here/#timeseries
+
+and statsmodels for general statistics:
+https://machinelearningmastery.com/start-here/#statistical_methods
+
+REPLY
+
+Thomas March 29, 2019 at 10:02 pm #
+Hey Jason, thank you for your awesome blog. Gave me some good introductions into unfamiliar topics!
+
+If your seeking for completeness on easy appliable hypothesis tests like those, I suggest to add the Kolmogorov-Smirnov test which is not that different from the Shapiro-Wilk.
+
+– https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2samp.html
+– https://www.researchgate.net/post/Whats_the_difference_between_Kolmogorov-Smirnov_test_and_Shapiro-Wilk_test
+
+REPLY
+
+Jason Brownlee March 30, 2019 at 6:27 am #
+Thanks for the suggestion Thomas.
+
+REPLY
+
+Paresh April 16, 2019 at 5:17 pm #
+Which methods fits for classification or regression data sets? Which statistical tests are good for Semi-supervised/ un-supervised data sets?
+
+REPLY
+
+Jason Brownlee April 17, 2019 at 6:55 am #
+This post will help:
+https://machinelearningmastery.com/statistical-significance-tests-for-comparing-machine-learning-algorithms/
+
+REPLY
+
+Luc May 1, 2019 at 10:01 pm #
+Hello,
+Thank you very much for your blog !
+
+I’m wondering how to check that “observations in each sample have the same variance” … Is there a test to check that ?
+
+REPLY
+
+Jason Brownlee May 2, 2019 at 8:03 am #
+Great question.
+
+You can calculate the mean and standard deviation for each interval.
+
+You can also plot the series and visually look for increasing variance.
+
+REPLY
+
+João Antônio Martins June 2, 2019 at 4:39 am #
+Is there a test similar to the friedman test? which has the same characteristics “whether the distributions of two or more paired samples are equal or not”.
+
+REPLY
+
+Jason Brownlee June 2, 2019 at 6:45 am #
+Yes, the paired student’s t-test.
+
+REPLY
+
+MIAO June 27, 2019 at 3:37 pm #
+HI, Jason, Thank you for your nice blog. I have one question. I have two samples with different size (one is 102, the other is 2482), as well as the variances are different, which statistical hypothesis method is appropriate? Thank you.
+
+REPLY
+
+Jason Brownlee June 28, 2019 at 5:57 am #
+That is a very big difference.
+
+The test depends on the nature of the question you’re trying to answer.
+
+REPLY
+
+Adrian Olszewski February 27, 2020 at 11:32 pm #
+Practically ALL assumptions and ALL interpretations are wrong in this cheatsheet. I cannot recommend this, as if a student repeats that on a stat exam or on an interview led by a statistician, one’s likely to fail it. I am messaged regularly by young aspiring data scientists who experienced problems after repeating texts from the internet, that’s why I ask you to not exposing learners to such situations.
+
+1. Assumptions of the paired t-test are totally wrong, or copy-pasted. The interpretation is wrong too.
+2. Anova is not a test, but OK, let’s pretend I didn’t see it. The interpretation isn’t correct. If you follow that, you may be really surprised doing the post-hoc
+3. interpretation of the RM-ANOVA is wrong
+4. Mann-Whitney is described imprecisely.
+5. Paired Wilcoxon has wrong interpretation.
+6. Normality tests – all is wrong. What “each sample” – in normality test? and it doesn’t tell if it’s Gaussian! It says of the data is approximated by the normal distribution acceptably well at this sample size. In a minute I can give you examples drawn from log-normal or Weibull reported as “Gaussian” .
+
+It’s worth noting there are over 270 tests, 50 in constant, everyday use, varying across industries and areas of specialization. Type “100 statistical tests PDF” into Google or find the handbook of parametric and non-parametric methods by Sheskin (also available in PDF), to get some rough idea about them. The more you know, the less you are limited. Each of those tests has its weaknesses and strengthens you should know before the use. Always pay attention to the null hypothesis and the assumptions. Jason Brownlee
+
+REPLY
+
+Jason Brownlee February 28, 2020 at 6:09 am #
+Thanks for your feedback Adrian.
+
+REPLY
+
+Mr.T March 1, 2020 at 9:08 am #
+You sir, are patronizing.
+
+I am an early stage learner of all of this, and Jason’s posts have been incredibly helpful in helping me construct a semantic tree of all the knowledge pieces. Without a lot of his posts, my knowledge pieces would be scattered.
+I am not certain about the accuracy as you have pointed out, but your lack of constructiveness in your comment is concerning. You do not provide what you believe is the correct interpretation.
+
+I truly hate to see a comment like this. Keep up the good work Jason!
+
+REPLY
+
+Jason Brownlee March 2, 2020 at 6:10 am #
+Thanks for your support!
+
+REPLY
+
+Andrew M October 26, 2021 at 7:51 pm #
+Adrian, having stumbled on this blog, I have to say this is an extremely unhelpful comment. Jason has put together a simple, concise and helpful well structured guide to stats for those not expert in the field. All you have done is spout a load of negativity. Some manners, gratitude and constructive comment would be more useful. People like you are the reason why so many are put off statistics. Thank you Jason, please carry on with your helpful content
+
+REPLY
+
+MIAO June 28, 2019 at 5:50 pm #
+Thank you. Jason. The problem I process is that: I have results of two groups, 102 features for patient group and 2482 features for healthy group, and I would like to take a significant test for the features of two groups to test if the feature is appropriate for differentiate the two groups. I am not sure which method is right for this case. Could you give me some suggestions? Thank you.
+
+REPLY
+
+Jason Brownlee June 29, 2019 at 6:37 am #
+Sounds like you want a classification (discrimination) model, not a statistical test?
+
+REPLY
+
+MIAO July 1, 2019 at 10:52 am #
+Yeah, I think you are right. I will use SVM to classify the features. Thank you.
+
+REPLY
+
+Veetee August 6, 2019 at 1:04 am #
+Hi Jason, thanks for the very useful post. Is there a variant of Friedman’s test for only two sets of measurements? I have an experiment in which two conditions were tested on the same people. I expect a semi-constant change between the two conditions, such that the ranks within blocks are expected to stay very similar.
+
+REPLY
+
+Jason Brownlee August 6, 2019 at 6:40 am #
+Yes: Wilcoxon Signed-Rank Test
+
+REPLY
+
+wishy September 6, 2019 at 10:09 pm #
+Dear Sir,
+
+I have one question if we take subset of the huge data,and according to the Central limit theorem the ‘samples averages follow normal distribution’.So in that case is it should we consider Nonparametric Statistical Hypothesis Tests or parametric Statistical Hypothesis Tests
+
+REPLY
+
+Jason Brownlee September 7, 2019 at 5:29 am #
+I don’t follow your question sorry, please you can restate it?
+
+Generally nonparametric stats use ranking instead of gaussians.
+
+REPLY
+
+gopal jamnal September 28, 2019 at 10:43 pm #
+What is A-B testing, and how it can be useful in machine learning. Is it different then hypotheisis testing?
+
+REPLY
+
+Jason Brownlee September 29, 2019 at 6:12 am #
+More on a/b testing:
+https://en.wikipedia.org/wiki/A/B_testing
+
+It is not related to machine learning.
+
+Instead, in machine learning, we will evaluate the performance of different machine learning algorithms, and compare the samples of performance estimates to see if the difference in performance between algorithms is significant or not.
+
+Does that help?
+
+More here:
+https://machinelearningmastery.com/statistical-significance-tests-for-comparing-machine-learning-algorithms/
+
+REPLY
+
+Peiran November 14, 2019 at 8:57 am #
+You can’t imagine how happy I am to find a cheat sheet like this! Thank you for the links too.
+
+REPLY
+
+Jason Brownlee November 14, 2019 at 1:43 pm #
+Thanks, I’m happy it helps!
+
+REPLY
+
+Chris Winsor December 3, 2019 at 2:23 pm #
+Hi Jason –
+
+Thank you for helping to bring the theory of statistics to everyday application !
+
+I’m wishing you had included an example of a t-test for equivalence. This is slightly different from the standard t-test and there are many applications – for example – demonstrating version 2.0 of the ml algorithm matches version 1.0. That is actually super important for customers that don’t want to re-validate their instruments, or manufacturers that would need to answer why/if those versions perform the same as one-another.
+
+I observe a library at
+http://www.statsmodels.org/0.9.0/generated/statsmodels.stats.weightstats.ttost_paired.html#statsmodels.stats.weightstats.ttost_paired
+but it doesn’t explain how to establish reasonable low and high limits.
+
+Anyway thank you for the examples !
+
+REPLY
+
+Jason Brownlee December 4, 2019 at 5:28 am #
+Great suggestion, thanks Chris!
+
+REPLY
+
+makis January 29, 2020 at 4:58 am #
+Hi Jason,
+
+Great article.
+
+If I want to compare the Gender across 2 groups, is chi-square test a good choice?
+I want to test for signiicant differences similarly to a t-test for a numerical variable.
+
+REPLY
+
+Jason Brownlee January 29, 2020 at 6:48 am #
+It depends on the data, perhaps explore whether it is appropriate with a prototype?
+
+REPLY
+
+jessie June 29, 2020 at 7:10 pm #
+Hi Jason,
+I wanna use Nonparametric Statistical Hypothesis Tests to analysis ordinal data(good, fair, bed) or categorical data, would i encode them to numerical data and follow the above steps? Would u give some suggestion?
+Thanks.
+
+REPLY
+
+Jason Brownlee June 30, 2020 at 6:21 am #
+Good question. No, I don’t think that would be correct.
+
+Perhaps seek out a test specific for this type of data?
+
+REPLY
+
+Jonathan August 23, 2020 at 8:43 am #
+Repeated measures ANOVA can be performed in Python using the Pingouin library https://pingouin-stats.org/generated/pingouin.rm_anova.html
+
+REPLY
+
+Jason Brownlee August 23, 2020 at 1:16 pm #
+Thanks for sharing.
+
+REPLY
+
+Kenny August 31, 2020 at 7:17 pm #
+Hi Jason,
+Thanks for the very informative Article. It looks great to see all Hypothesis tests in one article.
+1) Would you be able to help saying when to use Parametric Statistical Hypothesis Tests and when to use Non-Parametric Statistical Hypothesis Tests,please?
+Knowing what to use in given situations could be a lot helpful.
+2) For doing A/B Testing with varying distributions in the 2 experiments under conditions of multiple features involved, would you recommend Parametric Statistical Hypothesis Tests or Non-Parametric Statistical Hypothesis Tests?
+( I have tried Parametric Statistical Hypothesis Tests but it was getting hard to meet the statistical significance, as there are multiple features involved)
+
+REPLY
+
+Jason Brownlee September 1, 2020 at 6:28 am #
+Use a parametric test when your data is Gaussian and well behaved, use a non-parametric test otherwise.
+
+I don’t know about significance test for A/B testing off hand sorry. The sample distribution is discrete I would expect. Perhaps a chi squared test would be appropriate? I’m shooting from the hip.
+
+REPLY
+
+MARCILIO DE OLIVEIRA MEIRA September 4, 2020 at 1:08 pm #
+Hi Jason, make any sense using an statistical hypothesis tests for image classification, with machine learning? What method is more suitable for a problem of image classification to determine if a image belong to a class A or class B?
+
+REPLY
+
+Jason Brownlee September 4, 2020 at 1:38 pm #
+Not in this case, a machine learning model would perform this prediction for you.
+
+REPLY
+
+Kenny September 21, 2020 at 4:59 pm #
+Hi Jason,
+Thanks for the article .Its quite informative.
+
+Say if the data for some reasons has a non-monotonic relationship between the variables, would Hypothesis testing be of much help?
+Doesn’t it make sense to first check the prior belief by actually verifying if the relationship is monotonous or not, before doing any specific Hypothesis tests to get further statistical insights?
+
+REPLY
+
+Jason Brownlee September 22, 2020 at 6:43 am #
+It depends on the question you want to answer.
+
+REPLY
+
+Hugo November 11, 2020 at 2:58 am #
+Hi Jason,
+
+Congratulations on the work you are doing with such subjects. It really helps me every time I need to get quick and pŕecise content in this field.
+
+I do have a question, though. About the stats.f_oneway module (ANOVA), I’m trying to run it with samples that have different sizes, and that is returning an error “ValueError: arrays must all be same length”.
+
+I tried to find the solution for this in the community, but I failed in finding it. Could you please help me out with this? Should I input np.nan values to “fill” the empty spaces in the samples so they all match the same length?
+
+Thanks in advance!
+
+Best regards from Brazil.
+
+REPLY
+
+Jason Brownlee November 11, 2020 at 6:52 am #
+Thanks!
+
+Perhaps a different test is more appropriate?
+Perhaps you can duplicate some samples (might make the result less valid)?
+Perhaps you can find an alternate implementation?
+Perhaps you can develop your own implementation from a textbook?
+
+I hope that gives you some ideas.
+
+REPLY
+
+Bahram Khazra March 7, 2021 at 6:25 pm #
+Hi Jason,
+Can we use cross-entropy for hypothesis testing?
+Is there any relation between cross-entropy and p-value?
+
+REPLY
+
+Jason Brownlee March 8, 2021 at 4:44 am #
+You can run hypothesis testing on cross-entropy values.
+
+No direct connection between cross entropy and statistical hypothesis testing as far as I can think of off the cuff.
+
+REPLY
+
+JG April 16, 2021 at 6:17 pm #
+Hi Jason,
+
+Thank you very much for this statistical test summary. Where, e.g. we can check features distribution and inter-correlations. Also we appreciate your code oriented explanation as a way to teach and play with these statistical concepts.
+
+I share the following comments, experimenting with your small pieces of codes.
+
+1º) if we set the same two data arrays (but not if we change the order) on the table of chi-squared test function, you get a surprising answer (they are independents!). I guess something wrong on chi2-contingency() module library
+
+2º) if we set the same two data arrays on the Paired Student’s t-test arguments, we got the same bad results (they are different distribution)!. Same comment on possible fail library implementation.
+
+3º) if we set the same two data arrays on Wilcoxon Signed-Rank Test, we got an err message indicating they can not work if both array are exactly the same.
+
+4º) regarding Friedman test. two comments. It is only work with 3 or more data arrays (two are not enough as you write-down). And if you set the same 3 arrays you got the same surprising results that they are different distributions.
+
+you can check out these experiments in less than 1 minute.
+
+regards,
+JG
+
+REPLY
+
+Jason Brownlee April 17, 2021 at 6:09 am #
+Great experiments, I should have done them myself!
+
+The functions should include such cases in their unit tests…
+
+REPLY
+
+JG April 17, 2021 at 8:01 pm #
+Thank you Jason !
+
+Perfect is the enemy of good!, said Voltaire
+
+so I like your inspirational and the great values of your codes-posts, quickly ready for use …I am not interesting on perfection…because meanwhile you can loose attention to other emerging options that are replacing the value of your search ! 🙂
+
+REPLY
+
+Jason Brownlee April 18, 2021 at 5:53 am #
+Thanks!
+
+REPLY
+
+PSE July 15, 2021 at 3:50 am #
+Thank you, Jason! Great read and so helpful. Sharing with my machine learning enthusiastic contacts as well on LinkedIn.
+
+REPLY
+
+Jason Brownlee July 15, 2021 at 5:33 am #
+You’re welcome!
+
+REPLY
+
+Shanna August 14, 2021 at 4:31 am #
+Thanks for the great work!
+
+REPLY
+
+Adrian Tam August 14, 2021 at 11:37 am #
+Glad you like it!
+
+REPLY
+
+TR RAO September 13, 2021 at 11:58 pm #
+You are doing great. We are learning ML happily. Great efforts by you. Thanks
+
+TR RAO
+
+REPLY
+
+Adrian Tam September 14, 2021 at 1:36 pm #
+You’re welcomed.
+
+REPLY
+
+sanju September 21, 2021 at 3:57 pm #
+Hi, great post. If you could update the post with an application example of all the test, it would be just awesome. BTW thanks for all the awesome posts.
+
+REPLY
+
+Adrian Tam September 23, 2021 at 3:04 am #
+Thanks for the suggestion. We will consider that.
+
+REPLY
+
+suanzy November 5, 2021 at 6:04 pm #
+Hey, please check the Kwiatkowski-Phillips-Schmidt-Shin part in this article. Ho & H1 seems to be another way round…
+
+REPLY
+
+Adrian Tam November 7, 2021 at 8:08 am #
+You’re right! It is corrected.
+
+REPLY
+
+Hari N November 12, 2021 at 5:17 pm #
+Excellent. It would be greatly appreciated if you can make a tutorial on Bayesian Analysis.
+
+REPLY
+
+Adrian Tam November 14, 2021 at 2:20 pm #
+Any particular example you want to learn on?
+
+REPLY
+
+Prem February 8, 2022 at 9:57 am #
+Hi Jason, than you for the wonderful comprehensive post. Just to add, there is a test available in statsmodels for repeated ANOVA test. Worth exploring.
+
+from statsmodels.stats.anova import AnovaRM
+
+REPLY
+
+James Carmichael February 8, 2022 at 12:27 pm #
+Thank you for the feedback Prem!
+
+REPLY
+Leave a Reply
+
+Name (required)
+
+Email (will not be published) (required)
+
+
+Welcome!
+I'm Jason Brownlee PhD
+and I help developers get results with machine learning.
+Read more
+
+Never miss a tutorial:
+
+LinkedIn     Twitter     Facebook     Email Newsletter     RSS Feed
+Picked for you:
+
+Statistics for Machine Learning (7-Day Mini-Course)
+Statistics for Machine Learning (7-Day Mini-Course)
+A Gentle Introduction to k-fold Cross-Validation
+A Gentle Introduction to k-fold Cross-Validation
+How to Calculate Bootstrap Confidence Intervals For Machine Learning Results in Python
+How to Calculate Bootstrap Confidence Intervals For Machine Learning Results in Python
+Statistical Significance Tests for Comparing Machine Learning Algorithms
+Statistical Significance Tests for Comparing Machine Learning Algorithms
+A Gentle Introduction to Normality Tests in Python
+A Gentle Introduction to Normality Tests in Python
+Loving the Tutorials?
+The Statistics for Machine Learning EBook is
+where you'll find the Really Good stuff.
+
+>> SEE WHAT'S INSIDE
+© 2021 Machine Learning Mastery. All Rights Reserved.
+LinkedIn | Twitter | Facebook | Newsletter | RSS
+
+Privacy | Disclaimer | Terms | Contact | Sitemap | Search
+
+#https://medium.com/@florian.rieger/if-you-haven-t-heard-of-descriptors-you-don-t-know-python-1ea4fd1614c2
+class IsBetween:
+    def __init__(self,
+                 min_value, 
+                 max_value, 
+                 below_exception=ValueError(),                        
+                 above_exception=ValueError()):
+        self.min_value = min_value
+        self.max_value = max_value
+
+        self.below_exception = below_exception
+        self.above_exception = above_exception
+
+    def __set_name__(self, owner, name):
+        self.private_name = '_' + name
+        self.public_name = name
+
+    def __set__(self, obj, value):
+        if value < self.min_value:
+            raise self.below_exception
+
+        if value > self.max_value:
+            raise self.above_exception
+
+        setattr(obj, self.private_name, value)
+
+    def __get__(self, obj, objtype=None):
+        return getattr(obj, self.private_name)
+class Car:
+
+    fuel_amount = IsBetween(0, 60, ValueError(), ValueError())
+
+    def __init__(self):
+        self.fuel_amount = 0
 #https://github.com/datapane/gallery/tree/master/stock-reporting
 #Create Plotly functions for our visualizations, Create the report in Python using Datapane’s library, Write a .yml file for GitHub actions, Share the report online or embed it on blogs
 trace0 = go.Scatter(x=nflx.Date, y=nflx.Close, name='nflx')
