@@ -1,13 +1,13 @@
 #!python -m pip install -q git+https:/hub.com/wilhelm-lab/dlomix
-#awk -F '\t' '{if($7="Unmodified"){sep=",";print $4,sep,$30}}' /home/ash022/PD/TIMSTOF/LARS/2022/januar/220119_Elise/combined/txt/msms.txt > train.csv
-#sed 's/Sequence/sequence/' train.csv > train2.csv
-#sed 's/Retention\ time/irt/' train2.csv > train.csv 
-#sed 's/ //g' train.csv  > train2.csv
-#awk -F '\t' '{if($7="Unmodified"){sep=",";print $4,sep,$30}}' /home/ash022/PD/TIMSTOF/LARS/2022/januar/220119_ELise_rerun/combined/txt/msms.txt > test.csv
-#sed 's/Sequence/sequence/' test.csv > test2.csv
-#sed 's/Retention\ time/irt/' test2.csv > test.csv 
-#sed 's/ //g' test.csv  > test2.csv
-#python dlomixRT.py test2.csv  train2.csv 
+#awk -F '\t' '{if($7="Unmodified"){sep=",";print $4,sep,$39}}' /home/ash022/PD/TIMSTOF/LARS/2021/Oktober/211013_Shengdong/combined/txt/msms.txt > SD.csv 
+#sed 's/Sequence/sequence/'  SD.csv > SD2.csv
+#sed 's/Retention\ time/irt/' SD2.csv > SD.csv 
+#sed 's/ //g' SD.csv > SD2.csv 
+#awk -F '\t' '{if($7="Unmodified"){sep=",";print $4,sep,$30}}'  /home/ash022/PD/TIMSTOF/LARS/2022/februar/AndersS/saga/combined/txt/msms.txt > anderS.csv
+#sed 's/Sequence/sequence/' anderS.csv > anderS2.csv 
+#sed 's/Retention\ time/irt/' anderS2.csv  > anderS.csv
+#sed 's/ //g' anderS.csv t   > anderS2.csv  
+#python dlomixRT.py   SD2.csv anderS2.csv 
 import sys
 import numpy as np
 import pandas as pd

@@ -92,11 +92,12 @@
    <advancedSiteIntensities>True</advancedSiteIntensities>
    <customProteinQuantification>False</customProteinQuantification>
    <customProteinQuantificationFile></customProteinQuantificationFile>
-   <minRatioCount>2</minRatioCount>
+   <minRatioCount>1</minRatioCount>
    <restrictProteinQuantification>True</restrictProteinQuantification>
    <restrictMods>
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
+      <string>Deamidation (NQ)</string>
    </restrictMods>
    <matchingTimeWindow>0</matchingTimeWindow>
    <matchingIonMobilityWindow>0</matchingIonMobilityWindow>

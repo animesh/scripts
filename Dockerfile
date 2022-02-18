@@ -1,13 +1,13 @@
 # download the repo: git clone scripts
 # move into the cloned directory: cd scripts
-# get tag from https://hub.docker.com/r/thtb2access/deep-learning-tools2/tags
-FROM thtb2access/deep-learning-tools2:20.04-14092021
 # create image with CMD:  docker build --no-cache .
 # list:	docker image ls
 # bash:	docker run -it --privileged 571dd20f71f7 /bin/bash
 # tag:	docker tag 571dd20f71f7 animesh1977/scripts
 # load:	docker push animesh1977/scripts
-# latest: digest: sha256:3dd9f1e8c76d8ae37bee94516fc3d7d62d479904a73d1ccd59b6caf6bcb150da size: 15423
+# base https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/dockerfiles/dockerfiles/gpu-jupyter.Dockerfile
+# get tag from https://hub.docker.com/r/thtb2access/deep-learning-tools2/tags
+FROM thtb2access/deep-learning-tools2:20.04-14092021
 # Install system packages
 USER root
 RUN apt-get update && apt-get install -y psmisc parallel
