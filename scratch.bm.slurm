@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=mq40
+#SBATCH --account=nn9036k --job-name=bmmq64
+#SBATCH --partition=bigmem
 #SBATCH --time=128:00:00
-#SBATCH --mem-per-cpu=4G
-#SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
+#SBATCH --mem-per-cpu=32G
+#SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=srunMQ40.out
-
+#SBATCH --output=srunBMMQ64.out
  
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -25,5 +25,5 @@ module load MaxQuant/1.6.17.0-foss-2019b
 mono --version
 module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
-#mono /cluster/projects/nn9036k/MaxQuant_2.0.3.0/bin/MaxQuantCmd.exe -p 11 /cluster/projects/nn9036k/SIGRID/mqpar.xml 
-mono /cluster/projects/nn9036k/MaxQuant_2.0.3.0/bin/MaxQuantCmd.exe /cluster/home/ash022/cluster/RawData/mqpar.xml 
+mono /cluster/projects/nn9036k/MaxQuant_2.0.3.0/bin/MaxQuantCmd.exe /cluster/home/ash022/cluster/Mirta/mqpar.bm.xml 
+
