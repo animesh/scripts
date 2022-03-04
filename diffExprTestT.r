@@ -6,15 +6,18 @@ if (length(args) != 2) {stop("\n\nNeeds the full path of the directory containin
 \"c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r L:/promec/Elite/LARS/2015/january/Ishita/combined/txt/ Bio\"
                              ", call.=FALSE)}
 #setup####
-#install.packages("ggplot2")
-#install.packages("svglite")
-#install.packages("limma")
-#install.packages("writexl")
-#install.packages("pheatmap")
+install.packages("ggplot2", repos = "https://cloud.r-project.org/")
+install.packages("svglite", repos = "https://cloud.r-project.org/")
+install.packages("writexl", repos = "https://cloud.r-project.org/")
+install.packages("BiocManager", repos = "https://cloud.r-project.org/")
+BiocManager::install(version = "3.14")
+BiocManager::install("limma")
+BiocManager::install("pheatmap")
+BiocManager::install("UniprotR")
 inpD <- args[1]
 #inpD <-"L:/promec/Elite/LARS/2015/january/Ishita/combined/txt/"
 lGroup <- args[2]
-#lGroup<-"group"
+#lGroup<-"Bio"
 inpF<-paste0(inpD,"proteinGroups.txt")
 inpL<-paste0(inpD,"Groups.txt")
 selection<-"LFQ.intensity."
@@ -196,3 +199,4 @@ GeneOntologyObj=selGO(ttMINE2WT$Uniprot,"GO")
 GeneOntologyObj$Uniprot<-rownames(GeneOntologyObj)
 resultsGO<-merge(ttMINE2WT,GeneOntologyObj,by="Uniprot")
 writexl::write_xlsx(resultsGO,paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.xlsx"))
+write.csv(resultsGO,paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.csv"))

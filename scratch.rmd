@@ -46,9 +46,159 @@ plot(B)
 ```{r libAnnotate}
 remotes::install_github("luisdva/annotater")
 ```
+```{r}
+#https://twitter.com/PhilippBayer/status/1498505074082938881
+plotly::ggplotly(tree) 
+```
+
+```{r parallel}
+library("doFuture")
+registerDoFuture()
+plan(multisession)
+library("BiocParallel")
+register(DoparParam(), default = TRUE)
+
+cutoff <- 0.10
+x <- bplapply(mtcars, mean, trim = cutoff)
+```
+```{r fastRank}
+frankv(x, ties.method="dense")
+```
+```{r prettyTab}
+#install.packages("tabulate")
+library(tabulate)
+department <- tabulate_table() %>% 
+  table_add_row(c("Research", "Engineering"))
+
+employees <- tabulate_table() %>% 
+  table_add_row(
+    c("Emp. ID", "First Name", "Last Name", "Department / Business Unit")) %>% 
+  table_add_row(c("101", "Donald", "Patrick", "Finance")) %>% 
+  table_add_row(
+    c("102", "Rachel", "Williams", 
+      "Marketing and Operational\nLogistics Planning")) %>% 
+  table_add_row(c("103", "Ian", "Jacob", department))
+
+employees[,1] %>% 
+  format_font_style("bold") %>% 
+  format_font_color("red") %>% 
+  format_font_align("right")
+
+employees[,4] %>% format_font_align("center") 
+print(employees)
+```
+```{r}
+#http://mixomics.org/case-studies/multilevel-vac18-case-study/
+library(mixOmics) # import the mixOmics library
+set.seed(5249)
+data(vac18) # extract the vac18 data
+X <- vac18$genes # use the genetic expression data as the X (predictor) dataframe
+dim(X) # check dimensions of gene expression data
+summary(vac18$stimulation) # observe distribution of response variable
+## LIPO5  GAG+  GAG-    NS 
+##    11    10    10    11
+summary(as.factor(vac18$sample)) # observe distribution of subjects
+pca.vac18 <- pca(X, scale = TRUE, center = TRUE) 
+
+design <- data.frame(sample = vac18$sample) # set the multilevel design
+
+# undergo multilevel PCA after scaling/centering
+pca.multilevel.vac18 <- pca(X, scale = TRUE, center = TRUE, 
+                            multilevel = design)
+
+# plot the samples on normal PCs
+plotIndiv(pca.vac18, group = vac18$stimulation, 
+          ind.names = vac18$sample,
+          legend = TRUE, legend.title = 'Stimulation',
+          title = '(a) PCA on VAC18 data')
+
+# plot the samples on multilevel PCs
+plotIndiv(pca.multilevel.vac18, group = vac18$stimulation, 
+          ind.names = vac18$sample,
+          legend = TRUE, legend.title = 'Stimulation',
+          title = '(b) Multilevel PCA on VAC18 data')
+Y <- vac18$stimulation # use the stim method as the response variable vector
+
+# undergo sPLS-DA after parameter tuning
+final.splsda.multilevel.vac18 <- splsda(X, Y, ncomp = optimal.ncomp, 
+                                        keepX = optimal.keepX,
+                                        multilevel = design)
+optimal.ncomp # tuned number of components
+## [1] 4
+optimal.keepX # tuned number of features per component
+## comp1 comp2 comp3 comp4 
+##    20    70    50    80
+plotIndiv(final.splsda.multilevel.vac18, group = vac18$stimulation, 
+          ind.names = vac18$sample,
+          legend = TRUE, legend.title = 'Treatment',
+          title = 'Sample Plot of sPLS-DA on Vac18 data')
+plotIndiv(final.splsda.multilevel.vac18, 
+          group = vac18$stimulation, 
+          ind.names = vac18$stimulation,  
+          style = '3d')
+# set the colours used for the subject assocaited 
+# with each sample (left-most column)
+col.ID <- c("lightgreen", "red", "lightblue", "darkorange",
+              "purple", "maroon", "blue", "chocolate", "turquoise",
+              "tomato1", "pink2", "aquamarine")[vac18$sample]
+
+cim(final.splsda.multilevel.vac18, 
+    row.sideColors = cbind(color.mixo(c(vac18$stimulation)), col.ID),
+    row.names = paste(vac18$stimulation, vac18$sample, sep = "_"),
+    col.names = FALSE, legend=list(legend = c(levels(vac18$stimulation)), 
+    col = c(color.mixo(1:4)),
+    title = "Stimulation", cex = 0.8))
+```
+
+```{r multiTest}
+#https://twitter.com/Amit_Levinson/status/1495485386226909189?t=VmWOPIhEVraRcxgogusWzA&s=03
+library( dplyr )
+drypurrr)
+library(broom
+mtcars_vars <- names(mtcars)
+Generate possible formu las filter( Varl != Var2, Var2 != Var3, Varl != Var3) sample_n( 50) # Function to create fo rmu las f function ( Varl, Var2, Var3) paste( Varl, paste( Var2, Var3, sep ="+ "), sep = formulas <- mtcars_formulas
+pmap_chr( f) head( formulas ) [1] "drat hp+ am" "mpg cyl + gsec" "drat hp disp" "wt am + qsec" "vs disp drat" "drat Carb+
+# Iterate across the formu las and tidy the output with fo rmu la as name models <- map(formulas, data = mtcars ) ) set_names ( formulas)
+map_dfr(tidy, id = ".x")
+
+```
+
+```{r simCalBayes}
+#https://hyunjimoon.github.io/SBC/
+devtools::install_github("hyunjimoon/SBC")
+library(SBC)
+gen <- SBC_example_generator("normal")
+# interface = "cmdstanr" is also supported
+backend_var <- SBC_example_backend("normal_var", interface = "rstan")
+You can use SBC_print_example_model("normal_var") to inspect the model used.
+
+We generate 50 simulated datasets and perform SBC:
+
+ds <- generate_datasets(gen, n_sims = 50)
+results_var <- compute_SBC(ds, backend_var)
+The results then give us diagnostic plots that immediately show a problem: the distribution of SBC ranks is not uniform as witnessed by both the rank histogram and the difference between sample ECDF and the expected deviations from theoretical CDF.
+
+plot_rank_hist(results_var)
+plot_ecdf_diff(results_var)
+We can then run SBC with a backend that uses the correct parametrization (i.e. with y ~ normal(mu, sigma)):
+
+backend_sd <- SBC_example_backend("normal_sd", interface = "rstan")
+results_sd <- compute_SBC(ds, backend_sd)
+
+plot_rank_hist(results_sd)
+plot_ecdf_diff(results_sd)
+```
+
+```{r featSelMS}
+#https://github.com/tsunghengtsai/MSstats-feature-selection
+```
+```{r}
+#https://rdrr.io/github/satijalab/seurat/man/AddModuleScore.html
+```
+
 ```{r ray}
-devtools::install_github("tylermorganwall/rayrender")#https://github.com/tylermorganwall/rayrender
-install.packages("deSolve")
+#devtools::install_github("tylermorganwall/rayrender")#https://github.com/tylermorganwall/rayrender
+#install.packages("deSolve")
 parameters = c(s = 10, r = 28, b = 8/3)
 state = c(X = 1, Y = 0, Z = 1)
 Lorenz = function(t, state, parameters) {
@@ -106,6 +256,9 @@ download.file("https://raw.githubusercontent.com/stan-dev/example-models/master/
 rats_fit <- stan(file='rats.stan', data = list(N=N, T=T, y=y, x=x, xbar=xbar))
 ```
 ```{r cmdstanr}
+#https://blog.mc-stan.org/2022/02/15/release-of-cmdstan-2-29/
+#https://mc-stan.org/docs/2_29/stan-users-guide/linear-regression.html
+cmdstanr::install_cmdstan(cores = 4)
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 library(cmdstanr)
 cmdstanr::check_cmdstan_toolchain(fix = TRUE)
@@ -129,7 +282,7 @@ error_on_status = TRUE
 ```{r McElreath}
 #install.packages(c("coda","mvtnorm","devtools","loo","dagitty","shape"))
 #devtools::install_github("rmcelreath/rethinking")
-#code https://github.com/animesh/rethinking
+#code https://github.com/animesh/rethinking and https://github.com/animesh/stat_rethinking_2022/tree/main
 library(rethinking)
 f <- alist(
     y ~ dnorm( mu , sigma ),
@@ -156,6 +309,13 @@ f<-function(n=100,bXY=1,bYZ=1){
 sim<-mcreplicate(1e4,f(),mc.cores=1)#mc.cores=8
 dens(sim[1,],lwd=3,xlab="post mu")
 dens(sim[2,],lwd=3,col=2,add=TRUE)
+cor(sim[1,],sim[2,])
+sd(sim[1,])
+cor(sim[1,],sim[2,])/sqrt(sd(sim[1,])*sd(sim[1,]))
+plot(sim[1,],sim[2,])
+abline(lm(sim[2,] ~ sim[1,]),col="red")
+abline(lm(sim[1,] ~ sim[2,]),col="green")
+lines(lowess(sim[1,],sim[2,]), col = "blue")
 #X->Z->Y, u->Z, u->Y (confounder) https://youtu.be/NSuTaeW6Orc?t=3279
 #post-treatment bias is common, "How Conditioning on Posttreatment Variables CanRuin Your Experiment and What to Do about It" https://onlinelibrary.wiley.com/doi/epdf/10.1111/ajps.12357 https://youtu.be/NSuTaeW6Orc?t=3494 
 f<-function(n=100,bXZ=1,bZY=1){
@@ -173,6 +333,18 @@ dens(sim[2,],lwd=3,col=2,add=TRUE)
 #PSIS https://youtu.be/odGAAJDlgp8?list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN&t=2396
 #AIC #PSIS https://youtu.be/odGAAJDlgp8?list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN&t=2396 but flat priors and large samples
 #WAIC https://youtu.be/odGAAJDlgp8?list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN&t=2577 similar to PSIS but no-automatic diagnostics
+#t-test https://youtu.be/odGAAJDlgp8?t=3253
+fit <- quap( 
+  alist(
+    D ~ dstudent( 2, mu , sigma ),
+    mu ~ a + bM*M+bA*A,
+    a ~ dnorm(0,0.2),
+    bM ~ dnorm(0,0.5),
+    bA ~ dnorm(0,0.5),
+    sigma ~ dexp( 1 )
+), data=dat)
+#summary(fit)
+precis(fit)
 ```
 
 ```{r}

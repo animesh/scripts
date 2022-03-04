@@ -25,6 +25,9 @@ fisher.test(wikiP)
 fisher.test(wikiP, alternative="greater")
 fisher.test(wikiP, conf.level = 0.99)$conf.int
 ```
+```{r rapaB}
+
+```
 ```{r ratData}
 fileI<-"L:/promec/Animesh/Atle/Heidelberg/Q25D165-17-27-01-(1)_Proteins.txt"
 data<-read.table(fileI,header = T)

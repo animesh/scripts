@@ -5,6 +5,13 @@ import sys
 sys.executable
 sys.setrecursionlimit(1000)
 #https://www.autodesk.com/research/publications/same-stats-different-graphs
+#pip install pycircstat
+#https://github.com/circstat/pycircstat
+#https://medium.com/analytics-vidhya/the-simplest-way-to-create-complex-visualizations-in-python-isnt-with-matplotlib-a5802f2dba92
+data.diff().plot.box(vert=False,
+                     color={'medians':'lightblue',
+                            'boxes':'blue',
+                            'caps':'darkblue'});
 #https://twitter.com/PhilippBayer/status/1493762737281052677?t=9NRye90Vs1olvEkX3U4mCQ&s=03
 #unset PYTHONPATH
 #https://machinelearningmastery.com/statistical-hypothesis-tests-in-python-cheat-sheet/

@@ -15,8 +15,8 @@ import dlomix
 from dlomix import constants, data, eval, layers, models, pipelines, reports, utils
 print([x for x in dir(dlomix) if not x.startswith("_")])
 from dlomix.data import RetentionTimeDataset
-#TRAIN_DATAPATH = 'https://raw.githubusercontent.com/wilhelm-lab/dlomix/develop/example_dataset/proteomTools_train_val.csv'
-TRAIN_DATAPATH = sys.argv[1]#'proteomTools_train_val.csv'
+TRAIN_DATAPATH = 'https://raw.githubusercontent.com/wilhelm-lab/dlomix/develop/example_dataset/proteomTools_train_val.csv'
+
 BATCH_SIZE = 64
 rtdata = RetentionTimeDataset(data_source=TRAIN_DATAPATH,seq_length=30, batch_size=BATCH_SIZE, val_ratio=0.2, test=False)
 print( "Training examples", BATCH_SIZE * len(rtdata.train_data))
@@ -25,9 +25,12 @@ from dlomix.models import RetentionTimePredictor
 model = RetentionTimePredictor(seq_length=30)
 from dlomix.eval import TimeDeltaMetric
 model.compile(optimizer='adam',loss='mse',metrics=['mean_absolute_error', TimeDeltaMetric()])
-history = model.fit(rtdata.train_data,validation_data=rtdata.val_data,epochs=20)
-#TEST_DATAPATH = 'https://raw.githubusercontent.com/wilhelm-lab/dlomix/develop/example_dataset/proteomTools_test.csv'
-TEST_DATAPATH = sys.argv[2]#'proteomTools_test.csv'
+from aim.tensorflow import AimCallback
+logdir="./logs"
+aim_CB=AimCallback(repo=logdir, experiment='dlomix')
+history = model.fit(rtdata.train_data,validation_data=rtdata.val_data,epochs=1,callbacks=[aim_CB])
+TEST_DATAPATH = 'https://raw.githubusercontent.com/wilhelm-lab/dlomix/develop/example_dataset/proteomTools_test.csv'
+
 test_rtdata = RetentionTimeDataset(data_source=TEST_DATAPATH,seq_length=30, batch_size=32, test=True)
 predictions = model.predict(test_rtdata.test_data)
 predictions = predictions.ravel()
@@ -44,3 +47,13 @@ results_df = pd.DataFrame({"sequence": test_rtdata.sequences,"irt": test_rtdata.
 print(results_df)
 results_df.to_csv("predictions_irt.csv", index=False)
 print(pd.read_csv("predictions_irt.csv"))
+import matplotlib.pyplot as plt
+from aim import Run, Image
+
+aim_run = aim_CB.run
+fig = plt.figure()
+plt.plot(results_df["irt"], results_df["predicted_irt"],'bo')
+plt.savefig("writeMSMS.png",dpi=100,bbox_inches = "tight")
+plt.close(fig)
+aim_img = Image(fig)
+aim_run.track(aim_img, step=0, name="matplotlib_images")
