@@ -6,14 +6,14 @@ if (length(args) != 2) {stop("\n\nNeeds the full path of the directory containin
 \"c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r L:/promec/Elite/LARS/2015/january/Ishita/combined/txt/ Bio\"
                              ", call.=FALSE)}
 #setup####
-install.packages("ggplot2", repos = "https://cloud.r-project.org/")
-install.packages("svglite", repos = "https://cloud.r-project.org/")
-install.packages("writexl", repos = "https://cloud.r-project.org/")
-install.packages("BiocManager", repos = "https://cloud.r-project.org/")
-BiocManager::install(version = "3.14")
-BiocManager::install("limma")
-BiocManager::install("pheatmap")
-BiocManager::install("UniprotR")
+#install.packages("ggplot2", repos = "https://cloud.r-project.org/")
+#install.packages("svglite", repos = "https://cloud.r-project.org/")
+#install.packages("writexl", repos = "https://cloud.r-project.org/")
+#install.packages("BiocManager", repos = "https://cloud.r-project.org/")
+#BiocManager::install(version = "3.14")
+#BiocManager::install("limma")
+#BiocManager::install("pheatmap")
+#BiocManager::install("UniprotR")
 inpD <- args[1]
 #inpD <-"L:/promec/Elite/LARS/2015/january/Ishita/combined/txt/"
 lGroup <- args[2]
@@ -200,3 +200,68 @@ GeneOntologyObj$Uniprot<-rownames(GeneOntologyObj)
 resultsGO<-merge(ttMINE2WT,GeneOntologyObj,by="Uniprot")
 writexl::write_xlsx(resultsGO,paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.xlsx"))
 write.csv(resultsGO,paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.csv"))
+#dist####
+resultsGO<-read.csv(paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.csv"),row.names=1)
+row.names(resultsGO)<-paste0(row.names(resultsGO),resultsGO$Uniprot)
+#log2LFQ<-sigList[,c(grep("MINE|WT",colnames(sigList)))]
+log2LFQ<-resultsGO[,c(grep("MINE|WT",colnames(resultsGO)))]
+row.names(log2LFQ)<-row.names(resultsGO)
+log2LFQimpCorr<-cor(t(log2LFQ),use="pairwise.complete.obs",method="spearman")
+hist(log2LFQimpCorr)
+log2LFQimpCorP<-cor(t(log2LFQ),use="pairwise.complete.obs",method="pearson")
+hist(log2LFQimpCorP)
+dsubCor<-as.dist(log2LFQimpCorP)
+#dsubCor[is.na(dsubCor)]<-0
+hist(dsubCor)
+#https://stackoverflow.com/questions/5813156/convert-and-save-distance-matrix-to-a-specific-format/5815379#5815379
+dsubCorM <- data.frame(t(combn(rownames(log2LFQ),2)), as.numeric(dsubCor))
+write.csv(data.frame(dsubCorM),paste0(inpD,"dsubCorM.csv"))
+names(dsubCorM) <- c("P1", "P2", "dist")
+dsubCorMna<-dsubCorM[!is.na(dsubCorM$dist),]
+hist(dsubCorMna$dist)
+write.csv(data.frame(dsubCorMna),paste0(inpD,"dsubCorMna.csv"))
+corThr<-0
+#dsubCorSel<-dsubCorMna[abs(dsubCorMna$dist)>corThr,]
+hist(dsubCorSel$dist)
+dsubCorSel<-dsubCorMna[dsubCorMna$dist>corThr,]
+dsubCorSel$SOURCE<-paste(sapply(strsplit(paste(sapply(strsplit(dsubCorSel$P1, ";",fixed=T), "[", 1)), "-"), "[", 1))
+dsubCorSel$TARGET<-paste(sapply(strsplit(paste(sapply(strsplit(dsubCorSel$P2, ";",fixed=T), "[", 1)), "-"), "[", 1))
+write.csv(data.frame(dsubCorSel),paste0(inpD,"dsubCorSel",corThr,"p.csv"),quote = F)
+#dsubCor<-dist(dsub,method="euclidean")
+hist(dsubCor)
+summary(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDist.svg"), p)
+pE<-as.matrix(100*dsub$Count/dsub$Length)
+rownames(pE)<-uniprot
+hist(pE)
+dsubCor<-dist(pE,method="euclidean")
+dsubCorM<-as.matrix(dist(pE,method="euclidean",diag = T,upper = T))
+hist(dsubCor)
+#check
+nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
+ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDistE.svg"), p)
+`
+#sigList####
+sigList<-resultsGO
+sigList[is.na(sigList)]<-(Inf)
+log2Thr<-0.5
+sigList<-sigList[sigList$CorrectedPValueBH<0.1&abs(sigList$Log2MedianChange)>log2Thr,]
+hist(sigList$Log2MedianChange)
+hist(sigList$CorrectedPValueBH)
+plot(sigList$Log2MedianChange,-log10(sigList$CorrectedPValueBH))
+sigListUP<-sigList[sigList$CorrectedPValueBH<0.1&sigList$Log2MedianChange>log2Thr,]
+uniList<-unlist(strsplit(unlist(strsplit(unlist(strsplit(unlist(strsplit(sigListUP$RowGeneUniProtScorePeps, split = ";")),split = "|",fixed=T)),split = "=",fixed=T)),split = " ",fixed=T))
+uniList<-uniList[nchar(uniList)>5&nchar(uniList)<15]
+uniList<-uniList[grepl('^[A-Z]', uniList)]
+write.csv(uniList,paste0(inpD,"sigListUP",log2Thr,"fcUnlist.csv"),quote = F)
+paste(sapply(strsplit(paste(sapply(strsplit(sigListUP$RowGeneUniProtScorePeps, "|",fixed=T), "[", 2)), "-"), "[", 1))
+write.csv(data.frame(sigListUP),paste0(inpD,"sigListUP",log2Thr,"fc.csv"),quote = F)
+sigListDN<-sigList[sigList$CorrectedPValueBH<0.1&sigList$Log2MedianChange<(-log2Thr),]
+write.csv(data.frame(sigListDN),paste0(inpD,"sigListDN",log2Thr,"fc.csv"),quote = F)
+
