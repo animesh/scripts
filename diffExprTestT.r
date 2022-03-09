@@ -2,8 +2,9 @@
 #Rscript C:\Users\animeshs\R\bin\Rscript.exe
 args = commandArgs(trailingOnly=TRUE)
 print(args)
+#git checkout 6bc63d134527cf6972218c3d4d39f881ea883753 diffExprTestT.r
 if (length(args) != 2) {stop("\n\nNeeds the full path of the directory containing BOTH proteinGroups.txt from MaxQuant & Groups.txt files followed by the name of GROUP column in Groups.txt file whch will be used for the t-test, for example
-\"c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r L:/promec/Elite/LARS/2015/january/Ishita/combined/txt/ Bio\"
+\"c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r L:/promec/TIMSTOF/LARS/2022/februar/Sigrid/combined/txt/ Bio\"
                              ", call.=FALSE)}
 #setup####
 #install.packages("ggplot2", repos = "https://cloud.r-project.org/")
@@ -201,13 +202,14 @@ resultsGO<-merge(ttMINE2WT,GeneOntologyObj,by="Uniprot")
 writexl::write_xlsx(resultsGO,paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.xlsx"))
 write.csv(resultsGO,paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.csv"))
 #dist####
-resultsGO<-read.csv(paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.csv"),row.names=1)
+#proteinGroups.txtLFQ.intensity.0.050.50.05BiotTestBHGO.csv
+#resultsGO<-read.csv(paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"tTestBHGO.csv"),row.names=1)
 row.names(resultsGO)<-paste0(row.names(resultsGO),resultsGO$Uniprot)
 #log2LFQ<-sigList[,c(grep("MINE|WT",colnames(sigList)))]
 log2LFQ<-resultsGO[,c(grep("MINE|WT",colnames(resultsGO)))]
 row.names(log2LFQ)<-row.names(resultsGO)
-log2LFQimpCorr<-cor(t(log2LFQ),use="pairwise.complete.obs",method="spearman")
-hist(log2LFQimpCorr)
+#log2LFQimpCorr<-cor(t(log2LFQ),use="pairwise.complete.obs",method="spearman")
+#hist(log2LFQimpCorr)
 log2LFQimpCorP<-cor(t(log2LFQ),use="pairwise.complete.obs",method="pearson")
 hist(log2LFQimpCorP)
 dsubCor<-as.dist(log2LFQimpCorP)
@@ -222,31 +224,10 @@ hist(dsubCorMna$dist)
 write.csv(data.frame(dsubCorMna),paste0(inpD,"dsubCorMna.csv"))
 corThr<-0
 #dsubCorSel<-dsubCorMna[abs(dsubCorMna$dist)>corThr,]
-hist(dsubCorSel$dist)
 dsubCorSel<-dsubCorMna[dsubCorMna$dist>corThr,]
 dsubCorSel$SOURCE<-paste(sapply(strsplit(paste(sapply(strsplit(dsubCorSel$P1, ";",fixed=T), "[", 1)), "-"), "[", 1))
 dsubCorSel$TARGET<-paste(sapply(strsplit(paste(sapply(strsplit(dsubCorSel$P2, ";",fixed=T), "[", 1)), "-"), "[", 1))
 write.csv(data.frame(dsubCorSel),paste0(inpD,"dsubCorSel",corThr,"p.csv"),quote = F)
-#dsubCor<-dist(dsub,method="euclidean")
-hist(dsubCor)
-summary(dsubCor)
-#check
-nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
-#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
-p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
-ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDist.svg"), p)
-pE<-as.matrix(100*dsub$Count/dsub$Length)
-rownames(pE)<-uniprot
-hist(pE)
-dsubCor<-dist(pE,method="euclidean")
-dsubCorM<-as.matrix(dist(pE,method="euclidean",diag = T,upper = T))
-hist(dsubCor)
-#check
-nrow(dsub)*(nrow(dsub)-1)/2==length(dsubCor)
-#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
-p<-pheatmap::pheatmap(dsub,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=T,cluster_rows=T,fontsize_col=4,fontsize_row=4)
-ggplot2::ggsave(paste0(inpF,hdr,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"HeatMapTestChosenDistE.svg"), p)
-`
 #sigList####
 sigList<-resultsGO
 sigList[is.na(sigList)]<-(Inf)
@@ -256,12 +237,64 @@ hist(sigList$Log2MedianChange)
 hist(sigList$CorrectedPValueBH)
 plot(sigList$Log2MedianChange,-log10(sigList$CorrectedPValueBH))
 sigListUP<-sigList[sigList$CorrectedPValueBH<0.1&sigList$Log2MedianChange>log2Thr,]
+write.csv(data.frame(sigListUP),paste0(inpD,"sigListUP",log2Thr,"fc.csv"),quote = F)
 uniList<-unlist(strsplit(unlist(strsplit(unlist(strsplit(unlist(strsplit(sigListUP$RowGeneUniProtScorePeps, split = ";")),split = "|",fixed=T)),split = "=",fixed=T)),split = " ",fixed=T))
 uniList<-uniList[nchar(uniList)>5&nchar(uniList)<15]
 uniList<-uniList[grepl('^[A-Z]', uniList)]
 write.csv(uniList,paste0(inpD,"sigListUP",log2Thr,"fcUnlist.csv"),quote = F)
-paste(sapply(strsplit(paste(sapply(strsplit(sigListUP$RowGeneUniProtScorePeps, "|",fixed=T), "[", 2)), "-"), "[", 1))
-write.csv(data.frame(sigListUP),paste0(inpD,"sigListUP",log2Thr,"fc.csv"),quote = F)
 sigListDN<-sigList[sigList$CorrectedPValueBH<0.1&sigList$Log2MedianChange<(-log2Thr),]
 write.csv(data.frame(sigListDN),paste0(inpD,"sigListDN",log2Thr,"fc.csv"),quote = F)
-
+uniList<-unlist(strsplit(unlist(strsplit(unlist(strsplit(unlist(strsplit(sigListDN$RowGeneUniProtScorePeps, split = ";")),split = "|",fixed=T)),split = "=",fixed=T)),split = " ",fixed=T))
+uniList<-uniList[nchar(uniList)>5&nchar(uniList)<15]
+uniList<-uniList[grepl('^[A-Z]', uniList)]
+write.csv(uniList,paste0(inpD,"sigListDN",log2Thr,"fcUnlist.csv"),quote = F)
+#fisher####
+sigListGO <- data.frame(do.call(rbind, Map(cbind, strsplit(sigList$Gene.ontology..GO., "; "), sigList$RowGeneUniProtScorePeps)))
+colnames(sigListGO) <- c("GO","ID")
+sigListGOtab=as.data.frame(table(sigListGO$GO))
+#sigListGO=sigListGO[!is.infinite(sigListGO)]
+fulListGO <- data.frame(do.call(rbind, Map(cbind, strsplit(resultsGO$Gene.ontology..GO., "; "), resultsGO$RowGeneUniProtScorePeps)))
+colnames(fulListGO) <- c("GO","ID")
+fulListGO=fulListGO[!is.na(fulListGO$GO),]
+fulListGOtab=as.data.frame(table(fulListGO$GO))
+goTab<-merge(fulListGOtab,sigListGOtab,by='Var1')
+plot(log2(goTab$Freq.x),log2(goTab$Freq.y))
+hist(log2(goTab$Freq.x))
+#thioglucosidase https://www.wolframalpha.com/input?i=%28Binomial%5B3787%2C7%5D*Binomial%5B320%2C15%5D%29%2FBinomial%5B4107%2C22%5D
+#(15/320)/(22/4107)#enrichment
+#(choose(3787,7)*choose(320,15))/choose(4107,22)#(choose(3787,3780)*choose(320,305))/choose(4107,4085)
+#fisher.test(rbind(c(7,3780),c(15,305)))$p.value#fisher.test(rbind(c(3460,3482),c(305,3780)))$p.value
+#(choose(3787,7)*choose(320,15))/choose(4107,22)+(choose(3787,6)*choose(320,16))/choose(4107,22)+(choose(3787,5)*choose(320,17))/choose(4107,22)+(choose(3787,4)*choose(320,18))/choose(4107,22)+(choose(3787,3)*choose(320,19))/choose(4107,22)+(choose(3787,2)*choose(320,20))/choose(4107,22)+(choose(3787,1)*choose(320,21))/choose(4107,22)+(choose(3787,0)*choose(320,22))/choose(4107,22)
+#nitrile
+#(choose(3787,6)*choose(320,5))/choose(4107,11)
+#fisher.test(rbind(c(6,3781),c(5,305)),alternative="less")$p.value
+goTab["lo-enrichment"]=(goTab$Freq.y/nrow(sigList))/(goTab$Freq.x/nrow(resultsGO))
+goTab["p-binomial"]=(choose(nrow(sigList),goTab$Freq.y)*choose((nrow(resultsGO)-nrow(sigList)),goTab$Freq.x-goTab$Freq.y))/choose(nrow(resultsGO),(goTab$Freq.x))
+hist(as.matrix(goTab["p-binomial"]))
+goTab["p-binomBH"]=sapply(goTab["p-binomial"],p.adjust)
+hist(as.matrix(goTab["p-binomBH"]))
+#goTab["p-fisher"]=fisher.test(rbind(c(goTab$Freq.x-goTab$Freq.y,nrow(resultsGO)-(nrow(sigList)+goTab$Freq.y+goTab$Freq.x)),c(goTab$Freq.y,nrow(sigList)-goTab$Freq.y)))$p.value
+pvFE=apply(
+  goTab, 1, function(x)
+    if(sum(is.na(x[c(2:3)]))==0){fisher.test(rbind(c(as.numeric(x[2])-as.numeric(x[3]),nrow(resultsGO)-(nrow(sigList)+as.numeric(x[2])+as.numeric(x[3]))),c(as.numeric(x[3]),nrow(sigList)-as.numeric(x[3]))))$p.value}
+    else{0}
+)
+goTab["p-fisher"]=pvFE
+pvFEBH=p.adjust(pvFE,method="BH")
+#fisher(choose(nrow(sigList),goTab$Freq.y)*choose((nrow(resultsGO)-nrow(sigList)),goTab$Freq.x-goTab$Freq.y))/choose(nrow(resultsGO),(goTab$Freq.x))
+goTab["p-fisherBH"]=pvFEBH
+plot(goTab)#$`lo-enrichment,goTab$`p-binomial`)
+sigListGOagg=aggregate(sigListGO["ID"], by=sigListGO["GO"],paste)
+goTabID<-merge(goTab,sigListGOagg,by.x="Var1",by.y='GO')
+goTabID$ID <- paste0(sapply(goTabID$ID,as.character))
+write.csv(goTabID,paste0(inpF,"FisherGOtabID.csv"))
+goTabID=goTabID[order(goTabID["p-binomial"]),]
+writexl::write_xlsx(goTabID,paste0(inpF,"FisherGOtabID.xlsx"))
+#checkFE####
+#perGO<-read.csv(paste0(inpF,"FisherGOall.txt"),sep="\t")
+#compareGO<-merge(goTab,perGO,by.x="Var1",by.y='C..Category.value',all.x=T)
+#sum(compareGO["p-binomial"]-compareGO$N..P.value,na.rm=T)
+#pvDiff=compareGO["p-binomial"]-compareGO$N..P.value
+#pvDiff[is.na(pvDiff)]=0
+#pvDiff=sapply(pvDiff,as.numeric)
+#hist(pvDiff)

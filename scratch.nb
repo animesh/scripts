@@ -1,3 +1,13 @@
+9+9
+(Binomial[3787,7]*Binomial[320,15])/Binomial[4107,320]
++(Binomial[3787,16]*Binomial[320,6])/Binomial[4107,320]
++(Binomial[3787,17]*Binomial[320,5])/Binomial[4107,320]
++(Binomial[3787,18]*Binomial[320,4])/Binomial[4107,320]
++(Binomial[3787,19]*Binomial[320,3])/Binomial[4107,320]
++(Binomial[3787,20]*Binomial[320,2])/Binomial[4107,320]
++(Binomial[3787,21]*Binomial[320,1])/Binomial[4107,320]
++(Binomial[3787,22]*Binomial[320,0])/Binomial[4107,320]
+(Binomial[4085,313]*Binomial[22,15])/Binomial[4107,320]+(Binomial[4085,314]*Binomial[22,6])/Binomial[4107,320]+(Binomial[4085,315]*Binomial[22,5])/Binomial[4107,320]+(Binomial[4085,316]*Binomial[22,4])/Binomial[4107,320]+(Binomial[4085,317]*Binomial[22,3])/Binomial[4107,320]+(Binomial[4085,318]*Binomial[22,2])/Binomial[4107,320]+(Binomial[4085,319]*Binomial[22,1])/Binomial[4107,320]+(Binomial[4085,320]*Binomial[22,0])/Binomial[4107,320]
 9^9^9 = ... 4278076703726700326359025082234292387746462391127975152902898840592704628596911900141884203201543326475639185771859764920491223032381102721013691836849432857413737626379691258456141237444060102002608592235410622770718702230402359356419151296996286668460066302983513790272157965745653444327849033419945435755754169759662789641061270387990256128353667950589936117172490285814571733915187602283281383558665788995350272253954345165983917336427507154331749386377957650223307168958637197192110578737857336943212457715521275513998317785476716785912996450672962748373653022152343205074783409279056537127383264053590976996351343597753799283680752817548382724478144536940979972304718417625894479515401807262428365976142918834896791881537728547678107496616126618547626668532355290055718884916798855470068473582685089739187008510754028188539253490529122882039719724032235787006073283877358282617004315060225040660196165699439754361026855266374036682906190174923494324178799359681422627177289
 (*
 tute: https://www.wolfram.com/language/elementary-introduction/2nd-ed/45-datasets.html
@@ -10,11 +20,11 @@ https://stackoverflow.com/questions/52602720/cannot-read-an-m-file-in-atom-with-
 https://resources.wolframcloud.com/FunctionRepository/resources/RandomEnglishHaiku/
 *)
 ResourceFunction["RandomEnglishHaiku"][TextWords[ResourceData["Hamlet"]]]
- Binomial[10,1]*Binomial[14,11]/(Binomial[24,12])+Binomial[10,0]*Binomial[14,12]/(Binomial[24,12])//N(*https://en.wikipedia.org/wiki/Fisher%27s_exact_test*)
+ Binomial[10,1]*Binomial[14,11]/(Binomial[24,12]]+Binomial[10,0]*Binomial[14,12]/(Binomial[24,12])//N(*https://en.wikipedia.org/wiki/Fisher%27s_exact_test*)
 Binomial[628,6]*Binomial[4458,165]/(Binomial[5086,171])//N
 Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17])//N
-Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17])+Binomial[628,7]*Binomial[4458,10]/(Binomial[5028,17])+Binomial[628,8]*Binomial[4458,9]/(Binomial[5028,17])//N
-+Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17])+Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17])+Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17])+Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17])//N
+Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17]]+Binomial[628,7]*Binomial[4458,10]/(Binomial[5028,17]]+Binomial[628,8]*Binomial[4458,9]/(Binomial[5028,17])//N
++Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17]]+Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17]]+Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17]]+Binomial[628,6]*Binomial[4458,11]/(Binomial[5028,17])//N
 #https://blog.wolfram.com/2020/07/09/accessing-the-world-with-the-wolfram-language-external-identifiers-and-wikidata/
 WikipediaData[Moon,mass]
 WikidataData[
@@ -25,7 +35,7 @@ WikidataData[
   "P2067", <|"Label" -> "mass",
    "Description" ->
     "mass (in colloquial usage also known as weight) of the item"|>]]
-(1/3)*3==1(*TRUE*)
+(1/3]*3==1(*TRUE*)
 #https://0.30000000000000004.com/
 (0.1+0.2)==0.3
 
