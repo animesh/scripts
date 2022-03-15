@@ -1,6 +1,6 @@
 [wsl2]
 processors=12
 memory=64GB
-swap=192GB
-swapFile=C:\swap192.vhdx
+swap=64GB
+swapFile=C:\\Users\\animeshs\\swap216.vhdx
 

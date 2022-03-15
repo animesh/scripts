@@ -44,8 +44,10 @@ library("genefilter")
 #save(file="MMRFclin.rds",MMRFclin)
 #savehistory("R.history")
 load("L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/MMRFclin.rds")
+plot(MMRFclin$treatments[[1]])#"treatment_outcome"])
 #download.file("https://studntnu-my.sharepoint.com/:u:/g/personal/animeshs_ntnu_no/EfQcUVcV4m5IlA7YY9h6zFsBJwZhomsv-0r5uIgnd8Wt0g?e=UZC0vP","MMRFdataPrepro.rds")
 load("L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/MMRFdataPrepro.rds")
+plot(MMRFdataPrepro[[1]])#"treatment_outcome"])
 #https://stackoverflow.com/a/26089312/1137129
 blKM<-TCGAbiolinks::TCGAanalyze_SurvivalKM#<-TCGAanalyze_SurvivalKM
 body(blKM)[[25]][[4]]<-substitute({
@@ -145,10 +147,24 @@ body(blKM)[[25]][[4]]<-substitute({
 #newDef <- deparse(TCGAbiolinks::TCGAanalyze_SurvivalKM)
 #newDef[grep("                legend",newDef)]<- "                legend(100, 1, legend = c(legendLow, legendHigh), "
 #blKM <- eval(parse(text=newDef))
+blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshTop=0.66,ThreshDown=0.33)
 blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshTop=0.76,ThreshDown=0.33)
 pData<-read.csv("L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/ENSG00000196976.KM.txt",sep="\t")
-table(pData$C..Censor[pData$ENSG00000196449>4])
-table(pData$C..Censor[pData$ENSG00000196449<3])
+hist(pData$ENSG00000196449)
+qVal=quantile(pData$ENSG00000196449,probs = seq(0, 1, 0.01))#qVal[67]#qVal[34]
+max(pData$ENSG00000196449)#qVal[101]
+min(pData$ENSG00000196449)#qVal[1]
+table(pData$C..Censor[pData$ENSG00000196449>qVal[77]])
+table(pData$C..Censor[pData$ENSG00000196449<qVal[34]])
+table(pData$C..Censor[pData$ENSG00000196449>qVal[78]])
+table(pData$C..Censor[pData$ENSG00000196449<qVal[34]])
+plot(table(pData$C..Censor[pData$ENSG00000196449>qVal[77]]))
+plot(table(pData$C..Censor[pData$ENSG00000196449<qVal[34]]))
+plot(pData$C..Follow,pData$C..Days)
+plot(pData$ENSG00000196449,pData$C..Days)
+plot(pData$ENSG00000196449,pData$C..Follow)
+plot(pData$ENSG00000196449,pData$C..Follow,col=factor(ceiling(pData$C..Days/100)))
+plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
 ```
 
 ```{r TCGA}
