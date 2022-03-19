@@ -1,10 +1,10 @@
-#python proteinGroupsTtestCombine.py L:\promec\TIMSTOF\LARS\2022\februar\Sigrid\combined\txt\reports\CTRL
+#python proteinGroupsTtestCombine.py L:\promec\TIMSTOF\LARS\2022\februar\Sigrid\combined\txtDQnoPHOS\reports\CTRL
 import sys
 #!pip3 install pathlib --user
 from pathlib import Path
 if len(sys.argv)!=2: sys.exit("\n\nREQUIRED: pandas, pathlib; tested with Python 3.9 \n\nUSAGE: python proteinGroupsTtestCombine.py <path to folder containing Benjamini-Hochberg corrected csv/*BH.csv* file(s) like \"L:\promec\TIMSTOF\LARS\2022\februar\Sigrid\combined\txt\reports\CTRL\" >\n\nExample\n\npython proteinGroupsTtestCombine.py L:\promec\TIMSTOF\LARS\2022\februar\Sigrid\combined\txt\reports\CTRL")
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2022/februar/Sigrid/combined/txt/reports/CTRL")
+#pathFiles=Path("L:/promec/TIMSTOF/LARS/2022/februar/Sigrid/combined/txtDQnoPHOS/reports/CTRL")
 fileName='*BH.csv'
 trainList=list(pathFiles.rglob(fileName))
 #trainList=list([Path('L:/promec/TIMSTOF/LARS/2022/februar/Sigrid/combined/txt/reports/CTRL/proteinGroups.txtLFQ.intensity.16MUT CtrlWT Ctrl0.050.50.05BiotTestBH.csv'),Path('L:/promec/TIMSTOF/LARS/2021/Desember/211207_Nilu/combined/txt/proteinGroups.txt'),Path('L:/promec/TIMSTOF/LARS/2022/februar/Sigrid/combined/txt/reports/CTRL/proteinGroups.txtLFQ.intensity.16MUTctrlWTctrl0.050.50.05grouptTestBH.csv')])
@@ -16,11 +16,16 @@ import pandas as pd
 dfC=pd.DataFrame()
 dfB=pd.DataFrame()
 i=0
+fdrThrHigh=0.1
+fdrThrLow=10e5
+log2Thr=0.5
 for f in trainList:
     i=i+1
     if Path(f).stat().st_size > 0:
+        print(f"{i!r},{f.parts!r}")
         proteinHits=pd.read_csv(f)
-        print(i,f.parts)
+        proteinHits=proteinHits[proteinHits.CorrectedPValueBH<fdrThrHigh]
+        proteinHits=proteinHits[(proteinHits.Log2MedianChange>log2Thr)| (proteinHits.Log2MedianChange<-1*log2Thr)]
         proteinHits.rename({'RowGeneUniProtScorePeps':'ID'},inplace=True,axis='columns')
         proteinHitsC=proteinHits.ID.str.split(';;', expand=True).set_index(proteinHits.Log2MedianChange).stack().reset_index(level=0, name='ID')
         proteinHitsC=proteinHitsC[proteinHitsC.index==2]
@@ -38,15 +43,25 @@ print(dfC.columns)
 print(dfB.columns)
 dfC=dfC.pivot(index='ID', columns='Name', values='Log2MedianChange')
 dfC.to_csv(pathFiles.with_suffix('.Log2MedianChange.combined.csv'))
+import seaborn as sns
+sns.jointplot(y=dfC.iloc[:,1],x=dfC.iloc[:,0]).figure.savefig(pathFiles.with_suffix(".log2Scatter.svg"),dpi=100,bbox_inches = "tight")#,kind="reg")
+dfC=dfC.fillna(0)
+dfCB=dfC[(dfC.iloc[:,1]>log2Thr)&(dfC.iloc[:,0]>log2Thr)]
+dfCB.to_csv(pathFiles.with_suffix('.BOTH.Log2MedianChange.combined.csv'))
+dfC1=dfC[(dfC.iloc[:,1]<log2Thr)&(dfC.iloc[:,0]>log2Thr)]
+dfC1.to_csv(pathFiles.with_suffix('.first.Log2MedianChange.combined.csv'))
+dfC2=dfC[(dfC.iloc[:,1]>log2Thr)&(dfC.iloc[:,0]<log2Thr)]
+dfC2.to_csv(pathFiles.with_suffix('.second.Log2MedianChange.combined.csv'))
 dfB=dfB.pivot(index='ID', columns='Name', values='CorrectedPValueBH')
 import numpy as np
 dfBmLog10=dfB+sys.float_info.min
 dfBmLog10=dfBmLog10.fillna(1)
-dfBmLog10=-1*np.log10(dfBmLog10)
-dfBmLog10.to_csv(pathFiles.with_suffix('.dfBmLog10CorrectedPValueBH.combined.csv'))#df.to_csv(pathFiles.with_suffix('.combined.txt'),sep="\")#,rownames=FALSE)
-#writeDPpng=pathFiles/(fileName+"Score.png")
-#df.plot(kind='hist').figure.savefig(writeDPpng.absolute(),dpi=100,bbox_inches = "tight")
-#print("Histogram of Score in",writeDPpng)
+dfBmLog10=np.abs(np.log10(dfBmLog10))
+dfBmLog10=dfBmLog10.clip(np.abs(np.log10(fdrThrHigh)),np.log10(fdrThrLow))
+dfBmLog10.to_csv(pathFiles.with_suffix('.dfBmLog10CorrectedPValueBH.combined.csv'))#print("Histogram of Score in",writeDPpng)
+#plt.plot(dfBmLog10.iloc[0],dfBmLog10.iloc[1])
+import seaborn as sns
+sns.jointplot(y=dfBmLog10.iloc[:,1],x=dfBmLog10.iloc[:,0]).figure.savefig(pathFiles.with_suffix(".Scatter.svg"),dpi=100,bbox_inches = "tight")#,kind="reg")
 dfB['SumB']=dfB.sum(axis=1)
 dfC['SumC']=dfC.sum(axis=1)
 dfB=dfB.sort_values('SumB',ascending=False)

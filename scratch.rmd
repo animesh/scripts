@@ -43,6 +43,11 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r}
+#https://twitter.com/tjmahr/status/1504124329319096323?s=20&t=Uto1RSEpshj0o4cPLZG9jw
+#why a mixed model (y ~ x + (x | g)) would be better than a linear model with (y ~ x * g)
+```
+
 ```{r libAnnotate}
 remotes::install_github("luisdva/annotater")
 ```

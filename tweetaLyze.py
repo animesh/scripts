@@ -2,42 +2,33 @@
 keyz = {k:v for k, v in (l.split('=') for l in open("keyz"))}
 #C:\\Users\\animeshs\\AppData\\Local\\Programs\\Spyder\\Python\\python.exe -m pip install tweepy
 #add long BEARER_TOKEN from https://developer.twitter.com/en/portal/register/welcome as environment variable
+#!pip install tweepy pandas
 import tweepy
 import pandas as pd
-consumer_key = keyz['consumer_key'].strip()
-consumer_secret = keyz['consumer_secret'].strip()
-bearer_token = keyz['bearer_token'].strip()
-access_token = keyz['access_token'].strip()
-access_token_secret = keyz['access_token_secret'].strip()
+consumer_key = keyz['API_Key'].strip()
+consumer_secret = keyz['API_Key_Secret'].strip()
+bearer_token = keyz['Bearer_Token'].strip()
+access_token = keyz['Access_Token'].strip()
+access_token_secret = keyz['Access_Token_Secret'].strip()
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
-api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, compression=True)
+api = tweepy.API(auth)
 me = api.get_user(screen_name = "animesh1977")
 user_list = [me.id]
 follower_list = []
 for user in user_list:
     followers = []
-    try:
-        for page in tweepy.Cursor(api.followers_ids, user_id=user).pages():
-            followers.extend(page)
-            print(len(followers))
-    except tweepy.TweepError:
-        print("error")
-        continue
+    for page in tweepy.Cursor(api.get_follower_ids, user_id=user).pages():
+        followers.extend(page)
+        print(len(followers))
     follower_list.append(followers)
-
 following_list = []
 for user in user_list:
     following = []
-    try:
-        for page in tweepy.Cursor(api.friends, user_id=user).pages():
-            following.extend(page)
-            print(len(following))
-    except tweepy.TweepError:
-        print("error")
-        continue
+    for page in tweepy.Cursor(api.get_friends, user_id=user).pages():
+        following.extend(page)
+        print(len(following))
     following_list.append(following)
-
 import json
 json.dump(following_list[0])#.text  
 df = pd.DataFrame(columns=['source','target']) #Empty DataFrame
