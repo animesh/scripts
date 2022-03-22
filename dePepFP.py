@@ -2,24 +2,28 @@
 #!pip3 install pathlib --user
 import sys
 from pathlib import Path
-if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib; tested with Python 3.8.5\n","USAGE: python dePepFP.py <path to folder containing global.profile.tsv file(s) like \"F:/SINTEF/\" >")
+if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib\nTested with Python 3.9\n","USAGE: \npython dePepFP.py <path to folder containing psm.tsv file(s) like \"Z:/20220319_IP-UCHL1_MN/\" >\n")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("F:/SINTEF/")
-fileName='global.profile.tsv'
+#pathFiles = Path("L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/")
+fileName='psm.tsv'
 trainList=list(pathFiles.rglob(fileName))
 
 import pandas as pd
 df=pd.DataFrame()
+#f=trainList[0]
 for f in trainList:
     peptideHits=pd.read_csv(f,low_memory=False,sep='\t')
     print(f)
+    peptideHits=peptideHits[peptideHits['Gene']=='UCHL1']
     peptideHits['Name']=f
+    #peptideHits['Observed Modifications']
     df=pd.concat([df,peptideHits],sort=False)
 print(df.head())
 print(df.columns)
-
+dfDP=df[df['Observed Modifications'].notnull()]
+dfDP.to_csv(pathFiles/(fileName+".UCHL1.PTMs.csv"))
 #print(df.columns.get_loc("DP Proteins"))
-dfDP=df.loc[:, df.columns.str.startswith('Potential Modification')|df.columns.str.endswith('unmodified)')]
+dfDP=df.loc[:, df.columns.str.startswith('Observed Modification')|df.columns.str.endswith('unmodified)')]
 dfDP=dfDP[dfDP['Potential Modification 1'].notnull()]
 #dfDP=dfDP.rename(columns = lambda x : str(x)[3:])
 writeDPcsv=pathFiles/(fileName+"FP.csv")
