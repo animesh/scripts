@@ -43,6 +43,28 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r excel}
+#https://twitter.com/GuyProchilo/status/1506404403955310594?s=20&t=eViyk00dILRTyQiougk2mg
+install.packages("datapasta")
+val=datapasta::clipboard_context()
+#c+s+T
+val=data.frame(
+             v1 = c(0.125679012,0.776539973,0.619025708,
+                    0.32157613,0.669699637,0.220189265,0.728222934,
+                    0.078949894,0.349956181,0.47484705,0.412066207,0.997157404,
+                    0.040864736,0.005015682,0.741724793,0.985532228,0.481897076,
+                    0.122803886,0.272411495,0.086328555),
+             v2 = c(0.266959396,0.059405594,0.667290211,
+                    0.612052542,0.998632215,0.790603446,0.615133562,
+                    0.529131657,0.908355428,0.191942343,0.977932413,0.839793183,
+                    0.238221414,0.013103873,0.769944087,0.763175287,
+                    0.982618969,0.795093164,0.516149487,0.451133175)
+   )
+plot(val)
+cor(val$v1,val$v2)
+abline()
+```
+
 ```{r}
 #https://twitter.com/tjmahr/status/1504124329319096323?s=20&t=Uto1RSEpshj0o4cPLZG9jw
 #why a mixed model (y ~ x + (x | g)) would be better than a linear model with (y ~ x * g)

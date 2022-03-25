@@ -171,12 +171,13 @@ plot(pData$ENSG00000196449,pData$C..Follow)
 plot(pData$ENSG00000196449,pData$C..Follow,col=factor(ceiling(pData$C..Days/100)))
 plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
 ```
+
 ```{r TCGAbiolinks::TCGAanalyze_SurvivalKM}
-blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshTop=0.76,ThreshDown=0.33)
-    library("survival")
+#blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshTop=0.76,ThreshDown=0.33)
     clinical_patient=MMRFclin
     dataGE=MMRFdataPrepro
     Genelist="ENSG00000196976"
+    Genelist="ENSG00000196449"
     Survresult=T
     ThreshTop= 0.76
     ThreshDown= 0.33 
@@ -195,11 +196,8 @@ blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshT
     cfu <- as.data.frame(subset(cfu, select = c("bcr_patient_barcode", 
         "days_to_death", "days_to_last_follow_up", 
         "vital_status")))
-    if (length(grep("alive", cfu$vital_status, ignore.case = TRUE)) > 
-        0) cfu[grep("alive", cfu$vital_status, ignore.case = TRUE),        "days_to_death"] <- "-Inf"
-    if (length(grep("dead", cfu$vital_status, ignore.case = TRUE)) > 
-        0) cfu[grep("dead", cfu$vital_status, ignore.case = TRUE), 
-            "days_to_last_follow_up"] <- "-Inf"
+    if (length(grep("alive", cfu$vital_status, ignore.case = TRUE)) > 0) cfu[grep("alive", cfu$vital_status, ignore.case = TRUE),"days_to_death"] <- "-Inf"
+    if (length(grep("dead", cfu$vital_status, ignore.case = TRUE)) >  0) cfu[grep("dead", cfu$vital_status, ignore.case = TRUE), "days_to_last_follow_up"] <- "-Inf"
     cfu <- cfu[!(is.na(cfu[, "days_to_last_follow_up"])),]
     cfu <- cfu[!(is.na(cfu[, "days_to_death"])), ]
     followUpLevel <- FALSE
@@ -213,17 +211,16 @@ blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshT
     cfu$days_to_death <- as.numeric(as.character(cfu$days_to_death))
     cfu$days_to_last_follow_up <- as.numeric(as.character(cfu$days_to_last_follow_up))
     rownames(cfu) <- cfu[, "bcr_patient_barcode"]
-    cfu <- cfu[!(is.na(cfu[, "days_to_last_follow_up"])), 
-        ]
+    cfu <- cfu[!(is.na(cfu[, "days_to_last_follow_up"])), ]
     cfu <- cfu[!(is.na(cfu[, "days_to_death"])), ]
     cfu_complete <- cfu
     ngenes <- nrow(as.matrix(rownames(dataNormal)))
-    for (i in 1:nrow(as.matrix(rownames(dataNormal)))) {
       i=1
         cat(paste0((ngenes - i), "."))
         mRNAselected <- as.matrix(rownames(dataNormal))[i]
         mRNAselected_values <- dataCancer[rownames(dataCancer) == 
             mRNAselected, ]
+        write.csv(cbind(mRNAselected_values,ENSG=gsub("MMRF_","",names(mRNAselected_values))),"L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/mRNAselected_values.csv",row.names = T)
         mRNAselected_values_normal <- dataNormal[rownames(dataNormal) == 
             mRNAselected, ]
         if (all(mRNAselected_values == 0)) 
@@ -265,8 +262,7 @@ blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshT
             if (dim(cfu_onlyDOWN)[1] >= 1) {
                 ttime_only_down <- cfu_onlyDOWN[, "days_to_death"]
                 deads_down <- sum(ttime_only_down > 0)
-            }
-            else {
+            }            else {
                 deads_down <- 0
             }
             tabSurv_Matrix[i, "Cancer Deaths"] <- deads_complete
@@ -311,7 +307,6 @@ blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshT
                 print(tabSurv)
             }
         }
-    }
     tabSurv_Matrix[tabSurv_Matrix == "-Inf"] <- 0
     tabSurvKM <- tabSurv_Matrix
     tabSurvKM <- tabSurvKM[tabSurvKM$mRNA != 0, ]
@@ -323,7 +318,6 @@ blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshT
     colnames(tabSurvKM) <- gsub("Cancer", "Group2", colnames(tabSurvKM))
     colnames(tabSurvKM) <- gsub("Tumor", "Group2", colnames(tabSurvKM))
     colnames(tabSurvKM) <- gsub("Normal", "Group1", colnames(tabSurvKM))
-    return(tabSurvKM)
 ```
 
 ```{r TCGA}
