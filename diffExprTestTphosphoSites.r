@@ -1,16 +1,23 @@
+#c:/Users/animeshs/R/bin/Rscript.exe diffExprTestTphosphoSites.r L:/promec/TIMSTOF/LARS/2022/februar/Sigrid/combined/txt/ Bio
 #install.packages("ggplot2")
 #install.packages("svglite")
 #install.packages("limma")
 #install.packages("writexl")
 #install.packages("pheatmap")
-inpD <-"L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txt/"
-lGroup<-"group"
+args = commandArgs(trailingOnly=TRUE)
+print(paste("supplied argument(s):", length(args)))
+print(args)
+inpD <- args[1]
+#inpD <-"L:/promec/TIMSTOF/LARS/2022/februar/Sigrid/combined/txt/"
 inpF<-paste0(inpD,"Phospho (STY)Sites.txt")
-inpL<-paste0(inpD,"labelSwap.txt")
 selection<-"Intensity."
-selection2<-"___1"
-selection2<-"___2"
-selection2<-"___3"
+inpL<-paste0(inpD,"Groups.txt")
+lGroup <- args[2]
+#lGroup<-"Bio"
+#i <- args[3]
+for(i in 1:3){
+selection2=paste0("___",i);
+print(selection2)
 thr=0.0#count
 selThr=0.05#pValue-tTest
 selThrFC=0.5#log2-MedianDifference
@@ -56,20 +63,26 @@ print(label)
 scale=3
 log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
 log2LFQimp[log2LFQimp<0]<-0
+summary(log2LFQimp)
 bk1 <- c(seq(-3,-0.01,by=0.01))
 bk2 <- c(seq(0.01,3,by=0.01))
 bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
 my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),"gray", "gray",c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
 colnames(log2LFQimp)<-colnames(log2LFQ)
-log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
+log2LFQimpCorr<-cor(log2LFQimp,use="pairwise.complete.obs",method="pearson")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr) {
+  #sel1="WTTMZ6h"
+  #sel2="WTCtrl"
   d1<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
+  summary(d1)
   d2<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel2,]))]
+  summary(d2)
   dataSellog2grpTtest<-as.matrix(cbind(d1,d2))
+  summary(dataSellog2grpTtest)
   if(sum(!is.na(d1))>1&sum(!is.na(d2))>1){
     hist(d1,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
     hist(d2,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
@@ -97,8 +110,9 @@ testT <- function(log2LFQ,sel1,sel2,cvThr) {
         t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
       else{NA}
     )
-    summary(warnings())
+    if(class(pValNA)=="numeric"){
     hist(pValNA)
+    summary(warnings())
     summary(pValNA)
     dfpValNA<-as.data.frame(ceiling(pValNA))
     pValNAdm<-cbind(pValNA,dataSellog2grpTtest,row.names(data))
@@ -143,32 +157,43 @@ testT <- function(log2LFQ,sel1,sel2,cvThr) {
     print(p)
     return(ttest.results)
     }
+    }
 }
 #MUTWT####
 colnames(log2LFQ)
-table(label$group)
-ttMUTctrWTctr=testT(log2LFQ,"MUTctrl","WTctrl",cvThr)
-#WT0C####
-ttWT0WC=testT(log2LFQ,"WT0h","WTctrl",cvThr)
-#WT2C####
-ttWT2WC=testT(log2LFQ,"WT2h","WTctrl",cvThr)
-#WT4C####
-ttWT4WC=testT(log2LFQ,"WT4h","WTctrl",cvThr)
-#WT8C####
-ttWT8WC=testT(log2LFQ,"WT8h","WTctrl",cvThr)
-#WT12C####
-ttWT12WC=testT(log2LFQ,"WT12h","WTctrl",cvThr)
-#WT24C####
-ttWT24WC=testT(log2LFQ,"WT24h","WTctrl",cvThr)
-#MUT0C####
-ttMUT0WC=testT(log2LFQ,"MUT0h","MUTctrl",cvThr)
-#MUT2C####
-ttMUT2WC=testT(log2LFQ,"MUT2h","MUTctrl",cvThr)
-#MUT4C####
-ttMUT4WC=testT(log2LFQ,"MUT4h","MUTctrl",cvThr)
-#MUT8C####
-ttMUT8WC=testT(log2LFQ,"MUT8h","MUTctrl",cvThr)
-#MUT12C####
-ttMUT12WC=testT(log2LFQ,"MUT12h","MUTctrl",cvThr)
-#MUT24C####
-ttMUT24WC=testT(log2LFQ,"MUT24h","MUTctrl",cvThr)
+table(label$pair2test)
+#WTDMSO0C####
+ttWTDMSO0WC=testT(log2LFQ,"WTDMSO0h","WTCtrl",cvThr)
+#WTDMSO6C####
+ttWTDMSO6WC=testT(log2LFQ,"WTDMSO6h","WTCtrl",cvThr)
+#WTDMSO12C####
+ttWTDMSO12WC=testT(log2LFQ,"WTDMSO12h","WTCtrl",cvThr)
+#WTDMSO24C####
+ttWTDMSO24WC=testT(log2LFQ,"WTDMSO24h","WTCtrl",cvThr)
+#MUTDMSO0C####
+ttMUTDMSO0WC=testT(log2LFQ,"MUTDMSO0h","MUTCtrl",cvThr)
+#MUTDMSO6C####
+ttMUTDMSO6WC=testT(log2LFQ,"MUTDMSO6h","MUTCtrl",cvThr)
+#MUTDMSO12C####
+ttMUTDMSO12WC=testT(log2LFQ,"MUTDMSO12h","MUTCtrl",cvThr)
+#MUTDMSO24C####
+ttMUTDMSO24WC=testT(log2LFQ,"MUTDMSO24h","MUTCtrl",cvThr)
+#WTTMZ0C####
+ttWTTMZ0WC=testT(log2LFQ,"WTTMZ0h","WTCtrl",cvThr)
+#WTTMZ6C####
+ttWTTMZ6WC=testT(log2LFQ,"WTTMZ6h","WTCtrl",cvThr)
+#WTTMZ12C####
+ttWTTMZ12WC=testT(log2LFQ,"WTTMZ12h","WTCtrl",cvThr)
+#WTTMZ24C####
+ttWTTMZ24WC=testT(log2LFQ,"WTTMZ24h","WTCtrl",cvThr)
+#MUTTMZ0C####
+ttMUTTMZ0WC=testT(log2LFQ,"MUTTMZ0h","MUTCtrl",cvThr)
+#MUTTMZ6C####
+ttMUTTMZ6WC=testT(log2LFQ,"MUTTMZ6h","MUTCtrl",cvThr)
+#MUTTMZ12C####
+ttMUTTMZ12WC=testT(log2LFQ,"MUTTMZ12h","MUTCtrl",cvThr)
+#MUTTMZ24C####
+ttMUTTMZ24WC=testT(log2LFQ,"MUTTMZ24h","MUTCtrl",cvThr)
+#MUTWTCtrl####
+ttWTDMSO0WC=testT(log2LFQ,"MUTCtrl","WTCtrl",cvThr)
+}
