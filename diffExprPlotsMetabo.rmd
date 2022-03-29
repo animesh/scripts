@@ -1,34 +1,41 @@
 ```{r data, echo = FALSE}
-setwd("C:/Users/animeshs/GD/scripts")
-inpD <-paste0(getwd(),"/txt_PHOSTY/")
-inpF<-paste0(inpD,"202008_Sumabe_samples_capIC_summary (for normalization)_PB.xlsx")
-data <- readxl::read_xlsx(inpF,sheet=12)
-summary(data[3:35,2:5])
-hist(as.matrix(data))
+setwd("L:/promec/Animesh/Lisa/")
+inpD <-paste0(getwd())
+inpF<-paste0(inpD,"/Heatmap Ani.xlsx")
+data <- readxl::read_xlsx(inpF)
 ```
 
 ```{r sel-data-cols, echo = FALSE}
 #install.packages("scales")
-data_selr<-as.matrix(data[3:35,2:5])
-rn<-data_selr[,1]
-data_selr<-data_selr[,-1]
-colnames(data_selr)<-as.matrix(data[1,3:5])
-data_selr<-apply(data_selr,2, as.numeric)
-rownames(data_selr)<-rn
-summary(data_selr)
-hist(as.matrix(data_selr))
-write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,".parse.R.csv"),row.names = F)
-data_selr=scales::squish(as.matrix(data_selr),c(-3,3))
-summary(data_selr)
-hist(as.matrix(data_selr))
+dataSel<-data[2:36,3:17]
+cN<-paste0(data[1,3:17],colnames(dataSel))
+rN<-paste0(t(data[2:36,2]),rownames(dataSel))
+dataSel<-sapply(dataSel,as.numeric)
+colnames(dataSel)<-cN
+rownames(dataSel)<-rN
+summary(dataSel)
+hist(as.matrix(dataSel))
+min(dataSel,na.rm=T)
+max(dataSel,na.rm=T)
+write.csv(cbind(rownames(dataSel),dataSel),paste0(inpF,".parse.R.csv"),row.names = F)
+dataSel=scales::squish(as.matrix(dataSel),c(-3,3))
+summary(dataSel)
+hist(as.matrix(dataSel))
 #install.packages('pheatmap')
-svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,cluster_rows=FALSE,cluster_cols=FALSE)
+svgPHC<-pheatmap::pheatmap(dataSel,fontsize_row=6,cluster_rows=FALSE,cluster_cols=FALSE)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlot.metabolomics.row.NOT.scaled.svg"),plot=svgPHC)#,  ```
+dataSel=scales::squish(as.matrix(dataSel),c(-1.5,1.5))
+summary(dataSel)
+hist(as.matrix(dataSel))
+#install.packages('pheatmap')
+svgPHC<-pheatmap::pheatmap(dataSel,fontsize_row=6,cluster_rows=FALSE,cluster_cols=FALSE)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlot.metabolomics.row.scaled1P5.svg"),plot=svgPHC)#,  ```
 #https://www.biostars.org/p/192253/#192284
 bk1 <- c(seq(-3,-0.01,by=0.01))
 bk2 <- c(seq(0.01,3,by=0.01))
 breaksList <- c(bk1,bk2)
 palette<-colorRampPalette(rev(RColorBrewer::brewer.pal(n = 7, name = "RdYlBu")))(length(breaksList))
-svgPHC<-pheatmap::pheatmap(data_selr,fontsize_row=6,color=palette,cluster_rows=FALSE,cluster_cols=FALSE,breaks = breaksList)
+svgPHC<-pheatmap::pheatmap(dataSel,fontsize_row=6,color=palette,cluster_rows=FALSE,cluster_cols=FALSE,breaks = breaksList)
 #install.packages("svglite")
 #install.packages("ggplot2")
 ggplot2::ggsave(file=paste0(inpF,"clusterPlot.metabolomics.row.NOT.clustered.svg"),plot=svgPHC)#,  ```
