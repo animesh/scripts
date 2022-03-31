@@ -1,3 +1,6 @@
+#/cluster/home/ash022/bin/nextflow
+nextflow run nf-core/quantms -r dev -profile test --input project.sdrf.tsv --database protein.fasta
+#nextflow run nf-core/xxx -profile test,docker
 process perlStuff {
 """
     #!/usr/bin/env perl
