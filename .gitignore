@@ -80,3 +80,5 @@ Homo*
 core.*
 rtmodel.*
 *.results
+*.fas
+
