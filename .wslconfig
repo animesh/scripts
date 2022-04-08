@@ -2,5 +2,5 @@
 processors=12
 memory=64GB
 swap=64GB
-swapFile=C:\\Users\\animeshs\\swap216.vhdx
+swapFile=C:\\Users\\animeshs\\swap64.vhdx
 
