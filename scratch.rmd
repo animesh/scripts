@@ -24,7 +24,7 @@ Sys.which("make")
 #renv::deactivate()
 #plot
 par(mfrow=c(1,2))
-#setwd("L:/GD/scripts")
+setwd("F:/GD/OneDrive/Dokumenter/GitHub/scripts")
 getwd()
 #grep "pathview" *.rmd | awk -F ':' '{print $1}' | sort | uniq -c
 #rm(list = ls())

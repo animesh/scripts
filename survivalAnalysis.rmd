@@ -178,7 +178,7 @@ plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
     dataGE=MMRFdataPrepro
     Genelist="ENSG00000196976"
     Genelist="ENSG00000196449"
-    Survresult=T
+    Survresult=F
     ThreshTop= 0.76
     ThreshDown= 0.33 
     p.cut=0.05
@@ -220,6 +220,7 @@ plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
         mRNAselected <- as.matrix(rownames(dataNormal))[i]
         mRNAselected_values <- dataCancer[rownames(dataCancer) == 
             mRNAselected, ]
+        hist(mRNAselected_values)
         write.csv(cbind(mRNAselected_values,ENSG=gsub("MMRF_","",names(mRNAselected_values))),"L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/mRNAselected_values.csv",row.names = T)
         mRNAselected_values_normal <- dataNormal[rownames(dataNormal) == 
             mRNAselected, ]
@@ -233,6 +234,7 @@ plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
         mRNAselected_values_ordered_down <- as.numeric(quantile(as.numeric(mRNAselected_values_ordered), 
             ThreshDown)[1])
         mRNAselected_values_newvector <- mRNAselected_values
+        hist(mRNAselected_values_newvector)
         if (!is.na(mRNAselected_values_ordered_top)) {
             numberOfSamples <- length(mRNAselected_values_ordered)
             lastelementTOP <- max(which(mRNAselected_values_ordered > 

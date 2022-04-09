@@ -4,7 +4,65 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+
 #https://www.autodesk.com/research/publications/same-stats-different-graphs
+
+#https://stackoverflow.com/a/39881366
+def getMatrixMinor(m,i,j): return [row[:j] + row[j+1:] for row in (m[:i]+m[i+1:])]
+def getMatrixDeternminant(m):
+    #base case for 2x2 matrix
+    if len(m) == 2:
+        return m[0][0]*m[1][1]-m[0][1]*m[1][0]
+    determinant = 0
+    for c in range(len(m)):
+        determinant += ((-1)**c)*m[0][c]*getMatrixDeternminant(getMatrixMinor(m,0,c))
+    return determinant
+def getMatrixInverse(m):
+    determinant = getMatrixDeternminant(m)
+    #special case for 2x2 matrix:
+    if len(m) == 2:
+        return [[m[1][1]/determinant, -1*m[0][1]/determinant],
+                [-1*m[1][0]/determinant, m[0][0]/determinant]]
+    #find matrix of cofactors
+    cofactors = []
+    for r in range(len(m)):
+        cofactorRow = []
+        for c in range(len(m)):
+            minor = getMatrixMinor(m,r,c)
+            cofactorRow.append(((-1)**(r+c)) * getMatrixDeternminant(minor))
+        cofactors.append(cofactorRow)
+    cofactors = transposeMatrix(cofactors)
+    for r in range(len(cofactors)):
+        for c in range(len(cofactors)):
+            cofactors[r][c] = cofactors[r][c]/determinant
+    return cofactors
+getMatrixInverse([[1,0],[0,1]])#getMatrixInverse([[0,1],[1,0]])
+#https://medium.com/gooddata-developers/how-to-automate-your-statistical-data-analysis-852f1a463b95
+content_service = sdk.catalog_workspace_content
+catalog = content_service.get_full_catalog(workspace_id)
+attributes = []
+for dataset in catalog.datasets:
+    attributes.extend(dataset.attributes)
+metrics = catalog.metrics
+facts = []
+for dataset in catalog.datasets:
+    facts.extend(dataset.facts)
+numbers: list[Numeric] = []
+numbers.extend(metrics)
+numbers.extend(facts)
+combinations = set()
+pairs = itertools.combinations(numbers, 2)
+for pair in pairs:
+    valid_objects = content_service.compute_valid_objects(workspace_id, list(pair))
+    for a in valid_objects.get("attribute", []):
+        attribute = catalog.find_label_attribute(f"label/{a}")
+        if attribute:
+            combinations.add(Triplet([attribute] + list(pair)))
+pandas = GoodPandas(os.getenv('HOST'), os.getenv('TOKEN'))
+df_factory = pandas.data_frames(workspace_id)
+combinations = load_combinations()
+columns = list(combinations)[0].as_computable_dictionary
+data_frame = df_factory.not_indexed(columns)
 #pip install pycircstat
 #https://github.com/circstat/pycircstat
 #https://medium.com/analytics-vidhya/the-simplest-way-to-create-complex-visualizations-in-python-isnt-with-matplotlib-a5802f2dba92

@@ -6,7 +6,7 @@ pathFiles = Path(sys.argv[1])
 #pathFiles=Path("L:/promec/TIMSTOF/LARS/2022/januar/220119_ELise_rerun")
 fileName='proteinGroups.txt'
 trainList=list(pathFiles.rglob(fileName))
-#trainList=list([Path('L:/promec/TIMSTOF/LARS/2021/November/combined/txt/proteinGroups.txt'),Path('L:/promec/TIMSTOF/LARS/2021/Desember/211207_Nilu/combined/txt/proteinGroups.txt'),Path('L:/promec/TIMSTOF/LARS/2021/Desember/211221_Nilu/combined/txt/proteinGroups.txt')])
+#trainList=list([Path('L:/promec/TIMSTOF/LARS/2022/mars/Elise3/combined/txt/proteinGroups.txt'),Path('L:/promec/TIMSTOF/LARS/2022/januar/220119_ELise_rerun/Oslo/txt/proteinGroups.txt')])
 #!pip3 install pandas --user
 import pandas as pd
 #df = pd.concat(map(pd.read_table, trainList))
@@ -103,6 +103,30 @@ log2dfLFQvalsSeqsUni=dfLFQvalsSeqsUni.fillna(0)
 log2dfLFQvalsSeqsUni.index=log2dfLFQvalsSeqsUni['ID']
 log2dfLFQvalsSeqsUni=log2dfLFQvalsSeqsUni.drop(['ID'], axis=1)
 log2dfLFQvalsSeqsUni=np.log2(log2dfLFQvalsSeqsUni+1)
+log2dfLFQvalsSeqsUni.iloc[:,30]#LFQ intensity 4H_Elise_Slot1-34_1_3303Oslo220119_ELise_rerunjanuarF2
+log2dfLFQvalsSeqsUni.iloc[:,16]#LFQ intensity 1B_Elise_Slot1-20_1_3268Oslo220119_ELise_rerunjanuarF2
+log2dfLFQvalsSeqsUni.columns
+log2dfLFQvalsSeqsUni=log2dfLFQvalsSeqsUni.drop(['LFQ intensity 4H_Elise_Slot1-34_1_3303Oslo220119_ELise_rerunjanuarF2'], axis=1)
+log2dfLFQvalsSeqsUni=log2dfLFQvalsSeqsUni.drop(['LFQ intensity 1B_Elise_Slot1-20_1_3268Oslo220119_ELise_rerunjanuarF2'], axis=1)
+log2dfLFQvalsSeqsUni.columns
+log2dfLFQvalsSeqsUniS1=log2dfLFQvalsSeqsUni.iloc[:,0:15]
+log2dfLFQvalsSeqsUniS2=log2dfLFQvalsSeqsUni.iloc[:,15:30]
+log2dfLFQvalsSeqsUniS=log2dfLFQvalsSeqsUniS1.subtract(log2dfLFQvalsSeqsUniS2,axis='columns')
+cn=log2dfLFQvalsSeqsUniS1.columns+log2dfLFQvalsSeqsUniS2.columns
+log2dfLFQvalsSeqsUniS2.columns=cn
+log2dfLFQvalsSeqsUniS1.columns=cn
+log2dfLFQvalsSeqsUniS=log2dfLFQvalsSeqsUniS1-log2dfLFQvalsSeqsUniS2
+log2dfLFQvalsSeqsUniS.to_csv(pathFiles/(fileName+"log2dfLFQvalsDiff.csv"))
 #log2dfLFQvalsSeqsUni.hist()#.figure.savefig(pathFiles/(fileName+"log2dfLFQvalsSeqsUni.hist.svg"),dpi=100,bbox_inches = "tight")
-log2dfLFQvalsSeqsUni.to_csv(pathFiles/(fileName+"log2dfLFQvalsSeqsUni.csv"))
 log2dfLFQvalsSeqsUni.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(pathFiles/(fileName+"log2dfLFQvalsSeqsUni.svg"),dpi=100,bbox_inches = "tight")
+log2dfLFQvalsSeqsUniS.columns=log2dfLFQvalsSeqsUniS.columns.str.split(' ').str[4]
+log2dfLFQvalsSeqsUniS.columns=log2dfLFQvalsSeqsUniS.columns.str.split('_').str[0]
+log2dfLFQvalsSeqsUniS.to_csv(pathFiles/(fileName+"log2dfLFQvalsDiff.csv"))
+log2dfLFQvalsSeqsUniS.hist()
+log2dfLFQvalsSeqsUniS.plot(kind='hist', alpha=0.5, bins=100).figure.savefig(pathFiles/(fileName+"histogram.svg"),dpi=100,bbox_inches = "tight")
+import seaborn as sns
+sns.histplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"Scatter.svg"),dpi=100,bbox_inches = "tight")#,kind="reg")
+sns.histplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"plot.png"),dpi=100,bbox_inches = "tight")#,kind="reg")
+sns.histplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"Scatter.png"),dpi=60,bbox_inches = "tight")#,kind="reg")
+sns.pairplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"Scatter.svg"),dpi=100,bbox_inches = "tight")#,kind="reg")
+sns.pairplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"hist.png"),dpi=100,bbox_inches = "tight")#,kind="reg")

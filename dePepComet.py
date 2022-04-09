@@ -1,15 +1,31 @@
 # comet.2020012.win64.exe -Pcomet.nextprot.elite.params L:\promec\Elite\LARS\2021\Januar\oleJ\210107_SCCAbeads_urt1.raw #param comet.nextprot.elite.params appended below
 import sys
 from pathlib import Path
-if len(sys.argv)!=2:    sys.exit("USAGE: python dePepComet.py <path to tab-sep-comet results>, \n e.g.,\npython dePepComet.py L:/promec/Elite/LARS/2021/Januar/oleJ/210107_SCCAbeads.txt\n")
+if len(sys.argv)!=2:    sys.exit("USAGE: python dePepComet.py <path to tab-sep-comet results>, \n e.g.,\npython dePepComet.py L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/comet\n txt P09936")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("L:/promec/Elite/LARS/2021/Januar/oleJ/210107_SCCAbeadshuman_concat.txt")
-#pathFiles = Path("L:/promec/Elite/LARS/2021/Januar/oleJ/210107_SCCAbeads_urt1human_concat.txt")
+fileName = Path(sys.argv[2])
+uniprotID = Path(sys.argv[3])
+#pathFiles = Path("L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/comet")
+#fileName='*txt'
+#uniprotID='P09936'
+trainList=list(pathFiles.rglob(fileName))
 import pandas as pd
-df=pd.read_csv(pathFiles,low_memory=False,doublequote=True,sep='\t',skiprows=1)
+#df=pd.read_csv(pathFiles,low_memory=False,doublequote=True,sep='\t',skiprows=1)
+df=pd.DataFrame()
+#f=trainList[0]
+for f in trainList:
+    peptideHits=pd.read_csv(f,low_memory=False,sep='\t',comment='#', skiprows=1)
+    print(f)
+    peptideHits=peptideHits[peptideHits['protein'].str.contains(uniprotID)]
+    peptideHits['Name']=f
+    #peptideHits['xcorr'].hist()
+    #peptideHits['modified_peptide']
+    df=pd.concat([df,peptideHits],sort=False)
+print(df.head())
 print(df.columns)
 print(df.dtypes)
-df.to_csv(pathFiles.with_suffix('.parse.csv'))
+df['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.'+uniprotID+'.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
+df.to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
 df = df.convert_dtypes(convert_boolean=False)
 print(df.dtypes)
 import numpy as np

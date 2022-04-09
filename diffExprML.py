@@ -1,3 +1,67 @@
+#https://medium.com/aimstack/an-end-to-end-example-of-aim-logger-used-with-xgboost-library-3d461f535617
+from __future__ import division
+import numpy as np
+import xgboost as xgb
+from aim.xgboost import AimCallback
+# label need to be 0 to num_class -1
+data = np.loadtxt('./dermatology.data', delimiter=',',
+        converters={33: lambda x:int(x == '?'), 34: lambda x:int(x) - 1})
+sz = data.shape
+train = data[:int(sz[0] * 0.7), :]
+test = data[int(sz[0] * 0.7):, :]
+train_X = train[:, :33]
+train_Y = train[:, 34]
+test_X = test[:, :33]
+test_Y = test[:, 34]
+print(len(train_X))
+xg_train = xgb.DMatrix(train_X, label=train_Y)
+xg_test = xgb.DMatrix(test_X, label=test_Y)
+# setup parameters for xgboost
+param = {}
+# use softmax multi-class classification
+param['objective'] = 'multi:softmax'
+# scale weight of positive examples
+param['eta'] = 0.1
+param['max_depth'] = 6
+param['nthread'] = 4
+param['num_class'] = 6
+watchlist = [(xg_train, 'train'), (xg_test, 'test')]
+num_round = 50
+bst = xgb.train(param, xg_train, num_round, watchlist)
+# get prediction
+pred = bst.predict(xg_test)
+error_rate = np.sum(pred != test_Y) / test_Y.shape[0]
+print('Test error using softmax = {}'.format(error_rate))
+# do the same thing again, but output probabilities
+param['objective'] = 'multi:softprob'
+bst = xgb.train(param, xg_train, num_round, watchlist, 
+                callbacks=[AimCallback(repo='.', experiment='xgboost_test')])
+# Note: this convention has been changed since xgboost-unity
+# get prediction, this is in 1D array, need reshape to (ndata, nclass)
+pred_prob = bst.predict(xg_test).reshape(test_Y.shape[0], 6)
+pred_label = np.argmax(pred_prob, axis=1)
+error_rate = np.sum(pred_label != test_Y) / test_Y.shape[0]
+print('Test error using softprob = {}'.format(error_rate))
+#https://medium.com/aimstack/aim-basics-using-context-and-subplots-to-compare-validation-and-test-metrics-f1a4d7e6b9ca
+import aim
+
+# train loop
+for epoch in range(num_epochs):
+  for i, (images, labels) in enumerate(train_loader):
+    if i % 30 == 0:
+      aim.track(loss.item(), name='loss', epoch=epoch, subset='train')
+      aim.track(acc.item(), name='accuracy', epoch=epoch, subset='train')
+    
+  # calculate validation metrics at the end of each epoch
+  # ...
+  aim.track(loss.item(), name='loss', epoch=epoch, subset='val')
+  aim.track(acc.item(), name='acc', epoch=epoch, subset='val')
+  # ...
+  
+  # calculate test metrics 
+  # ...
+  aim.track(loss.item(), name='loss', subset='test')
+  aim.track(acc.item(), name='loss', subset='test')
 #https://towardsdatascience.com/introduction-to-hydra-cc-a-powerful-framework-to-configure-your-data-science-projects-ed65713a53c6
 #import hydra
 #from hydra import utils 
