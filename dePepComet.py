@@ -1,11 +1,12 @@
-# comet.2020012.win64.exe -Pcomet.nextprot.elite.params L:\promec\Elite\LARS\2021\Januar\oleJ\210107_SCCAbeads_urt1.raw #param comet.nextprot.elite.params appended below
+# for i in ./comet/home/ash022/PD/Qexactive/Mirta/20220319_IP-UCHL1_MN/*/*.mgf ; do echo $i ; ./comet.linux.exe $i; done # comet_version 2021.02 rev. 0 (3c62af2) https://github.com/UWPR/Comet/releases/tag/v2021.02.0
+#database_name = 2022-03-21-decoys-contam-uniprot-human-iso-june21.fasta.fas
 import sys
 from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("USAGE: python dePepComet.py <path to tab-sep-comet results>, \n e.g.,\npython dePepComet.py L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/comet\n txt P09936")
 pathFiles = Path(sys.argv[1])
 fileName = Path(sys.argv[2])
 uniprotID = Path(sys.argv[3])
-#pathFiles = Path("L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/comet")
+#pathFiles = Path("L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/comet/home")
 #fileName='*txt'
 #uniprotID='P09936'
 trainList=list(pathFiles.rglob(fileName))
@@ -25,6 +26,7 @@ print(df.head())
 print(df.columns)
 print(df.dtypes)
 df['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.'+uniprotID+'.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
+df=df[~(df['modifications']=="-")]
 df.to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
 df = df.convert_dtypes(convert_boolean=False)
 print(df.dtypes)
