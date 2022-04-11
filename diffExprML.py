@@ -1,3 +1,29 @@
+#http://www.pycaret.org/tutorials/html/MCLF101.html
+import pandas as pd
+#dataset=pd.read_csv("mm.csv")
+#data=dataset.sample(frac=0.8)
+#data_unseen=dataset.drop(data.index)
+#data.reset_index(drop=True, inplace=True)
+#data_unseen.reset_index(drop=True, inplace=True)
+#data.to_csv("mm.train.csv")
+#data_unseen.to_csv("mm.test.csv")
+data=pd.read_csv("mm.train.csv",index_col=False)
+data.drop('Unnamed: 0',axis=1,inplace=True)
+data_unseen=pd.read_csv("mm.test.csv")
+data_unseen.drop('Unnamed: 0',axis=1,inplace=True)
+print ("Data for Modeling :" + str(data.shape))
+print("unseen Data For Predictions:"+str(data_unseen.shape))
+data_unseen['Group']
+#Data for Modeling :(37, 3956)
+#unseen Data For Predictions:(9, 3956)
+from pycaret.classification import *
+exp_mclf101 = setup(data = data, target = 'Group', session_id=42,use_gpu=True)
+compare_models()
+#MAE lasso +/-6.6676USD
+et=create_model('dt')
+tuned_et = tune_model (et, n_iter = 1000)
+#6.6635
+unseen_predictions = predict_model (tuned_et, data=data_unseen)
 #https://medium.com/aimstack/an-end-to-end-example-of-aim-logger-used-with-xgboost-library-3d461f535617
 from __future__ import division
 import numpy as np
