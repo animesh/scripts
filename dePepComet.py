@@ -6,18 +6,21 @@ if len(sys.argv)!=2:    sys.exit("USAGE: python dePepComet.py <path to tab-sep-c
 pathFiles = Path(sys.argv[1])
 fileName = Path(sys.argv[2])
 uniprotID = Path(sys.argv[3])
-#pathFiles = Path("L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/comet/home")
+#pathFiles = Path("Z:/contaminants/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2021/Desember/211207_Nilu/MGF8F/")
 #fileName='*txt'
-#uniprotID='P09936'
+#uniprotID='HUMAN'
+#xCorThr=0
 trainList=list(pathFiles.rglob(fileName))
+print(len(trainList))
 import pandas as pd
 #df=pd.read_csv(pathFiles,low_memory=False,doublequote=True,sep='\t',skiprows=1)
 df=pd.DataFrame()
 #f=trainList[0]
 for f in trainList:
-    peptideHits=pd.read_csv(f,low_memory=False,sep='\t',comment='#', skiprows=1)
     print(f)
-    peptideHits=peptideHits[peptideHits['protein'].str.contains(uniprotID)]
+    peptideHits=pd.read_csv(f,low_memory=False,sep='\t',comment='#', skiprows=1)
+    peptideHits=peptideHits[peptideHits['xcorr']>xCorThr]
+    peptideHits=peptideHits[peptideHits['protein'].str.contains(uniprotID) == False]
     peptideHits['Name']=f
     #peptideHits['xcorr'].hist()
     #peptideHits['modified_peptide']
@@ -25,9 +28,20 @@ for f in trainList:
 print(df.head())
 print(df.columns)
 print(df.dtypes)
-df['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.'+uniprotID+'.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
-df=df[~(df['modifications']=="-")]
-df.to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
+df.to_csv(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThr.csv'))
+df['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThr.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
+#df=df[~(df['modifications']=="-")]
+dfxCorr=df.pivot_table(index='protein', columns='Name', values='xcorr',aggfunc= 'sum')
+cName=dfxCorr.columns.values.tolist()
+cName = [s.__str__().replace(pathFiles.__str__(),'') for s in cName]
+cName = [s.split('_')[2] for s in cName]#P-2,9,18,20;contam-6,11,14,16#16&20&2.nF
+dfxCorr.columns=cName
+import numpy as np
+dfxCorr=np.log2(dfxCorr)
+dfxCorr['Sum']=dfxCorr.sum(axis=1)
+dfxCorr=dfxCorr.sort_values('Sum',ascending=False)
+dfxCorr.to_csv(pathFiles.with_suffix('.comb.na.protein.select'+uniprotID+str(xCorThr)+'log2xCorrThr.csv'))
+dfxCorr.hist()#.figure.savefig(pathFiles.with_suffix('.comb.protein.na0.select'+uniprotID+str(xCorThr)+'xCorrThr.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
 df = df.convert_dtypes(convert_boolean=False)
 print(df.dtypes)
 import numpy as np
