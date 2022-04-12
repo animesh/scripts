@@ -4,6 +4,30 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+#https://blog.devgenius.io/predicting-tesla-stocks-tsla-using-python-pycaret-45af9ed47de9
+import pandas as pd
+import pandas_datareader as pdr
+ts = pdr. av. time_series .AVTimeSeriesReader ("IBM", api_key="44T41340509IQGHL")
+df=ts.read()
+df.index = pd.to_datetime (df.index, format='%Y-%m-%d')
+df.to_csv("output.csv")
+dataset=pd.read_csv("output.csv")
+data=dataset.sample(frac=0.9)
+data_unseen=dataset.drop(data.index)
+data.reset_index(drop=True, inplace=True)
+data_unseen.reset_index(drop=True, inplace=True)
+print ("Data for Modeling :" + str(data.shape))
+print("unseen Data For Predictions:"+str(data_unseen.shape))
+#Data for Modeling: (2640, 6)
+#Unseen Data For Predictions : (293, 6)
+from pycaret.regression import *
+exp_reg102 = setup(data=data,target='close',session_id=123,use_gpu=True)
+compare_models()
+#MAE lasso +/-6.6676USD
+et=create_model('en')
+tuned_et = tune_model (et, n_iter = 1000)
+#6.6635
+unseen_predictions = predict_model (tuned_et, data=data_unseen)
 
 #https://www.autodesk.com/research/publications/same-stats-different-graphs
 
