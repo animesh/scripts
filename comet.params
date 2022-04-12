@@ -1,9 +1,9 @@
-# for i in ./comet/home/ash022/PD/Qexactive/Mirta/20220319_IP-UCHL1_MN/*/*.mgf ; do echo $i ; ./comet.linux.exe $i; done
+# for i in /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2021/Desember/211207_Nilu/MGF8F/*.mgf ; do echo $i ; ./comet.linux.exe $i; done
 # comet_version 2021.02 rev. 0 (3c62af2) https://github.com/UWPR/Comet/releases/tag/v2021.02.0
 # Comet MS/MS search engine parameters file. http://comet-ms.sourceforge.net/parameters/parameters_201402/combined.php
 # Everything following the '#' symbol is treated as a comment.
 
-database_name = 2022-03-21-decoys-contam-uniprot-human-iso-june21.fasta.fas
+database_name = /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2021/Desember/211207_Nilu/MGF8F/2022-04-10-decoys-contam-uniprot_sprot.fasta
 decoy_search = 0                       # 0=no (default), 1=concatenated search, 2=separate search
 peff_format = 0                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
 peff_obo =                             # path to PSI Mod or Unimod OBO file
@@ -34,14 +34,10 @@ allowed_missed_cleavage = 2            # maximum value is 5; for enzyme search
 #     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
 #
 variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
-variable_mod02 = 15.9949 C 0 3 -1 0 0 0.0
-variable_mod03 = 79.966331 STY 0 3 -1 0 0 97.976896
-variable_mod04 = 42.010565 nK 0 3 -1 0
-variable_mod05 = 0.984016 NQ 0 3 -1 0 0 0.0
-variable_mod06 = 0.0 X 0 3 -1 0 0 0.0
-variable_mod07 = 0.0 X 0 3 -1 0 0 0.0
-variable_mod08 = 0.0 X 0 3 -1 0 0 0.0
-variable_mod09 = 0.0 X 0 3 -1 0 0 0.0
+variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
+variable_mod03 = 42.010565 nK 0 3 -1 0
+#variable_mod04 = 15.9949 C 0 3 -1 0 0 0.0
+#variable_mod05 = 79.966331 STY 0 3 -1 0 0 97.976896
 max_variable_mods_in_peptide = 5
 require_variable_mod = 0
 
@@ -97,7 +93,7 @@ max_fragment_charge = 3                # set maximum fragment charge state to an
 max_precursor_charge = 6               # set maximum precursor charge state to analyze (allowed max 9)
 nucleotide_reading_frame = 0           # 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
 clip_nterm_methionine = 1              # 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
-spectrum_batch_size = 0            # max. # of spectra to search at a time; 0 to search the entire scan range in one loop
+spectrum_batch_size = 60000            # max. # of spectra to search at a time; 0 to search the entire scan range in one loop
 decoy_prefix = rev_                  # decoy entries are denoted by this string which is pre-pended to each protein accession
 equal_I_and_L = 1                      # 0=treat I and L as different; 1=treat I and L as same
 output_suffix =                        # add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
