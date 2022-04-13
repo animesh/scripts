@@ -1,20 +1,26 @@
-# for i in /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2021/Desember/211207_Nilu/MGF8F/*.mgf ; do echo $i ; ./comet.linux.exe $i; done
+#tar cvzf serumOpen.tgz /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/*/*.mgf
+#mkdir alessandro
+#cd alessandro/
+#tar xvzf ../serumOpen.tgz 
+#cd ..
+#for i in alessandro/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/220402_Alessandro_test3_*/*.mgf ; do echo $i ; ./comet.linux.exe $i; done
+#wc alessandro/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/220402_Alessandro_test3_*/*.txt
+#tar cvzf serumOpen.tgz alessandro/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/220402_Alessandro_test3_*/*.txt
 # comet_version 2021.02 rev. 0 (3c62af2) https://github.com/UWPR/Comet/releases/tag/v2021.02.0
 # Comet MS/MS search engine parameters file. http://comet-ms.sourceforge.net/parameters/parameters_201402/combined.php
 # Everything following the '#' symbol is treated as a comment.
-
-database_name = /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2021/Desember/211207_Nilu/MGF8F/2022-04-10-decoys-contam-uniprot_sprot.fasta
+database_name = /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/FastaDB/2021-01-12-decoys-contam-UP000005640.fas
 decoy_search = 0                       # 0=no (default), 1=concatenated search, 2=separate search
 peff_format = 0                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
 peff_obo =                             # path to PSI Mod or Unimod OBO file
 
-num_threads = 0                        # 0=poll CPU to set num threads; else specify num threads directly (max 128)
+num_threads = 128                        # 0=poll CPU to set num threads; else specify num threads directly (max 128)
 
 #
 # masses
 #
-peptide_mass_tolerance = 10.00
-peptide_mass_units = 2                 # 0=amu, 1=mmu, 2=ppm
+peptide_mass_tolerance = 500.00
+peptide_mass_units = 0                 # 0=amu, 1=mmu, 2=ppm
 mass_type_parent = 1                   # 0=average masses, 1=monoisotopic masses
 mass_type_fragment = 1                 # 0=average masses, 1=monoisotopic masses
 precursor_tolerance_type = 1           # 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
@@ -26,16 +32,16 @@ isotope_error = 3                      # 0=off, 1=0/1 (C13 error), 2=0/1/2, 3=0/
 search_enzyme_number = 1               # choose from list at end of this params file
 search_enzyme2_number = 0              # second enzyme; set to 0 if no second enzyme
 num_enzyme_termini = 2                 # 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific
-allowed_missed_cleavage = 2            # maximum value is 5; for enzyme search
+allowed_missed_cleavage = 0            # maximum value is 5; for enzyme search
 
 #
 # Up to 9 variable modifications are supported
 # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
 #     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
 #
-variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
-variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
-variable_mod03 = 42.010565 nK 0 3 -1 0
+#variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
+#variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
+#variable_mod03 = 42.010565 nK 0 3 -1 0
 #variable_mod04 = 15.9949 C 0 3 -1 0 0 0.0
 #variable_mod05 = 79.966331 STY 0 3 -1 0 0 97.976896
 max_variable_mods_in_peptide = 5
