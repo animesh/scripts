@@ -2,27 +2,37 @@
 #!pip3 install pathlib --user
 import sys
 from pathlib import Path
-if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib\nTested with Python 3.9\n","USAGE: \npython dePepFP.py <path to folder containing psm.tsv file(s) like \"Z:/20220319_IP-UCHL1_MN/\" >\n")
+if len(sys.argv)!=2:    sys.exit("REQUIRED: pandas, pathlib\nTested with Python 3.9\n","USAGE: \npython dePepFP.py <path to folder containing psm.tsv file(s) like \"Z:/20220319_IP-UCHL1_MN/\" > <Hyperscore threshold for filetering> <Protein ID to filter>\n")
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/")
+hyperScoreThr = Path(sys.argv[2])
+uniprotID = Path(sys.argv[3])
+#fileName = Path(sys.argv[4])
+#tar cvzf fp.tgz /home/ash022/PD/TIMSTOF/LARS/2021/Desember/211207_Nilu/MGF8F/FP/*/psm.tsv
+#pathFiles = Path("L:/promec/TIMSTOF/LARS/2021/Desember/211207_Nilu/FP/")
 fileName='psm.tsv'
+uniprotID='HUMAN'
+hyperScoreThr=0
 trainList=list(pathFiles.rglob(fileName))
-
 import pandas as pd
 df=pd.DataFrame()
 #f=trainList[0]
 for f in trainList:
-    peptideHits=pd.read_csv(f,low_memory=False,sep='\t')
     print(f)
-    peptideHits=peptideHits[peptideHits['Gene']=='UCHL1']
+    peptideHits=pd.read_csv(f,low_memory=False,sep='\t')
+    peptideHits=peptideHits[peptideHits['Hyperscore']>hyperScoreThr]
+    peptideHits=peptideHits[peptideHits['Protein'].str.contains(uniprotID) == False]
     peptideHits['Name']=f
     #peptideHits['Observed Modifications']
     df=pd.concat([df,peptideHits],sort=False)
 print(df.head())
 print(df.columns)
+df.to_csv(pathFiles/(fileName+uniprotID+str(hyperScoreThr)+".combine.csv"))
 dfDP=df[df['Observed Modifications'].notnull()]
-dfDP.to_csv(pathFiles/(fileName+".UCHL1.PTMs.csv"))
+dfDP.to_csv(pathFiles/(fileName+uniprotID+str(hyperScoreThr)+".DP.combine.csv"))
+dfModCnt=df['Observed Modifications'].value_counts()
 #print(df.columns.get_loc("DP Proteins"))
+dfModCnt.to_csv(pathFiles/(fileName+uniprotID+str(hyperScoreThr)+".DP.count.combine.csv"))
+dfModCnt[dfModCnt>10].plot(kind='bar',stacked=True).figure.savefig(pathFiles/(fileName+uniprotID+str(hyperScoreThr)+".DP.count.combine.png"),dpi=100,bbox_inches = "tight")
 dfDP=df.loc[:, df.columns.str.startswith('Observed Modification')|df.columns.str.endswith('unmodified)')]
 dfDP=dfDP[dfDP['Potential Modification 1'].notnull()]
 #dfDP=dfDP.rename(columns = lambda x : str(x)[3:])
