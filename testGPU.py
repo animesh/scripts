@@ -1,3 +1,55 @@
+#Original file is located at https://colab.research.google.com/github/rapidsai/cuml/blob/branch-22.06/notebooks/random_forest_mnmg_demo.ipynb
+import numpy as np
+import sklearn
+import pandas as pd
+import cudf
+import cuml
+from sklearn import model_selection
+from cuml import datasets
+from cuml.metrics import accuracy_score
+from cuml.dask.common import utils as dask_utils
+from dask.distributed import Client, wait
+from dask_cuda import LocalCUDACluster
+import dask_cudf
+from cuml.dask.ensemble import RandomForestClassifier as cumlDaskRF
+from sklearn.ensemble import RandomForestClassifier as sklRF
+cluster = LocalCUDACluster(threads_per_worker=1)
+c = Client(cluster)
+workers = c.has_what().keys()
+n_workers = len(workers)
+n_streams = 8 # Performance optimization
+train_size = 100000
+test_size = 1000
+n_samples = train_size + test_size
+n_features = 20
+max_depth = 12
+n_bins = 16
+n_trees = 1000
+X, y = datasets.make_classification(n_samples=n_samples, n_features=n_features,
+                                 n_clusters_per_class=1, n_informative=int(n_features / 3),
+                                 random_state=123, n_classes=5)
+X = X.astype(np.float32)
+y = y.astype(np.int32)
+X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y, test_size=test_size)
+n_partitions = n_workers
+def distribute(X, y):
+    X_cudf = cudf.DataFrame(X)
+    y_cudf = cudf.Series(y)
+    X_dask = dask_cudf.from_cudf(X_cudf, npartitions=n_partitions)
+    y_dask = dask_cudf.from_cudf(y_cudf, npartitions=n_partitions)
+    X_dask, y_dask = dask_utils.persist_across_workers(c, [X_dask, y_dask], workers=workers)
+    return X_dask, y_dask
+X_train_dask, y_train_dask = distribute(X_train, y_train)
+X_test_dask, y_test_dask = distribute(X_test, y_test)
+skl_model = sklRF(max_depth=max_depth, n_estimators=n_trees, n_jobs=-1)
+skl_model.fit(X_train.get(), y_train.get())
+cuml_model = cumlDaskRF(max_depth=max_depth, n_estimators=n_trees, n_bins=n_bins, n_streams=n_streams)
+cuml_model.fit(X_train_dask, y_train_dask)
+wait(cuml_model.rfs) # Allow asynchronous training tasks to finish
+skl_y_pred = skl_model.predict(X_test.get())
+cuml_y_pred = cuml_model.predict(X_test_dask).compute().to_numpy()
+print("SKLearn accuracy:  ", accuracy_score(y_test, skl_y_pred))
+print("CuML accuracy:     ", accuracy_score(y_test, cuml_y_pred))
 #https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html#install-windows
 import tensorflow as tf#.compat.v1 as tf
 print("TensorFlow ",tf.__version__)
@@ -137,9 +189,11 @@ print("Time taken:", datetime.now() - startTime)
 
 import torch
 print("PyTorch ",torch.__version__)
+#device_name = "/gpu:0"
 device = torch.device('cuda' if device_name == "/gpu:0" else 'cpu')
 print('Using device:', device)
 startTime = datetime.now()
+#shape = (int(100000), int(100000))
 print(torch.rand(shape)*torch.rand(shape))
 #https://stackoverflow.com/a/53374933
 print("Time taken:", datetime.now() - startTime)

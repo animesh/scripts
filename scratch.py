@@ -4,10 +4,9 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+# %% codon
 #translate a DNA sequence to protein
-
 import sys
-
 codon_table = {
     'ATA':'I', 'ATC':'I', 'ATT':'I', 'ATG':'M',
     'ACA':'T', 'ACC':'T', 'ACG':'T', 'ACT':'T',
