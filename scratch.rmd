@@ -43,6 +43,11 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+```{r}
+#https://twitter.com/ATpoint90/status/1504515297683902467?t=KKSz6X4CEI9Ka_H2aO7svw&s=03
+DESeq2::results() or the limma::treat() and edgeR::glmTreat() 
+```
+
 ```{r excel}
 #https://twitter.com/GuyProchilo/status/1506404403955310594?s=20&t=eViyk00dILRTyQiougk2mg
 install.packages("datapasta")

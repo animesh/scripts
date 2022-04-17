@@ -1,12 +1,13 @@
 ```{r setup}
-.libPaths(c("L:/promec/Animesh/R/win-library/4.0",.libPaths())
+inpD <-"L:/OneDrive - NTNU/PROMEC01/IDH1/"
+.libPaths(c(paste0(inpD,"/R/")),.libPaths())
 .libPaths()
 #data
-inpD <-"L:/promec/Animesh/Kristian/"
 thr<-20
 selThr=0.3
 selThrFC=0.5
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
+hdr<-gsub(" ", "",hdr)
 setwd(inpD)
 getwd()
 ```
@@ -22,12 +23,18 @@ library(pathview)
 ```
 
 ```{r data}
-inpF<-paste0(inpD,"proteinGroupsM1M0Mono-log2LFQmedian.txt")
-data<-read.csv(inpF,sep="\t")
-dataS<-as.matrix(data[,c(1:3)],rownames=T)
+inpF1<-paste0(inpD,"proteinGroups.txtLFQ.intensity.16MUT CtrlWT Ctrl0.050.50.05BiotTestBH.csv")
+data1<-read.csv(inpF1,row.names = 18)
+inpF2<-paste0(inpD,"proteinGroups.txtLFQ.intensity.16MUTctrlWTctrl0.050.50.05grouptTestBH.csv")
+data2<-read.csv(inpF2,row.names = 17)
+#dataS<-as.matrix(data1[,c(17)],rownames=T)#as.matrix(data[,c(10:15)],rownames=T)
+dataS<-as.matrix(data1[,c(10:15)],rownames=T)
+#dataS<-as.matrix(data2[,c(16)],rownames=T)#as.matrix(data[,c(10:15)],rownames=T)
+dataS<-as.matrix(data2[,c(10:15)],rownames=T)
 dataS<-apply(dataS, 2, as.numeric)
 dataS[dataS==0]=NA
-rn<-strsplit(data$T..Gene.names,";")
+rn<-strsplit(data2$Gene,";")
+rn<-strsplit(data1$Gene,";")
 rn<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
 #rn<-strsplit(rn, "-")
 row.names(dataS)<-rn
@@ -42,34 +49,36 @@ limma::vennDiagram(dataS>0)
 #https://bioconductor.org/packages/release/bioc/vignettes/pathview/inst/doc/pathview.pdf
 #BiocManager::install("pathview")
 library(pathview)
-#https://www.kegg.jp/kegg-bin/show_pathway?hsa04210
+#data(gse16873.d)
+#pv.out <- pathview(gene.data = gse16873.d[, 1], pathway.id = "04110", species = "hsa", out.suffix = "gse16873")
+#TCA https://www.genome.jp/pathway/hsa00020+3417
+#Urea https://www.genome.jp/pathway/hsa00220+445
 hda=dataS
-rowName<-strsplit(data$T..Protein.IDs, ";")
-rowName<-paste(sapply(rowName, "[", 1))
-rowName<-strsplit(rowName, "-")
-protNum<-1:nrow(dataS)
-protName<-sapply(rowName, "[", 1)
-rowName<-paste(protName,protNum,sep=";")
+#rowName<-strsplit(data$Uniprot, ";")
+#rowName<-paste(sapply(rowName, "[", 1))
+#rowName<-strsplit(rowName, "-")
+#protNum<-1:nrow(dataS)
+#protName<-sapply(rowName, "[", 1)
+#rowName<-paste(protName,protNum,sep=";")
 #rownames(hda)<-rowName
 hist(hda)
 hda[is.na(hda)]=0
 #hda=hda-hda[,3]
-hda=hda-hda[,2]
+#hda=hda-hda[,2]
 #hda=hda-matrixStats::rowMedians(hda)
 #hda=hda-median(hda,na.rm=T)+1e-6
 hist(hda)
 write.table(hda,paste0(inpF,".hdaM1M0.txt"),sep="\t")
-hda[hda==0]<-NA
-hda=hda[,1]
+#hda[hda==0]<-NA
+#hda=hda[,1]
 #hda[is.na(hda)]<-0
-hist(hda)
+#hist(hda)
 #heatmap(hda)
 #library(scales)
 #scale(t(hda))
-hda=scales::squish(as.matrix(hda),c(-5,5))
+hda=scales::rescale(as.matrix(hda),c(-1,1))#squish(as.matrix(hda),c(-5,5))
 hist(hda)
 #rownames(hda)<-protName
-rownames(hda)<-rownames(dataS)
 pathList<-c(
 "hsa04064",  
 #NF-kappa B signaling pathway
@@ -88,13 +97,18 @@ pathList<-c(
 "hsa05135"
 #Yersinia infection
 ) 
+hda<-apply(hda, 2, as.numeric)
+rownames(hda)<-rownames(dataS)
+hda["ASS1",]
+dataS["ASS1",]
 for(pcode in pathList){
-  print(pcode)
-#pcode<-"04064"
+pcode<-"00020"
+pcode<-"00220"
+print(pcode)
 pspecies<-"hsa"
-sfx<-"M1MO"#paste(gsub("[^[:alnum:] ]", "",colnames(dataS)), collapse='_' )
+sfx<-"MUT_WT"#paste(gsub("[^[:alnum:] ]", "",colnames(dataS)), collapse='_' )
 idtype<-gene.idtype.list[1]#gene.idtype.list[6]#"UNIPROT"
-pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="orange"),both.dirs=list(gene=T), limit = list(gene = 5), bins = list(gene = 5), na.col="grey",out=sfx)
+pathview(hda,pathway.id=pcode,species=pspecies,gene.idtype=idtype)#,low=list(gene="blue"),mid=list(gene="white"),high=list(gene="orange"),both.dirs=list(gene=T), limit = list(gene = 6), bins = list(gene = 6), na.col="grey",out=sfx)
 }
 write.csv(hda,paste0(inpF,sfx,"-M0.csv"))
 ```

@@ -4,6 +4,7 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+
 # %% codon
 #translate a DNA sequence to protein
 import sys
@@ -1154,7 +1155,7 @@ trace0 = go.Scatter(x=nflx.Date, y=nflx.Close, name='nflx')
 fig0 = go.Figure([trace0])
 fig0.update_layout(
     title={
-        'text': "Netflix Stock Price",
+        'text': "Disease Stock Price",
         'x':0.5,
         'xanchor': 'center'})
 trace0 = go.Scatter(x=nflx.Date, y=nflx.Close, name='NFLX')
@@ -1163,7 +1164,7 @@ trace2 = go.Scatter(x=nflx.Date, y=nflx['20-day MA'], name='20-day MA')
 fig1 = go.Figure([trace0, trace1, trace2])
 fig1.update_layout(
     title={
-        'text': "Netflix Stock Price",
+        'text': "Disease Stock Price",
         'x':0.5,
         'xanchor': 'center'})
 dp.Report(
