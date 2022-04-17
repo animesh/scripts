@@ -1,11 +1,11 @@
-#tar cvzf serumOpen.tgz /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/*/*.mgf
-#mkdir alessandro
-#cd alessandro/
-#tar xvzf ../serumOpen.tgz 
+#tar cvzf serumQE.tgz /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/*/*.mgf
+#mkdir serumQE
+#cd serumQE/
+#tar xvzf ../serumQE.tgz 
 #cd ..
-#for i in alessandro/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/220402_Alessandro_test3_*/*.mgf ; do echo $i ; ./comet.linux.exe $i; done
-#wc alessandro/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/220402_Alessandro_test3_*/*.txt
-#tar cvzf serumOpen.tgz alessandro/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/220402_Alessandro_test3_*/*.txt
+#for i in serumQE/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220211_beads_test1/PDv2p5/BeadsTest1/220402_Alessandro_test3_Plasma*mgf ; do echo $i ; ls -ltrh $i; ./comet.linux.exe $i; done
+#wc serumQE/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220211_beads_test1/PDv2p5/BeadsTest1/220402_Alessandro_test3_Plasma*txt
+#tar cvzf serumQE.tgz serumQE/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220211_beads_test1/PDv2p5/BeadsTest1/220402_Alessandro_test3_Plasma*txt
 # comet_version 2021.02 rev. 0 (3c62af2) https://github.com/UWPR/Comet/releases/tag/v2021.02.0
 # Comet MS/MS search engine parameters file. http://comet-ms.sourceforge.net/parameters/parameters_201402/combined.php
 # Everything following the '#' symbol is treated as a comment.
