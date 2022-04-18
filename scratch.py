@@ -4,7 +4,39 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
-
+cd f:\GD\OneDrive\Dokumenter\GitHub\scripts
+# %% codon
+#https://github.com/animesh/classix/tree/master
+pip install classixclustering
+pip show classixclustering #WARNING: Ignoring invalid distribution -ip (c:\users\animeshs\appdata\local\packages\pythonsoftwarefoundation.python.3.9_qbz5n2kfra8p0\localcache\local-packages\python39\site-packages) Name: ClassixClustering Version: 0.5.8
+from classix import CLASSIX
+X=data[["x","y"]]
+clx = CLASSIX(radius=0.3, verbose=1)
+clx.fit(X)
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10,10))
+plt.rcParams['axes.facecolor'] = 'white'
+clx.labels_
+plt.scatter(X["x"], X["y"], c=clx.labels_)
+clx.explain(plot=True)
+clx.explain(0, plot=True)
+clx.explain(0, 100, plot=True)
+#from sklearn import datasets
+#X, _ = make_blobs(n_samples=5, centers=2, n_features=2, cluster_std=1.5, random_state=1)
+#X = pd.DataFrame(X, index=['Anna', 'Bert', 'Carl', 'Tom', 'Bob'])
+#clx.explain(index1='Tom', index2='Bert', plot=True, sp_fontsize=12)
+# %% codon
+#https://github.com/koaning/drawdata
+from drawdata import draw_scatter
+draw_scatter()
+data=pd.read_clipboard(sep=",")
+data.head()
+#https://calmcode.io/labs/drawdata.html
+import pandas as pd
+data=pd.read_csv("data4class.csv")
+data.plot()
+import seaborn as sns
+sns.pairplot(data,hue="z")
 # %% codon
 #translate a DNA sequence to protein
 import sys
@@ -3304,12 +3336,6 @@ df["rank"] = df.groupby("date)["sales"].rank(ascending=False).astype("int")
 df.groupby(["store","rank"]).count()[["sales"]]
 df.groupby(["store","rank"]).agg(rank_count = ("rank", "count"))
 df = pd.concat([A, B, C]).sort_values(by="date", ignore_index=True)
-#https://github.com/koaning/drawdata
-from drawdata import draw_scatter
-draw_scatter()
-import pandas as pd
-data=pd.read_clipboard(sep=",")
-data.head()
 #https://github.com/hyperopt/hyperopt/wiki/FMin#21-parameter-expressions preprocessors adapted in HyperOpt/Adaptive Tree of Parzen Estimators/ Sklearn are: PCA, TfidfVectorizer, StandardScalar, MinMaxScalar, Normalizer, OneHotEncoder; classifiers adapted in HyperOpt Sklearn are: SVC, LinearSVC KNeightborsClassifier. RandomForestClassifier, ExtraTreesClassifier SGDClassifier, MultinomialNB, BernoulliRBM, ColumnKMeans
 #https://github.com/chanzuckerberg/cellxgene
 import pickle
