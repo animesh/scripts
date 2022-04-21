@@ -1,7 +1,7 @@
 # %% mm
 import pandas as pd
 data=pd.read_csv("mm.csv")
-mapping = {'G':0,'M':1,'L':-1}
+mapping = {'G':0,'M':1,'L':0}
 data=data.replace({'Group': mapping})
 #data=data[data["Group"] != -1]
 print(data["Group"])
@@ -54,6 +54,7 @@ et=create_model('dt')
 tuned_et = tune_model (et, n_iter = 1000)
 #6.6635
 unseen_predictions = predict_model (tuned_et, data=data_unseen)
+# %% autoML
 #https://medium.com/aimstack/an-end-to-end-example-of-aim-logger-used-with-xgboost-library-3d461f535617
 from __future__ import division
 import numpy as np
@@ -229,3 +230,4 @@ dfC.iloc[:,1].plot(kind="barh").figure.savefig(outFc,dpi=100,bbox_inches = "tigh
 #plt.close()
 print(outFc)
 dfS=df.groupby(columnID).sum()
+# %%

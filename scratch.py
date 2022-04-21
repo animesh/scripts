@@ -5,7 +5,30 @@ import sys
 sys.executable
 sys.setrecursionlimit(1000)
 cd f:\GD\OneDrive\Dokumenter\GitHub\scripts
-# %% codon
+# %% viz
+#https://github.com/holoviz/lumen
+pip install lumen
+lumen serve dashboard.yaml --show
+# %% ga
+#https://itnext.io/goodbye-google-analytics-why-and-how-you-should-leave-the-platform-a1b60b878a79#91df-ad7c6c7143de
+#!pip install ga-extractor
+ga-extractor setup \
+  --sa-key-path="analytics-api-24102021-4edf0b7270c0.json" \
+  --table-id="123456789" \
+  --metrics="ga:sessions" \
+  --dimensions="ga:browser" \
+  --start-date="2021-01-01" \
+  --end-date="2022-04-21"
+ga-extractor extract --report="my-awesome-report.json"
+cat /home/user/.config/ga-extractor/my-awesome-report.json | jq .
+ga-extractor migrate --format=CSV
+head /home/user/.config/ga-extractor/02c2db1a-1ff0-47af-bad3-9c8bc51c1d13_extract.csv
+# path,browser,os,device,screen,language,country,referral_path,count,date
+# /,Chrome,Android,mobile,1370x1370,zh-cn,China,(direct),1,2022-03-18
+# /,Chrome,Android,mobile,340x620,en-gb,United Kingdom,t.co/,1,2022-03-18
+ga-extractor migrate --format=UMAMI
+# Report written to /home/user/.config/ga-extractor/cee9e1d0-3b87-4052-a295-1b7224c5ba78_extract.sql
+# %% clust
 #https://github.com/animesh/classix/tree/master
 pip install classixclustering
 pip show classixclustering #WARNING: Ignoring invalid distribution -ip (c:\users\animeshs\appdata\local\packages\pythonsoftwarefoundation.python.3.9_qbz5n2kfra8p0\localcache\local-packages\python39\site-packages) Name: ClassixClustering Version: 0.5.8

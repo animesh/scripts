@@ -69,6 +69,7 @@ dfC.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(pathFiles/(fileName+"Sco
 #dfID=df.assign(ID=df.ID.str.split(';')).explode('ID')
 dfLFQ=dfC
 dfLFQ=dfI
+dfLFQ=dfB
 i=0
 for f in trainList:
     i=i+1
@@ -89,9 +90,13 @@ dfLFQPeptides=dfS[dfS.columns].apply(lambda x:','.join(x.dropna().astype(str)),a
 #dfLFQPeptides['C9J1R6']#EFPDLGAHCSEPSCQR
 #dfLFQPeptides.filter(like='HTSALCNSCR')#EFPDLGAHCSEPSCQR,HPLDHDCSGEGHPTSR;HRHPLDHDCSGEGHPTSR,HPLDHDCSGEGHPTSR;HRHPLDHDCSGEGHPTSR
 dfLFQPeptides.to_csv(pathFiles/(fileName+"dfLFQPeptides.csv"))
+dfLFQvals=dfLFQ.filter(like='Unique peptides', axis=1)
+dfLFQvals=dfLFQ.filter(like='iBAQ', axis=1)
 dfLFQvals=dfLFQ.filter(like='LFQ', axis=1)
 #dfLFQvals=dfLFQ.filter(like='Intensity', axis=1)
 dfLFQvals.to_csv(pathFiles/(fileName+"dfLFQvals.csv"))
+#dfLFQvals.to_csv(pathFiles/(fileName+"dfiBAQvals.csv"))
+#dfLFQvals.to_csv(pathFiles/(fileName+"dfUniPeps.csv"))
 dfLFQvalsSeqs=pd.concat([dfLFQvals,dfLFQPeptides],axis=1)
 dfLFQvalsSeqs.to_csv(pathFiles/(fileName+"dfLFQvalsSeqs.csv"))
 dfLFQvalsSeqsMedian=dfLFQvalsSeqs.groupby(0).median()

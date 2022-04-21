@@ -1,3 +1,5 @@
+#script F:\GD\OneDrive\Dokumenter\GitHub\scripts\proteinGroupsANOVA.r
+#R C:\Users\animeshs\R\bin\Rscript.exe
 #options(download.file.method = "wininet")
 #install.packages("devtools")
 #devtools::install_github("cox-labs/PerseusR")
