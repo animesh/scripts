@@ -1,3 +1,10 @@
+# %% setup
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+conda install -c conda-forge mamba pycaret xgboost catboost
+mamba install -c rapidsai -c nvidia -c conda-forge cuml
+ln -s /mnt/f/GD/OneDrive/Dokumenter/GitHub/scripts .
+tail -f scripts/logs.log
 # %% mm
 import pandas as pd
 data=pd.read_csv("mm.csv")
@@ -6,13 +13,6 @@ data=data.replace({'Group': mapping})
 #data=data[data["Group"] != -1]
 print(data["Group"])
 print ("Data for Modeling :" + str(data.shape))
-# %% setup
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
-conda install -c conda-forge mamba pycaret xgboost catboost
-mamba install -c rapidsai -c nvidia -c conda-forge cuml
-ln -s /mnt/f/GD/OneDrive/Dokumenter/GitHub/scripts .
-tail -f scripts/logs.log
 # %% autoML
 #https://pycaret.gitbook.io/docs/get-started/quickstart#classification
 from pycaret.classification import *
@@ -21,13 +21,16 @@ best=compare_models()
 evaluate_model(best)
 plot_model(best, plot = 'auc')#plot = 'confusion_matrix')
 predict_model(best)
+# %% predML
 #et=create_model('catboost')
 #predictions = predict_model(tuned_et, data=data)
 predictions = predict_model(best, data=data)#, raw_score=True)
 predictions.head()
+# %% saveML
 save_model(best, 'mm_best_pipeline')
 loaded_model = load_model('mm_best_pipeline')
 print(loaded_model)
+# %% testML
 #http://www.pycaret.org/tutorials/html/MCLF101.html
 import pandas as pd
 #dataset=pd.read_csv("mm.csv")
@@ -101,7 +104,6 @@ error_rate = np.sum(pred_label != test_Y) / test_Y.shape[0]
 print('Test error using softprob = {}'.format(error_rate))
 #https://medium.com/aimstack/aim-basics-using-context-and-subplots-to-compare-validation-and-test-metrics-f1a4d7e6b9ca
 import aim
-
 # train loop
 for epoch in range(num_epochs):
   for i, (images, labels) in enumerate(train_loader):

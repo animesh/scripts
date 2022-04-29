@@ -22,6 +22,12 @@ library("gProfileR")
 library("genefilter")
 ```
 ```{r MMRF}
+par(mfrow=c(1,2))
+load("L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/MMRFclin.rds")
+plot(MMRFclin$treatments[[1]])#"treatment_outcome"])
+#download.file("https://studntnu-my.sharepoint.com/:u:/g/personal/animeshs_ntnu_no/EfQcUVcV4m5IlA7YY9h6zFsBJwZhomsv-0r5uIgnd8Wt0g?e=UZC0vP","MMRFdataPrepro.rds")
+load("L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/MMRFdataPrepro.rds")
+plot(MMRFdataPrepro[[1]])#"treatment_outcome"])
 #install.packages("devtools")
 #devtools::install_github(c("RDocTaskForce/testextra","RDocTaskForce/parsetools","halpo/purrrogress"))
 #install.packages(c("BiocManager","shiny","markdown","knitr","sweave","xtable","DT","httpuv","sourcetools"))
@@ -43,11 +49,6 @@ library("genefilter")
 #save(file="MMRFdataPrepro.rds",MMRFdataPrepro)
 #save(file="MMRFclin.rds",MMRFclin)
 #savehistory("R.history")
-load("L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/MMRFclin.rds")
-plot(MMRFclin$treatments[[1]])#"treatment_outcome"])
-#download.file("https://studntnu-my.sharepoint.com/:u:/g/personal/animeshs_ntnu_no/EfQcUVcV4m5IlA7YY9h6zFsBJwZhomsv-0r5uIgnd8Wt0g?e=UZC0vP","MMRFdataPrepro.rds")
-load("L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/MMRFdataPrepro.rds")
-plot(MMRFdataPrepro[[1]])#"treatment_outcome"])
 #https://stackoverflow.com/a/26089312/1137129
 blKM<-TCGAbiolinks::TCGAanalyze_SurvivalKM#<-TCGAanalyze_SurvivalKM
 body(blKM)[[25]][[4]]<-substitute({

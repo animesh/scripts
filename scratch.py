@@ -6,6 +6,14 @@ sys.executable
 sys.setrecursionlimit(1000)
 cd f:\GD\OneDrive\Dokumenter\GitHub\scripts
 # %% viz
+#https://diagrams.mingrammer.com/docs/getting-started/installation
+#!pip install diagrams # diagram.py
+from diagrams import Diagram
+from diagrams.aws.compute import EC2
+from diagrams.aws.database import RDS
+from diagrams.aws.network import ELB
+with Diagram("Web Service", show=False): ELB("lb") >> EC2("web") >> RDS("userdb")
+# %% viz
 #https://github.com/holoviz/lumen
 pip install lumen
 lumen serve dashboard.yaml --show
