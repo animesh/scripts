@@ -25,10 +25,5 @@ echo "Total of $SLURM_NTASKS cores"
 
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
-conda activate spritzbase
-module load MaxQuant/1.6.17.0-foss-2019b
-module load dotNET-SDK/3.1.300-linux-x64
-# 1020  2022-04-21T11:09:12 snakemake -j 24 --use-conda --conda-frontend mamba --resources mem_mb=100000
-# 1021  2022-04-21T11:39:57 less /cluster/projects/nn9036k/Spritz/Spritz/workflow/.snakemake/log/2022-04-21T110920.395820.snakemake.log
-# 1022  2022-04-21T11:40:28 less ../resources/SpritzModifications.build.log
-snakemake -j 64 --use-conda --conda-frontend mamba --resources mem_mb=512000
+module load Java/13.0.2
+/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --workflow /cluster/projects/nn9036k/febSig/Open.workflow --manifest /cluster/projects/nn9036k/febSig/manifest.fp-manifest --workdir /cluster/projects/nn9036k/febSig/FPv18r
