@@ -1,26 +1,26 @@
-#tar cvzf serumQE.tgz /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220402_beads_test3/timsTOF/*/*.mgf
-#mkdir serumQE
-#cd serumQE/
-#tar xvzf ../serumQE.tgz 
-#cd ..
-#for i in serumQE/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220211_beads_test1/PDv2p5/BeadsTest1/220402_Alessandro_test3_Plasma*mgf ; do echo $i ; ls -ltrh $i; ./comet.linux.exe $i; done
-#wc serumQE/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220211_beads_test1/PDv2p5/BeadsTest1/220402_Alessandro_test3_Plasma*txt
-#tar cvzf serumQE.tgz serumQE/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/USERS/Alessandro/220211_beads_test1/PDv2p5/BeadsTest1/220402_Alessandro_test3_Plasma*txt
 # comet_version 2021.02 rev. 0 (3c62af2) https://github.com/UWPR/Comet/releases/tag/v2021.02.0
 # Comet MS/MS search engine parameters file. http://comet-ms.sourceforge.net/parameters/parameters_201402/combined.php
 # Everything following the '#' symbol is treated as a comment.
-database_name = /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/FastaDB/2021-01-12-decoys-contam-UP000005640.fas
-decoy_search = 0                       # 0=no (default), 1=concatenated search, 2=separate search
-peff_format = 0                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
-peff_obo =                             # path to PSI Mod or Unimod OBO file
+# wget https://download.nextprot.org/pub/current_release/peff/nextprot_all.peff.gz
+# gunzip nextprot_all.peff.gz
+# wget https://github.com/animesh/psi-mod-CV/raw/master/PSI-MOD.obo
+# mkdir febSigMGFnp
+# ln -s /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2022/februar/Sigrid/*.d/*.mgf febSigMGFnp/.
+# for i in febSigMGFnp/*.mgf; do echo $i; ls -ltrh $i;./comet.linux.exe $i; done
+# wc febSigMGFnp/*txt # chk54 or?
+# tar cvzf febSigMGFnp.tgz febSigMGFnp/*txt
+database_name = nextprot_all.peff
+decoy_search = 1                       # 0=no (default), 1=concatenated search, 2=separate search
+peff_format = 1                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
+peff_obo = PSI-MOD.obo                            # path to PSI Mod or Unimod OBO file
 
 num_threads = 128                        # 0=poll CPU to set num threads; else specify num threads directly (max 128)
 
 #
 # masses
 #
-peptide_mass_tolerance = 500.00
-peptide_mass_units = 0                 # 0=amu, 1=mmu, 2=ppm
+peptide_mass_tolerance = 5.00
+peptide_mass_units = 2                 # 0=amu, 1=mmu, 2=ppm
 mass_type_parent = 1                   # 0=average masses, 1=monoisotopic masses
 mass_type_fragment = 1                 # 0=average masses, 1=monoisotopic masses
 precursor_tolerance_type = 1           # 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
@@ -39,9 +39,9 @@ allowed_missed_cleavage = 0            # maximum value is 5; for enzyme search
 # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
 #     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
 #
-#variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
-#variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
-#variable_mod03 = 42.010565 nK 0 3 -1 0
+variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
+variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
+variable_mod03 = 42.010565 nK 0 3 -1 0
 #variable_mod04 = 15.9949 C 0 3 -1 0 0 0.0
 #variable_mod05 = 79.966331 STY 0 3 -1 0 0 97.976896
 max_variable_mods_in_peptide = 5
@@ -74,7 +74,7 @@ output_pepxmlfile = 1                  # 0=no, 1=yes  write pepXML file
 output_mzidentmlfile = 0               # 0=no, 1=yes  write mzIdentML file
 output_percolatorfile = 1              # 0=no, 1=yes  write Percolator pin file
 print_expect_score = 1                 # 0=no, 1=yes to replace Sp with expect in out & sqt
-num_output_lines = 1                   # num peptide results to show
+num_output_lines = 2                   # num peptide results to show
 
 sample_enzyme_number = 1               # Sample enzyme which is possibly different than the one applied to the search.
                                        # Used to calculate NTT & NMC in pepXML output (default=1 for trypsin).
