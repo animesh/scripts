@@ -1,5 +1,5 @@
-# comet_version 2021.02 rev. 0 (3c62af2) https://github.com/UWPR/Comet/releases/tag/v2021.02.0
-# Comet MS/MS search engine parameters file. http://comet-ms.sourceforge.net/parameters/parameters_201402/combined.php
+# comet_version 2022.01 rev. 0 (75d8377)
+# Comet MS/MS search engine parameters file.
 # Everything following the '#' symbol is treated as a comment.
 # wget https://download.nextprot.org/pub/current_release/peff/nextprot_all.peff.gz
 # gunzip nextprot_all.peff.gz
@@ -14,7 +14,7 @@ decoy_search = 1                       # 0=no (default), 1=concatenated search, 
 peff_format = 1                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
 peff_obo = PSI-MOD.obo                            # path to PSI Mod or Unimod OBO file
 
-num_threads = 128                        # 0=poll CPU to set num threads; else specify num threads directly (max 128)
+num_threads = 0  # 0=poll CPU to set num threads; else specify num threads directly (max 128)
 
 #
 # masses
@@ -32,7 +32,7 @@ isotope_error = 3                      # 0=off, 1=0/1 (C13 error), 2=0/1/2, 3=0/
 search_enzyme_number = 1               # choose from list at end of this params file
 search_enzyme2_number = 0              # second enzyme; set to 0 if no second enzyme
 num_enzyme_termini = 2                 # 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific
-allowed_missed_cleavage = 0            # maximum value is 5; for enzyme search
+allowed_missed_cleavage = 2            # maximum value is 5; for enzyme search
 
 #
 # Up to 9 variable modifications are supported
@@ -98,9 +98,9 @@ max_duplicate_proteins = 20            # maximum number of additional duplicate 
 max_fragment_charge = 3                # set maximum fragment charge state to analyze (allowed max 5)
 max_precursor_charge = 6               # set maximum precursor charge state to analyze (allowed max 9)
 nucleotide_reading_frame = 0           # 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
-clip_nterm_methionine = 1              # 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
+clip_nterm_methionine = 1              # 0=leave protein sequences as-is; 1=also consider sequence w/o N-term methionine
 spectrum_batch_size = 60000            # max. # of spectra to search at a time; 0 to search the entire scan range in one loop
-decoy_prefix = rev_                  # decoy entries are denoted by this string which is pre-pended to each protein accession
+decoy_prefix = DECOY_                  # decoy entries are denoted by this string which is pre-pended to each protein accession
 equal_I_and_L = 1                      # 0=treat I and L as different; 1=treat I and L as same
 output_suffix =                        # add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
 mass_offsets =                         # one or more mass offsets to search (values substracted from deconvoluted precursor mass)
