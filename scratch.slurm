@@ -27,4 +27,4 @@ echo "Total of $SLURM_NTASKS cores"
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module load Java/13.0.2
-/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --workflow /cluster/projects/nn9036k/febSig/Open.workflow --manifest /cluster/projects/nn9036k/febSig/manifest.fp-manifest --workdir /cluster/projects/nn9036k/febSig/FPv18n
+/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 40 --ram 128 --workflow /cluster/projects/nn9036k/febSig/Open.workflow --manifest /cluster/projects/nn9036k/febSig/manifest.fp-manifest --workdir /cluster/projects/nn9036k/febSig/FPv18n
