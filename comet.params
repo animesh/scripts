@@ -14,7 +14,7 @@ decoy_search = 1                       # 0=no (default), 1=concatenated search, 
 peff_format = 1                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
 peff_obo = PSI-MOD.obo                            # path to PSI Mod or Unimod OBO file
 
-num_threads = 0  # 0=poll CPU to set num threads; else specify num threads directly (max 128)
+num_threads = 80  # 0=poll CPU to set num threads; else specify num threads directly (max 128)
 
 #
 # masses
@@ -39,9 +39,9 @@ allowed_missed_cleavage = 2            # maximum value is 5; for enzyme search
 # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
 #     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
 #
-variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
-variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
-variable_mod03 = 42.010565 nK 0 3 -1 0
+#variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
+#variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
+#variable_mod03 = 42.010565 nK 0 3 -1 0
 #variable_mod04 = 15.9949 C 0 3 -1 0 0 0.0
 #variable_mod05 = 79.966331 STY 0 3 -1 0 0 97.976896
 max_variable_mods_in_peptide = 5
@@ -98,7 +98,7 @@ max_duplicate_proteins = 20            # maximum number of additional duplicate 
 max_fragment_charge = 3                # set maximum fragment charge state to analyze (allowed max 5)
 max_precursor_charge = 6               # set maximum precursor charge state to analyze (allowed max 9)
 nucleotide_reading_frame = 0           # 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
-clip_nterm_methionine = 1              # 0=leave protein sequences as-is; 1=also consider sequence w/o N-term methionine
+clip_nterm_methionine = 0              # 0=leave protein sequences as-is; 1=also consider sequence w/o N-term methionine
 spectrum_batch_size = 60000            # max. # of spectra to search at a time; 0 to search the entire scan range in one loop
 decoy_prefix = DECOY_                  # decoy entries are denoted by this string which is pre-pended to each protein accession
 equal_I_and_L = 1                      # 0=treat I and L as different; 1=treat I and L as same
