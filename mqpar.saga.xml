@@ -2,13 +2,13 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/libDIAfrac/Raw/uniprot-human-iso-june21.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/220610_NILU/uniprot-proteome-human-iso-june22.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
-         <taxonomyId>9606</taxonomyId>
+         <taxonomyId></taxonomyId>
       </FastaFileInfo>
    </fastaFiles>
    <fastaFilesProteogenomics>
@@ -130,7 +130,7 @@
    <name>session1</name>
    <maxQuantVersion>2.0.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>40</numThreads>
+   <numThreads>30</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -146,114 +146,102 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_5B_Slot2-16_1_1422.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_5C_Slot2-27_1_1437.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_6A_Slot2-6_1_1411.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_6B_Slot2-17_1_1423.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_6C_Slot2-28_1_1438.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_7A_Slot2-7_1_1412.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_7B_Slot2-18_1_1424.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_7C_Slot2-29_1_1439.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_8A_Slot2-8_1_1413.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_8B_Slot2-19_1_1425.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_8C_Slot2-30_1_1434.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_9A_Slot2-9_1_1414.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_9B_Slot2-20_1_1426.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_9C_Slot2-31_1_1435.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_FTA_Slot2-10_1_1415.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_WASHC_Slot2-33_1_1441.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_1A_Slot2-1_1_1406.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_1B_Slot2-12_1_1418.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_1C_Slot2-23_1_1430.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_2A_Slot2-2_1_1407.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_2B_Slot2-13_1_1419.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_2C_Slot2-24_1_1431.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_3A_Slot2-3_1_1408.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_3B_Slot2-14_1_1420.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_3C_Slot2-25_1_1432.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_4A_Slot2-4_1_1409.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_4B_Slot2-15_1_1421.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_4C_Slot2-26_1_1436.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_5A_Slot2-5_1_1410.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_FTB_Slot2-21_1_1427.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_FTC_Slot2-32_1_1440.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_WASHA_Slot2-11_1_1416.d</string>
-      <string>/cluster/projects/nn9036k/libDIAfrac/Raw/220325_LIBRARY_WASHB_Slot2-22_1_1428.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_27P3T_Slot1-3_1_1910.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_27P2T_Slot1-2_1_1909.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_27P2R_Slot1-8_1_1915.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_27P1T_Slot1-1_1_1908.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_27P1R_Slot1-7_1_1914.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_26P4_Slot1-12_1_1919.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_26P3_Slot1-11_1_1918.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_26P2_Slot1-10_1_1917.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_26P1_Slot1-9_1_1916.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24TMZ6_Slot1-18_1_1925.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24TMZ5_Slot1-17_1_1924.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24TMZ4_Slot1-16_1_1923.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24TMZ3_Slot1-15_1_1922.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24TMZ2_Slot1-14_1_1921.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24TMZ1_Slot1-13_1_1920.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24P2_Slot1-24_1_1931.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24P1_Slot1-23_1_1930.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24DP4_Slot1-22_1_1929.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24DP3_Slot1-21_1_1928.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24DP2_Slot1-20_1_1927.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_24DP1_Slot1-19_1_1926.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_23P6_Slot1-30_1_1939.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_23P5_Slot1-29_1_1936.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_23P4_Slot1-28_1_1935.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_23P3_Slot1-27_1_1934.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_23P2_Slot1-26_1_1933.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_23P1_Slot1-25_1_1932.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_27P6T_Slot1-6_1_1913.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_27P5T_Slot1-5_1_1912.d</string>
+      <string>/cluster/projects/nn9036k/220610_NILU/220610_Nilu_27P4T_Slot1-4_1_1911.d</string>
    </filePaths>
    <experiments>
-      <string>B5</string>
-      <string>C5</string>
-      <string>A6</string>
-      <string>B6</string>
-      <string>C6</string>
-      <string>A7</string>
-      <string>B7</string>
-      <string>C7</string>
-      <string>A8</string>
-      <string>B8</string>
-      <string>C8</string>
-      <string>A9</string>
-      <string>B9</string>
-      <string>C9</string>
-      <string>FTA</string>
-      <string>WASHC</string>
-      <string>A1</string>
-      <string>B1</string>
-      <string>C1</string>
-      <string>A2</string>
-      <string>B2</string>
-      <string>C2</string>
-      <string>A3</string>
-      <string>B3</string>
-      <string>C3</string>
-      <string>A4</string>
-      <string>B4</string>
-      <string>C4</string>
-      <string>A5</string>
-      <string>FTB</string>
-      <string>FTC</string>
-      <string>WASHA</string>
-      <string>WASHB</string>
+      <string>7P3T_Slot1-3_1_1910</string>
+      <string>7P2T_Slot1-2_1_1909</string>
+      <string>7P2R_Slot1-8_1_1915</string>
+      <string>7P1T_Slot1-1_1_1908</string>
+      <string>7P1R_Slot1-7_1_1914</string>
+      <string>6P4_Slot1-12_1_1919</string>
+      <string>6P3_Slot1-11_1_1918</string>
+      <string>6P2_Slot1-10_1_1917</string>
+      <string>6P1_Slot1-9_1_1916</string>
+      <string>4TMZ6_Slot1-18_1_1925</string>
+      <string>4TMZ5_Slot1-17_1_1924</string>
+      <string>4TMZ4_Slot1-16_1_1923</string>
+      <string>4TMZ3_Slot1-15_1_1922</string>
+      <string>4TMZ2_Slot1-14_1_1921</string>
+      <string>4TMZ1_Slot1-13_1_1920</string>
+      <string>4P2_Slot1-24_1_1931</string>
+      <string>4P1_Slot1-23_1_1930</string>
+      <string>4DP4_Slot1-22_1_1929</string>
+      <string>4DP3_Slot1-21_1_1928</string>
+      <string>4DP2_Slot1-20_1_1927</string>
+      <string>4DP1_Slot1-19_1_1926</string>
+      <string>3P6_Slot1-30_1_1939</string>
+      <string>3P5_Slot1-29_1_1936</string>
+      <string>3P4_Slot1-28_1_1935</string>
+      <string>3P3_Slot1-27_1_1934</string>
+      <string>3P2_Slot1-26_1_1933</string>
+      <string>3P1_Slot1-25_1_1932</string>
+      <string>7P6T_Slot1-6_1_1913</string>
+      <string>7P5T_Slot1-5_1_1912</string>
+      <string>7P4T_Slot1-4_1_1911</string>
    </experiments>
    <fractions>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
-      <short>1</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
    </fractions>
    <ptms>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
@@ -316,14 +304,8 @@
       <int>0</int>
       <int>0</int>
       <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
-      <string></string>
-      <string></string>
-      <string></string>
       <string></string>
       <string></string>
       <string></string>
