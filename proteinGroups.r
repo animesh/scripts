@@ -1,8 +1,8 @@
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
 #example:
-#c:\Users\animeshs\R\bin\Rscript.exe proteinGroups.r "L:/promec/_Training-tims-TOF-Pro/PreviousAttempt/_v1617/txt/proteinGroups.txt"
+#c:\Users\animeshs\R\bin\Rscript.exe proteinGroups.r L:\promec\USERS\Alessandro\220517_66samples\combined\txt\proteinGroups.txt
 #supplying input file for testing
-#inpF<-file.path("L:/promec/_Training-tims-TOF-Pro/PreviousAttempt/_v1617/txt/proteinGroups.txt")
+#inpF<-file.path("L:/promec/USERS/Alessandro/220517_66samples/combined/txt/proteinGroups.txt")
 #parse argument(s)
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -14,6 +14,15 @@ print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 options(nwarnings = 1000000)
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
+selection="Intensity.";
+print("Selecting Raw Intensity Values(s)")
+if(sum(grep(selection,colnames(data)))>0){intensity<-as.matrix(data[,grep(selection,colnames(data))])}  else if(sum(grep("Abundance.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Abundance.",colnames(data))])}  else{print('Neither Abundance[PD] nor Intensity[MQ] columns detected!')}
+intensityLFQ<-log2(intensity)
+intensityLFQ[intensityLFQ==-Inf]=NA
+data.frame(colSums(!is.na(intensityLFQ)))
+data.frame(colSums(is.na(intensityLFQ)))
+isNA<-colSums(is.na(intensityLFQ))/colSums(!is.na(intensityLFQ))
+print(isNA)
 #summary(data)
 #clean MQ output
 nData<-nrow(data)
@@ -32,15 +41,14 @@ row.names(data)<-paste(protNum,data$Fasta.headers,protNum,sep=";")
 print("Converted Fasta.headers to rownames")
 #summary(data)
 #select raw intensity
-selection="Intensity.";
-print("Selecting Raw Intensity Values(s)")
+print("Selecting Raw Intensity Values(s) after filtering")
 if(sum(grep(selection,colnames(data)))>0){intensity<-as.matrix(data[,grep(selection,colnames(data))])}  else if(sum(grep("Abundance.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Abundance.",colnames(data))])}  else{print('Neither Abundance[PD] nor Intensity[MQ] columns detected!')}
 protNum<-1:ncol(intensity)
 colnames(intensity)=paste(protNum,sub(selection,"",colnames(intensity)),sep="_")
 intensityLFQ<-log2(intensity)
 intensityLFQ[intensityLFQ==-Inf]=NA
-colSums(!is.na(intensityLFQ))
-colSums(is.na(intensityLFQ))
+data.frame(colSums(!is.na(intensityLFQ)))
+data.frame(colSums(is.na(intensityLFQ)))
 isNA<-colSums(is.na(intensityLFQ))/colSums(!is.na(intensityLFQ))
 print(isNA)
 #hist(intensity[,1])
@@ -78,6 +86,15 @@ dim(LFQactin)
 if(!is.null(dim(LFQactin))){colSums(LFQactin)/colSums(LFQ)*100}
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
+data.frame(colSums(!is.na(log2LFQ)))
+data.frame(colSums(is.na(log2LFQ)))
+isNA<-colSums(is.na(log2LFQ))/colSums(!is.na(log2LFQ))
+print(isNA)
+log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="pearson")
+colnames(log2LFQimpCorr)<-paste0(gsub("\\.","",sapply(strsplit(colnames(log2LFQ),"_"), `[`, 2)),gsub("\\.","",sapply(strsplit(colnames(log2LFQ),"_"), `[`, 3)))
+rownames(log2LFQimpCorr)<-colnames(log2LFQimpCorr)
+heatmap(log2LFQimpCorr)
+#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col=6)
 dim(log2LFQ)
 log2LFQt<-na.omit(log2LFQ)
 dim(log2LFQ)

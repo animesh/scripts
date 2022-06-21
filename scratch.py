@@ -1,10 +1,144 @@
 #!pip install --upgrade pip
 #!pip install spyder
 #C:\Users\sharm\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\Scripts\spyder.exe
+#cd f:\GD\OneDrive\Dokumenter\GitHub\scripts
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
-cd f:\GD\OneDrive\Dokumenter\GitHub\scripts
+# %% evaluate
+#https://huggingface.co/docs/evaluate/installation pip install evaluate
+import evaluate
+print(evaluate.load('accuracy').compute(references=[1], predictions=[1]))
+#{'accuracy': 1.0}
+# %% evaluate
+#https://github.com/souravbhadra/century_corn_yield 
+#https://sbhadra019.medium.com/interactive-webmap-using-python-8b11ba2f5f0f
+gpd_data = gpd.read_file("location_of_the_shapefile")
+# Read the slope data
+slope_data = pd.read_csv("location_of_the_slope_data")
+# Create a custom scale for the legend
+# Here we are using the quantile classification to make 
+# a custom scale
+custom_scale = (slope_data['Slope'].quantile((0, 0.2, 0.4, 0.6, 0.8, 1))).tolist()
+# Initialize the map and store it in a m object
+m = folium.Map(location=[42, -88], zoom_start=5)
+# This is the folium object
+ch = folium.Choropleth(
+            geo_data=shape_geo, # geopandas object
+            data=slope_data, # pandas dataframe
+            columns=['Id', 'Slope'], # specify the columns to use, we only need these two
+            key_on='feature.properties.Id', # Specify the Id column, which is unique
+            bins=custom_scale, # Defining the scale
+            fill_color='YlOrRd', # Defining the color scale
+            nan_fill_color="White", # If there is nan data, make it white
+            fill_opacity=0.7, # Some transparency in the fill color
+            line_opacity=0.2, # Same same
+            legend_name='Trend', # legend name
+            highlight=True, # highlighting shape when hovering
+            line_color='black').add_to(m) # Add this object to the defined map
+m
+# We will need some extra functions
+import base64
+from folium import IFrame
+
+# Run a for loop for every row in the dataframe
+for i in range(gpd_data.shape[0]):
+    # Create a png file pathname to get the png files
+    png_name = gpd_data.loc[i, 'COUNTY_NM']+'_'+gpd_data.loc[i, 'STATE_NM']
+    png = os.path.join(r"location", png_name+'.png')
+    
+    # Encode the png image and encode it
+    encoded = base64.b64encode(open(png, 'rb').read())
+    html = '<img src="data:image/png;base64,{}">'.format
+    width, height = 4, 2 # Smaller width and height of each figure
+    resolution = 72 # Little lower resolution
+    # Create the frame, note that we are adding some values (20 and 30).
+    # This will help use to avoid scrolling in the popped up figures
+    iframe = IFrame(html(encoded.decode('UTF-8')), width=(width*resolution)+20, height=(height*resolution)+30) 
+    popup = folium.Popup(iframe, max_width=2650) # This is the popup object
+    
+    # The style function is important. This is a lambda function with style propoerties.
+    # It says the clickable polygon should not have any fill or line colors
+    style_function = lambda x: {'fillColor': '#ffffff', 
+                                'color':'#000000', 
+                                'fillOpacity': 0.1, 
+                                'weight': 0.1}
+    # Create a geojson object of each polygon. Note that, this is practically invisible.
+    b = folium.GeoJson(gpd_data.iloc[i, -1], style_function=style_function)
+    
+    b.add_child(popup) # Add the popup to it
+    ch.add_child(b) # Add the geojson into the map
+# Adding map title
+text = 'A 100-year Spatiotemporal Trend of Yield in the Corn Belt of U.S.'
+title_html = '''
+             <h3 align="left" style="font-size:22px"><b>{}</b></h3>
+             '''.format(text)
+
+m.get_root().html.add_child(folium.Element(title_html))
+
+# Save the html file
+m.save(r"location_to_html_file/map.html")
+#https://souravbhadra.github.io/images/map.html
+# %% sound
+#https://python-sounddevice.readthedocs.io/en/0.4.1/examples.html
+"""Play a sine signal."""
+import argparse
+import sys
+import numpy as np
+import sounddevice as sd
+def int_or_str(text):
+    """Helper function for argument parsing."""
+    try:
+        return int(text)
+    except ValueError:
+        return text
+parser = argparse.ArgumentParser(add_help=False)
+parser.add_argument(
+    '-l', '--list-devices', action='store_true',
+    help='show list of audio devices and exit')
+args, remaining = parser.parse_known_args()
+if args.list_devices:
+    print(sd.query_devices())
+    parser.exit(0)
+parser = argparse.ArgumentParser(
+    description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    parents=[parser])
+parser.add_argument(
+    'frequency', nargs='?', metavar='FREQUENCY', type=float, default=500,
+    help='frequency in Hz (default: %(default)s)')
+parser.add_argument(
+    '-d', '--device', type=int_or_str,
+    help='output device (numeric ID or substring)')
+parser.add_argument(
+    '-a', '--amplitude', type=float, default=0.2,
+    help='amplitude (default: %(default)s)')
+args = parser.parse_args(remaining)
+
+start_idx = 0
+
+try:
+    samplerate = sd.query_devices(args.device, 'output')['default_samplerate']
+
+    def callback(outdata, frames, time, status):
+        if status:
+            print(status, file=sys.stderr)
+        global start_idx
+        t = (start_idx + np.arange(frames)) / samplerate
+        t = t.reshape(-1, 1)
+        outdata[:] = args.amplitude * np.sin(2 * np.pi * args.frequency * t)
+        start_idx += frames
+
+    with sd.OutputStream(device=args.device, channels=1, callback=callback,
+                         samplerate=samplerate):
+        print('#' * 80)
+        print('press Return to quit')
+        print('#' * 80)
+        input()
+except KeyboardInterrupt:
+    parser.exit('')
+except Exception as e:
+    parser.exit(type(e).__name__ + ': ' + str(e))
 # %% viz
 #https://diagrams.mingrammer.com/docs/getting-started/installation
 #!pip install diagrams # diagram.py

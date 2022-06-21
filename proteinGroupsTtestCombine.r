@@ -43,6 +43,7 @@ data24h<-data24h[,grep("ID|Log2MedianChange",colnames(data24h))]
 data24h["Uniprot"]<-paste(sapply(strsplit(paste(sapply(strsplit(data24h$ID, "|",fixed=T), "[", 2)), "-"), "[", 1))
 data24h[is.na(data24h)]=0
 names(data24h)<-substr(names(data24h),1,10)
+limma::vennDiagram(abs(data24h[,2:5])>log2Thr)
 limma::vennDiagram(data24h[,2:5]>log2Thr)
 limma::vennDiagram(data24h[,2:5]<(log2Thr)*-1)
 write.csv(data24h,paste0(inpD,"proteinGroups24h",cSel,log2Thr,cpvalThr,"combined.select.csv"))
