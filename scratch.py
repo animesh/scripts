@@ -5,6 +5,145 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+# %% holo
+#https://nbviewer.org/github/wino6687/medium_hvPlot_Intro/blob/master/hvPlot_Intro_Plots.ipynb
+import hvplot.streamz
+from streamz.dataframe import Random
+stream_df = Random(freq='10ms')
+stream_df.hvplot(backlog=80, height=300, width=400) +\
+stream_df.hvplot.hexbin(x='x', y='z', backlog=1600, height=300, width=400)
+#network
+import networkx as nx
+import hvplot.networkx as hvnx
+characters = ["R2-D2","CHEWBACCA","C-3PO","LUKE","DARTH VADER",...]
+edges = [("CHEWBACCA", "R2-D2"),("C-3PO", "R2-D2"),("BERU", "R2-D2"),...]
+G = nx.Graph()
+G.add_nodes_from(characters)
+G.add_edges_from(edges)
+hvnx.draw_circular(G, labels="index")
+# %% sp
+#https://medium.com/@koki_noda/how-to-find-the-most-attractive-stocks-in-this-bear-market-data-analysis-with-python-dd5fbc41d604
+import os
+import glob
+import pandas as pd
+import matplotlib.pyplot as plt
+import datetime as dt
+from concurrent import futures
+import numpy as np
+from scipy.stats import gaussian_kde
+import pandas_datareader.data as web
+data_dir = "./data/most_attractive_stocks"
+os.makedirs(data_dir, exist_ok=True)
+tables = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+sp500_df = tables[0]
+second_table = tables[1]
+print(sp500_df.shape)
+# rename symbol to escape symbol error
+sp500_df["Symbol"] = sp500_df["Symbol"].map(lambda x: x.replace(".", "-"))  
+sp500_df.to_csv("./data/SP500_20220615.csv", index=False)
+sp500_df = pd.read_csv("./data/SP500_20220615.csv")
+print(sp500_df.shape)
+sp500_tickers = list(sp500_df["Symbol"])
+sp500_df.head()
+def download_stock(stock):
+    try:
+        print(stock)
+        stock_df = web.DataReader(stock, 'yahoo', start_time, end_time)
+        stock_df['Name'] = stock
+        output_name = f"{data_dir}/{stock}.csv"
+        stock_df.to_csv(output_name)
+    except BaseException:
+        bad_names.append(stock)
+        print('bad: %s' % (stock))
+""" set the download window """
+start_time = dt.datetime(1900, 1, 1)
+end_time = dt.datetime(2022, 6, 15)
+bad_names = []  # to keep track of failed queries
+#set the maximum thread number
+max_workers = 20
+now = dt.datetime.now()
+path_failed_queries = f'{data_dir}/failed_queries.txt'
+if os.path.exists(path_failed_queries):
+    with open(path_failed_queries) as f:
+        failed_queries = f.read().split("\n")[:-1]
+        sp500_tickers_ = failed_queries
+else:
+    sp500_tickers_ = sp500_tickers
+print("number of stocks to download:", len(sp500_tickers_))
+# in case a smaller number of stocks than threads was passed in
+workers = min(max_workers, len(sp500_tickers_))
+with futures.ThreadPoolExecutor(workers) as executor:
+    res = executor.map(download_stock, sp500_tickers_)
+""" Save failed queries to a text file to retry """
+if len(bad_names) > 0:
+    with open(path_failed_queries, 'w') as outfile:
+        for name in bad_names:
+            outfile.write(name + '\n')
+finish_time = dt.datetime.now()
+duration = finish_time - now
+minutes, seconds = divmod(duration.seconds, 60)
+print(f'The threaded script took {minutes} minutes and {seconds} seconds to run.')
+print(f"{len(bad_names)} stocks failed: ", bad_names)
+historical_stock_data_files = glob.glob(f"{data_dir}/*.csv")
+highest_day_list = []
+for files in historical_stock_data_files:
+    price = pd.read_csv(files, index_col="Date", parse_dates=True)
+    ticker = os.path.splitext(os.path.basename(files))[0]
+    price_close = price[["Close"]]
+    highest_day = price_close.idxmax()[0]
+    highest_price = price_close.max()[0]
+    highest_day_list.append(
+        pd.DataFrame({"highest_day": [highest_day], "ticker": [ticker], "highest_price": highest_price}))
+df = pd.concat(highest_day_list).reset_index(drop=True)
+print(df.shape)
+df.head()
+# additional info
+df["highest_month"] = df["highest_day"].dt.to_period("M")
+df = pd.merge(df, sp500_df[["Symbol", "GICS Sector", "GICS Sub-Industry"]], left_on='ticker', right_on='Symbol')
+df.sort_values("highest_day", ascending=False).head()
+industry_value_counts = df[df["highest_day"] >= "2022-06-01"]["GICS Sub-Industry"].value_counts()
+fig, ax = plt.subplots(figsize=(20, 8))
+ax.bar(industry_value_counts.index, industry_value_counts.values)
+ax.set_xticklabels(industry_value_counts.index, rotation=90)
+ax.set_xlabel("industry")
+ax.set_ylabel("number of stocks")
+plt.show()
+industry_value_counts[industry_value_counts.index.str.contains("Oil & Gas")]
+highest_day_count = df.groupby("highest_month").count()
+highest_day_count["ticker"].plot()
+plt.title("Number of stocks that reached new highs")
+plt.ylabel("number of stocks")
+plt.show()
+highest_day_count["ticker"].plot(marker=".")
+plt.grid(axis='y')
+plt.title("Number of stocks that reached new highs")
+plt.xlim("2021-01-01", "2022-06-30")
+plt.ylabel("number of stocks")
+plt.show()
+tikcer_list = ["GOOG", "AAPL", "FB", "AMZN", "MSFT", "TSLA", "NVDA"]
+df[df["ticker"].isin(tikcer_list)]
+industry_value_counts = df[df["highest_day"] <= "2021-12-31"]["GICS Sub-Industry"].value_counts()
+fig, ax = plt.subplots(figsize=(20, 8))
+ax.bar(industry_value_counts.index, industry_value_counts.values)
+ax.set_xticklabels(industry_value_counts.index, rotation=90)
+ax.set_xlabel("industry")
+ax.set_ylabel("number of stocks")
+plt.show()
+df["in_2022"] = df["highest_day"].map(lambda x: False if x.year < 2022 else True)
+value_counts_before_2022 = df[df["in_2022"] == False]["GICS Sub-Industry"].value_counts()
+value_counts_2022 = df[df["in_2022"] == True]["GICS Sub-Industry"].value_counts()
+value_counts_before_2022.name = "~2021"
+value_counts_2022.name = "2022"
+comparison_df = pd.concat([value_counts_2022, value_counts_before_2022], axis=1)
+comparison_df = comparison_df.fillna(0)
+comparison_df.head()
+fig, ax = plt.subplots(figsize=(20, 8))
+comparison_df.plot(kind='bar', stacked=True, ax=ax)
+ax.set_xlabel("industry")
+ax.set_ylabel("number of stocks")
+plt.show()
+#avoid industry groups that have a high percentage of stocks (in orange) that do not have the ability to make new highs.
+    
 # %% evaluate
 #https://huggingface.co/docs/evaluate/installation pip install evaluate
 import evaluate
