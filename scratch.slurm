@@ -31,4 +31,4 @@ module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 
 #mono /cluster/projects/nn9036k/MaxQuant_2.0.3.1/bin/MaxQuantCmd.exe  /cluster/projects/nn9036k/scripts/mqpar.saga.xml
-mono /cluster/projects/nn9036k/MaxQuant_2.0.3.1/bin/MaxQuantCmd.exe -p 11 /cluster/projects/nn9036k/scripts/mqpar.saga.xml
+mono /cluster/projects/nn9036k/MaxQuant_2.0.3.1/bin/MaxQuantCmd.exe -p 30 /cluster/projects/nn9036k/scripts/mqpar.saga.xml
