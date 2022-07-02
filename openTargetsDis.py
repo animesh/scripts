@@ -1,88 +1,47 @@
-import urllib.parse
-import urllib.request
-url = 'https://www.uniprot.org/uploadlists/'
-params = {
-'from': 'GENENAME',
-'to': 'ENSEMBL_ID',
-'format': 'tab',
-'query': 'XRCC1',
-'taxon' : '9606',
-'columns' : 'id entry_name reviewed'
-}
-data = urllib.parse.urlencode(params)
-data = data.encode('utf-8')
-req = urllib.request.Request(url, data)
-with urllib.request.urlopen(req) as f:
-   response = f.read()
-print(response.decode('utf-8'))
-#https://platform.opentargets.org/api https://platform-docs.opentargets.org/data-access/graphql-api#:~:text=%23!/usr/bin/env,(api_response) https://www.youtube.com/watch?v=_sZR0VxpwqE
-#https://www.genetolist.com/
-#gene_id = "ENSG00000127318"
-import pandas as pd
-#df=pd.read_csv("uniprot-yourlist_M202206226320BA52A5CE8FCD097CB85A53697A35525E3DG.tab",sep='\t')
-df=pd.read_csv("gene_list.csv")
-#dfX=df.assign(ENSG=df["Ensembl transcript"].str.split(';')).explode('ENSG')
-dfX=df.assign(ENSG=df["Database_IDs"].str.split(',')).explode('ENSG')
-dfX=dfX[dfX['ENSG'].str.contains("Ensembl")==True]
-dfENSG=dfX["ENSG"].str.replace('Ensembl:', '')
-dfENSG=dfENSG.str.strip()
-colS=pd.DataFrame(columns=["ID","name","disease", "datasourceScores"])
-#gene_id = "ENSG00000169093"
+#https://github.com/animesh/scripts/commit/8fd66822b7b85409b88983328ae97d608bc78b4b#diff-d592612aef70515362d5ab69e30a1b7ddff49ae376d5afbba0b286c04ac2452f
+#https://api.platform.opentargets.org/api/v4/graphql/browser?operationName=assocs&query=query%20assocs%20%7B%0A%20%20search%28queryString%3A%20%22EIF3C%22%2C%20entityNames%3A%22target%22%29%20%7B%0A%09%09hits%20%7B%0A%20%20%20%20%20%20id%2C%0A%20%20%20%20%20%20name%2C%0A%20%20%20%20%09entity%2C%0A%20%20%20%20%20%20object%20%7B%0A%20%20%20%20%20%20%20%20...%20on%20Target%20%7B%0A%20%20%20%20%20%20%20%20%20%20associatedDiseases%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20count%0A%20%20%20%20%20%20%20%20%20%20%20%20rows%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20score%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20datatypeScores%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20id%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%09score%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20disease%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20id%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20name%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%7D%0A%7D%0A
+#web interface https://platform.opentargets.org/target/ENSG00000184110/associations
+#returns only top 50! Rows per page: 50 1-50 of 158, need to move to bigQuery@Google...
 import requests
 import json
+import pandas as pd
+colS=pd.DataFrame(columns=["ID","name","score","count", "rows"])
 cntG=0;
-for gene_id in dfENSG:
+for gene_id in genList.split():
     cntG=cntG+1
     print(cntG,gene_id)
-    query_string = """
-      query target($ensemblId: String!){
-        target(ensemblId: $ensemblId){
-        id
-        approvedSymbol
-        associatedDiseases {
-          count
-          rows {
-            disease {
-              id
-              name
-            }
-            datasourceScores {
-              id
-              score
-            }
-          }
-        }
-      }
-    }
-    """
-    variables = {"ensemblId": gene_id}
+    query_string = "query assocs {search(queryString:\""+gene_id+"\", entityNames:\"target\"){hits {id,name,entity,object { ... on Target {associatedDiseases {count rows {score datatypeScores{ id score}disease {id name}}}}}}}}"
     base_url = "https://api.platform.opentargets.org/api/v4/graphql"
-    r = requests.post(base_url, json={"query": query_string, "variables": variables})
+    r = requests.post(base_url, json={"query": query_string})
     print(r.status_code)
     if r.status_code==200:
         api_response = json.loads(r.text)
-        #print(api_response)
-        #flx = json.dumps(api_response, ensure_ascii=False, indent=4)
-        #print(flx)
-        #pd.DataFrame(api_response)
-        #pd.json_normalize(api_response)
-        #pd.read_json(r.text)
-        iD=api_response['data']['target']['id']
+        print(api_response)
+        iD=api_response['data']['search']['hits'][0]['id']
         print(iD)
-        iG=api_response['data']['target']['approvedSymbol']
+        iG=api_response['data']['search']['hits'][0]['name']
         print(iG)
-        #aD=api_response['data']['target']['associatedDiseases']['rows'][1]['disease']['name']
-        #aD
-        #aI=api_response['data']['target']['associatedDiseases']['rows'][0]['datasourceScores'][0]['id']#[0]['values']
-        #print(aI)
-        aS=api_response['data']['target']['associatedDiseases']['rows']#[1]['datasourceScores'][0]['score']
-        #aS
-        dataOIDP=pd.DataFrame(aS,columns=["disease", "datasourceScores"])
+        dC=api_response['data']['search']['hits'][0]['object']['associatedDiseases']['count']
+        print(dC)
+        if(dC>0): dS=api_response['data']['search']['hits'][0]['object']['associatedDiseases']['rows'][0]['score']
+        aD=api_response['data']['search']['hits'][0]['object']['associatedDiseases']#['rows'][0]['datatypeScores']
+        #print(aD)
+        dataOIDP=pd.DataFrame(aD,columns=["count","rows"])
+        if(dataOIDP.empty==False): print(dataOIDP.iloc[0])
         dataOIDP["ID"]=iD
         dataOIDP["name"]=iG
+        dataOIDP["score"]=dS
         colS=pd.concat([colS,dataOIDP])
-        #colS
+#print(colS)
+colSs=colS['rows'].astype('str').str.split(',').str[0]
+colSs=colSs.astype('str').str.split(':').str[1]
+colSd=colS['rows'].astype('str').str.split(',').str[-1]
+colSd=colSd.astype('str').str.split('\'').str[3]
+colS["dDcore"]=colSs
+colS["disease"]=colSd
 colS.to_csv("openTargetResults.csv")
+colGM=colS[colS.rows.astype('str').str.contains('glioblastoma multiforme')==True]
+colGM.to_csv("openTargetResults_GM.csv")
 genList="""
 ASMTL
 

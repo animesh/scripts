@@ -174,9 +174,11 @@ plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
 ```
 
 ```{r TCGAbiolinks::TCGAanalyze_SurvivalKM}
+#https://portal.gdc.cancer.gov/repository?facetTab=cases&filters=%7B%22op%22%3A%22and%22%2C%22content%22%3A%5B%7B%22op%22%3A%22in%22%2C%22content%22%3A%7B%22field%22%3A%22cases.project.program.name%22%2C%22value%22%3A%5B%22EXCEPTIONAL_RESPONDERS%22%5D%7D%7D%5D%7D&searchTableTab=files
 #blKM(MMRFclin,MMRFdataPrepro,Genelist = "ENSG00000196976",Survresult = T,ThreshTop=0.76,ThreshDown=0.33)
     clinical_patient=MMRFclin
     dataGE=MMRFdataPrepro
+    write.csv(dataGE,"L:/promec/Animesh/Aida/MMRFBiolinks/plotKM/dataGE.csv")
     Genelist="ENSG00000196976"
     Genelist="ENSG00000196449"
     Survresult=F
@@ -230,6 +232,7 @@ plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
         tabSurv_Matrix[i, "mRNA"] <- mRNAselected
         mRNAselected_values_ordered <- sort(mRNAselected_values, 
             decreasing = TRUE)
+        plot(mRNAselected_values_ordered)
         mRNAselected_values_ordered_top <- as.numeric(quantile(as.numeric(mRNAselected_values_ordered), 
             ThreshTop)[1])
         mRNAselected_values_ordered_down <- as.numeric(quantile(as.numeric(mRNAselected_values_ordered), 
@@ -247,6 +250,7 @@ plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
             samples_UNCHANGED_mRNA_selected <- names(mRNAselected_values_newvector[which((mRNAselected_values_newvector) > 
                 mRNAselected_values_ordered_down & mRNAselected_values_newvector < 
                 mRNAselected_values_ordered_top)])
+            #double counted 10: MMRF_1242 MMRF_1293 MMRF_1401 MMRF_1656 MMRF_1700 MMRF_1790 MMRF_1978 MMRF_2015 MMRF_2194 MMRF_2401
             cfu_onlyTOP <- cfu_complete[cfu_complete[, "bcr_patient_barcode"] %in% 
                 samples_top_mRNA_selected, ]
             cfu_onlyDOWN <- cfu_complete[cfu_complete[, "bcr_patient_barcode"] %in% 
@@ -288,6 +292,7 @@ plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
             rownames(ttime) <- rownames(cfu)
             legendHigh <- paste(mRNAselected, "High")
             legendLow <- paste(mRNAselected, "Low")
+            #(101/490)*196 ~ 40.4, (101/490)*(490-196) ~ 60.6?
             tabSurv_pvalue <- tryCatch({
                 tabSurv <- survival::survdiff(ttime ~ c(rep("top",nrow(cfu_onlyTOP)), rep("down", nrow(cfu_onlyDOWN))))
                 tabSurv_chis <- unlist(tabSurv)$chisq

@@ -5,6 +5,89 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+# %% CI https://sebastianraschka.com/blog/2022/confidence-intervals-for-ml.html
+import numpy as np
+clf.fit(X_train, y_train)
+acc_test = clf.score(X_test, y_test)
+ci_length = z_value * np.sqrt((acc_test * (1 - acc_test)) / y_test.shape[0])
+ci_lower = acc_test - ci_length
+ci_upper = acc_test + ci_length
+print(ci_lower, ci_upper)
+#Bootstrapping and Uncertainties of “Model Evaluation, Model Selection, and Algorithm Selection in Machine Learning
+import numpy as np
+rng = np.random.RandomState(seed=12345)
+idx = np.arange(y_train.shape[0])
+bootstrap_train_accuracies = []
+bootstrap_rounds = 200
+for i in range(bootstrap_rounds):
+    train_idx = rng.choice(idx, size=idx.shape[0], replace=True)
+    valid_idx = np.setdiff1d(idx, train_idx, assume_unique=False)
+    boot_train_X, boot_train_y = X_train[train_idx], y_train[train_idx]
+    boot_valid_X, boot_valid_y = X_train[valid_idx], y_train[valid_idx]
+    clf.fit(boot_train_X, boot_train_y)
+    acc = clf.score(boot_valid_X, boot_valid_y)
+    bootstrap_train_accuracies.append(acc)
+bootstrap_train_mean = np.mean(bootstrap_train_accuracies)
+confidence = 0.95  # Change to your desired confidence level
+t_value = scipy.stats.t.ppf((1 + confidence) / 2.0, df=bootstrap_rounds - 1)
+print(t_value)
+se = 0.0
+for acc in bootstrap_train_accuracies:
+    se += (acc - bootstrap_train_mean) ** 2
+se = np.sqrt((1.0 / (bootstrap_rounds - 1)) * se)
+ci_length = t_value * se
+ci_lower = bootstrap_train_mean - ci_length
+ci_upper = bootstrap_train_mean + ci_length
+print(ci_lower, ci_upper)
+ci_lower = np.percentile(bootstrap_train_accuracies, 2.5)
+ci_upper = np.percentile(bootstrap_train_accuracies, 97.5)
+print(ci_lower, ci_upper)
+rng = np.random.RandomState(seed=12345)
+idx = np.arange(y_train.shape[0])
+bootstrap_train_accuracies = []
+bootstrap_rounds = 200
+weight = 0.632
+for i in range(bootstrap_rounds):
+    train_idx = rng.choice(idx, size=idx.shape[0], replace=True)
+    valid_idx = np.setdiff1d(idx, train_idx, assume_unique=False)
+    boot_train_X, boot_train_y = X_train[train_idx], y_train[train_idx]
+    boot_valid_X, boot_valid_y = X_train[valid_idx], y_train[valid_idx]
+    clf.fit(boot_train_X, boot_train_y)
+    valid_acc = clf.score(boot_valid_X, boot_valid_y)
+    # predict training accuracy on the whole training set
+    # as ib the original .632 boostrap paper
+    # in Eq (6.12) in
+    #    "Estimating the Error Rate of a Prediction Rule: Improvement
+    #     on Cross-Validation"
+    #     by B. Efron, 1983, https://doi.org/10.2307/2288636
+    train_acc = clf.score(X_train, y_train)
+    acc = weight * train_acc + (1.0 - weight) * valid_acc
+    bootstrap_train_accuracies.append(acc)
+bootstrap_train_mean = np.mean(bootstrap_train_accuracies)
+bootstrap_train_mean
+# %% GP https://www.tidyverse.org/blog/2022/06/announce-vetiver/
+from vetiver.data import mtcars
+from sklearn import tree
+car_mod = tree.DecisionTreeRegressor().fit(mtcars, mtcars["mpg"])
+from vetiver import VetiverModel
+v = VetiverModel(car_mod, model_name = "cars_mpg", 
+                 save_ptype = True, ptype_data = mtcars)
+v.description
+#https://vetiver.rstudio.com/get-started/deploy.html
+#> "Scikit-learn <class 'sklearn.tree._classes.DecisionTreeRegressor'> model"
+# %% GP https://towardsdatascience.com/quick-start-to-gaussian-process-regression-36d838810319
+import sklearn.gaussian_process as gp
+#In GPR, we first assume a Gaussian process prior, which can be specified using a mean function, m(x), and covariance function, k(x, x’):
+# X_tr <-- training observations [# points, # features]
+# y_tr <-- training labels [# points]
+# X_te <-- test observations [# points, # features]
+# y_te <-- test labels [# points]
+kernel = gp.kernels.ConstantKernel(1.0, (1e-1, 1e3)) * gp.kernels.RBF(10.0, (1e-3, 1e3))
+model = gp.GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10, alpha=0.1, normalize_y=True)
+model.fit(X_tr, y_tr)
+params = model.kernel_.get_params()
+y_pred, std = model.predict(X_te, return_std=True)
+MSE = ((y_pred-y_te)**2).mean()
 # %% holo
 #https://nbviewer.org/github/wino6687/medium_hvPlot_Intro/blob/master/hvPlot_Intro_Plots.ipynb
 import hvplot.streamz
