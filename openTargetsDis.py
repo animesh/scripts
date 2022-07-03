@@ -40,6 +40,15 @@ colSd=colSd.astype('str').str.split('\'').str[3]
 colS["dDcore"]=colSs
 colS["disease"]=colSd
 colS.to_csv("openTargetResults.csv")
+colScnt=colS['disease'].value_counts()
+colScnt.to_csv("openTargetResultsCount.csv")
+colScnt[colScnt>50].plot(kind="barh").figure.savefig("openTargetResult50D.svg",dpi=100,bbox_inches = "tight")
+neoplasmL=set(colS[colS['disease']=='neoplasm'].ID)
+cancerL=set(colS[colS['disease']=='cancer'].ID)
+diffLnc=neoplasmL-cancerL
+diffLcn=cancerL-neoplasmL
+commonL=neoplasmL.intersection(cancerL)
+print(len(commonL),len(diffLnc),len(diffLcn))
 colGM=colS[colS.rows.astype('str').str.contains('glioblastoma multiforme')==True]
 colGM.to_csv("openTargetResults_GM.csv")
 genList="""

@@ -5,7 +5,72 @@
 import sys
 sys.executable
 sys.setrecursionlimit(1000)
+# %% chi^2 http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html https://towardsdatascience.com/data-scientists-need-to-know-just-one-statistical-test-3115b2ff26fd 
+Value=[1,2,3,4,5,6]
+Frequency=[8,9,19,6,8,10]
+def ChiSquared(expected, observed):
+    total = 0.0
+    for x, exp in expected.Items():
+        obs = observed.Freq(x)
+        total += (obs - exp)**2 / exp
+    return total
+def SimulateRolls(sides, num_rolls):
+    """Generates a Hist of simulated die rolls. Args:sides: number of sides on the die num_rolls: number of times to rolls Returns: Hist object"""
+    hist = Pmf.Hist()
+    for i in range(num_rolls):
+        roll = random.randint(1, sides)
+        hist.Incr(roll)
+    return hist
+count = 0.
+num_trials = 1000
+num_rolls = 60
+threshold = ChiSquared(expected, observed)
+for _ in range(num_trials):
+    simulated = SimulateRolls(sides, num_rolls)
+    chi2 = ChiSquared(expected, simulated)
+    if chi2 >= threshold:
+        count += 1
+pvalue = count / num_trials
+print('p-value', pvalue)
 # %% CI https://sebastianraschka.com/blog/2022/confidence-intervals-for-ml.html
+observed_outcome = np.array([1,1,1,1,1,2,2,2,3,3])
+def draw_random_outcome(): return np.random.choice([1,2,3,4,5,6], size=10)
+def unexp_score(outcome):
+  outcome_distribution = np.array([np.mean(outcome == face) for face in [1,2,3,4,5,6]])
+  return np.mean(np.abs(outcome_distribution - 1/6))
+# %% 345 https://en.wikipedia.org/wiki/Category:Statistical_tests
+n_iter = 10000
+random_unexp_scores = np.empty(n_iter)
+for i in range(n_iter):
+  random_unexp_scores[i] = unexp_score(draw_random_outcome())
+observed_unexp_score = unexp_score(observed_outcome)
+pvalue = np.sum(random_unexp_scores >= observed_unexp_score) / n_iter
+print(pvalue)
+# %% scrabble
+observed_outcome = 'FEAR'
+def draw_random_outcome():
+  size=np.random.randint(low=1, high=27)
+  return ''.join(np.random.choice(list(string.ascii_uppercase), size=size, replace=False))
+from english_words import english_words_set
+english_words_set = [w.upper() for w in english_words_set]
+def unexp_score(outcome):
+  is_in_dictionary = outcome in english_words_set
+  return (1 if is_in_dictionary else -1) * len(outcome)
+# %% rating
+product_a = np.repeat([1,2,3,4,5], 20)
+product_b = np.array([1]*27+[2]*25+[3]*19+[4]*16+[5]*13)
+observed_outcome = np.mean(product_a) - np.mean(product_b)
+def draw_random_outcome():
+  pr_a, pr_b = np.random.permutation(np.hstack([product_a, product_b])).reshape(2,-1)
+  return np.mean(pr_a) - np.mean(pr_b)
+def unexp_score(outcome): return np.abs(outcome)
+# %% AUC
+y_test = np.random.choice([0,1], size=100, p=[.9,.1])
+proba_test = np.random.uniform(low=0, high=1, size=100)
+observed_outcome = .7
+def draw_random_outcome(): return roc_auc_score(y_test, np.random.permutation(proba_test))
+def unexp_score(outcome): return np.abs(outcome - .5)
+# %% CIc
 import numpy as np
 clf.fit(X_train, y_train)
 acc_test = clf.score(X_test, y_test)
