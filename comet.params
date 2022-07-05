@@ -1,25 +1,23 @@
 # comet_version 2022.01 rev. 0 (75d8377)
 # Comet MS/MS search engine parameters file.
 # Everything following the '#' symbol is treated as a comment.
-# wget https://download.nextprot.org/pub/current_release/peff/nextprot_all.peff.gz
-# gunzip nextprot_all.peff.gz
-# wget https://github.com/animesh/psi-mod-CV/raw/master/PSI-MOD.obo
-# mkdir febSigMGFnp
-# ln -s /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2022/februar/Sigrid/*.d/*.mgf febSigMGFnp/.
-# for i in febSigMGFnp/*.mgf; do echo $i; ls -ltrh $i;./comet.linux.exe $i; done
-# wc febSigMGFnp/*txt # chk54 or?
-# tar cvzf febSigMGFnp.tgz febSigMGFnp/*txt
-database_name = nextprot_all.peff
+# wget "https://rest.uniprot.org/uniprotkb/stream?format=fasta&query=%28proteome%3AUP000005640%29" -O human.fasta # for isoforms https://rest.uniprot.org/uniprotkb/stream?compressed=true&format=fasta&includeIsoform=true&query=%28proteome%3AUP000005640%29
+# grep "^>" human.fasta | wc #  79684  897967 8547447 
+# ln -s /trd-project1/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2022/june/test/*.d/*.mgf .
+# ls *.mgf
+# for i in 220617_hela_Slot1-54_1_*.mgf; do echo $i; ls -ltrh $i;./comet.linux.exe $i; done
+# for i in 220617_hela_Slot1-54_1_*.txt ; do echo $i ; wc $i ; awk -F '\t' '{print $16}' $i | grep -v "DECOY" | awk -F '|' '{print $2}' | sort | uniq | wc ; done  # 56604 9174 - DECOY - 7097
+database_name = human.fasta
 decoy_search = 1                       # 0=no (default), 1=concatenated search, 2=separate search
-peff_format = 1                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
-peff_obo = PSI-MOD.obo                            # path to PSI Mod or Unimod OBO file
+peff_format = 0                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
+peff_obo = # PSI-MOD.obo
 
 num_threads = 80  # 0=poll CPU to set num threads; else specify num threads directly (max 128)
 
 #
 # masses
 #
-peptide_mass_tolerance = 5.00
+peptide_mass_tolerance = 10.00
 peptide_mass_units = 2                 # 0=amu, 1=mmu, 2=ppm
 mass_type_parent = 1                   # 0=average masses, 1=monoisotopic masses
 mass_type_fragment = 1                 # 0=average masses, 1=monoisotopic masses
@@ -39,9 +37,9 @@ allowed_missed_cleavage = 2            # maximum value is 5; for enzyme search
 # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
 #     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
 #
-#variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
-#variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
-#variable_mod03 = 42.010565 nK 0 3 -1 0
+variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
+variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
+variable_mod03 = 42.010565 nK 0 3 -1 0
 #variable_mod04 = 15.9949 C 0 3 -1 0 0 0.0
 #variable_mod05 = 79.966331 STY 0 3 -1 0 0 97.976896
 max_variable_mods_in_peptide = 5
@@ -68,13 +66,13 @@ use_NL_ions = 0                        # 0=no, 1=yes to consider NH3/H2O neutral
 #
 # output
 #
-output_sqtfile = 0                     # 0=no, 1=yes  write sqt file
+output_sqtfile = 1                     # 0=no, 1=yes  write sqt file
 output_txtfile = 1                     # 0=no, 1=yes  write tab-delimited txt file
 output_pepxmlfile = 1                  # 0=no, 1=yes  write pepXML file
 output_mzidentmlfile = 0               # 0=no, 1=yes  write mzIdentML file
 output_percolatorfile = 1              # 0=no, 1=yes  write Percolator pin file
 print_expect_score = 1                 # 0=no, 1=yes to replace Sp with expect in out & sqt
-num_output_lines = 2                   # num peptide results to show
+num_output_lines = 1                   # num peptide results to show
 
 sample_enzyme_number = 1               # Sample enzyme which is possibly different than the one applied to the search.
                                        # Used to calculate NTT & NMC in pepXML output (default=1 for trypsin).
