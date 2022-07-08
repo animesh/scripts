@@ -2,17 +2,17 @@
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 1) {stop("\n\nNeeds full path of the directory containing REPORTS for example: c:/Users/animeshs/R/bin/Rscript.exe proteinGroupsTtestCombine.r L:/promec/TIMSTOF/LARS/2021/November/SIGRID/combined/txtNoNQd/TS/ 0.050.50.05grouptTestBH RowGeneUniProtScorePeps 0.5 0.1", call.=FALSE)}
+if (length(args) != 1) {stop("\n\nNeeds full path of the directory containing REPORTS for example: c:/Users/animeshs/R/bin/Rscript.exe flashDeConvMZMS1.r \"l:/promec/HF/Lars/2022/june/Solveig/\"", call.=FALSE)}
 #dataFolder####
 inpD <- args[1]
 #inpD<-"l:/promec/HF/Lars/2022/june/Solveig/PDv2p5/mzML/"
 #getFlashDeConv####
 #download.file("https://abibuilder.informatik.uni-tuebingen.de/archive/openms/OpenMSInstaller/experimental/feature/FLASHDeconv/OpenMS-3.0.0-pre-HEAD-2022-06-23-Win64.exe",paste0(inpD,"OpenMS.zip"))
 #unzip(paste0(inpD,"OpenMS.zip"),exdir = paste0(inpD,"OpenMS"))
-#generate in windows prompt using cmd
-##("F:\OneDrive - NTNU\OpenMS-3.0.0-pre-HEAD-2022-06-23\bin\FLASHDeconv.exe" -in "L:\promec\HF\Lars\2022\june\Solveig\PDv2p5\mzML\220627_26_IgA-(1).mzML" -out "L:\promec\HF\Lars\2022\june\Solveig\PDv2p5\mzML\220627_26_IgA-(1).mzML"fdc.tsv )
-#or in bash with mono something like
-## cd dir;for i in *.raw; do mono RawRead.exe $i; done
+#generate mzML in windows prompt using cmd
+##for %i in ("L:\promec\HF\Lars\2022\june\Solveig\*.raw) do ("F:\OneDrive - NTNU\ProteoWizard 3.0.22155.0ff594f 64-bit\msconvert.exe"  --filter "peakPicking true 1-" %i)
+#run flashDeConv
+##for %i in ("*.mzML") do ("F:\OneDrive - NTNU\OpenMS-3.0.0-pre-HEAD-2022-06-23\bin\FLASHDeconv.exe" -in "%i" -out "%i"fdc.tsv)
 inpFL<-list.files(pattern="*mzMLfdc.tsv$",path=inpD,full.names=F,recursive=F)
 outF=paste(inpD,"intMZ1",sep = "/")
 outP=paste(outF,"plot","pdf",sep = ".")

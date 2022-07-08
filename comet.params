@@ -7,36 +7,33 @@
 # ls *.mgf
 # for i in 220617_hela_Slot1-54_1_*.mgf; do echo $i; ls -ltrh $i;./comet.linux.exe $i; done
 # for i in 220617_hela_Slot1-54_1_*.txt ; do echo $i ; wc $i ; awk -F '\t' '{print $16}' $i | grep -v "DECOY" | awk -F '|' '{print $2}' | sort | uniq | wc ; done  # 56604 9174 - DECOY - 7097
+# windows thermo raw file reader needed https://thermo.flexnetoperations.com/control/thmo/download?element=6306677
+# curl "https://rest.uniprot.org/uniprotkb/stream?format=fasta&query=%28proteome%3AUP000005640%29" -o human.fasta
+# https://github.com/percolator/percolator/wiki/Example 
+# comet.win64.exe L:\promec\HF\Lars\2022\june\Plasmatest\220601_HF_QC_BSA.raw
+# percolator.exe -X L:\promec\HF\Lars\2022\june\Plasmatest\220601_HF_QC_BSA.pep.xml L:\promec\HF\Lars\2022\june\Plasmatest\220601_HF_QC_BSA.pin >  result.tsv
 database_name = human.fasta
 decoy_search = 1                       # 0=no (default), 1=concatenated search, 2=separate search
 peff_format = 0                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
 peff_obo = # PSI-MOD.obo
-
 num_threads = 80  # 0=poll CPU to set num threads; else specify num threads directly (max 128)
-
-#
+# https://uwpr.github.io/Comet/parameters/parameters_202201/minimum_xcorr.html
+minimum_xcorr = 1.0
 # masses
-#
 peptide_mass_tolerance = 10.00
 peptide_mass_units = 2                 # 0=amu, 1=mmu, 2=ppm
 mass_type_parent = 1                   # 0=average masses, 1=monoisotopic masses
 mass_type_fragment = 1                 # 0=average masses, 1=monoisotopic masses
 precursor_tolerance_type = 1           # 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
 isotope_error = 3                      # 0=off, 1=0/1 (C13 error), 2=0/1/2, 3=0/1/2/3, 4=-8/-4/0/4/8 (for +4/+8 labeling)
-
-#
 # search enzyme
-#
 search_enzyme_number = 1               # choose from list at end of this params file
 search_enzyme2_number = 0              # second enzyme; set to 0 if no second enzyme
 num_enzyme_termini = 2                 # 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific
 allowed_missed_cleavage = 2            # maximum value is 5; for enzyme search
-
-#
 # Up to 9 variable modifications are supported
 # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
 #     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
-#
 variable_mod01 = 15.9949 M 0 3 -1 0 0 0.0
 variable_mod02 = 0.984016 NQ 0 3 -1 0 0 0.0
 variable_mod03 = 42.010565 nK 0 3 -1 0
@@ -44,13 +41,9 @@ variable_mod03 = 42.010565 nK 0 3 -1 0
 #variable_mod05 = 79.966331 STY 0 3 -1 0 0 97.976896
 max_variable_mods_in_peptide = 5
 require_variable_mod = 0
-
-#
 # fragment ions
-#
 # ion trap ms/ms:  1.0005 tolerance, 0.4 offset (mono masses), theoretical_fragment_ions = 1
 # high res ms/ms:    0.02 tolerance, 0.0 offset (mono masses), theoretical_fragment_ions = 0, spectrum_batch_size = 15000
-#
 fragment_bin_tol = 0.02              # binning to use on fragment ions
 fragment_bin_offset = 0.0              # offset position to start the binning (0.0 to 1.0)
 theoretical_fragment_ions = 1          # 0=use flanking peaks, 1=M peak only
@@ -62,10 +55,7 @@ use_Y_ions = 1
 use_Z_ions = 0
 use_Z1_ions = 0
 use_NL_ions = 0                        # 0=no, 1=yes to consider NH3/H2O neutral loss peaks
-
-#
 # output
-#
 output_sqtfile = 1                     # 0=no, 1=yes  write sqt file
 output_txtfile = 1                     # 0=no, 1=yes  write tab-delimited txt file
 output_pepxmlfile = 1                  # 0=no, 1=yes  write pepXML file
@@ -73,22 +63,14 @@ output_mzidentmlfile = 0               # 0=no, 1=yes  write mzIdentML file
 output_percolatorfile = 1              # 0=no, 1=yes  write Percolator pin file
 print_expect_score = 1                 # 0=no, 1=yes to replace Sp with expect in out & sqt
 num_output_lines = 1                   # num peptide results to show
-
 sample_enzyme_number = 1               # Sample enzyme which is possibly different than the one applied to the search.
-                                       # Used to calculate NTT & NMC in pepXML output (default=1 for trypsin).
-
-#
 # mzXML parameters
-#
 scan_range = 0 0                       # start and end scan range to search; either entry can be set independently
 precursor_charge = 0 0                 # precursor charge range to analyze; does not override any existing charge; 0 as 1st entry ignores parameter
 override_charge = 0                    # 0=no, 1=override precursor charge states, 2=ignore precursor charges outside precursor_charge range, 3=see online
 ms_level = 2                           # MS level to analyze, valid are levels 2 (default) or 3
 activation_method = ALL                # activation method; used if activation method set; allowed ALL, CID, ECD, ETD, ETD+SA, PQD, HCD, IRMPD, SID
-
-#
 # misc parameters
-#
 digest_mass_range = 600.0 5000.0       # MH+ peptide mass range to analyze
 peptide_length_range = 5 63            # minimum and maximum peptide length to analyze (default 1 63; max length 63)
 num_results = 100                      # number of search hits to store internally
@@ -103,25 +85,17 @@ equal_I_and_L = 1                      # 0=treat I and L as different; 1=treat I
 output_suffix =                        # add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
 mass_offsets =                         # one or more mass offsets to search (values substracted from deconvoluted precursor mass)
 precursor_NL_ions =                    # one or more precursor neutral loss masses, will be added to xcorr analysis
-
-#
 # spectral processing
-#
 minimum_peaks = 10                     # required minimum number of peaks in spectrum to search (default 10)
 minimum_intensity = 0                  # minimum intensity value to read in
 remove_precursor_peak = 0              # 0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD), 3=phosphate neutral loss peaks
 remove_precursor_tolerance = 1.5       # +- Da tolerance for precursor removal
 clear_mz_range = 0.0 0.0               # for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range
-
-#
 # additional modifications
-#
-
 add_Cterm_peptide = 0.0
 add_Nterm_peptide = 0.0
 add_Cterm_protein = 0.0
 add_Nterm_protein = 0.0
-
 add_G_glycine = 0.0000                 # added to G - avg.  57.0513, mono.  57.02146
 add_A_alanine = 0.0000                 # added to A - avg.  71.0779, mono.  71.03711
 add_S_serine = 0.0000                  # added to S - avg.  87.0773, mono.  87.03203
@@ -148,10 +122,7 @@ add_B_user_amino_acid = 0.0000         # added to B - avg.   0.0000, mono.   0.0
 add_J_user_amino_acid = 0.0000         # added to J - avg.   0.0000, mono.   0.00000
 add_X_user_amino_acid = 0.0000         # added to X - avg.   0.0000, mono.   0.00000
 add_Z_user_amino_acid = 0.0000         # added to Z - avg.   0.0000, mono.   0.00000
-
-#
 # COMET_ENZYME_INFO _must_ be at the end of this parameters file
-#
 [COMET_ENZYME_INFO]
 0.  Cut_everywhere         0      -           -
 1.  Trypsin                1      KR          P
@@ -165,4 +136,3 @@ add_Z_user_amino_acid = 0.0000         # added to Z - avg.   0.0000, mono.   0.0
 9.  PepsinA                1      FL          P
 10. Chymotrypsin           1      FWYL        P
 11. No_cut                 1      @           @
-
