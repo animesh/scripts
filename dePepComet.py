@@ -1,15 +1,22 @@
-# for i in ./comet/home/ash022/PD/Qexactive/Mirta/20220319_IP-UCHL1_MN/*/*.mgf ; do echo $i ; ./comet.linux.exe $i; done # comet_version 2021.02 rev. 0 (3c62af2) https://github.com/UWPR/Comet/releases/tag/v2021.02.0
-#database_name = 2022-03-21-decoys-contam-uniprot-human-iso-june21.fasta.fas
+# comet_version 2022.01 rev. 0 (75d8377)
+# wget https://download.nextprot.org/pub/current_release/peff/nextprot_all.peff.gz
+# gunzip nextprot_all.peff.gz
+# wget https://github.com/animesh/psi-mod-CV/raw/master/PSI-MOD.obo
+# mkdir febSigMGFnp
+# ln -s /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2022/februar/Sigrid/*.d/*.mgf febSigMGFnp/.
+# for i in febSigMGFnp/*.mgf; do echo $i; ls -ltrh $i;./comet.linux.exe $i; done
+# wc febSigMGFnp/*txt # 54 or?
+# tar cvzf febSigMGFnp.tgz febSigMGFnp/*txt
 import sys
 from pathlib import Path
+pathFiles = Path("F:/OneDrive - NTNU/Downloads/febSigMGFnp/")
+fileName='*txt'
+uniprotID='DECOY_'
+xCorThr=1
 if len(sys.argv)!=2:    sys.exit("USAGE: python dePepComet.py <path to tab-sep-comet results>, \n e.g.,\npython dePepComet.py L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/comet\n txt P09936")
 pathFiles = Path(sys.argv[1])
 fileName = Path(sys.argv[2])
 uniprotID = Path(sys.argv[3])
-#pathFiles = Path("Z:/contaminants/home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2021/Desember/211207_Nilu/MGF8F/")
-#fileName='*txt'
-#uniprotID='HUMAN'
-#xCorThr=0
 trainList=list(pathFiles.rglob(fileName))
 print(len(trainList))
 import pandas as pd
