@@ -9,7 +9,7 @@
 # tar cvzf febSigMGFnp.tgz febSigMGFnp/*txt
 import sys
 from pathlib import Path
-pathFiles = Path("F:/OneDrive - NTNU/Downloads/febSigMGFnp/")
+pathFiles = Path("F:/OneDrive - NTNU/Downloads/nextprotResComet/")
 fileName='*txt'
 uniprotID='DECOY_'
 xCorThr=1
@@ -26,8 +26,8 @@ df=pd.DataFrame()
 for f in trainList:
     print(f)
     peptideHits=pd.read_csv(f,low_memory=False,sep='\t',comment='#', skiprows=1)
-    peptideHits=peptideHits[peptideHits['xcorr']>xCorThr]
-    peptideHits=peptideHits[peptideHits['protein'].str.contains(uniprotID) == False]
+    #peptideHits=peptideHits[peptideHits['xcorr']>xCorThr]
+    #peptideHits=peptideHits[peptideHits['protein'].str.contains(uniprotID) == False]
     peptideHits['Name']=f
     #peptideHits['xcorr'].hist()
     #peptideHits['modified_peptide']
@@ -37,8 +37,16 @@ print(df.columns)
 print(df.dtypes)
 df.to_csv(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThr.csv'))
 df['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThr.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
+dfDecoy=df[df['protein'].str.contains(uniprotID) == True]
+dfDecoy['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThrD.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
 #df=df[~(df['modifications']=="-")]
 dfxCorr=df.pivot_table(index='protein', columns='Name', values='xcorr',aggfunc= 'sum')
+dfxCorr.to_csv(pathFiles.with_suffix('.comb.pivot'+uniprotID+str(xCorThr)+'xCorrThr.csv'))
+dfS=df[df.modified_peptide!=df.peff_modified_peptide]
+dfS['ModP']=dfS.modified_peptide+dfS.protein
+dfS.to_csv(pathFiles.with_suffix('.comb.peff_modified_peptide'+uniprotID+str(xCorThr)+'xCorrThr.csv'))
+dfSxCorr=dfS.pivot_table(index='ModP', columns='Name', values='xcorr',aggfunc= 'sum')
+dfSxCorr.to_csv(pathFiles.with_suffix('.comb.peff_modified_peptide.pivot'+uniprotID+str(xCorThr)+'xCorrThr.csv'))
 cName=dfxCorr.columns.values.tolist()
 cName = [s.__str__().replace(pathFiles.__str__(),'') for s in cName]
 cName = [s.split('_')[2] for s in cName]#P-2,9,18,20;contam-6,11,14,16#16&20&2.nF
