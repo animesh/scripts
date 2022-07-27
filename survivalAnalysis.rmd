@@ -288,11 +288,14 @@ plot(pData$ENSG00000196449,pData$C..Follow,col=factor(!is.na(pData$C..Days)))
             tabSurv_Matrix[i, "Mean Tumor Down"] <- mean(as.numeric(dataCancer_onlyDown_sample_mRNASelected))
             ttime[!status] <- as.numeric(cfu[!status, "days_to_last_follow_up"])
             ttime[which(ttime == -Inf)] <- 0
-            ttime <- survival::Surv(ttime, status)
+            ttimeo <- ttime
+            ttime  <- survival::Surv(ttime, status)
             rownames(ttime) <- rownames(cfu)
             legendHigh <- paste(mRNAselected, "High")
             legendLow <- paste(mRNAselected, "Low")
             #(101/490)*196 ~ 40.4, (101/490)*(490-196) ~ 60.6?
+            #pchisq((47-60.6)*(47-60.6)/60.6+(54-40.4)*(54-40.4)/40.4,1,lower.tail=F)
+            #pchisq((47-(101/490)*(490-196))*(47-(101/490)*(490-196))/(101/490)*(490-196)+(54-(101/490)*196)*(54-(101/490)*196)/(101/490)*196,1,lower.tail=F)
             tabSurv_pvalue <- tryCatch({
                 tabSurv <- survival::survdiff(ttime ~ c(rep("top",nrow(cfu_onlyTOP)), rep("down", nrow(cfu_onlyDOWN))))
                 tabSurv_chis <- unlist(tabSurv)$chisq
