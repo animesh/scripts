@@ -9,8 +9,7 @@
 #SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
 ##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
 #SBATCH --mail-type=ALL
-#SBATCH --output=/cluster/projects/nn9036k/220613_Kristine/out.slurm
-##SBATCH --output=/cluster/projects/nn9036k/scripts/outBM.slurm
+#SBATCH --output=/cluster/projects/nn9036k/Elise/out.slurm
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -27,5 +26,5 @@ echo "Total of $SLURM_NTASKS cores"
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module load Java/13.0.2
-/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 40 --ram 128 --workflow /cluster/projects/nn9036k/Elise/Open.workflow --manifest /cluster/projects/nn9036k/Elise/manifest.fp-manifest --workdir /cluster/projects/nn9036k/Elise/FP18
+/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 40 --ram 128 --workflow /cluster/projects/nn9036k/Elise/Open.workflow --manifest /cluster/projects/nn9036k/Elise/manifest.fp-manifest --workdir /cluster/projects/nn9036k/Elise/FP182
 #/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 64 --ram 1024 --workflow /cluster/projects/nn9036k/febSig/Open.workflow --manifest /cluster/projects/nn9036k/febSig/manifest.fp-manifest --workdir /cluster/projects/nn9036k/febSig/FPv18n
