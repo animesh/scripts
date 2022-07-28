@@ -9,7 +9,7 @@
 #SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
 ##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
 #SBATCH --mail-type=ALL
-#SBATCH --output=/cluster/projects/nn9036k/Elise/out.slurm
+#SBATCH --output=out.slurm.txt
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -26,5 +26,6 @@ echo "Total of $SLURM_NTASKS cores"
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module load Java/13.0.2
-/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 40 --ram 128 --workflow /cluster/projects/nn9036k/Elise/Open.workflow --manifest /cluster/projects/nn9036k/Elise/manifest.fp-manifest --workdir /cluster/projects/nn9036k/Elise/FP182
+
+for i in /cluster/projects/nn9036k/Elise/*.d ; do j=$(basename $i); k=${j%%.*} ;  d=$(dirname $i) ; printf "$i\t$k\t\tDDA\n" | tee $d/$k.txt ;/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 40 --ram 128 --workflow fp.workflow.txt --manifest $d/$k.txt --workdir $d/$k ; head $d/$k/global.modsummary.tsv ; done
 #/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 64 --ram 1024 --workflow /cluster/projects/nn9036k/febSig/Open.workflow --manifest /cluster/projects/nn9036k/febSig/manifest.fp-manifest --workdir /cluster/projects/nn9036k/febSig/FPv18n
