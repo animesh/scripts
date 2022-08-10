@@ -6,6 +6,13 @@
 #pip3 install tensorflow==2.0.0-rc0
 #https://youtu.be/5ECD8J3dvDQ?t=455
 #https://tensorchiefs.github.io/dl_book/
+#conda create --name tf python=3.9
+#conda activate tf
+#mamba install - c nvidia - c conda-forge cudatoolkit = 11.2 cudnn = 8.1.0
+#pip install tensorflow
+#export LD_LIBRARY_PATH =$LD_LIBRARY_PATH: $CONDA_PREFIX/lib/
+os.environ["LD_LIBRARY_PATH"] = "/home/ash022/mambaforge/envs/tf/lib"
+#!ls $LD_LIBRARY_PATH
 import tensorflow as tf
 tf.keras.backend.clear_session()
 from tensorflow.python.client import device_lib
@@ -14,7 +21,7 @@ print("Version: ", tf.__version__)
 print("Eager mode: ", tf.executing_eagerly())
 tf.compat.v1.disable_eager_execution()
 print("Eager mode: ", tf.executing_eagerly())
-print("GPU is", "available" if tf.test.is_gpu_available() else "NOT AVAILABLE")
+print("GPU is", "available" if tf.config.list_physical_devices('GPU') else "NOT AVAILABLE")
 print(tf.config.list_physical_devices('GPU'))
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation

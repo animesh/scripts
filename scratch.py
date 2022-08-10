@@ -8,6 +8,11 @@ sys.setrecursionlimit(1000)
 # %% chi^2 http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html https://towardsdatascience.com/data-scientists-need-to-know-just-one-statistical-test-3115b2ff26fd 
 Value=[1,2,3,4,5,6]
 Frequency=[8,9,19,6,8,10]
+import matplotlib.pyplot as plt
+plt.style.use('dark_background')
+plt.plot(Value, Frequency)
+plt.plot(Frequency,Value)
+plt.hist(Value)
 def ChiSquared(expected, observed):
     total = 0.0
     for x, exp in expected.Items():

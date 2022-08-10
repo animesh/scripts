@@ -8,7 +8,7 @@ hidw=[[0.4,0.45],[0.5,0.55]]
 output=[0.01,0.99]
 bias=[0.35,0.6]
 lr=0.5
-#!pip install torch
+#mamba create -n torch -c nvidia -c pytorch -c conda-forge pytorch torchvision torchaudio cudatoolkit=11.6
 import torch
 print("PyTorch ",torch.__version__)
 from datetime import datetime
