@@ -1,15 +1,15 @@
 #!/bin/sh
 ##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=comp40
-##SBATCH --account=nn9036k --job-name=comp64BM
-#SBATCH --time=120:00:00
+#SBATCH --account=nn9036k --job-name=FPSLURMNAME
+##SBATCH --account=nn9036k --job-name=FPSLURMNAMEBM
+#SBATCH --time=12:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --mem-per-cpu=16G
-#SBATCH --mem-per-cpu=4G
-#SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
 ##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
+##SBATCH --mem-per-cpu=16G
+#SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
+#SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
-#SBATCH --output=out.slurm.txt
+#SBATCH --output=FPSLURMLOG
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -27,5 +27,4 @@ export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module load Java/13.0.2
 
-for i in /cluster/projects/nn9036k/Elise/*.d ; do j=$(basename $i); k=${j%%.*} ;  d=$(dirname $i) ; printf "$i\t$k\t\tDDA\n" | tee $d/$k.txt ;/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 40 --ram 128 --workflow fp.workflow.txt --manifest $d/$k.txt --workdir $d/$k ; head $d/$k/global.modsummary.tsv ; done
-#/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 64 --ram 1024 --workflow /cluster/projects/nn9036k/febSig/Open.workflow --manifest /cluster/projects/nn9036k/febSig/manifest.fp-manifest --workdir /cluster/projects/nn9036k/febSig/FPv18n
+/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 40 --ram 40 --workflow FPWORKFLOW --manifest FPMANIFESTFILE --workdir FPWORKDIR

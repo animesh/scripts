@@ -3,8 +3,7 @@
 
 # Please edit the following path to point to the correct location.
 # In Windows, please replace single '\' with '\\'
-database.db-path=/cluster/projects/nn9036k/FastaDB/2022-06-21-decoys-reviewed-contam-UP000005640.fas
-
+database.db-path=FPFASTAFILE
 
 crystalc.run-crystalc=false
 database.decoy-tag=rev_
