@@ -1,13 +1,13 @@
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
-#example:
+#example####
 #c:\Users\animeshs\R\bin\Rscript.exe proteinGroups.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt
 #supplying input file for testing
-#inpF<-file.path("L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt")
-#parse argument(s)
+#inpF<-file.path("L:/promec/TIMSTOF/LARS/2022/august/Toktam/combined/txt/proteinGroups.txt")
+#parse argument(s)0
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args[1])
-#read
+#read####
 if(length(args)==0){print(paste("No proteinGroups.txt file supplied"))} else if (length(args)>0){inpF<-args[1]}
 print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #read MaxQuant output
@@ -15,8 +15,11 @@ options(nwarnings = 1000000)
 data<-read.table(inpF,header=T,sep="\t")
 dim(data)
 selection="Intensity.";
+outP<-paste(inpF,selection,"pdf",sep = ".")
+pdf(outP)
 print("Selecting Raw Intensity Values(s)")
 if(sum(grep(selection,colnames(data)))>0){intensity<-as.matrix(data[,grep(selection,colnames(data))])}  else if(sum(grep("Abundance.",colnames(data)))>0){intensity<-as.matrix(data[,grep("Abundance.",colnames(data))])}  else{print('Neither Abundance[PD] nor Intensity[MQ] columns detected!')}
+#logInt####
 intensityLFQ<-log2(intensity)
 intensityLFQ[intensityLFQ==-Inf]=NA
 print("Quantified protein-groups(s)")
@@ -27,7 +30,7 @@ isNA<-colSums(is.na(intensityLFQ))/colSums(!is.na(intensityLFQ))
 print("Proportion of NA(s)")
 print(isNA)
 #summary(data)
-#clean MQ output
+#clean####
 nData<-nrow(data)
 data = data[!data[["Reverse"]]=="+",]
 dim(data)
@@ -57,6 +60,7 @@ print(isNA)
 #hist(intensity[,1])
 #select from arg[]
 rownames(intensity)<-rownames(data)
+#logLFQ####
 if(sum(grep("LFQ",colnames(data)))>0){
   selection="LFQ.intensity";print(paste("No columns to select, using"));
   LFQ<-as.matrix(data[,grep(selection,colnames(data))])
@@ -97,10 +101,12 @@ isNA<-colSums(is.na(log2LFQ))/colSums(!is.na(log2LFQ))
 print("Ratio protein-groups(s)")
 print(isNA)
 log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="pearson")
-colnames(log2LFQimpCorr)<-paste0(sapply(strsplit(colnames(log2LFQ),"\\."), `[`, 3),gsub("\\.","",sapply(strsplit(colnames(log2LFQ),"_"), `[`, 4)))
+colnames(log2LFQimpCorr)<-paste0(sapply(strsplit(colnames(log2LFQ),"\\."), `[`, 2),gsub("\\.","",sapply(strsplit(colnames(log2LFQ),"_"), `[`, 1)))
 rownames(log2LFQimpCorr)<-colnames(log2LFQimpCorr)
 heatmap(log2LFQimpCorr)
-#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col=6)
+if(require("pheatmap")){#https://stackoverflow.com/a/43051932
+  grid::grid.draw(pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col=6)$gtable)
+  }
 dim(log2LFQ)
 log2LFQt<-na.omit(log2LFQ)
 dim(log2LFQ)
@@ -108,12 +114,12 @@ summary(log2LFQ)
 summary(intensityLFQ)
 print(paste("Selected and log2 transformed columns",selection))
 if(dim(log2LFQ)[2]>0){
-  outP<-paste(inpF,selection,"pdf",sep = ".")
-  pdf(outP)
   barplot(isNA,main=paste("Protein group #",paste(t(colSums(!is.na(intensityLFQ)))),paste(t(colSums(is.na(intensityLFQ))))))
   boxplot(intensity)
-  boxplot(intensityLFQ)
-  boxplot(log2LFQ)
+  par(mar=c(12,3,1,1))
+  boxplot(intensityLFQ,las=2)
+  par(mar=c(12,3,1,1))
+  boxplot(log2LFQ,las=2)
   boxplot(2^log2LFQ)
   NAcols<-colSums(is.na(log2LFQ))
   NAcols<-c(NAcols, mean(NAcols),median(NAcols),sum(is.na(NAcols)),sd(NAcols)/mean(NAcols),sum(NAcols),"MissingValue(s)")
@@ -185,7 +191,8 @@ if(dim(log2LFQ)[2]>0){
     heatmap(log2LFQt)
   }
   print(dim(log2LFQt))
-  dev.off()
   print(paste("Histogram, PCA, Heatmap of Log2 transform of",selection,"column(s) written to",outP))
 }
+#close####
+dev.off()
 summary(warnings())
