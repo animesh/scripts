@@ -1,15 +1,15 @@
 #!/bin/sh
+#SBATCH --account=nn9036k --job-name=MQ2130evosep
+#SBATCH --time=48:00:00
 ##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=FPSLURMNAME
-##SBATCH --account=nn9036k --job-name=FPSLURMNAMEBM
-#SBATCH --time=12:00:00
-#SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
+##SBATCH --ntasks=16 --cpus-per-task=4
 ##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
-#SBATCH --mem-per-cpu=1G
+#SBATCH --ntasks=10 --cpus-per-task=4
+#SBATCH --mem-per-cpu=4G
+#SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=FPSLURMLOG
+#SBATCH --output=out.slurm.txt
+
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -23,8 +23,10 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 
-export http_proxy=proxy.saga:3128
-export https_proxy=proxy.saga:3128
-module load Java/13.0.2
+module purge
+module load MaxQuant/1.6.17.0-foss-2019b
+mono --version
+module load dotNET-SDK/3.1.300-linux-x64
+dotnet --version
 
-/cluster/projects/nn9036k/FP18/fragpipe/bin/fragpipe --headless --threads 40 --ram 40 --workflow FPWORKFLOW --manifest FPMANIFESTFILE --workdir FPWORKDIR
+mono /cluster/projects/nn9036k/MaxQuant_2.1.3.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/mqpar.saga.xml
