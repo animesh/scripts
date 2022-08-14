@@ -1,4 +1,4 @@
-#bash slurmFragpipe.sh /cluster/projects/nn9036k/beer/ /cluster/projects/nn9036k/FastaDB/2022-07-10-decoys-contam-uniprot-barley-2022.07.10-09.15.13.12.fasta.fas scratch.slurm fp.workflow.txt out.slurm.txt
+#bash slurmFragpipe.sh /cluster/projects/nn9036k/Elise/ /cluster/projects/nn9036k/FastaDB/2022-04-21-decoys-isoforms-contam-UP000005640.fas scratch.slurm fp.workflow.txt out.slurm.elise.txt
 DATADIR=$1
 FASTA=$2
 SLURM=$3
