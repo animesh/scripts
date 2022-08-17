@@ -1,36 +1,45 @@
 ```{r data, echo = FALSE}
-setwd("L:/promec/Animesh/Lisa/")
-inpD <-paste0(getwd())
-inpF<-paste0(inpD,"/Heatmap Ani.xlsx")
-data <- readxl::read_xlsx(inpF)
+inpD <-"C:/Users/animeshs/OneDrive - NTNU/Lisa/"
+inpF<-paste0(inpD,"Log2FC monocytes all treatments trimmed and sorted final csv (Fig 2C).csv")
+#inpF<-paste0(inpD,"Log2FC all nine cell lines trimmed and sorted final csv (Fig 2A).csv")
+data <- read.delim(inpF,sep=";",dec = "," ,header = T,stringsAsFactors = F)
+data<-t(data)
+#data <- read.delim(paste0(inpD,"CamillaWSRTdataMedian.txt"),sep="\t",header = T)
+colnames(data)<-data[1,]
+data<-data[-1,]
+Groups<-data[1,]
+data<-data[-1,]
+summary(data)
+rn<-row.names(data)
+data<-apply(data,2, as.numeric)
+row.names(data)<-rn
+hist(as.matrix(data))
 ```
 
 ```{r sel-data-cols, echo = FALSE}
 #install.packages("scales")
-dataSel<-data[40:74,3:7]
-cN<-paste0(data[39,3:7],colnames(dataSel))
-rN<-paste0(t(data[40:74,2]),rownames(dataSel))
-dataSel<-sapply(dataSel,as.numeric)
-colnames(dataSel)<-cN
-rownames(dataSel)<-rN
-summary(dataSel)
-hist(as.matrix(dataSel))
-min(dataSel,na.rm=T)
-max(dataSel,na.rm=T)
-write.csv(cbind(rownames(dataSel),dataSel),paste0(inpF,".parse.R.csv"),row.names = F)
-dataSel=scales::squish(as.matrix(dataSel),c(-1,1))
-summary(dataSel)
-hist(as.matrix(dataSel))
+library(scales)
+data_selr<-data
+write.csv(data_selr,paste0(inpF,".parse.R.csv"))
+data_selr<-read.csv("Log2FC monocytes all treatments trimmed and sorted final csv (Fig 2C).csv.parse.RaddHap1.csv",row.names = 1)
+#data_selr<-data.matrix(sapply(data_selr, as.numeric))
+#data_selr<-data_selr[,c(1,2,3,13,14,15,7,8,9,16,17,18,19,20,4,5,6,10,11,12,21,22,23,24,28,29,30,25,26,27)]#JJN3-RPMI8226-MC/CAR-HL60-NB4-monocyte-T24-Du145-HEK293
+data_selr=squish(as.matrix(data_selr),c(-3,3))
+summary(data_selr)
+hist(as.matrix(data_selr))
 #install.packages('pheatmap')
-svgPHC<-pheatmap::pheatmap(dataSel,fontsize_row=6,cluster_rows=FALSE,cluster_cols=FALSE)
-ggplot2::ggsave(file=paste0(inpF,"clusterPlot.metabolomics.row.scaled.m1p1.svg"),plot=svgPHC)#,  ```
-#https://www.biostars.org/p/192253/#192284
-bk1 <- c(seq(-1,-0.01,by=0.01))
-bk2 <- c(seq(0.01,1,by=0.01))
+library(pheatmap)
+rn<-rownames(data_selr)
+#rn<-sub("X.","",rownames(data_selr))
+row.names(data_selr)<-paste(sapply(rn, "[", 1))#,sapply(rn, "[", 3),sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+#https://stackoverflow.com/a/44400007/1137129
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
 breaksList <- c(bk1,bk2)
-palette<-colorRampPalette(rev(RColorBrewer::brewer.pal(n = 7, name = "RdYlBu")))(length(breaksList))
-svgPHC<-pheatmap::pheatmap(dataSel,fontsize_row=6,color=palette,cluster_rows=FALSE,cluster_cols=FALSE,breaks = breaksList)
-#install.packages("svglite")
-#install.packages("ggplot2")
-ggplot2::ggsave(file=paste0(inpF,"clusterPlot.metabolomics.row.scaled.m1p1.breaks.svg"),plot=svgPHC)#,  ```
+palette=c(colorRampPalette(colors=c("darkblue","white"))(n=length(bk1)),"white", c(colorRampPalette(colors=c("white","darkred"))(n=length(bk2))))
+svgPHC<-pheatmap(data_selr,fontsize_row=6,color=palette,cluster_rows=FALSE,cluster_cols=FALSE,breaks = breaksList) #svgPHC<-pheatmap(data_selr,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=FALSE,cluster_rows=FALSE)#labels_row =  pathwayN,scale="row",annotation_col = label,show_rownames=F)
+library(ggplot2)
+ggsave(file=paste0(inpD,"clusterPlot.metabolomics.row.NOT.clustered.svg"),plot=svgPHC)#,  ```
 ```
