@@ -33,13 +33,14 @@ print(loaded_model)
 # %% testML
 #http://www.pycaret.org/tutorials/html/MCLF101.html
 import pandas as pd
-#dataset=pd.read_csv("mm.csv")
-#data=dataset.sample(frac=0.8)
-#data_unseen=dataset.drop(data.index)
-#data.reset_index(drop=True, inplace=True)
-#data_unseen.reset_index(drop=True, inplace=True)
-#data.to_csv("mm.train.csv")
-#data_unseen.to_csv("mm.test.csv")
+pathDir="C:/Users/animeshs/OneDrive - NTNU/Singh/"
+dataset=pd.read_csv(pathDir+"mm.csv")
+data=dataset.sample(frac=0.8)
+data_unseen=dataset.drop(data.index)
+data.reset_index(drop=True, inplace=True)
+data_unseen.reset_index(drop=True, inplace=True)
+data.to_csv(pathDir+"mm.train.csv")
+data_unseen.to_csv(pathDir+"mm.test.csv")
 data=pd.read_csv("mm.train.csv",index_col=False)
 data.drop('Unnamed: 0',axis=1,inplace=True)
 data_unseen=pd.read_csv("mm.test.csv")
