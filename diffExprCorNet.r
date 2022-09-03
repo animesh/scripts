@@ -11,13 +11,16 @@ hdr<-gsub("[^[:alnum:] ]", "",inpD)
 setwd(inpD)
 getwd()
 inpF<-paste0(inpD,"Supplementary Table 2 for working purpose.xlsx")
+#install.packages("readxl")
+install.packages("ellipsis")
+#devtools::install_github("r-lib/ellipsis")
 data <- readxl::read_excel(inpF)
 #transform####
 dataLog2<-sapply(data, as.numeric)
 #select####
 colnames(dataLog2)
-dataComb<-data.frame(dataLog2[,grep("^MM",colnames(dataLog2))])
-dataComb<-sapply(dataComb[,-(1:6)],as.numeric)
+dataComb<-data.frame(dataLog2[,grep("^M",colnames(dataLog2))])
+dataComb<-sapply(dataComb,as.numeric)
 boxplot(dataComb)
 rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nrow(dataComb),sep=";")
 hist(dataComb)
@@ -1326,17 +1329,18 @@ dataCombCRN$geneName[duplicated(dataCombCRN$geneName)] <- paste(sapply(strsplit(
 dataCombCRN[dataCombCRN$geneName=="NA","geneName"]=dataCombCRN[dataCombCRN$geneName=="NA","uniprotID"]
 rownames(dataCombCRN)<-dataCombCRN$geneName
 dim(dataCombCRN)
-dataCombCRN<-dataCombCRN[,1:31]
+dataCombCRN<-dataCombCRN[,1:46]
 dim(dataCombCRN)
 intersect(rownames(dataCombCRN),HumanTF)
 dataCombCRN[is.na(dataCombCRN)]<-0
 grnMM = hLICORN(dataCombCRN, TFlist=HumanTF)
-saveRDS(grnMM,file=paste0(inpD,"grnMM.rds"))
-readRDS(grnMM,file=paste0(inpD,"grnMM.rds"))
+saveRDS(grnMM,file=paste0(inpD,"grnM.rds"))
+readRDS(grnMM,file=paste0(inpD,"grnM.rds"))
 print(grnMM)
 influence = regulatorInfluence(grnMM,dataCombCRN)
 coregs= coregulators(grnMM)
 display(grnMM,dataCombCRN,influence)#,clinicalData=dataCombCRN_Subgroup)
+#parallel####
 library(parallel)
 no_cores <- detectCores(logical = TRUE)/2
 options("mc.cores"=no_cores)
@@ -1345,3 +1349,29 @@ print(grn)
 options("mc.cores"=no_cores*2)
 grn =hLICORN(head(CIT_BLCA_EXP,200), TFlist=HumanTF)
 print(grn)
+#mmImpCoRegNet####
+data<-read.csv(paste0(inpD,"mm.csv"))
+dataT<-t(data)
+dataT<-data.frame(dataT[1:3956,])
+rN<-rownames(dataT)
+dataT<-sapply(dataT,as.numeric)
+hist(dataT)
+colnames(dataT)
+rownames(dataT)<-rN
+boxplot(dataT)
+rN<-sapply(strsplit(row.names(dataT), ".",fixed=T), "[",1)
+uP2<-sapply(strsplit(row.names(dataT), ".",fixed=T), "[",2)
+uP3<-sapply(strsplit(row.names(dataT), ".",fixed=T), "[",3)
+rN[rN=="NA"]<-uP2[rN=="NA"]
+rN[duplicated(rN)]<-paste(rN[duplicated(rN)],uP2[duplicated(rN)],uP3[duplicated(rN)],sep="_")
+rN<-data.frame(rN)
+row.names(dataT)<-rN[,"rN"]
+intersect(rownames(dataT),HumanTF)
+grnMMimp = hLICORN(dataT, TFlist=HumanTF)
+saveRDS(grnMMimp,file=paste0(inpD,"grnMMimp.rds"))
+readRDS(grnMMimp,file=paste0(inpD,"grnMMimp.rds"))
+print(grnMMimp)
+influence = regulatorInfluence(grnMMimp,dataT)
+coregs= coregulators(grnMMimp)
+display(grnMMimp,dataT,influence)#,clinicalData=dataCombCRN_Subgroup)
+
