@@ -1366,6 +1366,7 @@ rN[rN=="NA"]<-uP2[rN=="NA"]
 rN[duplicated(rN)]<-paste(rN[duplicated(rN)],uP2[duplicated(rN)],uP3[duplicated(rN)],sep="_")
 rN<-data.frame(rN)
 row.names(dataT)<-rN[,"rN"]
+write.table(dataT,paste0(inpD,"dataTmm.tsv"),sep = "\t")
 intersect(rownames(dataT),HumanTF)
 grnMMimp = hLICORN(dataT, TFlist=HumanTF)
 saveRDS(grnMMimp,file=paste0(inpD,"grnMMimp.rds"))
@@ -1374,4 +1375,26 @@ print(grnMMimp)
 influence = regulatorInfluence(grnMMimp,dataT)
 coregs= coregulators(grnMMimp)
 display(grnMMimp,dataT,influence)#,clinicalData=dataCombCRN_Subgroup)
-
+#aracne####
+BiocManager::install("aracne.networks")
+library(aracne.networks)
+data(package="aracne.networks")$results[, "Item"]
+data(regulonblca)
+write.regulon(regulonblca, n = 10)
+data(regulonblca)
+write.regulon(regulonblca, regulator="399")
+#aracne####
+BiocManager::install("RegEnrich")
+library(RegEnrich)
+object = RegenrichSet(expr = dataT, # expression data (matrix)
+                      colData = sampleInfo, # sample information (data frame)
+                      reg = regulators, # regulators
+                      method = "limma", # differentila expression analysis method
+                      design = designMatrix, # desing model matrix
+                      contrast = contrast, # contrast
+                      networkConstruction = "COEN", # network inference method
+                      enrichTest = "FET") # enrichment analysis method
+data(Lyme_GSE63085)
+FPKM = Lyme_GSE63085$FPKM
+comG<-intersect(rownames(FPKM),rownames(dataT))
+data(TFs)
