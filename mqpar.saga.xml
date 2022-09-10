@@ -2,22 +2,13 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/libMQ/UP000005640_9606.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/uniprot-proteome-human-iso-june22.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
-         <taxonomyId>9606</taxonomyId>
-      </FastaFileInfo>
-      <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/libMQ/UP000005640_9606_additional.fasta</fastaFilePath>
-         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
-         <descriptionParseRule>>(.*)</descriptionParseRule>
-         <taxonomyParseRule></taxonomyParseRule>
-         <variationParseRule></variationParseRule>
-         <modificationParseRule></modificationParseRule>
-         <taxonomyId>9606</taxonomyId>
+         <taxonomyId></taxonomyId>
       </FastaFileInfo>
    </fastaFiles>
    <fastaFilesProteogenomics>
@@ -34,6 +25,7 @@
    <lfqRequireMsms>True</lfqRequireMsms>
    <lfqBayesQuant>False</lfqBayesQuant>
    <decoyMode>revert</decoyMode>
+   <boxCarMode>all</boxCarMode>
    <includeContaminants>True</includeContaminants>
    <maxPeptideMass>4600</maxPeptideMass>
    <epsilonMutationScore>True</epsilonMutationScore>
@@ -44,7 +36,7 @@
    <minScoreUnmodifiedPeptides>0</minScoreUnmodifiedPeptides>
    <minScoreModifiedPeptides>40</minScoreModifiedPeptides>
    <secondPeptide>True</secondPeptide>
-   <matchBetweenRuns>False</matchBetweenRuns>
+   <matchBetweenRuns>True</matchBetweenRuns>
    <matchUnidentifiedFeatures>False</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
    <dependentPeptides>False</dependentPeptides>
@@ -80,9 +72,11 @@
    <deNovoUseWaterLossScore>True</deNovoUseWaterLossScore>
    <deNovoUseAmmoniaLossScore>True</deNovoUseAmmoniaLossScore>
    <deNovoUseA2Score>True</deNovoUseA2Score>
-   <deNovoScalingFactor>0</deNovoScalingFactor>
    <massDifferenceSearch>False</massDifferenceSearch>
    <isotopeCalc>False</isotopeCalc>
+   <writePeptidesForSpectrumFile></writePeptidesForSpectrumFile>
+   <intensityPredictionsFile>
+   </intensityPredictionsFile>
    <minPepLen>7</minPepLen>
    <psmFdrCrosslink>0.01</psmFdrCrosslink>
    <peptideFdr>0.01</peptideFdr>
@@ -105,10 +99,10 @@
       <string>Acetyl (Protein N-term)</string>
       <string>Deamidation (NQ)</string>
    </restrictMods>
-   <matchingTimeWindow>0</matchingTimeWindow>
-   <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
-   <alignmentTimeWindow>0</alignmentTimeWindow>
-   <alignmentIonMobilityWindow>0</alignmentIonMobilityWindow>
+   <matchingTimeWindow>1</matchingTimeWindow>
+   <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
+   <alignmentTimeWindow>20</alignmentTimeWindow>
+   <alignmentIonMobilityWindow>1</alignmentIonMobilityWindow>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
    <quantMode>2</quantMode>
@@ -125,7 +119,6 @@
    <writeDiaFragmentTable>False</writeDiaFragmentTable>
    <writeDiaFragmentQuantTable>False</writeDiaFragmentQuantTable>
    <writeMzTab>False</writeMzTab>
-   <writeSdrf>False</writeSdrf>
    <disableMd5>False</disableMd5>
    <cacheBinInds>True</cacheBinInds>
    <etdIncludeB>False</etdIncludeB>
@@ -135,9 +128,9 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.1.3.0</maxQuantVersion>
+   <maxQuantVersion>2.0.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>7</numThreads>
+   <numThreads>90</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -153,24 +146,273 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/scripts/evosep/SERUM_10_S1-A10_1_1374.d</string>
-      <string>/cluster/projects/nn9036k/scripts/evosep/SERUM_11_S1-A11_1_1375.d</string>
-      <string>/cluster/projects/nn9036k/scripts/evosep/SERUM_12_S1-A12_1_1376.d</string>
-      <string>/cluster/projects/nn9036k/scripts/evosep/SERUM_6_S1-A6_1_1370.d</string>
-      <string>/cluster/projects/nn9036k/scripts/evosep/SERUM_7_S1-A7_1_1371.d</string>
-      <string>/cluster/projects/nn9036k/scripts/evosep/SERUM_8_S1-A8_1_1372.d</string>
-      <string>/cluster/projects/nn9036k/scripts/evosep/SERUM_9_S1-A9_1_1373.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec2_1_GPC_Slot2-9_1_2471.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec2_2_Astro_Slot1-8_1_2408.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec2_2_GPC_Slot1-41_1_2447.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec2_2_iPSC_Slot1-10_1_2410.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec2_3_Astro_Slot2-32_1_2503.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec2_3_GPC_Slot2-10_1_2472.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec2_3_iPSC_Slot1-14_1_2415.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc1_1_Astro_Slot1-17_1_2419.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc1_1_GPC_Slot1-31_1_2436.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc1_1_iPSC_Slot2-13_1_2476.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc1_2_Astro_Slot2-34_1_2506.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc1_2_GPC_Slot2-23_1_2493.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc1_2_iPSC_Slot2-37_1_2509.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc1_3_Astro_Slot1-4_1_2403.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc1_3_iPSC_Slot1-27_1_2431.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc1_3_iPSC_Slot2-3_1_2464.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc2_1_Astro_Slot1-45_1_2452.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc2_1_GPC_Slot1-51_1_2460.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc2_1_iPSC_Slot1-23_1_2426.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc2_2_Astro_Slot1-50_1_2459.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc2_2_GPC_Slot1-28_1_2432.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc2_2_iPSC_Slot2-27_1_2498.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc2_3_Astro_Slot2-30_1_2501.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc2_3_GPC_Slot2-2_1_2463.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Jc2_3_iPSC_Slot1-48_1_2456.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc1_1_Astro_Slot2-35_1_2507.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc1_1_GPC_Slot1-30_1_2434.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc1_1_iPSC_Slot1-52_1_2461.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc1_2_Astro_Slot2-15_1_2478.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc1_2_GPC_Slot1-11_1_2412.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc1_2_iPSC_Slot2-26_1_2496.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc1_3_Astro_Slot2-25_1_2495.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc1_3_GPC_Slot2-6_1_2468.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc1_3_iPSC_Slot1-24_1_2427.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc27_1_Astro_Slot2-33_1_2504.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc27_1_GPC_Slot1-9_1_2409.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc27_1_iPSC_Slot1-32_1_2437.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc27_2_Astro_Slot2-11_1_2474.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc27_2_GPC_Slot2-18_1_2487.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc27_2_iPSC_Slot2-12_1_2475.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc27_3_Astro_Slot1-44_1_2451.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc27_3_GPC_Slot1-49_1_2457.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_AGc27_3_iPSC_Slot2-4_1_2466.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc1_1_GPC_Slot2-31_1_2502.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc1_1_iPSC_Slot1-19_1_2421.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc1_2_Astro_Slot1-21_1_2424.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc1_2_Astro_Slot1-39_1_2445.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc1_2_GPC_Slot2-29_1_2500.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc1_2_iPSC_Slot2-36_1_2508.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc1_3_Astro_Slot1-36_1_2442.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc1_3_GPC_Slot1-42_1_2449.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc1_3_iPSC_Slot1-16_1_2418.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc2_1_Astro_Slot1-37_1_2443.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc2_1_GPC_Slot1-38_1_2444.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc2_1_iPSC_Slot1-26_1_2430.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc2_2_Astro_Slot1-20_1_2422.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc2_2_GPC_Slot2-22_1_2491.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc2_2_iPSC_Slot2-1_1_2462.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc2_3_Astro_Slot1-46_1_2453.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc2_3_GPC_Slot1-15_1_2416.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_ATc2_3_iPSC_Slot1-34_1_2439.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c2_1_Astro_Slot1-5_1_2404.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c2_1_GPC_Slot1-2_1_2401.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c2_1_iPSC_Slot2-8_1_2470.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c2_2_Astro_Slot1-25_1_2428.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c2_2_GPC_Slot1-47_1_2454.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c2_2_Slot1-33_1_2438.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c2_3_Astro_Slot1-3_1_2402.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c2_3_GPC_Slot2-7_1_2469.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c2_3_iPSC_Slot2-19_1_2488.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c4_1_Astro_Slot1-13_1_2414.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c4_1_GPC_Slot2-17_1_2481.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c4_1_iPSC_Slot1-1_1_2400.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c4_2_Astro_Slot1-35_1_2440.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c4_2_GPC_Slot1-12_1_2413.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c4_2_iPSC_Slot1-40_1_2446.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c4_3_Astro_Slot1-22_1_2425.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c4_3_GPC_Slot2-24_1_2494.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_CLN5c4_3_iPSC_Slot2-38_1_2510.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec1_1_Astro_Slot1-18_1_2420.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec1_1_GPC_Slot1-29_1_2433.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec1_1_iPSC_Slot2-28_1_2499.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec1_2_Astro_Slot2-16_1_2480.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec1_2_GPC_Slot2-5_1_2467.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec1_2_iPSC_Slot2-14_1_2477.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec1_3_Astro_Slot2-21_1_2490.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec1_3_GPC_Slot1-43_1_2450.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec1_3_iPSC_Slot1-6_1_2406.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec2_01_iPSC_Slot1-7_1_2407.d</string>
+      <string>/cluster/projects/nn9036k/20220826_iPSC_GPC_Astro/220826_Ec2_1_Astro_Slot2-20_1_2489.d</string>
    </filePaths>
    <experiments>
-      <string>10_S1-A10_1_1374</string>
-      <string>11_S1-A11_1_1375</string>
-      <string>12_S1-A12_1_1376</string>
-      <string>6_S1-A6_1_1370</string>
-      <string>7_S1-A7_1_1371</string>
-      <string>8_S1-A8_1_1372</string>
-      <string>9_S1-A9_1_1373</string>
+      <string>Ec2_1_GPC_Slot2-9_1_2471</string>
+      <string>Ec2_2_Astro_Slot1-8_1_2408</string>
+      <string>Ec2_2_GPC_Slot1-41_1_2447</string>
+      <string>Ec2_2_iPSC_Slot1-10_1_2410</string>
+      <string>Ec2_3_Astro_Slot2-32_1_2503</string>
+      <string>Ec2_3_GPC_Slot2-10_1_2472</string>
+      <string>Ec2_3_iPSC_Slot1-14_1_2415</string>
+      <string>Jc1_1_Astro_Slot1-17_1_2419</string>
+      <string>Jc1_1_GPC_Slot1-31_1_2436</string>
+      <string>Jc1_1_iPSC_Slot2-13_1_2476</string>
+      <string>Jc1_2_Astro_Slot2-34_1_2506</string>
+      <string>Jc1_2_GPC_Slot2-23_1_2493</string>
+      <string>Jc1_2_iPSC_Slot2-37_1_2509</string>
+      <string>Jc1_3_Astro_Slot1-4_1_2403</string>
+      <string>Jc1_3_iPSC_Slot1-27_1_2431</string>
+      <string>Jc1_3_iPSC_Slot2-3_1_2464</string>
+      <string>Jc2_1_Astro_Slot1-45_1_2452</string>
+      <string>Jc2_1_GPC_Slot1-51_1_2460</string>
+      <string>Jc2_1_iPSC_Slot1-23_1_2426</string>
+      <string>Jc2_2_Astro_Slot1-50_1_2459</string>
+      <string>Jc2_2_GPC_Slot1-28_1_2432</string>
+      <string>Jc2_2_iPSC_Slot2-27_1_2498</string>
+      <string>Jc2_3_Astro_Slot2-30_1_2501</string>
+      <string>Jc2_3_GPC_Slot2-2_1_2463</string>
+      <string>Jc2_3_iPSC_Slot1-48_1_2456</string>
+      <string>AGc1_1_Astro_Slot2-35_1_2507</string>
+      <string>AGc1_1_GPC_Slot1-30_1_2434</string>
+      <string>AGc1_1_iPSC_Slot1-52_1_2461</string>
+      <string>AGc1_2_Astro_Slot2-15_1_2478</string>
+      <string>AGc1_2_GPC_Slot1-11_1_2412</string>
+      <string>AGc1_2_iPSC_Slot2-26_1_2496</string>
+      <string>AGc1_3_Astro_Slot2-25_1_2495</string>
+      <string>AGc1_3_GPC_Slot2-6_1_2468</string>
+      <string>AGc1_3_iPSC_Slot1-24_1_2427</string>
+      <string>AGc27_1_Astro_Slot2-33_1_2504</string>
+      <string>AGc27_1_GPC_Slot1-9_1_2409</string>
+      <string>AGc27_1_iPSC_Slot1-32_1_2437</string>
+      <string>AGc27_2_Astro_Slot2-11_1_2474</string>
+      <string>AGc27_2_GPC_Slot2-18_1_2487</string>
+      <string>AGc27_2_iPSC_Slot2-12_1_2475</string>
+      <string>AGc27_3_Astro_Slot1-44_1_2451</string>
+      <string>AGc27_3_GPC_Slot1-49_1_2457</string>
+      <string>AGc27_3_iPSC_Slot2-4_1_2466</string>
+      <string>ATc1_1_GPC_Slot2-31_1_2502</string>
+      <string>ATc1_1_iPSC_Slot1-19_1_2421</string>
+      <string>ATc1_2_Astro_Slot1-21_1_2424</string>
+      <string>ATc1_2_Astro_Slot1-39_1_2445</string>
+      <string>ATc1_2_GPC_Slot2-29_1_2500</string>
+      <string>ATc1_2_iPSC_Slot2-36_1_2508</string>
+      <string>ATc1_3_Astro_Slot1-36_1_2442</string>
+      <string>ATc1_3_GPC_Slot1-42_1_2449</string>
+      <string>ATc1_3_iPSC_Slot1-16_1_2418</string>
+      <string>ATc2_1_Astro_Slot1-37_1_2443</string>
+      <string>ATc2_1_GPC_Slot1-38_1_2444</string>
+      <string>ATc2_1_iPSC_Slot1-26_1_2430</string>
+      <string>ATc2_2_Astro_Slot1-20_1_2422</string>
+      <string>ATc2_2_GPC_Slot2-22_1_2491</string>
+      <string>ATc2_2_iPSC_Slot2-1_1_2462</string>
+      <string>ATc2_3_Astro_Slot1-46_1_2453</string>
+      <string>ATc2_3_GPC_Slot1-15_1_2416</string>
+      <string>ATc2_3_iPSC_Slot1-34_1_2439</string>
+      <string>CLN5c2_1_Astro_Slot1-5_1_2404</string>
+      <string>CLN5c2_1_GPC_Slot1-2_1_2401</string>
+      <string>CLN5c2_1_iPSC_Slot2-8_1_2470</string>
+      <string>CLN5c2_2_Astro_Slot1-25_1_2428</string>
+      <string>CLN5c2_2_GPC_Slot1-47_1_2454</string>
+      <string>CLN5c2_2_Slot1-33_1_2438</string>
+      <string>CLN5c2_3_Astro_Slot1-3_1_2402</string>
+      <string>CLN5c2_3_GPC_Slot2-7_1_2469</string>
+      <string>CLN5c2_3_iPSC_Slot2-19_1_2488</string>
+      <string>CLN5c4_1_Astro_Slot1-13_1_2414</string>
+      <string>CLN5c4_1_GPC_Slot2-17_1_2481</string>
+      <string>CLN5c4_1_iPSC_Slot1-1_1_2400</string>
+      <string>CLN5c4_2_Astro_Slot1-35_1_2440</string>
+      <string>CLN5c4_2_GPC_Slot1-12_1_2413</string>
+      <string>CLN5c4_2_iPSC_Slot1-40_1_2446</string>
+      <string>CLN5c4_3_Astro_Slot1-22_1_2425</string>
+      <string>CLN5c4_3_GPC_Slot2-24_1_2494</string>
+      <string>CLN5c4_3_iPSC_Slot2-38_1_2510</string>
+      <string>Ec1_1_Astro_Slot1-18_1_2420</string>
+      <string>Ec1_1_GPC_Slot1-29_1_2433</string>
+      <string>Ec1_1_iPSC_Slot2-28_1_2499</string>
+      <string>Ec1_2_Astro_Slot2-16_1_2480</string>
+      <string>Ec1_2_GPC_Slot2-5_1_2467</string>
+      <string>Ec1_2_iPSC_Slot2-14_1_2477</string>
+      <string>Ec1_3_Astro_Slot2-21_1_2490</string>
+      <string>Ec1_3_GPC_Slot1-43_1_2450</string>
+      <string>Ec1_3_iPSC_Slot1-6_1_2406</string>
+      <string>Ec2_01_iPSC_Slot1-7_1_2407</string>
+      <string>Ec2_1_Astro_Slot2-20_1_2489</string>
    </experiments>
    <fractions>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -187,8 +429,174 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
       <int>0</int>
       <int>0</int>
       <int>0</int>
@@ -205,18 +613,104 @@
       <string></string>
       <string></string>
       <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
    </referenceChannel>
-   <lfqTopNPeptides>1</lfqTopNPeptides>
+   <intensPred>False</intensPred>
+   <intensPredModelReTrain>False</intensPredModelReTrain>
+   <lfqTopNPeptides>0</lfqTopNPeptides>
    <diaJoinPrecChargesForLfq>False</diaJoinPrecChargesForLfq>
    <diaFragChargesForQuant>1</diaFragChargesForQuant>
-   <gridSpacing>0.7</gridSpacing>
+   <timsRearrangeSpectra>False</timsRearrangeSpectra>
+   <gridSpacing>0.5</gridSpacing>
    <proteinGroupingFile></proteinGroupingFile>
    <parameterGroups>
       <parameterGroup>
          <msInstrument>4</msInstrument>
          <maxCharge>4</maxCharge>
          <minPeakLen>2</minPeakLen>
-         <diaMinPeakLen>1</diaMinPeakLen>
+         <diaMinPeakLen>2</diaMinPeakLen>
          <useMs1Centroids>False</useMs1Centroids>
          <useMs2Centroids>False</useMs2Centroids>
          <cutPeaks>True</cutPeaks>
@@ -295,7 +789,7 @@
          <searchTolInPpm>True</searchTolInPpm>
          <isotopeMatchTol>0.005</isotopeMatchTol>
          <isotopeMatchTolInPpm>False</isotopeMatchTolInPpm>
-         <isotopeTimeCorrelation>0.3</isotopeTimeCorrelation>
+         <isotopeTimeCorrelation>0.6</isotopeTimeCorrelation>
          <theorIsotopeCorrelation>0.6</theorIsotopeCorrelation>
          <checkMassDeficit>False</checkMassDeficit>
          <recalibrationInPpm>True</recalibrationInPpm>
@@ -311,9 +805,9 @@
          <filterPif>False</filterPif>
          <reporterFraction>NaN</reporterFraction>
          <reporterBasePeakRatio>NaN</reporterBasePeakRatio>
-         <timsHalfWidth>10</timsHalfWidth>
+         <timsHalfWidth>6</timsHalfWidth>
          <timsStep>3</timsStep>
-         <timsResolution>35000</timsResolution>
+         <timsResolution>32000</timsResolution>
          <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
@@ -322,9 +816,9 @@
          <crossLinker></crossLinker>
          <minMatchXl>3</minMatchXl>
          <minPairedPepLenXl>6</minPairedPepLenXl>
-         <minScoreDipeptide>40</minScoreDipeptide>
-         <minScoreMonopeptide>0</minScoreMonopeptide>
-         <minScorePartialCross>10</minScorePartialCross>
+         <minScore_Dipeptide>40</minScore_Dipeptide>
+         <minScore_Monopeptide>0</minScore_Monopeptide>
+         <minScore_PartialCross>10</minScore_PartialCross>
          <crosslinkOnlyIntraProtein>False</crosslinkOnlyIntraProtein>
          <crosslinkIntensityBasedPrecursor>True</crosslinkIntensityBasedPrecursor>
          <isHybridPrecDetermination>False</isHybridPrecDetermination>
@@ -392,14 +886,13 @@
          <diaBackgroundSubtraction>False</diaBackgroundSubtraction>
          <diaBackgroundSubtractionQuantile>0.5</diaBackgroundSubtractionQuantile>
          <diaBackgroundSubtractionFactor>4</diaBackgroundSubtractionFactor>
-         <diaLfqRatioType>0</diaLfqRatioType>
+         <diaLfqWeightedMedian>True</diaLfqWeightedMedian>
          <diaTransferQvalue>0.3</diaTransferQvalue>
          <diaOnlyIsosForRecal>True</diaOnlyIsosForRecal>
          <diaMinPeaksForRecal>5</diaMinPeaksForRecal>
          <diaUseFragIntensForMl>False</diaUseFragIntensForMl>
          <diaUseFragMassesForMl>False</diaUseFragMassesForMl>
          <diaMaxTrainInstances>1000000</diaMaxTrainInstances>
-         <diaMaxFragmentCharge>3</diaMaxFragmentCharge>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
@@ -417,8 +910,6 @@
          <HigherCharges>True</HigherCharges>
          <IncludeWater>True</IncludeWater>
          <IncludeAmmonia>True</IncludeAmmonia>
-         <IncludeWaterCross>False</IncludeWaterCross>
-         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
          <DependentLosses>True</DependentLosses>
          <Recalibration>False</Recalibration>
       </msmsParams>
@@ -436,27 +927,23 @@
          <HigherCharges>True</HigherCharges>
          <IncludeWater>True</IncludeWater>
          <IncludeAmmonia>True</IncludeAmmonia>
-         <IncludeWaterCross>False</IncludeWaterCross>
-         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
          <DependentLosses>True</DependentLosses>
          <Recalibration>False</Recalibration>
       </msmsParams>
       <msmsParams>
          <Name>TOF</Name>
-         <MatchTolerance>25</MatchTolerance>
+         <MatchTolerance>40</MatchTolerance>
          <MatchToleranceInPpm>True</MatchToleranceInPpm>
          <DeisotopeTolerance>0.01</DeisotopeTolerance>
          <DeisotopeToleranceInPpm>False</DeisotopeToleranceInPpm>
          <DeNovoTolerance>25</DeNovoTolerance>
          <DeNovoToleranceInPpm>True</DeNovoToleranceInPpm>
          <Deisotope>True</Deisotope>
-         <Topx>16</Topx>
+         <Topx>10</Topx>
          <TopxInterval>100</TopxInterval>
          <HigherCharges>True</HigherCharges>
          <IncludeWater>True</IncludeWater>
          <IncludeAmmonia>True</IncludeAmmonia>
-         <IncludeWaterCross>False</IncludeWaterCross>
-         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
          <DependentLosses>True</DependentLosses>
          <Recalibration>False</Recalibration>
       </msmsParams>
@@ -474,8 +961,6 @@
          <HigherCharges>True</HigherCharges>
          <IncludeWater>True</IncludeWater>
          <IncludeAmmonia>True</IncludeAmmonia>
-         <IncludeWaterCross>False</IncludeWaterCross>
-         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
          <DependentLosses>True</DependentLosses>
          <Recalibration>False</Recalibration>
       </msmsParams>
@@ -483,59 +968,84 @@
    <fragmentationParamsArray>
       <fragmentationParams>
          <Name>CID</Name>
-         <UseIntensityPrediction>False</UseIntensityPrediction>
+         <Connected>False</Connected>
+         <ConnectedScore0>1</ConnectedScore0>
+         <ConnectedScore1>1</ConnectedScore1>
+         <ConnectedScore2>1</ConnectedScore2>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>HCD</Name>
-         <UseIntensityPrediction>False</UseIntensityPrediction>
+         <Connected>False</Connected>
+         <ConnectedScore0>1</ConnectedScore0>
+         <ConnectedScore1>1</ConnectedScore1>
+         <ConnectedScore2>1</ConnectedScore2>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>ETD</Name>
-         <UseIntensityPrediction>False</UseIntensityPrediction>
+         <Connected>False</Connected>
+         <ConnectedScore0>1</ConnectedScore0>
+         <ConnectedScore1>1</ConnectedScore1>
+         <ConnectedScore2>1</ConnectedScore2>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>PQD</Name>
-         <UseIntensityPrediction>False</UseIntensityPrediction>
+         <Connected>False</Connected>
+         <ConnectedScore0>1</ConnectedScore0>
+         <ConnectedScore1>1</ConnectedScore1>
+         <ConnectedScore2>1</ConnectedScore2>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>ETHCD</Name>
-         <UseIntensityPrediction>False</UseIntensityPrediction>
+         <Connected>False</Connected>
+         <ConnectedScore0>1</ConnectedScore0>
+         <ConnectedScore1>1</ConnectedScore1>
+         <ConnectedScore2>1</ConnectedScore2>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>ETCID</Name>
-         <UseIntensityPrediction>False</UseIntensityPrediction>
+         <Connected>False</Connected>
+         <ConnectedScore0>1</ConnectedScore0>
+         <ConnectedScore1>1</ConnectedScore1>
+         <ConnectedScore2>1</ConnectedScore2>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>UVPD</Name>
-         <UseIntensityPrediction>False</UseIntensityPrediction>
+         <Connected>False</Connected>
+         <ConnectedScore0>1</ConnectedScore0>
+         <ConnectedScore1>1</ConnectedScore1>
+         <ConnectedScore2>1</ConnectedScore2>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>Unknown</Name>
-         <UseIntensityPrediction>False</UseIntensityPrediction>
+         <Connected>False</Connected>
+         <ConnectedScore0>1</ConnectedScore0>
+         <ConnectedScore1>1</ConnectedScore1>
+         <ConnectedScore2>1</ConnectedScore2>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
    </fragmentationParamsArray>
 </MaxQuantParams>
+
