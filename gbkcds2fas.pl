@@ -51,7 +51,7 @@ open(FT,">temp.txt");
 open(FTTL,">$total_file_name");
 open(FTTLUTR,">$total_file_name_utr");
 open(FTTLDUTR,">$total_file_name_dutr");
-print FTTLUTR"Number\tName\tPosition\tProduct\tLength\tSequence\n";
+print FTTLUTR"Number\tName\tPosition\tLength\tSequence\n";
 my $file=get_main_source($main_file_pattern);
 print "$file\n$main_file_pattern\nTotal Gene, $n_gene out of $n_gene_threshold $file\n";
 close(FT);
@@ -76,7 +76,6 @@ sub get_main_source{
 			my $seq_name;
 			my $al_utr;
 			my $al_dutr;
-			my @product_name=$feat_object->get_tag_values('product');
 			for my $tag ($feat_object->get_all_tags) {
 				if(($tag eq "translation") or ($tag eq "codon_start")){
 					next;
@@ -88,12 +87,12 @@ sub get_main_source{
 				}
 			}
 			$seq_name =~ s/\s+/\;/g;
-			print "SN:$seq_name\tPN:@product_name\n";
+			print "SN:$seq_name\n";
 			#if(($strand == -1) && (($end+$l_utr)<$l_seq_complete) && (($start-$l_dutr)>0)){
 			if($strand == -1){
 				$n_gene++;
 				$select_rutr_no++;
-			    print FTTLUTR"R$n_gene\t$seq_name\t$start-$end-$l_seq_complete-$l_utr-$l_dutr [$strand]\t@product_name\t$l_seq\t";
+			    print FTTLUTR"R$n_gene\t$seq_name\t$start-$end-$l_seq_complete-$l_utr-$l_dutr [$strand]\t$l_seq\t";
 			    $seq_utr = substr($sequence_string,$end-3,$l_utr+3);
 			    $seq_utr=reverse($seq_utr);
 			    $seq_utr=~tr/ATGC/TACG/d;
@@ -114,7 +113,7 @@ sub get_main_source{
 			else{
 				$n_gene++;
 				$select_utr_no++;
-			    print FTTLUTR"F$n_gene\t$seq_name\t$start-$end-$l_seq_complete-$l_utr-$l_dutr [$strand]\t@product_name\t$l_seq\t";
+			    print FTTLUTR"F$n_gene\t$seq_name\t$start-$end-$l_seq_complete-$l_utr-$l_dutr [$strand]\t$l_seq\t";
 			    $seq_utr = substr($sequence_string,($start-$l_utr-1),$l_utr+3);
 			    print FTTLUTR"$seq_utr\n";
 			    $al_utr=length($seq_utr);
