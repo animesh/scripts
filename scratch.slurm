@@ -1,11 +1,11 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=cln3MQ2031
+#SBATCH --account=nn9036k --job-name=phosMQ2031
 #SBATCH --time=148:00:00
-#SBATCH --partition=bigmem
-#SBATCH --ntasks=16 --cpus-per-task=4
-#SBATCH --mem-per-cpu=16G
-##SBATCH --ntasks=10 --cpus-per-task=4
-##SBATCH --mem-per-cpu=4G
+##SBATCH --partition=bigmem
+##SBATCH --ntasks=16 --cpus-per-task=4
+##SBATCH --mem-per-cpu=32G
+#SBATCH --ntasks=10 --cpus-per-task=4
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
 #SBATCH --output=out.slurm.txt
@@ -30,3 +30,5 @@ module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 
 mono /cluster/projects/nn9036k/MaxQuant_2.0.3.1/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/mqpar.saga.xml
+#mono /cluster/projects/nn9036k/MaxQuant_2.0.3.1/bin/MaxQuantCmd.exe -p 11 /cluster/projects/nn9036k/scripts/mqpar.saga.xml
+#mono /cluster/projects/nn9036k/MaxQuant_2.0.3.1/bin/MaxQuantCmd.exe -n /cluster/projects/nn9036k/scripts/mqpar.saga.xml
