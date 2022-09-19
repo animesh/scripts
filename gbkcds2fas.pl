@@ -15,6 +15,7 @@
 #cat codon_list | "parallel -j 25 ncbi-acc-download --api-key fe9645dec {}
 #ls NC*gbk | parallel -j 25 perl ../../Desktop/Scripts/gbkcds2fas.pl  {}
 #cat NC*gbk*cds.utr.txt > NC.cds.comb.txt
+#https://www.ensembl.org/Homo_sapiens/Transcript/Exons?db=core;g=ENSG00000188573;r=5:168529305-168530634;t=ENST00000338333  GCCATG
 use Bio::SeqIO;
 use strict;
 my $main_file_pattern=shift @ARGV;

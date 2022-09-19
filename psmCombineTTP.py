@@ -5,7 +5,7 @@ from pathlib import Path
 if len(sys.argv)!=2: sys.exit("\n\nREQUIRED: pandas, pathlib, tcl==8.6.9; tested with Python 3.7.9 \n\nUSAGE: python psmCombineTTP.py <path to folder containing psm.tsv file(s) like \"L:\promec\Animesh\Samah\mqpar.xml.1623227664.results\" >\n\nExample\n\npython proteinGroupsCombineTTP.py L:\promec\Animesh\Samah\mqpar.xml.1623227664.results")
 #python psmCombineTTP.py C:/Users/animeshs/Desktop/Documents/OpenFPttp210101Fractions
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("C:/Users/animeshs/Desktop/Documents/OpenFPttp210101Fractions")
+#pathFiles=Path("C:/Users/animeshs/OneDrive - NTNU/phos")
 fileName='psm.tsv'
 trainList=list(pathFiles.rglob(fileName))
 #!pip3 install pandas --user
@@ -14,6 +14,7 @@ import pandas as pd
 #df.to_csv(pathFiles.with_suffix('.combinedT.txt'),sep="\t")#,rownames=FALSE)
 #f=trainList[0]#Path("C:/Users/animeshs/Desktop/FP2/210902_sudhl5_tot_3_Slot1-30_1_181/peptide_label_quant.tsv")
 df=pd.DataFrame()
+#f=trainList[0]
 for f in trainList:
     if Path(f).stat().st_size > 0:
         peptideHits=pd.read_csv(f,low_memory=False,sep='\t')
@@ -30,7 +31,8 @@ print(df.head())
 #df=df.pivot(index='ID', columns='Name', values='dMASS')
 df=df.pivot_table(index='ID', columns='Name', values='dMASS', aggfunc='median')
 #dfO=df
-#df.to_csv(pathFiles.with_suffix('.combined.txt'),sep="\")#,rownames=FALSE)
+dfcsv=pathFiles/(fileName+".combined.csv")
+df.to_csv(dfcsv)
 plotcsv=pathFiles/(fileName+".dMASS.histogram.svg")
 df.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(plotcsv,dpi=100,bbox_inches = "tight")
 print(df.head())
@@ -48,12 +50,14 @@ writeScores=pathFiles/(fileName+".dMASS.median.csv")
 df.to_csv(writeScores)#.with_suffix('.combo.csv'))
 print("dMASS in\n",writeScores,"\n",plotcsv)
 #select for Fe-2H delta-mass
-peptide=df[df['Median'].between(53.91,53.93)]
+peptide=df[df['Median'].between(79,81)]
 peptides=''.join(peptide.index)
 from collections import Counter
 c = Counter(peptides)
 cf=pd.DataFrame(c.items())
 cf=cf[cf.iloc[:,0].str.contains('[a-z]')]
 cf=cf.sort_values(1)
+cfcsv=pathFiles/(fileName+".79to81.csv")
+cf.to_csv(cfcsv)
 print(cf,"\nmedian delta-mass between",peptide['Median'].min(),peptide['Median'].max())
 #dfID=df.assign(ID=df.ID.str.split(';')).explode('ID')
