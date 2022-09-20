@@ -130,7 +130,7 @@
    <name>session1</name>
    <maxQuantVersion>2.0.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>45</numThreads>
+   <numThreads>15</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>

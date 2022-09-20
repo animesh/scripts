@@ -1,4 +1,7 @@
-#bash slurmFragpipe.sh /cluster/projects/nn9036k/Elise/ /cluster/projects/nn9036k/FastaDB/2022-04-21-decoys-isoforms-contam-UP000005640.fas scratch.slurm fp.workflow.txt out.slurm.elise.txt
+
+#git checkout bbcce483bbea5e66edb16213f3f502f135c94941 scratch.slurm
+#dos2unix scratch.slurm
+#bash slurmFragpipe.sh /cluster/projects/nn9036k/220908PHos/d2/ /cluster/projects/nn9036k/FastaDB/2022-04-21-decoys-isoforms-contam-UP000005640.fas scratch.slurm fp.workflow.txt out.slurm.d2.txt
 DATADIR=$1
 FASTA=$2
 SLURM=$3
