@@ -1354,6 +1354,7 @@ data<-read.csv(paste0(inpD,"mm.csv"))
 dataT<-t(data)
 dataT<-data.frame(dataT[1:3956,])
 rN<-rownames(dataT)
+rN<-gsub("_", "",rN)
 dataT<-sapply(dataT,as.numeric)
 hist(dataT)
 colnames(dataT)
@@ -1363,10 +1364,10 @@ rN<-sapply(strsplit(row.names(dataT), ".",fixed=T), "[",1)
 uP2<-sapply(strsplit(row.names(dataT), ".",fixed=T), "[",2)
 uP3<-sapply(strsplit(row.names(dataT), ".",fixed=T), "[",3)
 rN[rN=="NA"]<-uP2[rN=="NA"]
-rN[duplicated(rN)]<-paste(rN[duplicated(rN)],uP2[duplicated(rN)],uP3[duplicated(rN)],sep="_")
+rN[duplicated(rN)]<-paste(rN[duplicated(rN)],uP2[duplicated(rN)],uP3[duplicated(rN)],sep="xxx")
 rN<-data.frame(rN)
 row.names(dataT)<-rN[,"rN"]
-write.table(dataT,paste0(inpD,"dataTmm.tsv"),sep = "\t")
+write.csv(dataT,paste0(inpD,"dataTmm.csv"))
 intersect(rownames(dataT),HumanTF)
 grnMMimp = hLICORN(dataT, TFlist=HumanTF)
 saveRDS(grnMMimp,file=paste0(inpD,"grnMMimp.rds"))
@@ -1379,6 +1380,77 @@ display(grnMMimp,dataT,influence)#,clinicalData=dataCombCRN_Subgroup)
 BiocManager::install("aracne.networks")
 library(aracne.networks)
 data(package="aracne.networks")$results[, "Item"]
+#lionessR####
+install.packages("BiocManager")
+#install.packages("jsonlite")
+M<-read.csv(paste0(inpD,"dataTmm.csv"),header=T,row.names=1)
+library(lionessR)#, help, pos = 2, lib.loc = NULL)
+cormat <- lionessR::lioness(as.matrix(M))
+save.image(paste0(inpD,"dataTmm.cormat.RData"))
+class(cormat)
+rownames(cormat)
+gLioness<-cormat@assays@data[[1]]
+BiocManager::install("igraph")
+giLioness<-igraph::graph.data.frame(gLioness, directed=F)
+BiocManager::install("lionessR")
+M<-dataT
+nsel = nrow(M)
+#M <- exp
+cvar <- apply(as.array(as.matrix(M)), 1, sd)
+dat <- cbind(cvar, M)
+dat <- dat[order(dat[,1], decreasing=T),]
+dat <- dat[1:nsel, -1]
+dat <- as.matrix(dat)
+
+##  two condition-specific networks
+groupMM    <- c(15:46)
+groupMGUS  <- c(1:9)
+groupMGUSl <- c(10:15)
+
+
+netMM              <- cor(t(dat[,groupMM]))
+netMGUS            <- cor(t(dat[,groupMGUS]))
+netdiff_MM_MGUS    <- netMM-netMGUS
+
+netMGUS            <- cor(t(dat[,groupMGUS]))
+netMGUSl           <- cor(t(dat[,groupMGUSl]))
+netdiff_MGUS_MGUSl <- netMGUSl-netMGUS
+
+netMM              <- cor(t(dat[,groupMM]))
+netMGUSl           <- cor(t(dat[,groupMGUSl]))
+netdiff_MM_MGUSl   <- netMM-netMGUSl
+
+
+#netyes <- cor(t(dat[,groupMM]))
+#netno <- cor(t(dat[,groupMGUS]))
+#netdiff <- netyes-netno
+
+
+## convert these adjacency matrices to edgelists
+cormat2 <- rep(1:nsel, each=nsel)
+cormat1 <- rep(1:nsel,nsel)
+
+
+el <- cbind(cormat1, cormat2, c(netdiff_MM_MGUS))
+
+
+melted <- melt(upper.tri(netdiff_MM_MGUS))
+melted <- melted[which(melted$value),]
+values <- netdiff_MM_MGUS[which(upper.tri(netdiff_MM_MGUS))]
+melted <- cbind(melted[,1:2], values)
+genes <- row.names(netdiff_MM_MGUS)
+melted[,1] <- genes[melted[,1]]
+melted[,2] <- genes[melted[,2]]
+row.names(melted) <- paste(melted[,1], melted[,2], sep="_")
+tosub <- melted
+tosel <- row.names(tosub[which(abs(tosub[,3])>0.5),])
+library(lionessR)
+cormat <- lioness(M)
+corsub <- cormat[which(row.names(cormat)  %in% tosel) ,]
+CC <- corsub@assays@data[[1]]
+rownames(CC) <- rownames(corsub)
+
+
 data(regulonblca)
 write.regulon(regulonblca, n = 10)
 data(regulonblca)
@@ -1396,5 +1468,5 @@ object = RegenrichSet(expr = dataT, # expression data (matrix)
                       enrichTest = "FET") # enrichment analysis method
 data(Lyme_GSE63085)
 FPKM = Lyme_GSE63085$FPKM
-comG<-intersect(rownames(FPKM),rownames(dataT))
 data(TFs)
+comG<-intersect(TFs$TF_name,rownames(dataT))
