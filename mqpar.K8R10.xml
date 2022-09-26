@@ -47,7 +47,7 @@
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
    <ibaq>True</ibaq>
-   <top3>True</top3>
+   <top3>False</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
    <splitProteinGroupsByTaxonomy>False</splitProteinGroupsByTaxonomy>
@@ -57,7 +57,7 @@
    <ibaqLogFit>True</ibaqLogFit>
    <ibaqChargeNormalization>True</ibaqChargeNormalization>
    <razorProteinFdr>True</razorProteinFdr>
-   <deNovoSequencing>True</deNovoSequencing>
+   <deNovoSequencing>False</deNovoSequencing>
    <deNovoVarMods>True</deNovoVarMods>
    <deNovoCompleteSequence>True</deNovoCompleteSequence>
    <deNovoCalibratedMasses>True</deNovoCalibratedMasses>
