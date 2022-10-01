@@ -3,7 +3,7 @@
    <fastaFiles>
       <FastaFileInfo>
          <fastaFilePath>SequencesFasta</fastaFilePath>
-         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
+         <identifierParseRule>>([^\s]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
@@ -38,7 +38,7 @@
    <matchBetweenRuns>False</matchBetweenRuns>
    <matchUnidentifiedFeatures>False</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
-   <dependentPeptides>True</dependentPeptides>
+   <dependentPeptides>False</dependentPeptides>
    <dependentPeptideFdr>0.01</dependentPeptideFdr>
    <dependentPeptideMassBin>0.0065</dependentPeptideMassBin>
    <dependentPeptidesBetweenRuns>False</dependentPeptidesBetweenRuns>

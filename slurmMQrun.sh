@@ -1,9 +1,12 @@
-#bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_v2.1.4.0/bin/MaxQuantCmd.exe /trd-project1/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/Elite/Aida/RawFiles /cluster/projects/nn9036k/FastaDB/proteoformer_LeeGao_uniprot_plusisoform_2019_04.fasta mqpar.K8R10.xml scratch.slurm
+#perl -pi -e's/\015\012/\012/g' slurmMQrun.sh
+#perl -pi -e's/\015\012/\012/g' scratch.slurm
+#perl -pi -e's/\015\012/\012/g' mqpar.K8R10.xml
+#bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_v2.1.4.0/bin/MaxQuantCmd.exe $PWD/MM /cluster/projects/nn9036k/FastaDB/sORFidAAleeGaoComb.unstar.fasta mqpar.K8R10.xml scratch.slurm
+#perl -pi -e's/\015\012/\012/g' slurmMQrun.sh
 #make sure mqrun.xml is in the directory where the script is and CHANGE following paths according to the MaxQuant Installation and representative parameter file for that version respectively CANNOT handle path containing spaces! create a symlink in such cases e.g. 
 #for i in $HOME/PD/TIMSTOF/LARS/2021/November/*.d ; do echo $i; j=${i// /_}; echo $j; k=$(basename $j) ; echo $k; ln -s "$i" "$k"; done
 #or make a local link without space for root directory
 #ln -s /trd-project1/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2022/september/220908\ PHos/ phos
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_2.0.3.1/bin/MaxQuantCmd.exe $PWD/phos /cluster/projects/nn9036k/FastaDB/uniprot-proteome-human-iso-june22.fasta  mqparTTP.phoSTY.xml scratch.slurm
 MAXQUANTCMD=$1
 DATADIR=$2
 FASTAFILE=$3
@@ -11,14 +14,6 @@ PARAMFILE=$4
 MQSLURMFILE=$5
 CPU=40
 FDR=0.01
-#leave following empty to include ALL files
-#bash mqrun.sh $HOME/MaxQuant_v.2.0.2.0/bin/MaxQuantCmd.exe $HOME/Animesh/OrbitrapElite_PeptideDDA/OrbitrapElite_PeptideDDA/20200909_MKA_H12C_PeptidesDHB_DDA/ $HOME/FastaDB/uniprot-human-iso-june21.fasta mqpar.xml 1 0.10
-#USAGE: bash mqrun.sh <full path to MaxQuantCmd.exe> <full path to directory containing raw files/> <full path to the fasta file> <mqpar file in working directory> <number of cpu to use>
-#make sure mqrun.xml is in the directory where the script is and CHANGE following paths according to the MaxQuant Installation and representative parameter file for that version respectively
-#CANNOT handle path containing spaces! create a symlink in such cases e.g. 
-#ln -s /home/ash022/PD/USERS/STAMI/2021-02-23\ 6\ test\ samples /home/ash022/PD/USERS/STAMI/2021-02-23-6testsamples
-#if EOL complain
-#perl -pi -e's/\015\012/\012/g' mqrun.sh
 #leave following empty to include ALL files
 PREFIXRAW=
 SEARCHTEXT=TestFile.raw
@@ -46,7 +41,6 @@ echo $WRITEDIR
 #date -d @1604251727
 #find $WRITEDIR -name "proteinGroups.txt"  | xargs ls -ltrh
 for i in $PWD/$WRITEDIR/*/*.xml
-#dos2unix scratch.slurm 
 #for i in $PWD/mqparTTP.phoSTY.xml.1663657305.results/*/*.xml 
     do echo $i
     j=$(basename $i)
@@ -66,3 +60,5 @@ for i in $PWD/$WRITEDIR/*/*.xml
 done
 tail -n 4 $WRITEDIR/*/*.slurm
 ls $WRITEDIR/*/*.slurm | wc
+#ls -ltrh $WRITEDIR/*/*.txt
+#tail -f $WRITEDIR/*/*.txt
