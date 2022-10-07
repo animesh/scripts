@@ -62,3 +62,4 @@ tail -n 4 $WRITEDIR/*/*.slurm
 ls $WRITEDIR/*/*.slurm | wc
 #ls -ltrh $WRITEDIR/*/*.txt
 #tail -f $WRITEDIR/*/*.txt
+#for i in mqpar.K8R10.xml.1664621075.results/*/*.txt ; do s=$(stat --format=%s $i) ; if (($s>10000)); then j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; sbatch $d/$k.slurm; fi;  done
