@@ -25,7 +25,7 @@ library("igraph", lib = libLocal)
 library("limma", lib = libLocal)
 library("reshape2", lib = libLocal)
 #data####
-M <- read.csv("C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\dataTmm.csv", header = T, row.names = 1)
+M <- read.csv("C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\dataMMgeneG3.csvimp.T.csv", header = T, row.names = 1)
 #select####
 cvar <- apply(as.array(as.matrix(M)), 1, sd)
 # https://github.com/orgs/community/discussions/26316 for plot , unblock cookies
@@ -102,7 +102,7 @@ lionessOutput[,1+2] <- nrsamples*(agg-ss)+ss
 summary(lionessOutput[,1+2])
 fName<-gsub("[^[:alnum:]]", "", strsplit(as.character(list(netFunMI))," "))#[[1]][7:10])
 saveRDS(cormat,paste0(dirLocal,fName,".cormat.RDS"))
-cormat<-readRDS("C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\cfunctionxnnstatscortxmethodpearsonn.cormat.RDS")
+cormat<-readRDS("C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\cfunctionxnnmutinformationdiscretizetxdiscequalwidthnbins100methodempn.cormat.RDS")
 head(cormat)
 z <- cormat@assays@data[[1]]
 rownames(z) <- rownames(cormat)
@@ -124,7 +124,8 @@ dim(M)
 colnames(M) <- sampleN
 #[1] 3956   46
 head(M)
-randM<-matrix(rnorm(nrow(M)*ncol(M), 1e-16,1e-15),nrow=nrow(M),ncol=ncol(M))+M
+randM<-matrix(rnorm(nrow(M)*ncol(M), 1e-4,1e-6),nrow=nrow(M),ncol=ncol(M))+M
+write.csv(randM,"C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\dataTmmS42.csv")
 summary(randM)
 summary(M)
 corMM <- cor(t(M))
@@ -135,7 +136,9 @@ corMMrand <- cor(t(randM))
 summary(warnings())
 dim(corMMrand)
 hist(corMMrand)
-hist(corMMrand-corMM)
+diffCor=corMMrand-corMM
+hist(diffCor)
+summary(matrix(diffCor))
 #sampleMM####
 datMM<-data.frame(randM[,trait$grpSample == "MM"])
 summary(datMM)
@@ -248,8 +251,7 @@ tt <- unlist(ccG)
 tt <- tt[34:length(ccG)]
 g <- delete_vertices(g, tt)
 plot(g)
-E(g)$weight
-<- as.numeric(z[,3])
+E(g)$weight<- as.numeric(z[,3])
 E(g)$color[E(g)$weight<0] <- "blue"
 E(g)$color[E(g)$weight>0] <- "red"
 plot(g, vertex.label.cex=0.7,

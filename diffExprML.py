@@ -33,8 +33,9 @@ print(loaded_model)
 # %% testML
 #http://www.pycaret.org/tutorials/html/MCLF101.html
 import pandas as pd
-pathDir="C:/Users/animeshs/OneDrive - NTNU/Singh/"
-dataset=pd.read_csv(pathDir+"mm.csv")
+pathDir="C:/Users/animeshs/OneDrive - NTNU/Aida/"
+fileName="Supplementary Table 2 for working purpose.xlsxgeneG3.csv"
+dataset=pd.read_csvc
 data=dataset.sample(frac=0.8)
 data_unseen=dataset.drop(data.index)
 data.reset_index(drop=True, inplace=True)
@@ -142,13 +143,15 @@ from sklearn.cluster import KMeans
 kmeans = KMeans(n_clusters=2, random_state=0).fit(X)
 print(f"kmeans.labels_ = {kmeans.labels_}")
 #df.corr('spearman')
+df=dataset
 print(df.groupby(["Group"])['NDUFB7.6'].transform(lambda x: x.fillna(x.mean())))
-dfNAR=df.groupby(["Group"]).transform(lambda x: x.fillna(x.mean()))
+dfNAR=df.groupby(["Group"]).transform(lambda x: x.fillna(x.median()))
 print(min(dfNAR.min()))
 dfNARM=dfNAR.fillna(int(min(dfNAR.min())-1))
 print(min(dfNARM.min()))
+dfNARM.T.to_csv(pathDir+fileName+"imp.T.csv")
 dfNARM["Group"]=df["Group"]
-dfNARM.to_csv("data/data.NARM.csv",index=False)
+dfNARM.to_csv(pathDir+fileName+"imp.csv",index=False)
 X,y=dfNARM.iloc[:,:-1],dfNARM['Group']
 scalar = StandardScaler().fit(X)
 scalar.feature_names_in_
