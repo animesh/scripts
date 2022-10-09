@@ -25,7 +25,7 @@ library("igraph", lib = libLocal)
 library("limma", lib = libLocal)
 library("reshape2", lib = libLocal)
 #data####
-M <- read.csv("C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\dataMMgeneG3.csvimp.T.csv", header = T, row.names = 1)
+M <- read.csv("C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\dataTmmS42.csv", header = T, row.names = 1)
 #select####
 cvar <- apply(as.array(as.matrix(M)), 1, sd)
 # https://github.com/orgs/community/discussions/26316 for plot , unblock cookies
@@ -34,7 +34,7 @@ dat <- cbind(cvar, M)
 dat <- dat[order(dat[, 1], decreasing = T), ]
 dat <- dat[cvar > 1, -1]
 dat <- as.matrix(dat)
-# dat <- as.matrix(M)
+dat <- as.matrix(M)
 dim(dat)
 hist(dat)
 summary(dat)
@@ -54,10 +54,12 @@ hist(datDiscMI)
 #lioness####
 # https://github.com/mararie/lionessR/blob/master/vignettes/lionessR.Rmd
 library(lionessR) # , help, pos = 2, lib.loc = NULL)
+cormat <- lioness(dat, netFunMI)
+cormat <- lioness(dat, netFun)
+netFunS<-function(x, ...) { stats::cor(t(x), method = "spearman")}
+cormat <- lioness(dat, netFunS)
 netFunMI <- function(x, ...) { mutinformation(discretize(t(x), disc = "equalwidth", nbins = 100), method = "emp")}
 dim(datDisc)
-cormat <- lioness(dat, netFunMI)
-#cormat <- lioness(dat, netFun)
 summary(warnings(1000000))
 dim(cormat)
 cData <- cormat@assays@data[[1]]
@@ -102,6 +104,7 @@ lionessOutput[,1+2] <- nrsamples*(agg-ss)+ss
 summary(lionessOutput[,1+2])
 fName<-gsub("[^[:alnum:]]", "", strsplit(as.character(list(netFunMI))," "))#[[1]][7:10])
 saveRDS(cormat,paste0(dirLocal,fName,".cormat.RDS"))
+saveRDS(cormat,"C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\cfunctionxnnstatscortxmethodpearsonn.cormat.RDS")
 cormat<-readRDS("C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\cfunctionxnnmutinformationdiscretizetxdiscequalwidthnbins100methodempn.cormat.RDS")
 head(cormat)
 z <- cormat@assays@data[[1]]
@@ -124,23 +127,8 @@ dim(M)
 colnames(M) <- sampleN
 #[1] 3956   46
 head(M)
-randM<-matrix(rnorm(nrow(M)*ncol(M), 1e-4,1e-6),nrow=nrow(M),ncol=ncol(M))+M
-write.csv(randM,"C:\\Users\\animeshs\\OneDrive - NTNU\\Singh\\dataTmmS42.csv")
-summary(randM)
-summary(M)
-corMM <- cor(t(M))
-summary(warnings())
-dim(corMM)
-hist(corMM)
-corMMrand <- cor(t(randM))
-summary(warnings())
-dim(corMMrand)
-hist(corMMrand)
-diffCor=corMMrand-corMM
-hist(diffCor)
-summary(matrix(diffCor))
 #sampleMM####
-datMM<-data.frame(randM[,trait$grpSample == "MM"])
+datMM<-data.frame(M[,trait$grpSample == "MM"])
 summary(datMM)
 dim(datMM)
 nsel = nrow(M)
@@ -163,7 +151,7 @@ summary(warnings())
 dim(netyes)
 hist(netyes)
 #sampleMGUS####
-datMG<-randM[,trait$grpSamp == "MGUS"]
+datMG<-M[,trait$grpSamp == "MGUS"]
 summary(datMG)
 cvar <- apply(as.array(as.matrix((datMG))), 1, sd)
 sum(cvar==0)
@@ -298,9 +286,6 @@ bincol <- mypalette4[bincol]
 
 # add colors to nodes
 V(g)$color <- bincol
-
-#Finally, we visualize these results in a network diagram of the 50 most significant edges from the LIMMA analysis:
-library(igraph)
 par(mar=c(0,0,0,0))
 plot(g, vertex.label.cex=0.7, vertex.size=6,
      vertex.label.color = "black",
@@ -309,7 +294,7 @@ plot(g, vertex.label.cex=0.7, vertex.size=6,
 #plot(simplify(g)) # remove loops and multiple edges
 #plot(delete.vertices(simplify(g))) # additionally delete isolated nodes
 #sampleMl####
-datMl<-randM[,trait$grpSamp == "Ml"]
+datMl<-M[,trait$grpSamp == "Ml"]
 summary(datMl)
 cvar <- apply(as.array(as.matrix((datMl))), 1, sd)
 sum(cvar==0)
