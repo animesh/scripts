@@ -1,3 +1,9 @@
+#..\R-4.2.1-win\bin\Rscript.exe diffExprTestT.r "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/" Bio Rem
+#setup
+#install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
+#BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
+#install.packages("devtools")
+#devtools::install_github("jdstorey/qvalue")
 print("USAGE:<path to>Rscript diffExprTestT.r <complete path to directory containing proteinGroups.txt AND Groups.txt files> <name of group column in Groups.txt annotating data/rows to be used for analysis> <name of column in Groups.txt marking data NOT to be considered in analysis>")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -6,14 +12,6 @@ if (length(args) != 3) {stop("\n\nNeeds THREE arguments, the full path of the di
 
 c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r L:/promec/Qexactive/Mirta/20220210_UCHL1_iPSC-MNP-MN/RawData/combined/txt/ Bio Rem
 ", call.=FALSE)}
-#setup####
-#install.packages("ggplot2")
-#install.packages("svglite")
-#install.packages("limma")
-#install.packages("writexl")
-#install.packages("pheatmap")
-#install.packages("devtools")
-#devtools::install_github("jdstorey/qvalue")
 inpD <- args[1]
 #inpD <-"L:/promec/Qexactive/Mirta/20220210_UCHL1_iPSC-MNP-MN/RawData/txt/"
 lGroup <- args[2]
