@@ -62,4 +62,4 @@ tail -n 4 $WRITEDIR/*/*.slurm
 ls $WRITEDIR/*/*.slurm | wc
 #ls -ltrh $WRITEDIR/*/*.txt
 #tail -f $WRITEDIR/*/*.txt
-#for i in mqpar.K8R10.xml.1664621075.results/*/*.txt ; do s=$(stat --format=%s $i) ; if (($s>10000)); then j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; sbatch $d/$k.slurm; fi;  done
+#for i in mqpar.K8R10.xml.1664621075.results/*/*.txt ; do s=$(stat --format=%s $i) ; if (($s>10000)); then j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; ls -ltrh $d/$k.slurm; sed 's/MaxQuantCmd.exe/MaxQuantCmd.exe  -p 11 /g'  $d/$k.slurm > $d/$k.p11.slurm ; sbatch $d/$k.p11.slurm ; fi;  done
