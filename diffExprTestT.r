@@ -1,4 +1,4 @@
-#..\R-4.2.1-win\bin\Rscript.exe diffExprTestT.r "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/" Bio Rem
+#Rscript.exe diffExprTestT.r "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/proteinGroups.txt" "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/Groups.txt" Bio Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -8,25 +8,28 @@ print("USAGE:<path to>Rscript diffExprTestT.r <complete path to directory contai
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 3) {stop("\n\nNeeds THREE arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
+if (length(args) != 4) {stop("\n\nNeeds THREE arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
 
-c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r L:/promec/Qexactive/Mirta/20220210_UCHL1_iPSC-MNP-MN/RawData/combined/txt/ Bio Rem
+c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/Groups.txt\" Bio Rem
 ", call.=FALSE)}
-inpD <- args[1]
-#inpD <-"L:/promec/Qexactive/Mirta/20220210_UCHL1_iPSC-MNP-MN/RawData/txt/"
-lGroup <- args[2]
+inpF <- args[1]
+#inpF <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/proteinGroups.txt"
+inpL <- args[2]
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/GroupsR0.txt"
+lGroup <- args[3]
 #lGroup<-"Bio"
-rGroup <- args[3]
-#lGroup<-"Remove"
-inpF<-paste0(inpD,"proteinGroups.txt")
-inpL<-paste0(inpD,"Groups.txt")
+rGroup <- args[4]
+#rGroup<-"Rem"
+inpD<-dirname(inpF)
+fName<-basename(inpF)
+lName<-basename(inpL)
 selection<-"LFQ.intensity."
 thr=0.0#count
 selThr=0.05#pValue-tTest
 selThrFC=0.5#log2-MedianDifference
 cvThr=0.05#threshold for coefficient-of-variation
-hdr<-gsub("[^[:alnum:] ]", "",inpD)
-outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,"VolcanoTestT","pdf",sep = ".")
+hdr<-gsub("[^[:alnum:]]", "",inpD)
+outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,"VolcanoTestT","pdf",sep = ".")
 pdf(outP)
 #data####
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
@@ -61,7 +64,7 @@ data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
 rownames(label)=sub(selection,"",rownames(label))
 label["pair2test"]<-label[lGroup]
-label["removed"]<-label[rGroup]
+if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
 print(label)
 #corHC####
 scale=3
@@ -145,8 +148,8 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
     ttest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-    writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.xlsx"))
-    write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.csv"),row.names = F)
+    writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.xlsx"))
+    write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.csv"),row.names = F)
     ttest.results.return<-ttest.results
     #volcano
     ttest.results$RowGeneUniProtScorePeps<-data$geneName
@@ -158,17 +161,17 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
     #f=paste(file,proc.time()[3],".jpg")
     #install.packages("svglite")
-    ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"VolcanoTest.svg"), p)
+    ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTest.svg"), p)
     print(p)
     return(ttest.results.return)
   }
 }
 #compare####
 colnames(log2LFQ)
-log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[label$removed!="Y",]))]
+log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed!="Y",]))]
 colnames(log2LFQsel)
 dim(log2LFQsel)
-label=label[label$removed!="Y",]
+label=label[is.na(label$removed)|label$removed!="Y",]
 table(label$pair2test)
 for(i in rownames(table(label$pair2test))){
   for(j in rownames(table(label$pair2test))){
