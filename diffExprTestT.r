@@ -1,4 +1,4 @@
-#Rscript.exe diffExprTestT.r "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/proteinGroups.txt" "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/Groups.txt" Bio Rem
+#Rscript.exe diffExprTestT.r "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt" "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt" Bio Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -10,12 +10,12 @@ print(paste("supplied argument(s):", length(args)))
 print(args)
 if (length(args) != 4) {stop("\n\nNeeds THREE arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
 
-c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/Groups.txt\" Bio Rem
+c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt\" Bio Rem
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Synovial/combined/txt/GroupsR0.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
@@ -44,6 +44,24 @@ log2Int<-as.matrix(log2(data[,grep("Intensity",colnames(data))]))
 log2Int[log2Int==-Inf]=NA
 hist(log2Int,main=paste("Mean:",mean(log2Int,na.rm=T),"SD:",sd(log2Int,na.rm=T)),breaks=round(max(log2Int,na.rm=T)),xlim=range(min(log2Int,na.rm=T),max(log2Int,na.rm=T)))
 summary(log2(data[,grep("Intensity",colnames(data))]))
+par(mar=c(12,3,1,1))
+boxplot(log2Int,las=2)
+#corHCint####
+scale=3
+log2Intimp<-matrix(rnorm(dim(log2Int)[1]*dim(log2Int)[2],mean=mean(log2Int,na.rm = T)-scale,sd=sd(log2Int,na.rm = T)/(scale)), dim(log2Int)[1],dim(log2Int)[2])
+log2Intimp[log2Intimp<0]<-0
+par(mar=c(12,3,1,1))
+boxplot(log2Intimp,las=2)
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),"gray", "gray",c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+colnames(log2Intimp)<-colnames(log2Int)
+log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="spearman")
+colnames(log2IntimpCorr)<-colnames(log2Int)
+rownames(log2IntimpCorr)<-colnames(log2Int)
+svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+#maxLFQ####
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 #protNum<-1:ncol(LFQ)
 #protNum<-"LFQ intensity"#1:ncol(LFQ)
@@ -55,6 +73,8 @@ log2LFQ[log2LFQ==-Inf]=NA
 log2LFQ[log2LFQ==0]=NA
 summary(log2LFQ)
 hist(log2LFQ,main=paste("Mean:",mean(log2LFQ,na.rm=T),"SD:",sd(log2LFQ,na.rm=T)),breaks=round(max(log2Int,na.rm=T)),xlim=range(min(log2Int,na.rm=T),max(log2Int,na.rm=T)))
+par(mar=c(12,3,1,1))
+boxplot(log2LFQ,las=2)
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpD,"log2LFQ.xlsx"))
 data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Gene.names, ";",fixed=T), "[", 1)), " "), "[", 1))
@@ -66,14 +86,11 @@ rownames(label)=sub(selection,"",rownames(label))
 label["pair2test"]<-label[lGroup]
 if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
 print(label)
-#corHC####
-scale=3
+#corHClfq####
 log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
 log2LFQimp[log2LFQimp<0]<-0
-bk1 <- c(seq(-3,-0.01,by=0.01))
-bk2 <- c(seq(0.01,3,by=0.01))
-bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
-my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),"gray", "gray",c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+par(mar=c(12,3,1,1))
+boxplot(log2LFQimp,las=2)
 colnames(log2LFQimp)<-colnames(log2LFQ)
 log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
@@ -168,10 +185,10 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
 }
 #compare####
 colnames(log2LFQ)
-log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed!="Y",]))]
+log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
 colnames(log2LFQsel)
 dim(log2LFQsel)
-label=label[is.na(label$removed)|label$removed!="Y",]
+label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 for(i in rownames(table(label$pair2test))){
   for(j in rownames(table(label$pair2test))){
