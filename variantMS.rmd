@@ -1,3 +1,20 @@
+```{r TEiMeta, echo = FALSE}
+#AEC: automated execution context / data provenance and its manifest - Salmon guy
+#https://bioconductor.org/packages/release/bioc/vignettes/tximeta/inst/doc/tximeta.html
+BiocManager::install("tximeta")
+```
+
+```{r VRS.ga4gh, echo = FALSE}
+#https://github.com/ga4gh/vrs
+BiocManager::install(c("MSnbase", "protViz"))
+```
+
+```{r seqCol, echo = FALSE}
+#https://github.com/yafeng/SpectrumAI
+BiocManager::install(c("MSnbase", "protViz"))
+```
+
+
 ```{r SpectrumAI, echo = FALSE}
 #https://github.com/yafeng/SpectrumAI
 BiocManager::install(c("MSnbase", "protViz"))
