@@ -1,23 +1,23 @@
-#Rscript.exe diffExprTestT.r "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt" "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt" Bio Rem
+#..\R-4.2.1-win\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\Groups.txt Tissue Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #install.packages("devtools")
 #devtools::install_github("jdstorey/qvalue")
-print("USAGE:<path to>Rscript diffExprTestT.r <complete path to directory containing proteinGroups.txt AND Groups.txt files> <name of group column in Groups.txt annotating data/rows to be used for analysis> <name of column in Groups.txt marking data NOT to be considered in analysis>")
+print("USAGE:<path to>Rscript diffExprTestRank.r <complete path to directory containing proteinGroups.txt> <Groups.txt file> <name of group column in Groups.txt annotating data/rows to be used for analysis> <name of column in Groups.txt marking data NOT to be considered in analysis>")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
 if (length(args) != 4) {stop("\n\nNeeds THREE arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
 
-c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt\" Bio Rem
+c:\Users\animeshs\R-4.2.1-win\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\Groups.txt Tissue Rem
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Bio"
+#lGroup<-"Tissue"
 rGroup <- args[4]
 #rGroup<-"Rem"
 inpD<-dirname(inpF)
@@ -61,6 +61,7 @@ log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2Int)
 rownames(log2IntimpCorr)<-colnames(log2Int)
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+ggplot2::ggsave(paste0(outP,"heatmap.intensity.svg"), svgPHC)
 #maxLFQ####
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 LFQ<-LFQ[,2:ncol(LFQ)]
@@ -81,6 +82,14 @@ writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(
 data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Gene.names, ";",fixed=T), "[", 1)), " "), "[", 1))
 data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$Protein.IDs, ";",fixed=T), "[", 1)), "-"), "[", 1))
 data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
+#minmaxScale####
+colnames(log2LFQ)
+log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+summary(log2LFQsel)
+maxM=matrix(rep(apply(log2LFQsel,2,function(x) max(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
+minM=matrix(rep(apply(log2LFQsel,2,function(x) min(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
+log2LFQselScale=(log2LFQsel-minM)/(maxM-minM)
+write.csv(log2LFQselScale,paste0(inpF,".minmax.csv"))
 #label####
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
 rownames(label)=sub(selection,"",rownames(label))
@@ -97,6 +106,7 @@ log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+ggplot2::ggsave(paste0(outP,"heatmap.iBAQ.svg"), svgPHC)
 #test####
 testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
   #sel1<-"MNPHCKO"#"MNPSC"
@@ -185,13 +195,6 @@ testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
   }
 }
 #compare####
-colnames(log2LFQ)
-log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
-summary(log2LFQsel)
-maxM=matrix(rep(apply(log2LFQsel,2,function(x) max(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
-minM=matrix(rep(apply(log2LFQsel,2,function(x) min(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
-log2LFQselScale=(log2LFQsel-minM)/(maxM-minM)
-write.csv(log2LFQselScale,paste0(inpF,".minmax.csv"))
 summary(log2LFQselScale)
 colnames(log2LFQselScale)
 dim(log2LFQselScale)
