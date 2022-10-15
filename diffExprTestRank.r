@@ -8,10 +8,7 @@ print("USAGE:<path to>Rscript diffExprTestRank.r <complete path to directory con
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 4) {stop("\n\nNeeds THREE arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
-
-c:\Users\animeshs\R-4.2.1-win\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\Groups.txt Tissue Rem
-", call.=FALSE)}
+if (length(args) != 4) {stop("\n\nNeeds FOUR arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example: c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestRank.r L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/Groups.txt Tissue Rem", call.=FALSE)}
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
@@ -82,20 +79,6 @@ writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(
 data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Gene.names, ";",fixed=T), "[", 1)), " "), "[", 1))
 data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$Protein.IDs, ";",fixed=T), "[", 1)), "-"), "[", 1))
 data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
-#minmaxScale####
-colnames(log2LFQ)
-log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
-summary(log2LFQsel)
-maxM=matrix(rep(apply(log2LFQsel,2,function(x) max(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
-minM=matrix(rep(apply(log2LFQsel,2,function(x) min(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
-log2LFQselScale=(log2LFQsel-minM)/(maxM-minM)
-write.csv(log2LFQselScale,paste0(inpF,".minmax.csv"))
-#label####
-label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
-rownames(label)=sub(selection,"",rownames(label))
-label["pair2test"]<-label[lGroup]
-if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
-print(label)
 #corHClfq####
 log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
 log2LFQimp[log2LFQimp<0]<-0
@@ -107,23 +90,61 @@ colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 ggplot2::ggsave(paste0(outP,"heatmap.iBAQ.svg"), svgPHC)
+#label####
+label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
+rownames(label)=sub(selection,"",rownames(label))
+label["pair2test"]<-label[lGroup]
+if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
+print(label)
+#table(label$Tissue)
+#minmaxScale####
+colnames(log2LFQ)
+log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+summary(log2LFQsel)
+maxM=matrix(rep(apply(log2LFQsel,2,function(x) max(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
+minM=matrix(rep(apply(log2LFQsel,2,function(x) min(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
+log2LFQselScale=(log2LFQsel-minM)/(maxM-minM)
+write.csv(log2LFQselScale,paste0(inpF,".minmax.csv"))
+#corHCminmax####
+hist(log2LFQselScale)
+log2LFQselScaleimp<-matrix(rnorm(dim(log2LFQselScale)[1]*dim(log2LFQselScale)[2],mean=mean(log2LFQselScale,na.rm = T)-scale,sd=sd(log2LFQselScale,na.rm = T)/(scale)), dim(log2LFQselScale)[1],dim(log2LFQselScale)[2])
+hist(log2LFQselScaleimp)
+par(mar=c(12,3,1,1))
+boxplot(log2LFQselScaleimp,las=2)
+#log2LFQselScaleimp[log2LFQselScaleimp<0]<-0
+#colnames(log2LFQselScaleimp)<-colnames(log2LFQselScale)
+log2LFQselScaleimpCorr<-cor(log2LFQselScale,use="pairwise.complete.obs",method="spearman")
+hist(log2LFQselScaleimpCorr)
+colnames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
+rownames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
+svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+ggplot2::ggsave(paste0(outP,"heatmap.iBAQminmax.svg"), svgPHC)
 #test####
 testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
-  #sel1<-"MNPHCKO"#"MNPSC"
-  #sel2<-"MNPHC"
-  #log2LFQ<-log2LFQsel#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
+  #sel1<-"PIN"
+  #sel2<-"PNI"#HGcancer"
+  #log2LFQ<-log2LFQselScale#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
+  #hist(log2LFQ)
   #log2LFQ<-sapply(log2LFQ, as.numeric)
   #colnames(log2LFQ)
-  d1<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
-  d2<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel2,]))]
+  d1<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))])
+  rNd1<-rownames(d1)
+  d1<-sapply(d1, as.numeric)
+  rownames(d1)<-rNd1
+  colnames(d1)<-rownames(label[label$pair2test==sel1,])
+  d2<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel2,]))])
+  rNd2<-rownames(d2)
+  d2<-sapply(d2, as.numeric)
+  rownames(d2)<-rNd2
+  colnames(d2)<-rownames(label[label$pair2test==sel2,])
   dataSellog2grpwilcoxTest<-as.matrix(cbind(d1,d2))
   if(sum(!is.na(d1))>1&sum(!is.na(d2))>1){
-    hist(d1,breaks=round(max(dataSellog2grpwilcoxTest,na.rm=T)))
-    hist(d2,breaks=round(max(dataSellog2grpwilcoxTest,na.rm=T)))
+    hist(d1)
+    hist(d2)
     #assign(paste0("hda",sel1,sel2),dataSellog2grpwilcoxTest)
     #get(paste0("hda",sel1,sel2))
     dataSellog2grpwilcoxTest[dataSellog2grpwilcoxTest==0]=NA
-    hist(dataSellog2grpwilcoxTest,breaks=round(max(dataSellog2grpwilcoxTest,na.rm=T)))
+    hist(dataSellog2grpwilcoxTest)
     row.names(dataSellog2grpwilcoxTest)<-row.names(data)
     comp<-paste0(sel1,sel2)
     sCol<-1
@@ -145,8 +166,9 @@ testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
       else{NA}
     )
     summary(warnings())
-    hist(pValNA)
     summary(pValNA)
+    if(sum(is.na(pValNA))==nrow(dataSellog2grpwilcoxTest)){pValNA[is.na(pValNA)]=1}
+    hist(pValNA)
     dfpValNA<-as.data.frame(ceiling(pValNA))
     pValNAdm<-cbind(pValNA,dataSellog2grpwilcoxTest,row.names(data))
     pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
@@ -207,12 +229,12 @@ tmparr=log2LFQselScale[1,1:ncol(log2LFQselScale)]
 wilcox.test(tmparr[1:ncol(log2LFQsel)/2],tmparr[ncol(log2LFQsel)/2+1:ncol(log2LFQsel)],alternative = "two.sided",exact = FALSE, correct = FALSE,na.rm=T)
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
-for(i in rownames(table(label$pair2test))){
-  for(j in rownames(table(label$pair2test))){
-    if(i!=j){
-      print(paste(i,j))
-      rtPair=testWilcox(log2LFQselScale,i,j,cvThr)
-      #assign(paste0(i,j),ttPair)
-    }
-  }
+cnt=0
+for(i in 1:length(rownames(table(label$pair2test)))){
+  cnt=cnt+1
+  i=rownames(table(label$pair2test))[cnt]
+  j=rownames(table(label$pair2test))[-cnt]
+  print(paste(i,j))
+  rtPair=testWilcox(log2LFQselScale,i,j,cvThr)
+  #assign(paste0(i,j),ttPair)
 }
