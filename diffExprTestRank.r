@@ -22,9 +22,9 @@ fName<-basename(inpF)
 lName<-basename(inpL)
 selection<-"iBAQ."
 thr=0.0#count
-selThr=0.05#pValue-WilcoxTest
-selThrFC=0.5#log2-MedianDifference
-cvThr=0.1#threshold for coefficient-of-variation
+selThr=0.1#pValue-WilcoxTest
+selThrFC=0.1#log2-MedianDifference
+cvThr=Inf#threshold for coefficient-of-variation
 hdr<-gsub("[^[:alnum:]]", "",inpD)
 outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,"VolcanoTestWilcox","pdf",sep = ".")
 pdf(outP)
@@ -57,7 +57,7 @@ colnames(log2Intimp)<-colnames(log2Int)
 log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2Int)
 rownames(log2IntimpCorr)<-colnames(log2Int)
-svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
 ggplot2::ggsave(paste0(outP,"heatmap.intensity.svg"), svgPHC)
 #maxLFQ####
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
@@ -69,7 +69,6 @@ colnames(LFQ)=sub(selection,"",colnames(LFQ))
 dim(LFQ)
 log2LFQ<-log2(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
-log2LFQ[log2LFQ==0]=NA
 summary(log2LFQ)
 hist(log2LFQ,main=paste("Mean:",mean(log2LFQ,na.rm=T),"SD:",sd(log2LFQ,na.rm=T)),breaks=round(max(log2Int,na.rm=T)),xlim=range(min(log2Int,na.rm=T),max(log2Int,na.rm=T)))
 par(mar=c(12,3,1,1))
@@ -88,7 +87,7 @@ colnames(log2LFQimp)<-colnames(log2LFQ)
 log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
-svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
 ggplot2::ggsave(paste0(outP,"heatmap.iBAQ.svg"), svgPHC)
 #label####
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
@@ -104,6 +103,9 @@ summary(log2LFQsel)
 maxM=matrix(rep(apply(log2LFQsel,2,function(x) max(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
 minM=matrix(rep(apply(log2LFQsel,2,function(x) min(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
 log2LFQselScale=(log2LFQsel-minM)/(maxM-minM)
+summary(log2LFQselScale)
+par(mar=c(12,3,1,1))
+boxplot(log2LFQselScale,las=2)
 write.csv(log2LFQselScale,paste0(inpF,".minmax.csv"))
 #corHCminmax####
 hist(log2LFQselScale)
@@ -117,36 +119,36 @@ log2LFQselScaleimpCorr<-cor(log2LFQselScale,use="pairwise.complete.obs",method="
 hist(log2LFQselScaleimpCorr)
 colnames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
 rownames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
-svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
 ggplot2::ggsave(paste0(outP,"heatmap.iBAQminmax.svg"), svgPHC)
 #test####
 testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
-  #sel1<-"PIN"
-  #sel2<-"PNI"#HGcancer"
+  #sel1<-i#"PIN"
+  #sel2<-j#"PNI"#HGcancer"
   #log2LFQ<-log2LFQselScale#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
   #hist(log2LFQ)
-  #log2LFQ<-sapply(log2LFQ, as.numeric)
   #colnames(log2LFQ)
   d1<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))])
   rNd1<-rownames(d1)
   d1<-sapply(d1, as.numeric)
   rownames(d1)<-rNd1
   colnames(d1)<-rownames(label[label$pair2test==sel1,])
-  d2<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel2,]))])
+  summary(d1)
+  d2<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test %in% sel2,]))])
   rNd2<-rownames(d2)
   d2<-sapply(d2, as.numeric)
   rownames(d2)<-rNd2
-  colnames(d2)<-rownames(label[label$pair2test==sel2,])
+  colnames(d2)<-rownames(label[label$pair2test %in% sel2,])
+  summary(d2)
   dataSellog2grpwilcoxTest<-as.matrix(cbind(d1,d2))
   if(sum(!is.na(d1))>1&sum(!is.na(d2))>1){
     hist(d1)
     hist(d2)
     #assign(paste0("hda",sel1,sel2),dataSellog2grpwilcoxTest)
     #get(paste0("hda",sel1,sel2))
-    dataSellog2grpwilcoxTest[dataSellog2grpwilcoxTest==0]=NA
     hist(dataSellog2grpwilcoxTest)
     row.names(dataSellog2grpwilcoxTest)<-row.names(data)
-    comp<-paste0(sel1,sel2)
+    comp<-paste0(sel1)#,sel2)
     sCol<-1
     eCol<-ncol(dataSellog2grpwilcoxTest)
     mCol<-ncol(d1)#ceiling((eCol-sCol+1)/2)
@@ -182,22 +184,25 @@ testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
     pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
     hist(pValBHnaMinusLog10)
     logFCmedianGrp1=if(is.null(dim(dataSellog2grpwilcoxTest[,c(sCol:mCol)]))){dataSellog2grpwilcoxTest[,c(sCol:mCol)]} else{apply(dataSellog2grpwilcoxTest[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
+    logFCmeanGrp1=if(is.null(dim(dataSellog2grpwilcoxTest[,c(sCol:mCol)]))){dataSellog2grpwilcoxTest[,c(sCol:mCol)]} else{apply(dataSellog2grpwilcoxTest[,c(sCol:mCol)],1,function(x) mean(x,na.rm=T))}
     grp1CV=if(is.null(dim(dataSellog2grpwilcoxTest[,c(sCol:mCol)]))){dataSellog2grpwilcoxTest[,c(sCol:mCol)]} else{apply(dataSellog2grpwilcoxTest[,c(sCol:mCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
     #summary(logFCmedianGrp11-logFCmedianGrp1)
     logFCmedianGrp2=if(is.null(dim(dataSellog2grpwilcoxTest[,c((mCol+1):eCol)]))){dataSellog2grpwilcoxTest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpwilcoxTest[,c((mCol+1):eCol)],1,function(x) median(x,na.rm=T))}
+    logFCmeanGrp2=if(is.null(dim(dataSellog2grpwilcoxTest[,c((mCol+1):eCol)]))){dataSellog2grpwilcoxTest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpwilcoxTest[,c((mCol+1):eCol)],1,function(x) mean(x,na.rm=T))}
     grp2CV=if(is.null(dim(dataSellog2grpwilcoxTest[,c((mCol+1):eCol)]))){dataSellog2grpwilcoxTest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpwilcoxTest[,c((mCol+1):eCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
     logFCmedianGrp1[is.na(logFCmedianGrp1)]=0
     logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
     hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
     plot(hda)
     limma::vennDiagram(hda>0)
+    log2meanDiff = logFCmeanGrp1-logFCmeanGrp2
     logFCmedian = logFCmedianGrp1-logFCmedianGrp2
     logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
     logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
     hist(logFCmedianFC)
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
-    wilcoxTest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,WilcoxTestPval=pValNA,dataSellog2grpwilcoxTest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpwilcoxTest))
+    wilcoxTest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,WilcoxTestPval=pValNA,dataSellog2grpwilcoxTest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,log2meanDiff,RowGeneUniProtScorePeps=rownames(dataSellog2grpwilcoxTest))
     writexl::write_xlsx(wilcoxTest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.xlsx"))
     write.csv(wilcoxTest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.csv"),row.names = F)
     wilcoxTest.results.return<-wilcoxTest.results
