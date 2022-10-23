@@ -1,5 +1,5 @@
 #https://towardsdatascience.com/how-to-download-and-visualize-your-twitter-network-f009dbbf107b
-keyz = {k:v for k, v in (l.split('=') for l in open("keyz"))}
+keyz = {k:v for k, v in (l.split('=') for l in open("F:/GD/scripts/keyz"))}
 #C:\\Users\\animeshs\\AppData\\Local\\Programs\\Spyder\\Python\\python.exe -m pip install tweepy
 #add long BEARER_TOKEN from https://developer.twitter.com/en/portal/register/welcome as environment variable
 #!pip install tweepy pandas
@@ -322,3 +322,87 @@ def main():
     headers = create_headers(bearer_token)
     json_response = connect_to_endpoint(url, headers)
     print(json.dumps(json_response, indent=4, sort_keys=True))
+    
+    
+#https://medium.com/@nikitasilaparasetty/twitter-sentiment-analysis-for-data-science-using-python-in-2022-6d5e43f6fa6e
+import re 
+import numpy as np
+import tweepy 
+from tweepy import OAuthHandler 
+from textblob import TextBlob 
+import matplotlib.pyplot as plt
+import pandas as pd
+from wordcloud import WordCloud
+from better_profanity import profanity
+consumer_key = keyz['API_Key'].strip()
+consumer_secret = keyz['API_Key_Secret'].strip()
+bearer_token = keyz['Bearer_Token'].strip()
+access_token = keyz['Access_Token'].strip()
+access_token_secret = keyz['Access_Token_Secret'].strip()
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
+api = tweepy.API(auth)
+query = "disease"
+filtered = query + "-filter:retweets"
+tweets = tweepy.Cursor(api.search_tweets,q=filtered,lang="en").items(2500)
+list1 = [[tweet.text, tweet.user.screen_name, tweet.user.location] for tweet in tweets]
+df = pd.DataFrame(data=list1, columns=['tweets','user', "location"])
+tweet_list = df.tweets.to_list()
+def clean_tweet(tweet):
+    if type(tweet) == np.float:
+        return ""
+    r = tweet.lower()
+    r = profanity.censor(r)
+    r = re.sub("'", "", r) # This is to avoid removing contractions in english
+    r = re.sub("@[A-Za-z0-9_]+","", r)
+    r = re.sub("#[A-Za-z0-9_]+","", r)
+    r = re.sub(r'http\S+', '', r)
+    r = re.sub('[()!?]', ' ', r)
+    r = re.sub('\[.*?\]',' ', r)
+    r = re.sub("[^a-z0-9]"," ", r)
+    r = r.split()
+    stopwords = ["for", "on", "an", "a", "of", "and", "in", "the", "to", "from"]
+    r = [w for w in r if not w in stopwords]
+    r = " ".join(word for word in r)
+    return r
+cleaned = [clean_tweet(tw) for tw in tweet_list]
+cleaned
+sentiment_objects = [TextBlob(tweet) for tweet in cleaned]
+sentiment_objects[0].polarity, sentiment_objects[0]
+sentiment_values = [[tweet.sentiment.polarity, str(tweet)] for tweet in sentiment_objects]
+sentiment_values[0]
+sentiment_values[0:99]
+sentiment_df = pd.DataFrame(sentiment_values, columns=["polarity", "tweet"])
+sentiment_df
+n=sentiment_df["polarity"]
+m=pd.Series(n)
+m
+pos=0
+neg=0
+neu=0
+for items in m:
+    if items>0:
+        print("Positive")
+        pos=pos+1
+    elif items<0:
+        print("Negative")
+        neg=neg+1
+    else:
+        print("Neutral")
+        neu=neu+1
+print(pos,neg,neu)
+pieLabels=["Positive","Negative","Neutral"]
+populationShare=[pos,neg,neu]
+figureObject, axesObject = plt.subplots()
+axesObject.pie(populationShare,labels=pieLabels,autopct='%1.2f',startangle=90)
+axesObject.axis('equal')
+plt.show()
+print("%f percent of twitter users feel positive about %s"%(pos,query))
+print("%f percent of twitter users feel negative about %s"%(neg,query))
+print("%f percent of twitter users feel neutral about %s"%(neu,query))
+all_words = ' '.join([text for text in cleaned])
+wordcloud = WordCloud(width=800, height=500, random_state=21, max_font_size=110).generate(all_words)
+plt.figure(figsize=(10, 7))
+plt.imshow(wordcloud, interpolation="bilinear")
+plt.axis('off')
+plt.show()
