@@ -373,10 +373,10 @@ sentiment_values = [[tweet.sentiment.polarity, str(tweet)] for tweet in sentimen
 sentiment_values[0]
 sentiment_values[0:99]
 sentiment_df = pd.DataFrame(sentiment_values, columns=["polarity", "tweet"])
-sentiment_df
 n=sentiment_df["polarity"]
+df["polarity"]=sentiment_df["polarity"]
+df.to_csv('df.csv')
 m=pd.Series(n)
-m
 pos=0
 neg=0
 neu=0
@@ -396,7 +396,7 @@ populationShare=[pos,neg,neu]
 figureObject, axesObject = plt.subplots()
 axesObject.pie(populationShare,labels=pieLabels,autopct='%1.2f',startangle=90)
 axesObject.axis('equal')
-plt.show()
+plt.savefig("pie.png",bbox_inches = "tight")
 print("%f percent of twitter users feel positive about %s"%(pos,query))
 print("%f percent of twitter users feel negative about %s"%(neg,query))
 print("%f percent of twitter users feel neutral about %s"%(neu,query))
@@ -405,4 +405,4 @@ wordcloud = WordCloud(width=800, height=500, random_state=21, max_font_size=110)
 plt.figure(figsize=(10, 7))
 plt.imshow(wordcloud, interpolation="bilinear")
 plt.axis('off')
-plt.show()
+plt.savefig("cloud.png",bbox_inches = "tight")
