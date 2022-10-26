@@ -3,9 +3,9 @@ import sys
 from pathlib import Path
 if len(sys.argv)!=2: sys.exit("\n\nREQUIRED: pandas, pathlib; tested with Python 3.9 \n\nUSAGE: python proteinGroupsCombine.py <path to folder containing proteinGroups.txt file(s) like \"L:\promec\Animesh\Samah\mqpar.xml.1623227664.results\" >\n\nExample\n\npython proteinGroupsCombine.py L:\promec\TIMSTOF\LARS\2022\januar\220119_ELise_rerun")
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2022/januar/220119_ELise_rerun")
+#pathFiles=Path("L:/promec/TIMSTOF/LARS/2022/")
 fileName='proteinGroups.txt'
-trainList=list(pathFiles.rglob(fileName))
+trainList=[fN for fN in trainList if "eate" in str(fN)]
 #trainList=list([Path('L:/promec/TIMSTOF/LARS/2022/mars/Elise3/combined/txt/proteinGroups.txt'),Path('L:/promec/TIMSTOF/LARS/2022/januar/220119_ELise_rerun/Oslo/txt/proteinGroups.txt')])
 #!pip3 install pandas --user
 import pandas as pd
@@ -20,8 +20,13 @@ for f in trainList:
     i=i+1
     if Path(f).stat().st_size > 0:
         proteinHits=pd.read_csv(f,low_memory=False,sep='\t')
+        cN=proteinHits.columns
+        proteinHits=proteinHits[proteinHits['Reverse']!="+"]
+        proteinHits=proteinHits[proteinHits['Potential contaminant']!="+"]
+        proteinHits=proteinHits[proteinHits['Only identified by site']!="+"]
+        proteinHits=proteinHits[~proteinHits['Fasta headers'].str.contains("HUMAN",na=False)]
         print(i,f.parts[-3],f.parts[-4],f.parts[-5])
-        proteinHits.rename({'Protein IDs':'ID'},inplace=True,axis='columns')
+        proteinHits.rename({'Fasta headers':'ID'},inplace=True,axis='columns')
         proteinHitsC=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Score).stack().reset_index(level=0, name='ID')
         proteinHitsI=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Intensity).stack().reset_index(level=0, name='ID')
         proteinHitsB=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.iBAQ).stack().reset_index(level=0, name='ID')
@@ -48,6 +53,8 @@ dfI=dfI.sort_values('SumI',ascending=False)
 dfB=dfB.sort_values('SumB',ascending=False)
 dfC=dfC.sort_values('SumC',ascending=False)
 dfI.to_csv(pathFiles/(fileName+"Combo.intensity.csv"))#.with_suffix('.combo.csv'))
+dfB.to_csv(pathFiles/(fileName+"Combo.iBAQ.csv"))#.with_suffix('.combo.csv'))
+dfC.to_csv(pathFiles/(fileName+"Combo.score.csv"))#.with_suffix('.combo.csv'))
 histScores=pathFiles/(fileName+"HistInt.svg")
 import numpy as np
 log2dfI=dfI.fillna(0)
