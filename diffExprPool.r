@@ -30,8 +30,8 @@ summary(log2LFQ)
 
 
 #log2noNA####
-log2LFQ<-na.omit(log2LFQ)
-summary(log2LFQ)
+log2LFQnao<-na.omit(log2LFQ)
+summary(log2LFQnao)
 
 
 #components}
@@ -42,6 +42,88 @@ log2LFQtPCAsumm<-summary(log2LFQtPCA)
 plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups removed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
 op <- par(cex = 1)
 legend("bottomleft", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
+
+
+#NA####
+log2LFQselNA=apply(log2LFQ,1,function(x) sum(is.na(x)))
+summary(log2LFQselNA)
+log2LFQselNA[log2LFQselNA==max(log2LFQselNA)]
+log2LFQselNA[log2LFQselNA==min(log2LFQselNA)]
+hist(log2LFQselNA)
+log2LFQselMean=apply(log2LFQ,1,function(x) mean(x,na.rm=T))
+hist(log2LFQselMean)
+plot(log2LFQselMean,log2LFQselNA)
+
+#chkPois####
+LFQsel=as.data.frame(LFQ[,grep("apim",colnames(LFQ))])
+LFQselPool=LFQsel[,grep("pool",colnames(LFQsel))]
+LFQsel=LFQsel[,-grep("pool",colnames(LFQsel))]
+LFQselMean=apply(LFQsel,1,function(x) mean(x,na.rm=T))
+hist(LFQselMean)
+plot(log2(LFQselMean)-log2(LFQselPool))
+hist(log2(LFQselMean)-log2(LFQselPool))
+LFQselVar=apply(LFQsel,1,function(x) var(x,na.rm=T))
+hist(LFQselVar)
+hist(LFQselVar/LFQselMean)
+plot(scale(LFQselVar/LFQselMean))
+plot(sort(LFQselVar/LFQselMean))
+plot(LFQselVar,LFQselMean)
+
+#brms####
+#https://cran.r-project.org/web/packages/brms/vignettes/brms_missings.html#imputation-before-model-fitting
+library(mice)
+imp <- mice(nhanes, m = 5, print = FALSE)
+fit_imp1 <- brm_multiple(bmi ~ age*chl, data = imp, chains = 2)
+summary(fit_imp1)
+plot(fit_imp1, variable = "^b", regex = TRUE)
+round(fit_imp1$rhats, 2)
+conditional_effects(fit_imp1, "age:chl")
+#during
+bform <- bf(bmi | mi() ~ age * mi(chl)) +
+  bf(chl | mi() ~ age) + set_rescor(FALSE)
+fit_imp2 <- brm(bform, data = nhanes)
+summary(fit_imp2)
+conditional_effects(fit_imp2, "age:chl", resp = "bmi")
+nhanes$se <- rexp(nrow(nhanes), 2)
+  bform <- bf(bmi | mi() ~ age * mi(chl)) +
+  bf(chl | mi(se) ~ age) + set_rescor(FALSE)
+fit_imp3 <- brm(bform, data = nhanes)
+
+#glmnet####
+#https://glmnet.stanford.edu/articles/glmnet.html
+#install.packages("glmnet", repos = "https://cran.us.r-project.org")
+library(glmnet)
+data(QuickStartExample)
+x <- QuickStartExample$x
+y <- QuickStartExample$y
+fit <- glmnet(x, y)
+plot(fit)
+fit <- glmnet(LFQsel,LFQselPool)
+plot(fit)
+cvfit <- cv.glmnet(LFQsel,LFQselPool)
+
+#TDA####
+#https://cran.r-project.org/web/packages/TDA/index.html
+#install.packages("TDA", repos = "https://cran.us.r-project.org")
+library(TDA)
+N<-10000
+XX1 <- circleUnif(N / 2)
+plot(XX1)
+biplot(prcomp(XX1))
+XX2 <- circleUnif(N / 2, r = 2) + 3
+X <- rbind(XX1, XX2)
+plot(X)
+maxKDE <- maxPersistence(kde, seq(0.1, 0.6, by = 0.05), X,lim = cbind( c(-2, 5),  c(-2, 5)), by = 0.2, sublevel = FALSE,B = 50, alpha = 0.1, parallel = TRUE,printProgress = TRUE, bandFUN = "bootstrapBand")
+print(summary(maxKDE))
+plot(maxKDE, main = "Max Persistence - KDE")
+TreeKDE <- clusterTree(X, k = 100, h = 0.3, density = "kde",printProgress = FALSE)
+plot(TreeKDE)#, type = "kappa", main = "kappa Tree (knn)")
+TreeKDE <- clusterTree(X, k = 100, h = 0.3, density = "kde",printProgress = FALSE)
+plot(Tree, type = "kappa", main = "kappa Tree (knn)")
+plot(TreeKDE, type = "lambda", main = "lambda Tree (kde)")
+
+#QR####
+#https://github.com/lme4/lme4
 
 
 #QR####

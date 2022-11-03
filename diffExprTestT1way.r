@@ -9,13 +9,13 @@ print("USAGE:<path to>Rscript diffExprTestT1way.r <complete path to directory co
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-#if (length(args) < 1) {stop("\n\nNeeds full path to the proteinGroups.txt file, for example:
+if (length(args) < 1) {stop("\n\nNeeds full path to the proteinGroups.txt file, for example:
 
-#c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT1way.r \"L:\\promec\\TIMSTOF\\LARS\\2022\\oktober\\Ida Beate\\sample10_CTR\\combined\\txt\\proteinGroups.txt\"
+..\\R-4.2.1-win\\bin\\Rscript.exe diffExprTestT1way.r \"L:\\promec\\TIMSTOF\\LARS\\2022\\oktober\\Ida Beate\\sample10_CTR\\combined\\txt\\proteinGroups.txt\"
 
-#", call.=FALSE)}
+", call.=FALSE)}
 inpF <- args[1]
-inpF <-"L:/promec/TIMSTOF/LARS/2022/oktober/Ida Beate/sample10_CTR/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2022/oktober/Ida Beate/sample10_CTR/combined/txt/proteinGroups.txt"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 selection<-"LFQ.intensity."
@@ -91,7 +91,7 @@ sel2<-"null"
 d1<-log2LFQ
 d2<-log2LFQ-log2LFQ
 dataSellog2grpTtest<-as.matrix(cbind(d1,d2))
-if(sum(!is.na(d1))>1&sum(!is.na(d2))>1){
+summary(dataSellog2grpTtest)
 hist(d1,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
 hist(d2,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
 #assign(paste0("hda",sel1,sel2),dataSellog2grpTtest)
@@ -116,7 +116,6 @@ else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
 t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T,paired=T)$p.value}
 else{NA}
 )
-summary(warnings())
 hist(pValNA)
 summary(pValNA)
 dfpValNA<-as.data.frame(ceiling(pValNA))
@@ -129,6 +128,7 @@ hist(pValNAminusLog10)
 length(pValNA)-(sum(is.na(pValNA))+sum(ceiling(pValNA)==0,na.rm = T))
 pValBHna = p.adjust(pValNA,method = "BH")
 hist(pValBHna)
+summary(pValBHna)
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
 logFCmedianGrp1=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
@@ -139,9 +139,11 @@ grp2CV=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTt
 logFCmedianGrp1[is.na(logFCmedianGrp1)]=0
 logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
 hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
+summary(hda)
 plot(hda)
 limma::vennDiagram(hda>0)
 logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+summary(logFCmedian)
 logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
 logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
 hist(logFCmedianFC)
@@ -162,5 +164,5 @@ p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::ae
 #f=paste(file,proc.time()[3],".jpg")
 #install.packages("svglite")
 ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,"VolcanoTest.svg"), p)
-print(p)}
+print(p)
 summary(warnings())

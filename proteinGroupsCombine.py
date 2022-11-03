@@ -1,47 +1,57 @@
-#python proteinGroupsCombine.py L:\promec\TIMSTOF\LARS\2022\januar\220119_ELise_rerun
+#python proteinGroupsCombine.py "L:\OneDrive - NTNU\Aida\sORF\mqpar.K8R10.xml.1664621075.results"
 import sys
 from pathlib import Path
-if len(sys.argv)!=2: sys.exit("\n\nREQUIRED: pandas, pathlib; tested with Python 3.9 \n\nUSAGE: python proteinGroupsCombine.py <path to folder containing proteinGroups.txt file(s) like \"L:\promec\Animesh\Samah\mqpar.xml.1623227664.results\" >\n\nExample\n\npython proteinGroupsCombine.py L:\promec\TIMSTOF\LARS\2022\januar\220119_ELise_rerun")
+if len(sys.argv)!=2: sys.exit("\n\nREQUIRED: pandas, pathlib; tested with Python 3.9 \n\nUSAGE: python proteinGroupsCombine.py <path to folder containing proteinGroups.txt file(s) like \"L:\OneDrive - NTNU\Aida\sORF\mqpar.K8R10.xml.1664621075.results\" >\n\nExample\n\npython proteinGroupsCombine.py L:\promec\TIMSTOF\LARS\2022\januar\220119_ELise_rerun")
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2022/")
+#pathFiles=Path("L:/OneDrive - NTNU/Aida/sORF/mqpar.K8R10.xml.1664621075.results/")
 fileName='proteinGroups.txt'
-trainList=[fN for fN in trainList if "eate" in str(fN)]
+trainList=list(pathFiles.rglob(fileName))
+#trainList=[fN for fN in trainList if "MGUS" in str(fN)]
 #trainList=list([Path('L:/promec/TIMSTOF/LARS/2022/mars/Elise3/combined/txt/proteinGroups.txt'),Path('L:/promec/TIMSTOF/LARS/2022/januar/220119_ELise_rerun/Oslo/txt/proteinGroups.txt')])
 #!pip3 install pandas --user
 import pandas as pd
 #df = pd.concat(map(pd.read_table, trainList))
 #df.to_csv(pathFiles.with_suffix('.combinedT.txt'),sep="\t")#,rownames=FALSE)
-#f=trainList[1]
 dfI=pd.DataFrame()
 dfC=pd.DataFrame()
 dfB=pd.DataFrame()
+dfR=pd.DataFrame()
 i=0
 for f in trainList:
+    #f=trainList[i]
     i=i+1
     if Path(f).stat().st_size > 0:
+        print(i,f.parts[-4],f.parts[-1])
         proteinHits=pd.read_csv(f,low_memory=False,sep='\t')
         cN=proteinHits.columns
         proteinHits=proteinHits[proteinHits['Reverse']!="+"]
         proteinHits=proteinHits[proteinHits['Potential contaminant']!="+"]
         proteinHits=proteinHits[proteinHits['Only identified by site']!="+"]
-        proteinHits=proteinHits[~proteinHits['Fasta headers'].str.contains("HUMAN",na=False)]
-        print(i,f.parts[-3],f.parts[-4],f.parts[-5])
-        proteinHits.rename({'Fasta headers':'ID'},inplace=True,axis='columns')
+        proteinHits.rename({'Protein IDs':'ID'},inplace=True,axis='columns')
+        proteinHits=proteinHits[~proteinHits['ID'].str.contains("_HUMAN",na=False)]
+        proteinHits.rename({'Ratio H/L normalized':'RatioH2L'},inplace=True,axis='columns')
+        proteinHits.rename({'iBAQ L':'iBAQL'},inplace=True,axis='columns')
+        proteinHits.rename({'Intensity L':'IntensityL'},inplace=True,axis='columns')
         proteinHitsC=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Score).stack().reset_index(level=0, name='ID')
-        proteinHitsI=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Intensity).stack().reset_index(level=0, name='ID')
-        proteinHitsB=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.iBAQ).stack().reset_index(level=0, name='ID')
-        proteinHitsI['Name']=f.parts[-3]+f.parts[-4]+f.parts[-5]+str(i)
-        proteinHitsC['Name']=f.parts[-3]+f.parts[-4]+f.parts[-5]+str(i)
-        proteinHitsB['Name']=f.parts[-3]+f.parts[-4]+f.parts[-5]+str(i)
+        proteinHitsI=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.IntensityL).stack().reset_index(level=0, name='ID')
+        proteinHitsB=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.iBAQL).stack().reset_index(level=0, name='ID')
+        proteinHitsR=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.RatioH2L).stack().reset_index(level=0, name='ID')
+        proteinHitsI['Name']=f.parts[-4]+f.parts[-1]+str(i)
+        proteinHitsC['Name']=f.parts[-4]+f.parts[-1]+str(i)
+        proteinHitsB['Name']=f.parts[-4]+f.parts[-1]+str(i)
+        proteinHitsR['Name']=f.parts[-4]+f.parts[-1]+str(i)
         dfI=pd.concat([dfI,proteinHitsI],sort=False)
         dfC=pd.concat([dfC,proteinHitsC],sort=False)
         dfB=pd.concat([dfB,proteinHitsB],sort=False)
+        dfR=pd.concat([dfR,proteinHitsR],sort=False)
 print(dfI.columns)
 print(dfC.columns)
 print(dfB.columns)
-dfI=dfI.pivot(index='ID', columns='Name', values='Intensity')
+print(dfR.columns)
+dfI=dfI.pivot(index='ID', columns='Name', values='IntensityL')
 dfC=dfC.pivot(index='ID', columns='Name', values='Score')
-dfB=dfB.pivot(index='ID', columns='Name', values='iBAQ')
+dfB=dfB.pivot(index='ID', columns='Name', values='iBAQL')
+dfR=dfR.pivot(index='ID', columns='Name', values='RatioH2L')
 #df.to_csv(pathFiles.with_suffix('.combined.txt'),sep="\")#,rownames=FALSE)
 #writeDPpng=pathFiles/(fileName+"Score.png")
 #df.plot(kind='hist').figure.savefig(writeDPpng.absolute(),dpi=100,bbox_inches = "tight")
@@ -49,57 +59,58 @@ dfB=dfB.pivot(index='ID', columns='Name', values='iBAQ')
 dfI['SumI']=dfI.sum(axis=1)
 dfB['SumB']=dfB.sum(axis=1)
 dfC['SumC']=dfC.sum(axis=1)
+dfR['SumR']=dfR.sum(axis=1)
+dfI=dfI[dfI['SumI']!=0]
+dfB=dfB[dfB['SumB']!=0]
+dfC=dfC[dfC['SumC']!=0]
+dfR=dfR[dfR['SumR']!=0]
 dfI=dfI.sort_values('SumI',ascending=False)
 dfB=dfB.sort_values('SumB',ascending=False)
 dfC=dfC.sort_values('SumC',ascending=False)
-dfI.to_csv(pathFiles/(fileName+"Combo.intensity.csv"))#.with_suffix('.combo.csv'))
-dfB.to_csv(pathFiles/(fileName+"Combo.iBAQ.csv"))#.with_suffix('.combo.csv'))
+dfR=dfR.sort_values('SumR',ascending=False)
+dfI.to_csv(pathFiles/(fileName+"Combo.intensityL.csv"))#.with_suffix('.combo.csv'))
+dfB.to_csv(pathFiles/(fileName+"Combo.iBAQL.csv"))#.with_suffix('.combo.csv'))
 dfC.to_csv(pathFiles/(fileName+"Combo.score.csv"))#.with_suffix('.combo.csv'))
+dfR.to_csv(pathFiles/(fileName+"Combo.RatioH2L.csv"))#.with_suffix('.combo.csv'))
 histScores=pathFiles/(fileName+"HistInt.svg")
 import numpy as np
-log2dfI=dfI.fillna(0)
-log2dfI=np.log2(log2dfI+1)
-log2dfI=log2dfI.drop('SumI',axis=1)
-log2dfI.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(histScores,dpi=100,bbox_inches = "tight")
-log2dfI.columns
+log2dfR=dfR.fillna(1)
+print(log2dfR.columns)
+log2dfR=np.log2(log2dfR)
+log2dfR=log2dfR.drop('SumR',axis=1)
+log2dfR.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(histScores,dpi=100,bbox_inches = "tight")
 print("Scatter of First 2 Intensities in",pathFiles/(fileName+"Scatter.svg"))
 import seaborn as sns
-sns.jointplot(y=log2dfI.iloc[:,0],x=log2dfI.iloc[:,1], ).figure.savefig(pathFiles/(fileName+"Scatter.svg"),dpi=100,bbox_inches = "tight")#,kind="reg")
+sns.jointplot(y=log2dfR.iloc[:,0],x=log2dfR.iloc[:,1], ).figure.savefig(pathFiles/(fileName+"Scatter.svg"),dpi=100,bbox_inches = "tight")#,kind="reg")
 #sns.jointplot(data=log2dfI,y='Oslo220119_ELise_rerunjanuar2', x='combined220119_ELise_rerunjanuar1').figure.savefig(pathFiles/(fileName+"Scatter.svg"),dpi=100,bbox_inches = "tight")#,kind="reg")
 #sns.jointplot(data=log2dfI[:,1:2])#,kind="reg")
-dfB.to_csv(pathFiles/(fileName+"Combo.ibaq.csv"))#.with_suffix('.combo.csv'))
-print("Histogram of iBAQ in",pathFiles/(fileName+"iBAQhist.svg"))
-dfC.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(pathFiles/(fileName+"iBAQhist.svg"),dpi=100,bbox_inches = "tight")
-dfC.to_csv(pathFiles/(fileName+"Combo.score.csv"))#.with_suffix('.combo.csv'))
-print("Histogram of Scores in",pathFiles/(fileName+"ScoresHist.svg"))
-dfC.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(pathFiles/(fileName+"ScoresHist.svg"),dpi=100,bbox_inches = "tight")
+#dfB.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(pathFiles/(fileName+"iBAQhist.svg"),dpi=100,bbox_inches = "tight")
+#dfC.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(pathFiles/(fileName+"ScoresHist.svg"),dpi=100,bbox_inches = "tight")
 #dfID=df.assign(ID=df.ID.str.split(';')).explode('ID')
-dfLFQ=dfC
-dfLFQ=dfI
-dfLFQ=dfB
+df=dfR
 i=0
 for f in trainList:
     i=i+1
     if Path(f).stat().st_size > 0:
-        print(i,f.parts[-3],f.parts[-4],f.parts[-5])
+        print(i,f.parts[-4],f.parts[-1])
         proteinHits=pd.read_csv(f,low_memory=False,sep='\t')
-        proteinHitsLFQ=proteinHits.assign(ID=proteinHits['Protein IDs'].str.split(';')).explode('ID')
-        proteinHitsLFQ.index=proteinHitsLFQ['ID']
-        proteinHitsLFQ=proteinHitsLFQ.add_suffix(f.parts[-3]+f.parts[-4]+f.parts[-5]+'F'+str(i))
-        dfLFQ=pd.concat([dfLFQ,proteinHitsLFQ],axis=1)
-print(dfLFQ.columns)
+        proteinHitsR=proteinHits.assign(ID=proteinHits['Protein IDs'].str.split(';')).explode('ID')
+        proteinHitsR.index=proteinHitsR['ID']
+        proteinHitsR=proteinHitsR.add_suffix(f.parts[-4]+'F'+str(i))
+        df=pd.concat([df,proteinHitsR],axis=1,join='inner')
+print(df.columns)
 #dfLFQ['211207_NiluDesember2'].hist()
 #(dfLFQ['211221_NiluDesember3']-dfLFQ['Score211221_NiluDesemberF3']).hist()
-dfLFQ.to_csv(pathFiles/(fileName+"Combo.csv"))
-dfS=dfLFQ.filter(like='Peptide sequence', axis=1)
+df.to_csv(pathFiles/(fileName+"Combo.csv"))
+dfS=df.filter(like='Peptide sequence', axis=1)
 #dfS=dfLFQ[:,[dfLFQ.filter(like='Peptide sequence', axis=1)]].apply(lambda x: ''.join(x), axis=1)
 dfLFQPeptides=dfS[dfS.columns].apply(lambda x:','.join(x.dropna().astype(str)),axis=1)
 #dfLFQPeptides['C9J1R6']#EFPDLGAHCSEPSCQR
 #dfLFQPeptides.filter(like='HTSALCNSCR')#EFPDLGAHCSEPSCQR,HPLDHDCSGEGHPTSR;HRHPLDHDCSGEGHPTSR,HPLDHDCSGEGHPTSR;HRHPLDHDCSGEGHPTSR
 dfLFQPeptides.to_csv(pathFiles/(fileName+"dfLFQPeptides.csv"))
-dfLFQvals=dfLFQ.filter(like='Unique peptides', axis=1)
-dfLFQvals=dfLFQ.filter(like='iBAQ', axis=1)
-dfLFQvals=dfLFQ.filter(like='LFQ', axis=1)
+#dfLFQvals=df.filter(like='Unique peptides', axis=1)
+#dfLFQvals=df.filter(like='iBAQ', axis=1)
+dfLFQvals=df.filter(like='Ratio', axis=1)
 #dfLFQvals=dfLFQ.filter(like='Intensity', axis=1)
 dfLFQvals.to_csv(pathFiles/(fileName+"dfLFQvals.csv"))
 #dfLFQvals.to_csv(pathFiles/(fileName+"dfiBAQvals.csv"))
@@ -117,28 +128,4 @@ log2dfLFQvalsSeqsUni=log2dfLFQvalsSeqsUni.drop(['ID'], axis=1)
 log2dfLFQvalsSeqsUni=np.log2(log2dfLFQvalsSeqsUni+1)
 log2dfLFQvalsSeqsUni.iloc[:,30]#LFQ intensity 4H_Elise_Slot1-34_1_3303Oslo220119_ELise_rerunjanuarF2
 log2dfLFQvalsSeqsUni.iloc[:,16]#LFQ intensity 1B_Elise_Slot1-20_1_3268Oslo220119_ELise_rerunjanuarF2
-log2dfLFQvalsSeqsUni.columns
-log2dfLFQvalsSeqsUni=log2dfLFQvalsSeqsUni.drop(['LFQ intensity 4H_Elise_Slot1-34_1_3303Oslo220119_ELise_rerunjanuarF2'], axis=1)
-log2dfLFQvalsSeqsUni=log2dfLFQvalsSeqsUni.drop(['LFQ intensity 1B_Elise_Slot1-20_1_3268Oslo220119_ELise_rerunjanuarF2'], axis=1)
-log2dfLFQvalsSeqsUni.columns
-log2dfLFQvalsSeqsUniS1=log2dfLFQvalsSeqsUni.iloc[:,0:15]
-log2dfLFQvalsSeqsUniS2=log2dfLFQvalsSeqsUni.iloc[:,15:30]
-log2dfLFQvalsSeqsUniS=log2dfLFQvalsSeqsUniS1.subtract(log2dfLFQvalsSeqsUniS2,axis='columns')
-cn=log2dfLFQvalsSeqsUniS1.columns+log2dfLFQvalsSeqsUniS2.columns
-log2dfLFQvalsSeqsUniS2.columns=cn
-log2dfLFQvalsSeqsUniS1.columns=cn
-log2dfLFQvalsSeqsUniS=log2dfLFQvalsSeqsUniS1-log2dfLFQvalsSeqsUniS2
-log2dfLFQvalsSeqsUniS.to_csv(pathFiles/(fileName+"log2dfLFQvalsDiff.csv"))
-#log2dfLFQvalsSeqsUni.hist()#.figure.savefig(pathFiles/(fileName+"log2dfLFQvalsSeqsUni.hist.svg"),dpi=100,bbox_inches = "tight")
-log2dfLFQvalsSeqsUni.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(pathFiles/(fileName+"log2dfLFQvalsSeqsUni.svg"),dpi=100,bbox_inches = "tight")
-log2dfLFQvalsSeqsUniS.columns=log2dfLFQvalsSeqsUniS.columns.str.split(' ').str[4]
-log2dfLFQvalsSeqsUniS.columns=log2dfLFQvalsSeqsUniS.columns.str.split('_').str[0]
-log2dfLFQvalsSeqsUniS.to_csv(pathFiles/(fileName+"log2dfLFQvalsDiff.csv"))
-log2dfLFQvalsSeqsUniS.hist()
-log2dfLFQvalsSeqsUniS.plot(kind='hist', alpha=0.5, bins=100).figure.savefig(pathFiles/(fileName+"histogram.svg"),dpi=100,bbox_inches = "tight")
-import seaborn as sns
-sns.histplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"Scatter.svg"),dpi=100,bbox_inches = "tight")#,kind="reg")
-sns.histplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"plot.png"),dpi=100,bbox_inches = "tight")#,kind="reg")
-sns.histplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"Scatter.png"),dpi=60,bbox_inches = "tight")#,kind="reg")
-sns.pairplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"Scatter.svg"),dpi=100,bbox_inches = "tight")#,kind="reg")
-sns.pairplot(log2dfLFQvalsSeqsUniS).figure.savefig(pathFiles/(fileName+"hist.png"),dpi=100,bbox_inches = "tight")#,kind="reg")
+print(log2dfLFQvalsSeqsUni.columns)
