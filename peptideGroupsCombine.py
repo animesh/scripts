@@ -1,7 +1,7 @@
 # python peptideGroupsCombine.py L:/promec/Animesh/Maria/peptides/peptides
 #wget https://www.python.org/ftp/python/3.11.0/python-3.11.0-amd64.exe
 #..\python-3.11.0\python.exe -m pip install pandas seaborn
-#..\python-3.11.0\python.exe peptideGroupsCombine.py ..\..\Aida\sORF\mqpar.K8R10.xml.1664621075.results"
+#..\python-3.11.0\python.exe peptideGroupsCombine.py ..\..\Aida\sORF\mqpar.K8R10.xml.1664621075.results
 # where peptides folder contains all experiments generated like like following:
 # tar cvzf pep.tgz mqpar.xml.1642586*/*/combined/txt/peptides.txt
 # mkdir peptides
@@ -27,18 +27,11 @@ for f in trainList:
         peptideHits = pd.read_csv(f, low_memory=False, sep='\t')
         print(f.parts)
         peptideHits.rename({'Ratio H/L normalized':'normH2L'},inplace=True,axis='columns')
-        peptideHits.rename({'Proteins':'ID'},inplace=True,axis='columns')
-        peptideHits=peptideHits[~peptideHits['ID'].str.contains("_HUMAN",na=False)]
-        # +(peptideHits['Charges']).astype(str)
-        #peptideHits.rename({'Score': 'Andromeda'},inplace=True, axis='columns')
-        peptideHitsR=peptideHits.ID.str.split(';', expand=True).set_index(peptideHits.normH2L).stack().reset_index(level=0, name='ID')
-        peptideHitsL=peptideHits.ID.str.split(';', expand=True).set_index(peptideHits.Sequence).stack().reset_index(level=0, name='ID')
-        peptideHitsC=pd.merge(peptideHitsL, peptideHitsR, on='ID', how='outer')
-        peptideHitsC['pepID'] = peptideHitsC['Sequence']+';'+peptideHitsC['ID']
-        peptideHitsCP=peptideHitsC.groupby(peptideHitsC.pepID)[['normH2L']].median()
-        #peptideHitsCP=peptideHitsC.pivot_table(index='pepID', columns='Name',values='Andromeda')
-        peptideHitsCP['Name'] = f.parts[-4]
-        df = pd.concat([df, peptideHitsCP], sort=False)
+        peptideHits=peptideHits[~peptideHits['Proteins'].str.contains("_HUMAN",na=False)]
+        peptideHits=peptideHits.assign(IDs=peptideHits['Leading razor protein'].str.split(';')).explode('IDs')
+        peptideHits['pepID'] = peptideHits['Sequence']+';'+peptideHits['IDs']
+        peptideHits['Name'] = f.parts[-4]
+        df = pd.concat([df, peptideHits], sort=False)
 print(df.columns)
 print(df.head())
 df = df.pivot_table(index='pepID', columns='Name',values='normH2L')  # , aggfunc='median')

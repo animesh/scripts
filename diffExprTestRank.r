@@ -92,39 +92,21 @@ ggplot2::ggsave(paste0(outP,"heatmap.iBAQ.svg"), svgPHC)
 #label####
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
 rownames(label)=sub(selection,"",rownames(label))
-#table(label[lGroup])
 label["pair2test"]<-label[lGroup]
-#table(label["pair2test"])
-#table(label[rGroup])
 if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
 print(label)
-#robustScale####
+#table(label$Tissue)
+#minmaxScale####
 colnames(log2LFQ)
 log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
 summary(log2LFQsel)
-#https://stats.stackexchange.com/a/134239
-quart <- function(x) {
-  x <- sort(x)
-  n <- length(x)
-  m <- (n+1)/2
-  if (floor(m) != m) {
-    l <- m-1/2; u <- m+1/2
-  } else {
-    l <- m-1; u <- m+1
-  }
-  c(Q1=median(x[1:l],na.rm=T), Q3=median(x[u:n],na.rm=T))
-}
-q3M=matrix(rep(apply(log2LFQsel,2,function(x) quart(x)[2]),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
-hist(q3M)
-q1M=matrix(rep(apply(log2LFQsel,2,function(x) quart(x)[1]),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
-hist(q1M)
-q2M=matrix(rep(apply(log2LFQsel,2,function(x) median(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
-hist(q2M)
-log2LFQselScale=(log2LFQsel-q2M)/(q3M-q1M)
+maxM=matrix(rep(apply(log2LFQsel,2,function(x) max(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
+minM=matrix(rep(apply(log2LFQsel,2,function(x) min(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
+log2LFQselScale=(log2LFQsel-minM)/(maxM-minM)
 summary(log2LFQselScale)
 par(mar=c(12,3,1,1))
 boxplot(log2LFQselScale,las=2)
-write.csv(log2LFQselScale,paste0(inpF,".IQRscale.csv"))
+write.csv(log2LFQselScale,paste0(inpF,".minmax.csv"))
 #corHCminmax####
 hist(log2LFQselScale)
 log2LFQselScaleimp<-matrix(rnorm(dim(log2LFQselScale)[1]*dim(log2LFQselScale)[2],mean=mean(log2LFQselScale,na.rm = T)-scale,sd=sd(log2LFQselScale,na.rm = T)/(scale)), dim(log2LFQselScale)[1],dim(log2LFQselScale)[2])
