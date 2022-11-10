@@ -7,16 +7,81 @@ ln -s /mnt/f/GD/OneDrive/Dokumenter/GitHub/scripts .
 tail -f scripts/logs.log
 # %% mm
 import pandas as pd
-data=pd.read_csv("mm.csv")
-mapping = {'G':0,'M':1,'L':0}
-data=data.replace({'Group': mapping})
+data=pd.read_csv("/home/ash022/1d/Aida/ML/dataTmmS42T.csv")
+dGroup="Class"
+print(data.groupby(dGroup).count())
+#mapping = {'MGUS':0,'MM':1,'Ml':1}
+#mapping = {'MGUS':'G','MM':'M','Ml':'M'}
+mapping = {'MGUS':'G','MM':'M','Ml':'L'}
+data=data.replace({dGroup: mapping})
 #data=data[data["Group"] != -1]
-print(data["Group"])
+print(data.groupby(dGroup).count())
 print ("Data for Modeling :" + str(data.shape))
+
+# %% CatBoostClassifier
+import numpy as np
+from catboost import CatBoostClassifier, Pool
+train_labels = data[dGroup]
+train_data = data.drop(columns=dGroup)
+#train_data = np.random.randint(0,100, size=(100, 10))
+#train_labels = np.random.randint(0,2,size=(100))
+test_data = catboost_pool = Pool(train_data, train_labels)
+model = CatBoostClassifier(random_state=42,task_type="GPU")#,iterations=100,depth=3,learning_rate=0.1,loss_function='Logloss',verbose=False)
+# train the model
+model.fit(train_data, train_labels)
+print(model)
+# make the prediction using the resulting model
+preds_class = model.predict(test_data)
+preds_proba = model.predict_proba(test_data)
+print("class = ", preds_class)
+print("proba = ", preds_proba)
+# %% cnfusion matrix
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+sns.set(rc={'figure.figsize':(8,6)})
+cm = confusion_matrix(train_labels, preds_class)
+sns.heatmap(cm,annot=True)
+print(cm)
+# %% feature importance
+#sns.barplot(feature_importance)
+import matplotlib.pyplot as plt
+feature_importance = model.feature_importances_
+plt.hist(np.log2(feature_importance+1), bins=30)
+plt.hist(np.log2(feature_importance+1)>1, bins=30)
+sorted_idx = np.argsort(feature_importance)
+fig = plt.figure(figsize=(12, 6))
+plt.barh(range(len(sorted_idx<10)), feature_importance[sorted_idx<10], align='center')
+#plt.yticks(range(len(sorted_idx)), np.array(train_data.columns)[sorted_idx])
+plt.title('Feature Importance')
+# %% permutation importance
+from sklearn.inspection import permutation_importance
+perm_importance = permutation_importance(model, train_data, train_labels, n_repeats=10, random_state=1066)
+sorted_idx = perm_importance.importances_mean.argsort()
+fig = plt.figure(figsize=(12, 6))
+plt.barh(range(len(sorted_idx)), perm_importance.importances_mean[sorted_idx], align='center')
+plt.yticks(range(len(sorted_idx)), np.array(X_test.columns)[sorted_idx])
+plt.title('Permutation Importance')
+# %% SHAP
+explainer = shap.Explainer(model)
+shap_values = explainer(X_test)
+shap_importance = shap_values.abs.mean(0).values
+sorted_idx = shap_importance.argsort()
+fig = plt.figure(figsize=(12, 6))
+plt.barh(range(len(sorted_idx)), shap_importance[sorted_idx], align='center')
+plt.yticks(range(len(sorted_idx)), np.array(X_test.columns)[sorted_idx])
+plt.title('SHAP Importance')
+
+
+shap.plots.bar(shap_values, max_display=X_test.shape[0])
+
+# %% cross validation
+cv(pool=None,params=None,dtrain=None,iterations=None,num_boost_round=None,fold_count=3,nfold=None,inverted=False,partition_random_seed=0,seed=None,shuffle=True,logging_level=None,stratified=None,as_pandas=True,metric_period=None,verbose=None,verbose_eval=None,plot=False,early_stopping_rounds=None,folds=None,type='Classical',return_models=False)
+
 # %% autoML
 #https://pycaret.gitbook.io/docs/get-started/quickstart#classification
+#https://twitter.com/machsci/status/1585848304872849408?t=EcW5sr4Z0__C3n01nzM3Pg&s=03
 from pycaret.classification import *
-exp_mclf101 = setup(data = data, target = 'Group', session_id=42,use_gpu=True,silent=True)
+dPycaret = setup(data = data, target = dGroup)#, session_id=42,use_gpu=True)
 best=compare_models()
 evaluate_model(best)
 plot_model(best, plot = 'auc')#plot = 'confusion_matrix')
@@ -30,6 +95,7 @@ predictions.head()
 save_model(best, 'mm_best_pipeline')
 loaded_model = load_model('mm_best_pipeline')
 print(loaded_model)
+
 # %% testML
 #http://www.pycaret.org/tutorials/html/MCLF101.html
 import pandas as pd
