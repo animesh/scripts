@@ -10,14 +10,30 @@ import pandas as pd
 data=pd.read_csv("/home/ash022/1d/Aida/ML/dataTmmS42T.csv")
 dGroup="Class"
 print(data.groupby(dGroup).count())
-#mapping = {'MGUS':0,'MM':1,'Ml':1}
+mapping = {'MGUS':1,'MM':2,'Ml':3}
 #mapping = {'MGUS':'G','MM':'M','Ml':'M'}
-mapping = {'MGUS':'G','MM':'M','Ml':'L'}
+#mapping = {'MGUS':'G','MM':'M','Ml':'L'}
+#mapping = {'MGUS':'0000FF','MM':'FF0000','Ml':'00FF00'}
 data=data.replace({dGroup: mapping})
 #data=data[data["Group"] != -1]
 print(data.groupby(dGroup).count())
 print ("Data for Modeling :" + str(data.shape))
-
+# %% plot3d
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.cm import viridis
+fig = plt.figure(figsize=(12, 9))
+ax = Axes3D(fig)
+y = data.iloc[:,1]
+x = data.iloc[:,0]
+z = data.iloc[:,2]
+c = data[dGroup]
+ax.scatter(x,y,z, c=viridis(c))#, cmap='coolwarm')
+plt.title('First 3 Principal Components')
+ax.set_ylabel('PC2')
+ax.set_xlabel('PC1')
+ax.set_zlabel('PC3')
+plt.legend()
 # %% CatBoostClassifier
 import numpy as np
 from catboost import CatBoostClassifier, Pool

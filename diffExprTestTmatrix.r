@@ -1,4 +1,4 @@
-#..\R-4.2.1-win\bin\Rscript.exe diffExprTestTmatrix.r "L:\OneDrive - NTNU\Aida\sORF\mqpar.K8R10.xml.1664621075.results\peptides.txt.Count.normH2L.csv" "L:\OneDrive - NTNU\Aida\sORF\mqpar.K8R10.xml.1664621075.results\Groups.txt" Class Rem
+#..\R-4.2.1-win\bin\Rscript.exe diffExprTestTmatrix.r "L:\OneDrive - NTNU\Aida\sORF\mqpar.K8R10.xml.1664621075.results\peptides.txt.Count.normH2L.csv" "L:\OneDrive - NTNU\Aida\sORF\mqpar.K8R10.xml.1664621075.results\Groups2.txt" Class Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -15,7 +15,7 @@ c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestTmatrix.r \"L:\\OneDri
 inpF <- args[1]
 #inpF <-"L:/OneDrive - NTNU/Aida/sORF/mqpar.K8R10.xml.1664621075.results/peptides.txt.log2Count.normL2H.csv"
 inpL <- args[2]
-#inpL <-"L:/OneDrive - NTNU/Aida/sORF/mqpar.K8R10.xml.1664621075.results/Groups.txt"
+#inpL <-"L:/OneDrive - NTNU/Aida/sORF/mqpar.K8R10.xml.1664621075.results/Groups2.txt"
 lGroup <- args[3]
 #lGroup<-"Class"
 rGroup <- args[4]
@@ -23,7 +23,7 @@ rGroup <- args[4]
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
-selection<-"run1"
+selection<-"run"
 thr=0.0#count
 selThr=0.01#pValue-tTest
 selThrFC=1#log2-MedianDifference
