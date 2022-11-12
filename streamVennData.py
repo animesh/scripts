@@ -1,4 +1,4 @@
-#streamlit run streamData.py --server.headless true
+#streamlit run streamVennData.py --server.headless true
 import streamlit as st
 st.set_page_config(page_title="IDH1 MUT WT 24H TMZ*DMSO*data")#,page_icon=img)
 hide_menu_style = """<style>MainMenu {visibility: hidden; }footer {visibility: hidden;}</style>"""
