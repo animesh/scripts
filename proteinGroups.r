@@ -1,8 +1,8 @@
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
 #example####
-#..\R-4.2.1-win\bin\Rscript.exe proteinGroups.r "L:\promec\TIMSTOF\LARS\2022\august\220819 Toktam\combined\txt\proteinGroups.txt"
+#..\R\bin\Rscript.exe proteinGroups.r "L:\promec\TIMSTOF\LARS\2022\august\220819 Toktam\combined\txt\proteinGroups.txt"
 #supplying input file for testing
-#inpF<-file.path("L:/promec/TIMSTOF/LARS/2022/august/Toktam/combined/txt/proteinGroups.txt")
+#inpF<-file.path("L:/promec/TIMSTOF/LARS/2022/august/220819 Toktam/combined/txt/proteinGroups.txt")
 #parse argument(s)0
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -147,7 +147,7 @@ if(dim(log2LFQ)[2]>0){
   for(i in 1:dim(intensity)[2]){hist(log2(intensity[,i]),main=paste("File:",colnames(intensity)[i]),xlab="log2 raw intensity")}
   #plot LFQ histogram
   for(i in 1:dim(log2LFQ)[2]){
-    log2lfq <- hist(log2LFQ[,i],main=paste("File:",colnames(log2LFQ)[i]),sub=paste("Quantified Protein Group(s):",dim(log2LFQ)[1]-as.integer(NAcols[i]),"out of ",dim(log2LFQ)[1],",","Missing Value(s):",NAcols[i]),xlab=paste("log2",selection),breaks=max(log2LFQ)-min(log2LFQ),xlim=c(min(log2LFQ), max(log2LFQ)))
+    log2lfq <- hist(log2LFQ[,i],main=paste("File:",colnames(log2LFQ)[i],"\n","Quantified Protein Group(s):",dim(log2LFQ)[1]-as.integer(NAcols[i]),"out of ",dim(log2LFQ)[1],",","Missing Value(s):",NAcols[i]),xlab=paste("log2",selection),breaks=max(log2LFQ)-min(log2LFQ),xlim=c(min(log2LFQ), max(log2LFQ)))
   }
   #pca
   plot(princomp(log2LFQ))
@@ -178,14 +178,14 @@ if(dim(log2LFQ)[2]>0){
     log2LFQtPCA<-prcomp(log2LFQt,scale=TRUE)
     log2LFQtPCAsumm<-summary(log2LFQtPCA)
     #plot(prcomp(log2LFQt))
-    plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups removed"),sub=paste("Protein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+    plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups removed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
     op <- par(cex = 0.4)
     legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
     log2LFQt<-t(log2LFQ)
     log2LFQtPCA<-prcomp(log2LFQt,scale=TRUE)
     log2LFQtPCAsumm<-summary(log2LFQtPCA)
     plot(prcomp(log2LFQt))
-    plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed"),sub=paste("Protein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+    plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
     op <- par(cex = 0.4)
     legend("bottomright", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
     heatmap(log2LFQt)

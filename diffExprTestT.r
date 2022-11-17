@@ -1,7 +1,7 @@
-#Rscript.exe diffExprTestT.r "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt" "L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt" Bio Rem
+#..\R\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2022\august\220819 Toktam\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2022\august\220819 Toktam\combined\txt\Groups.txt" Sample Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
+#BiocManager::install(c("limma","pheatmap"))
 #install.packages("devtools")
 #devtools::install_github("jdstorey/qvalue")
 print("USAGE:<path to>Rscript diffExprTestT.r <complete path to directory containing proteinGroups.txt AND Groups.txt files> <name of group column in Groups.txt annotating data/rows to be used for analysis> <name of column in Groups.txt marking data NOT to be considered in analysis>")
@@ -13,11 +13,11 @@ if (length(args) != 4) {stop("\n\nNeeds THREE arguments, the full path of the di
 c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt\" Bio Rem
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2022/august/220819 Toktam/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/august/220819 Toktam/combined/txt/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Bio"
+#lGroup<-"Sample"
 rGroup <- args[4]
 #rGroup<-"Rem"
 inpD<-dirname(inpF)
@@ -37,7 +37,7 @@ data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", com
 #data = data[!data$Reverse=="+",]
 #data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
-row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
+row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Score,data$Peptide.counts..unique.,sep=";;")
 summary(data)
 dim(data)
 log2Int<-as.matrix(log2(data[,grep("Intensity",colnames(data))]))
@@ -77,7 +77,7 @@ par(mar=c(12,3,1,1))
 boxplot(log2LFQ,las=2)
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpD,"log2LFQ.xlsx"))
-data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Gene.names, ";",fixed=T), "[", 1)), " "), "[", 1))
+data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "GN=",fixed=T), "[", 2)), " "), "[", 1))
 data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$Protein.IDs, ";",fixed=T), "[", 1)), "-"), "[", 1))
 data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
 #label####
@@ -164,7 +164,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     hist(logFCmedianFC)
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
-    ttest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+    ttest.results = data.frame(Uniprot=data$uniprotID,Gene=data$geneName,Proteins=data$Fasta.headers,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
     writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.xlsx"))
     write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.csv"),row.names = F)
     ttest.results.return<-ttest.results
