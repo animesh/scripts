@@ -8,26 +8,27 @@ print("USAGE:<path to>Rscript diffExprTestTmatrix.r <complete path to directory 
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 4) {stop("\n\nNeeds THREE arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
+if (length(args) < 4) {stop("\n\nNeeds at least 4 arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
 
 c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestTmatrix.r \"L:\\OneDrive - NTNU\\Aida\\sORF\\mqpar.K8R10.xml.1664621075.results\\peptides.txt.Count.normH2L.csv\" \"L:\\OneDrive - NTNU\\Aida\\sORF\\mqpar.K8R10.xml.1664621075.results\\Groups.txt\" Class Rem
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/OneDrive - NTNU/Aida/sORF/mqpar.K8R10.xml.1664621075.results/peptides.txt.log2Count.normL2H.csv"
+#inpF <-"L:\\promec\\Qexactive\\LARS\\2022\\juli\\toktam\\PDv2p5\\Beer\\220706_toktam1_Proteins.txt.Abundance.Normalized..log2.csv"
 inpL <- args[2]
-#inpL <-"L:/OneDrive - NTNU/Aida/sORF/mqpar.K8R10.xml.1664621075.results/Groups2.txt"
-lGroup <- args[3]
+#inpL <-"L:\\promec\\Qexactive\\LARS\\2022\\juli\\toktam\\PDv2p5\\Beer\\GroupsR1.txt"
+selection <- args[3]
+#selection<-"Sample"
+lGroup <- args[4]
 #lGroup<-"Class"
-rGroup <- args[4]
+rGroup <- args[5]
 #rGroup<-"Rem"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
-selection<-"run"
 thr=0.0#count
-selThr=0.01#pValue-tTest
+selThr=0.05#pValue-tTest
 selThrFC=1#log2-MedianDifference
-cvThr=0.1#threshold for coefficient-of-variation
+cvThr=0.05#threshold for coefficient-of-variation
 hdr<-gsub("[^[:alnum:]]", "",inpD)
 outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,"VolcanoTestT","pdf",sep = ".")
 pdf(outP)
@@ -59,9 +60,6 @@ log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2Int)
 rownames(log2IntimpCorr)<-colnames(log2Int)
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
-data$peptide<-paste(sapply(strsplit(paste(sapply(strsplit(rownames(data), ";",fixed=T), "[", 1)), " "), "[", 1))
-data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rownames(data), ";",fixed=T), "[", 2)), " "), "[", 1))
-data[data$peptide=="NA","peptide"]=data[data$peptide=="NA","uniprotID"]
 #label####
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
 label["pair2test"]<-label[lGroup]
@@ -135,7 +133,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     hist(logFCmedianFC)
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
-    ttest.results = data.frame(Uniprot=data$uniprotID,Peptide=data$peptide,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+    ttest.results = data.frame(Uniprot=data$uniprot,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
     writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.xlsx"))
     write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.csv"),row.names = F)
     ttest.results.return<-ttest.results
@@ -146,7 +144,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     sum(Significance)
     dsub <- subset(ttest.results,Significance)
     p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance))
-    p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+    p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=Uniprot),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
     #f=paste(file,proc.time()[3],".jpg")
     #install.packages("svglite")
     ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTest.svg"), p)
@@ -161,10 +159,10 @@ head(label)
 colnames(log2Int)
 colnames(log2Int)<-sub("X","",colnames(log2Int))
 print(rownames(label))
+print(colnames(log2Int)==rownames(label))
 log2LFQsel=log2Int[,rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',])]
 colnames(log2LFQsel)
 dim(log2LFQsel)
-print(colnames(log2LFQsel)==rownames(label))
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 for(i in rownames(table(label$pair2test))){
