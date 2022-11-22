@@ -1,25 +1,28 @@
-#..\R\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2022\august\220819 Toktam\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2022\august\220819 Toktam\combined\txt\Groups.txt" Sample Rem
-#setup
+#..\R\bin\Rscript.exe diffExprTestT.r L:\promec\TIMSTOF\MIRTA\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\MIRTA\combined\txt\Groups.txt Group_Cell_Sample Group_Cell_SampleR Group_Cell
+#setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"))
 #install.packages("devtools")
 #devtools::install_github("jdstorey/qvalue")
-print("USAGE:<path to>Rscript diffExprTestT.r <complete path to directory containing proteinGroups.txt AND Groups.txt files> <name of group column in Groups.txt annotating data/rows to be used for analysis> <name of column in Groups.txt marking data NOT to be considered in analysis>")
+summary(warnings())
+options(nwarnings = 1000000)
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
-print(args)
-if (length(args) != 4) {stop("\n\nNeeds THREE arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
-
-c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt\" Bio Rem
-", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2022/august/220819 Toktam/combined/txt/proteinGroups.txt"
+print(args[1])
+#inpF <-"L:/promec/TIMSTOF/MIRTA/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/august/220819 Toktam/combined/txt/Groups.txt"
+print(args[2])
+#inpL <-"L:/promec/TIMSTOF/MIRTA/combined/txt/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Sample"
+print(args[3])
+#lGroup<-"Group_Cell_Sample"
 rGroup <- args[4]
-#rGroup<-"Rem"
+print(args[4])
+#rGroup<-"Group_Cell_SampleR"
+cGroup <- args[5]
+print(args[5])
+#cGroup<-"Group_Cell"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -83,8 +86,7 @@ data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
 #label####
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
 rownames(label)=sub(selection,"",rownames(label))
-label["pair2test"]<-label[lGroup]
-if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
+label["pair2test"]<-label[cGroup]
 print(label)
 #corHClfq####
 log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
@@ -98,28 +100,27 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr){
-  #sel1<-"MNPHCKO"#"MNPSC"
-  #sel2<-"MNPHC"
-  #log2LFQ<-log2LFQsel#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
-  #log2LFQ<-sapply(log2LFQ, as.numeric)
+  #sel1<-"Control_GPC"
+  #sel2<-"Control_iPSC"
+  #log2LFQ<-medianLog2LFQr#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
+  log2LFQ<-sapply(log2LFQ, as.numeric)
   #colnames(log2LFQ)
-  d1<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
-  d2<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel2,]))]
+  d1<-log2LFQ[,grep(sel1,colnames(log2LFQ))]
+  d2<-log2LFQ[,grep(sel2,colnames(log2LFQ))]
   dataSellog2grpTtest<-as.matrix(cbind(d1,d2))
   if(sum(!is.na(d1))>1&sum(!is.na(d2))>1){
-    hist(d1,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
-    hist(d2,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
+    hist(d1,breaks=round(max(dataSellog2grpTtest,na.rm=T)),main=sel1)
+    hist(d2,breaks=round(max(dataSellog2grpTtest,na.rm=T)),main=sel2)
     #assign(paste0("hda",sel1,sel2),dataSellog2grpTtest)
     #get(paste0("hda",sel1,sel2))
-    dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
-    hist(dataSellog2grpTtest,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
-    row.names(dataSellog2grpTtest)<-row.names(data)
     comp<-paste0(sel1,sel2)
+    dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
+    hist(dataSellog2grpTtest,breaks=round(max(dataSellog2grpTtest,na.rm=T)),main=comp)
+    row.names(dataSellog2grpTtest)<-row.names(data)
     sCol<-1
     eCol<-ncol(dataSellog2grpTtest)
     mCol<-ncol(d1)#ceiling((eCol-sCol+1)/2)
     dim(dataSellog2grpTtest)
-    options(nwarnings = 1000000)
     pValNA = apply(
       dataSellog2grpTtest, 1, function(x)
         if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
@@ -133,7 +134,6 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
         t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
       else{NA}
     )
-    summary(warnings())
     hist(pValNA)
     summary(pValNA)
     dfpValNA<-as.data.frame(ceiling(pValNA))
@@ -183,19 +183,66 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     return(ttest.results.return)
   }
 }
-#compare####
-colnames(log2LFQ)
-log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
-colnames(log2LFQsel)
-dim(log2LFQsel)
-label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
-table(label$pair2test)
-for(i in rownames(table(label$pair2test))){
-  for(j in rownames(table(label$pair2test))){
-    if(i!=j){
-      print(paste(i,j))
-      ttPair=testT(log2LFQsel,i,j,cvThr)
-      #assign(paste0(i,j),ttPair)
-    }
-  }
+#lGroupMedian####
+table(label[lGroup])
+medianLog2LFQ <- data.frame(matrix(ncol=length(names(table(label[lGroup]))),nrow=nrow(log2LFQ)))
+colnames(medianLog2LFQ) <- names(table(label[lGroup]))
+rownames(medianLog2LFQ)<-rownames(log2LFQ)
+for(i in names(table(label[lGroup]))){
+  print(i)
+  log2LFQvals<-log2LFQ[,gsub("-",".",rownames(label[label[lGroup]==i,]))]
+  print(summary(log2LFQvals))
+  medianLog2LFQ[i]<-apply(log2LFQvals,1, function(x) median(x,na.rm=T))
+  print(summary(medianLog2LFQ[i]))
 }
+boxplot(medianLog2LFQ)
+#rGroupMedian####
+table(label[rGroup])
+medianLog2LFQr <- data.frame(matrix(ncol=length(names(table(label[rGroup]))),nrow=nrow(log2LFQ)))
+colnames(medianLog2LFQr) <- names(table(label[rGroup]))
+rownames(medianLog2LFQr)<-rownames(log2LFQ)
+for(i in names(table(label[rGroup]))){
+  print(i)
+  log2LFQvals<-medianLog2LFQ[,grep(i,colnames(medianLog2LFQ))]
+  print(summary(log2LFQvals))
+  medianLog2LFQr[i]<-apply(log2LFQvals,1, function(x) median(x,na.rm=T))
+  print(summary(medianLog2LFQr[i]))
+}
+boxplot(medianLog2LFQr)
+#testGroups####
+#label <- data.frame(matrix(ncol=1,nrow=length(colnames(medianLog2LFQ))))
+#label$pair2test<-sapply(strsplit(colnames(medianLog2LFQ), "_",fixed=T), "[", 1)
+#rownames(label)<-colnames(medianLog2LFQ)
+#rownames(label)
+#table(label$pair2test)
+#rownames(label[label$pair2test=="MINE",])
+#rownames(label[label$pair2test=="WT",])
+#ttMINE2WT=testT(medianLog2LFQ,"MINE","WT",cvThr)
+#colnames(log2LFQ)
+#log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+#colnames(log2LFQsel)
+#dim(log2LFQsel)
+#label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
+#table(label$pair2test)
+rownames(table(label[cGroup]))
+#Developmental stages inside the same group:
+#         Control GPC vs Control iPSC
+cGPCiPSC=testT(medianLog2LFQr,rownames(table(label[cGroup]))[2],rownames(table(label[cGroup]))[3],cvThr)
+#         Control Astrocyte vs GPC
+cAstoGPC=testT(medianLog2LFQr,rownames(table(label[cGroup]))[1],rownames(table(label[cGroup]))[2],cvThr)
+#         Control Astrocyte vs iPSC
+cAsrtroiPSC=testT(medianLog2LFQr,rownames(table(label[cGroup]))[1],rownames(table(label[cGroup]))[3],cvThr)
+#         Patient GPC vs Patient iPSC
+pGPCiPSC=testT(medianLog2LFQr,rownames(table(label[cGroup]))[5],rownames(table(label[cGroup]))[6],cvThr)
+#         Patient Astrocyte vs Patient GPC
+pAstoGPC=testT(medianLog2LFQr,rownames(table(label[cGroup]))[4],rownames(table(label[cGroup]))[5],cvThr)
+#         Patient Astrocyte vs Patient iPSC
+pAstoiPC=testT(medianLog2LFQr,rownames(table(label[cGroup]))[4],rownames(table(label[cGroup]))[6],cvThr)
+#Patient vs control at each stage:
+#         Patient vs Control Astrocytes
+pcAsto=testT(medianLog2LFQr,rownames(table(label[cGroup]))[4],rownames(table(label[cGroup]))[1],cvThr)
+#         Patient vs Control GPC
+pcGPC=testT(medianLog2LFQr,rownames(table(label[cGroup]))[5],rownames(table(label[cGroup]))[2],cvThr)
+#         Patient vs Control iPSC
+pciPCc=testT(medianLog2LFQr,rownames(table(label[cGroup]))[6],rownames(table(label[cGroup]))[3],cvThr)
+summary(warnings())
