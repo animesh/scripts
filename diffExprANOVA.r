@@ -77,6 +77,9 @@ resANOVA=apply(log2LFQ, 1,function(x){
     }
   }
 )
+#x<-resANOVA[[1]]
+#x<-resANOVA[["57;;tr|A0A287J912|A0A287J912_HORVV Uncharacterized protein OS=Hordeum vulgare subsp. vulgare OX=112509 PE=3 SV=1;;A0A287J912;;9.9189;;1"]]
+#pValANOVA<-sapply(resANOVA,function(x) if(!is.null(x)){sapply(strsplit(x, "--VALS--",fixed=T), "[", 1)})
 pValANOVA<-sapply(strsplit(resANOVA, "--VALS--",fixed=T), "[", 1)
 summary(warnings())
 pValANOVA<-sapply(pValANOVA,as.numeric)

@@ -27,7 +27,7 @@ fName<-basename(inpF)
 lName<-basename(inpL)
 thr=0.0#count
 selThr=0.05#pValue-tTest
-selThrFC=1#log2-MedianDifference
+selThrFC=0.5#log2-MedianDifference
 cvThr=0.05#threshold for coefficient-of-variation
 hdr<-gsub("[^[:alnum:]]", "",inpD)
 outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,"VolcanoTestT","pdf",sep = ".")
