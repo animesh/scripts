@@ -20,17 +20,15 @@
 #Aliphatic index - Alakazam package
 #Grand average of hydropathicity (GRAVY) - Alakazam package
 #data####
-#inpF<-"L:/promec/Qexactive/LARS/2022/juli/toktam/PDv2p5/Beer/220706_toktam1_Proteins.txt.Abundance.Normalized..log2.csvSample14S1S20.0510.05ClassRemGroupsR1.txttTestBH.csv"
-inpF<-"L:/promec/Qexactive/LARS/2022/juli/toktam/PDv2p5/Beer/220706_toktam1_Proteins.txt"
-data<-read.table(inpF,header=T,sep="\t")
+inpF<-"L:/promec/TIMSTOF/LARS/2022/august/220819 Toktam/combined/txt/proteinGroups.txtLFQ.intensity.16S1S30.050.50.05SampleRemGroups.txttTestBH.csvprotparam.csv"
+data<-read.table(inpF,header=T,sep=",")
 summary(data)
-data = data[data[["Master"]]=="IsMasterProtein",]
+#data = data[data[["Master"]]=="IsMasterProtein",]
 #phyicoChemisT####
 colnames(data)
 summary(data["MW.in.kDa"])
-hist(as.numeric(unlist(data["MW.in.kDa"])))
-hist(as.numeric(unlist(data["calc.pI"])))
-plot(as.numeric(unlist(data["calc.pI"])),as.numeric(unlist(data["MW.in.kDa"])))
+#hist(as.numeric(unlist(data["MW.in.kDa"])))
+#hist(as.numeric(unlist(data["pI"])))
 #Peptides::mw(data$Sequence)
 #data$Sequence[1]
 #alakazam::charge(data$Sequence[1])
@@ -45,11 +43,11 @@ plot(as.numeric(unlist(data["calc.pI"])),as.numeric(unlist(data["MW.in.kDa"])))
 #aaPositive<-sapply(data$Sequence, sum(Peptides::charge(strsplit(x,""))>0))
 #sum(Peptides::charge(strsplit(data$Sequence,"")[[1]])<(-0.9))
 #sum(Peptides::lengthpep(strsplit(data$Sequence,"")[[1]]))
-cor(Peptides::mw(data$Sequence),as.numeric(unlist(data["MW.in.kDa"])))
+cor(Peptides::mw(data$Sequence),as.numeric(unlist(data["MW.in.kDa"][1])))
 #plot(Peptides::mw(data$Sequence),as.numeric(unlist(data["MW.in.kDa"])))
-cor(Peptides::pI(data$Sequence, pKscale="Bjellqvist" ),as.numeric(unlist(data["calc.pI"])))
+cor(Peptides::pI(data$Sequence, pKscale="Bjellqvist" ),as.numeric(unlist(data["pI"])))
 #plot(Peptides::pI(data$Sequence, pKscale="Bjellqvist" ),as.numeric(unlist(data["calc.pI"])))
-cor(Peptides::lengthpep(data$Sequence),as.numeric(unlist(data["Number.of.AAs"])))
+cor(Peptides::lengthpep(data$Sequence),as.numeric(unlist(data$Length)))
 #plot(Peptides::lengthpep(data$Sequence),as.numeric(unlist(data["Number.of.AAs"])))
 seqProt<-data.frame(data$Sequence)
 positive<-apply(seqProt,1,function(x) sum(Peptides::charge(strsplit(x,"")[[1]])>0.9))
@@ -67,5 +65,5 @@ aliphatic<-alakazam::aliphatic(data$Sequence)
 #length(grep(term,GeneOntologyObj$Gene.ontology..cellular.component.,ignore.case=T))
 #GeneOntologyObj$term <- apply(GeneOntologyObj, 1, function(x)as.integer(any(grep(term,x,ignore.case=T))))
 #sum(GeneOntologyObj$term)
-protResults = data.frame(Uniprot=data$Accession,Protein=data$Description,positive,negative,gravy,aliphatic,AtomiComposite=aaSmiles)
+protResults = data.frame(Uniprot=data$Uniprot,Protein=data$Protein,positive,negative,gravy,aliphatic,AtomiComposite=aaSmiles)
 write.csv(protResults,paste0(inpF,"protparamRemaining.csv"),row.names = F)
