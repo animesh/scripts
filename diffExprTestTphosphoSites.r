@@ -14,7 +14,7 @@ selection<-"Intensity."
 inpL<-paste0(inpD,"Groups.txt")
 lGroup <- args[2]
 #lGroup<-"Bio"
-#i <- args[3]
+#i <- 1#args[3]
 for(i in 1:3){
 selection2=paste0("___",i);
 print(selection2)
@@ -75,7 +75,7 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr) {
-  #sel1="WTTMZ6h"
+  #sel1="MUTCtrl"
   #sel2="WTCtrl"
   d1<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
   summary(d1)
@@ -90,6 +90,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr) {
     #get(paste0("hda",sel1,sel2))
     dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
     hist(dataSellog2grpTtest,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
+    boxplot(dataSellog2grpTtest)
     row.names(dataSellog2grpTtest)<-row.names(data)
     comp<-paste0(sel1,sel2)
     sCol<-1

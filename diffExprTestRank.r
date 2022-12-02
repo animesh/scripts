@@ -12,7 +12,7 @@ if (length(args) != 4) {stop("\n\nNeeds FOUR arguments, the full path of the dir
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order.txt"
 lGroup <- args[3]
 #lGroup<-"Tissue"
 rGroup <- args[4]
@@ -20,7 +20,7 @@ rGroup <- args[4]
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
-selection<-"iBAQ."
+selection<-"Intensity."
 thr=0.0#count
 selThr=0.1#pValue-WilcoxTest
 selThrFC=0.1#log2-MedianDifference
@@ -88,17 +88,42 @@ log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(outP,"heatmap.iBAQ.svg"), svgPHC)
+ggplot2::ggsave(paste0(outP,selection,"heatmap.svg"), svgPHC)
 #label####
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
+#cor(label$cell.number/label$cur.area,label$ratio.correction.factor)
 rownames(label)=sub(selection,"",rownames(label))
 label["pair2test"]<-label[lGroup]
 if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
 print(label)
-#table(label$Tissue)
-#minmaxScale####
+table(label["removed"])
+table(label[lGroup])
+rownames(label)
+#ratioCor####
+dim(log2LFQ)
+#log2LFQ[,"standard_a_Slot2.54_1_1984"]
 colnames(log2LFQ)
 log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+dim(log2LFQsel)
+hist(log2LFQsel)
+ratioFactor<-data.matrix(label$ratio.correction.factor)
+row.names(ratioFactor)<-rownames(label)
+ratioFactor<-ratioFactor[rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]),]
+hist(ratioFactor)
+summary(log2LFQsel)
+log2LFQselCor<-log2LFQsel
+for(i in colnames(log2LFQsel)){
+  print(i)
+  print(ratioFactor[i])
+  print(summary(log2LFQsel[,i]))
+  print(summary(log2LFQsel[,i]/ratioFactor[i]))
+  log2LFQselCor[,i]<-log2LFQsel[,i]/ratioFactor[i]
+  print(summary(log2LFQselCor[,i]))
+}
+summary(log2LFQselCor)
+#minmaxScale####
+colnames(log2LFQselCor)
+log2LFQsel<-log2LFQselCor
 summary(log2LFQsel)
 maxM=matrix(rep(apply(log2LFQsel,2,function(x) max(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
 minM=matrix(rep(apply(log2LFQsel,2,function(x) min(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
@@ -120,7 +145,7 @@ hist(log2LFQselScaleimpCorr)
 colnames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
 rownames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
 svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(outP,"heatmap.iBAQminmax.svg"), svgPHC)
+ggplot2::ggsave(paste0(outP,selection,"heatmap.svg"), svgPHC)
 #test####
 testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
   #sel1<-i#"PIN"
