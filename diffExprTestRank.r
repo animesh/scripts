@@ -1,4 +1,4 @@
-#..\R-4.2.1-win\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\Groups.txt Tissue Rem
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order.txt Tissue Ratio Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -8,14 +8,16 @@ print("USAGE:<path to>Rscript diffExprTestRank.r <complete path to directory con
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 4) {stop("\n\nNeeds FOUR arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example: c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestRank.r L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/Groups.txt Tissue Rem", call.=FALSE)}
+if (length(args) != 5) {stop("\n\nNeeds FOUR arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example: c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestRank.r L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order.txt Tissue Ratio Rem", call.=FALSE)}
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
 #inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order.txt"
 lGroup <- args[3]
 #lGroup<-"Tissue"
-rGroup <- args[4]
+scaleF <- args[4]
+#scaleF<-"Ratio"
+rGroup <- args[5]
 #rGroup<-"Rem"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
@@ -61,7 +63,7 @@ svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean"
 ggplot2::ggsave(paste0(outP,"heatmap.intensity.svg"), svgPHC)
 #maxLFQ####
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
-LFQ<-LFQ[,2:ncol(LFQ)]
+#LFQ<-LFQ[,2:ncol(LFQ)]
 #protNum<-1:ncol(LFQ)
 #protNum<-"LFQ intensity"#1:ncol(LFQ)
 #colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),sep=";")
@@ -74,7 +76,7 @@ hist(log2LFQ,main=paste("Mean:",mean(log2LFQ,na.rm=T),"SD:",sd(log2LFQ,na.rm=T))
 par(mar=c(12,3,1,1))
 boxplot(log2LFQ,las=2)
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
-writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpD,"log2LFQ.xlsx"))
+writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpD,selection,"log2.xlsx"))
 data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Gene.names, ";",fixed=T), "[", 1)), " "), "[", 1))
 data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$Protein.IDs, ";",fixed=T), "[", 1)), "-"), "[", 1))
 data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
@@ -106,21 +108,25 @@ colnames(log2LFQ)
 log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
 dim(log2LFQsel)
 hist(log2LFQsel)
-ratioFactor<-data.matrix(label$ratio.correction.factor)
+ratioFactor<-data.matrix(label[scaleF])
 row.names(ratioFactor)<-rownames(label)
 ratioFactor<-ratioFactor[rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]),]
 hist(ratioFactor)
 summary(log2LFQsel)
 log2LFQselCor<-log2LFQsel
+summary(log2LFQselCor)
 for(i in colnames(log2LFQsel)){
   print(i)
   print(ratioFactor[i])
   print(summary(log2LFQsel[,i]))
-  print(summary(log2LFQsel[,i]/ratioFactor[i]))
-  log2LFQselCor[,i]<-log2LFQsel[,i]/ratioFactor[i]
+  print(summary(log2LFQsel[,i]-log2(ratioFactor[i])))
+  log2LFQselCor[,i]<-log2LFQsel[,i]-log2(ratioFactor[i])
   print(summary(log2LFQselCor[,i]))
 }
 summary(log2LFQselCor)
+hist(log2LFQselCor)
+boxplot(log2LFQselCor)
+write.csv(log2LFQselCor,paste0(inpF,selection,scaleF,".log2LFQselCor.csv"))
 #minmaxScale####
 colnames(log2LFQselCor)
 log2LFQsel<-log2LFQselCor
@@ -129,9 +135,11 @@ maxM=matrix(rep(apply(log2LFQsel,2,function(x) max(x,na.rm=T)),each=nrow(log2LFQ
 minM=matrix(rep(apply(log2LFQsel,2,function(x) min(x,na.rm=T)),each=nrow(log2LFQsel)),nrow=nrow(log2LFQsel),ncol=ncol(log2LFQsel))
 log2LFQselScale=(log2LFQsel-minM)/(maxM-minM)
 summary(log2LFQselScale)
+log2LFQselMM<-log2LFQselScale
+summary(log2LFQselMM)
 par(mar=c(12,3,1,1))
 boxplot(log2LFQselScale,las=2)
-write.csv(log2LFQselScale,paste0(inpF,".minmax.csv"))
+write.csv(log2LFQselScale,paste0(inpF,".log2LFQselScale.minmax.csv"))
 #corHCminmax####
 hist(log2LFQselScale)
 log2LFQselScaleimp<-matrix(rnorm(dim(log2LFQselScale)[1]*dim(log2LFQselScale)[2],mean=mean(log2LFQselScale,na.rm = T)-scale,sd=sd(log2LFQselScale,na.rm = T)/(scale)), dim(log2LFQselScale)[1],dim(log2LFQselScale)[2])
@@ -228,8 +236,8 @@ testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
     wilcoxTest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,WilcoxTestPval=pValNA,dataSellog2grpwilcoxTest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,log2meanDiff,RowGeneUniProtScorePeps=rownames(dataSellog2grpwilcoxTest))
-    writexl::write_xlsx(wilcoxTest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.xlsx"))
-    write.csv(wilcoxTest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.csv"),row.names = F)
+    writexl::write_xlsx(wilcoxTest.results,paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.xlsx"))
+    write.csv(wilcoxTest.results,paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.csv"),row.names = F)
     wilcoxTest.results.return<-wilcoxTest.results
     #volcano
     wilcoxTest.results$RowGeneUniProtScorePeps<-data$geneName
@@ -241,7 +249,7 @@ testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
     p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
     #f=paste(file,proc.time()[3],".jpg")
     #install.packages("svglite")
-    ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTestWilcox.svg"), p)
+    ggplot2::ggsave(paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTestWilcox.svg"), p)
     print(p)
     return(wilcoxTest.results.return)
   }
@@ -260,11 +268,11 @@ wilcox.test(tmparr[1:ncol(log2LFQsel)/2],tmparr[ncol(log2LFQsel)/2+1:ncol(log2LF
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 cnt=0
-for(i in 1:length(rownames(table(label$pair2test)))){
-  cnt=cnt+1
-  i=rownames(table(label$pair2test))[cnt]
-  j=rownames(table(label$pair2test))[-cnt]
-  print(paste(i,j))
-  rtPair=testWilcox(log2LFQselScale,i,j,cvThr)
+#for(i in 1:length(rownames(table(label$pair2test)))){
+#  cnt=cnt+1
+#  i=rownames(table(label$pair2test))[cnt]
+#  j=rownames(table(label$pair2test))[-cnt]
+#  print(paste(i,j))
+#  rtPair=testWilcox(log2LFQselScale,i,j,cvThr)
   #assign(paste0(i,j),ttPair)
-}
+#}
