@@ -10,14 +10,126 @@ import pandas as pd
 data=pd.read_csv("/home/ash022/1d/Aida/ML/dataTmmS42T.csv")
 dGroup="Class"
 print(data.groupby(dGroup).count())
-mapping = {'MGUS':1,'MM':2,'Ml':3}
+#mapping = {'MGUS':1,'MM':2,'Ml':3}
 #mapping = {'MGUS':'G','MM':'M','Ml':'M'}
-#mapping = {'MGUS':'G','MM':'M','Ml':'L'}
+mapping = {'MGUS':'G','MM':'M','Ml':'L'}
 #mapping = {'MGUS':'0000FF','MM':'FF0000','Ml':'00FF00'}
 data=data.replace({dGroup: mapping})
 #data=data[data["Group"] != -1]
 print(data.groupby(dGroup).count())
-print ("Data for Modeling :" + str(data.shape))
+train_labels = data[dGroup]
+train_data = data.drop(columns=dGroup)
+print ("Data for Modeling :" + str(train_data.shape))
+# %% autoML
+#https://towardsdatascience.com/auto-sklearn-scikit-learn-on-steroids-42abd4680e94
+import autosklearn
+print(autosklearn.__version__)
+import sklearn.metrics
+from sklearn.model_selection import train_test_split, StratifiedKFold
+from autosklearn.classification import AutoSklearnClassifier
+from autosklearn.metrics import (accuracy,
+                                 f1,
+                                 roc_auc,
+                                 precision,
+                                 average_precision,
+                                 recall,
+                                 log_loss)
+skf = StratifiedKFold(n_splits=5)
+clf = AutoSklearnClassifier(time_left_for_this_task=600,
+                            max_models_on_disc=5,
+                            memory_limit=10240,
+                            #resampling_strategy=skf,
+                            ensemble_size=3,
+                            metric=average_precision,
+                            scoring_functions=[roc_auc, average_precision, accuracy, f1, precision, recall, log_loss])
+clf.fit(X=train_data, y=train_labels)
+df_cv_results = pd.DataFrame(clf.cv_results_).sort_values(by = 'mean_test_score', ascending = False)
+df_cv_results
+clf.leaderboard(detailed=True, ensemble_only=False)
+clf.get_models_with_weights()
+clf.sprint_statistics()
+clf.refit(X = X_train, y = y_train)
+dump(clf, 'model.joblib')
+clf = load('model.joblib')
+y_probas = clf.predict_proba(X_test)
+pos_label = 'yes'
+y_proba = y_probas[:, clf.classes_.tolist().index(pos_label)]
+# %% h2O
+# https://towardsdatascience.com/automated-machine-learning-with-h2o-258a2f3a203f
+import h2o
+from h2o.automl import H2OAutoML
+h2o.init()
+#train_data.describe()#chunk_summary=True)
+aml = H2OAutoML(max_models =25,balance_classes=False,seed =42)
+aml.train(training_frame = h2o.import_file(path="/home/ash022/1d/Aida/ML/dataTmmS42T.csv"), y = 'Class')
+# %% cHeck2O
+lb = aml.leaderboard
+lb.head(rows=lb.nrows)
+best_model = aml.leader
+print(best_model)
+# %% varImp
+# https://docs.h2o.ai/h2o/latest-stable/h2o-docs/variable-importance.html
+#metalearner = h2o.get_model(best_model['name']))
+#metalearner.varimp()
+#lb[0,0]
+model = h2o.get_model(lb[7, 0])
+model.model_performance(h2o.import_file(path="/home/ash022/1d/Aida/ML/dataTmmS42T.csv"))
+print(model.varimp(use_pandas=True))
+model.varimp_plot(num_of_features = 25)
+#best_model.model_performance(test)
+#explain_model = aml.explain(frame=test, figsize=(8, 6))
+#model_path = h2o.save_model(model=best_model, path='/kaggle/working/model', force=True)
+#print(model_path)
+#loaded_model = h2o.load_model(path='/kaggle/working/model/StackedEnsemble_AllModels_AutoML_20210803_232409')
+# loaded_model.predict(test)
+# %% TFDF
+# https://github.com/tensorflow/decision-forests
+import tensorflow_decision_forests as tfdf 
+import pandas as pd
+train_df = pd.read_csv("/home/ash022/1d/Aida/ML/dataTmmS42T.csv")
+test_df = train_df
+train_ds = tfdf.keras.pd_dataframe_to_tf_dataset(train_df, label="Class")
+test_ds = tfdf.keras.pd_dataframe_to_tf_dataset(test_df, label="Class")
+model = tfdf.keras.RandomForestModel()
+model.fit(train_ds)
+model.summary()
+model.evaluate(test_ds)
+print(model.summary())
+model.save("tf-df.model")
+# %% inspect
+# https://www.tensorflow.org/decision_forests/tutorials/automatic_tuning_colab
+tuner = tfdf.tuner.RandomSearch(num_trials=50)
+tuner.choice("min_examples", [2, 5, 7, 10])
+tuner.choice("categorical_algorithm", ["CART", "RANDOM"])
+local_search_space = tuner.choice("growing_strategy", ["LOCAL"])
+local_search_space.choice("max_depth", [3, 4, 5, 6, 8])
+global_search_space = tuner.choice("growing_strategy", ["BEST_FIRST_GLOBAL"], merge=True)
+global_search_space.choice("max_num_nodes", [16, 32, 64, 128, 256])
+tuner.choice("use_hessian_gain", [True, False])
+tuner.choice("shrinkage", [0.02, 0.05, 0.10, 0.15])
+tuner.choice("num_candidate_attributes_ratio", [0.2, 0.5, 0.9, 1.0])
+tuner.choice("split_axis", ["AXIS_ALIGNED"])
+oblique_space = tuner.choice("split_axis", ["SPARSE_OBLIQUE"], merge=True)
+oblique_space.choice("sparse_oblique_normalization",["NONE", "STANDARD_DEVIATION", "MIN_MAX"])
+oblique_space.choice("sparse_oblique_weights", ["BINARY", "CONTINUOUS"])
+oblique_space.choice("sparse_oblique_num_projections_exponent", [1.0, 1.5])
+tuned_model = tfdf.keras.GradientBoostedTreesModel(tuner=tuner)
+tuned_model.fit(train_ds, verbose=2)
+# %% test
+tuned_model.compile(["accuracy"])
+tuned_test_accuracy = tuned_model.evaluate(test_ds, return_dict=True, verbose=0)["accuracy"]
+print( f"Test accuracy with the TF-DF hyper-parameter tuner: {tuned_test_accuracy:.4f}")
+tuning_logs = tuned_model.make_inspector().tuning_logs()
+tuning_logs.head()
+tuning_logs[tuning_logs.best].iloc[0]
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 5))
+plt.plot(tuning_logs["score"], label="current trial")
+plt.plot(tuning_logs["score"].cummax(), label="best trial")
+plt.xlabel("Tuning step")
+plt.ylabel("Tuning score")
+plt.legend()
+plt.show()
 # %% plot3d
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D

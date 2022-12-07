@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 
-my $USAGE = "translate.pl file.fasta [startpos stoppos]\n";
+my $USAGE = "translate.pl file.fasta\n";
 
 my %codon =
 (
@@ -56,28 +56,41 @@ sub translate
 
 
 
-my $file  = shift @ARGV or die $USAGE;
-my $start = shift @ARGV;
-my $end   = shift @ARGV;
+my $f1  = shift @ARGV or die $USAGE;
+my $seqc;
+my %seqm;
+open(F1,$f1);
+while(my $l1=<F1>){
+	chomp $l1;
+	$l1=~s/\r//g;
+	$l1=~s/\s+//g;
+	if($l1=~/^>/){$seqc=$l1;}
+	else{$l1=~s/U/T/g;$l1=~s/u/T/g;$seqm{$seqc}.=uc($l1);}
+}
+close F1;
 
-open FASTA, "< $file" or die "Can't open $file for reading ($!)\n";
-
-
-my $seq;
-my $seqn;
-while (<FASTA>){
-  chomp;
-  if (/^>/){ 
-        $seqn=$_; 
-	translate($seqn,$seq, $start, $end);
-	$seq="";
-  }  
-  else{
-    $seq .= $_;
-  }
+my $name;
+foreach my $seqs (keys %seqm){
+  my $fseqs=$seqs."_"."Fwd";
+  translate($fseqs, $seqm{$seqs}, 1, length($seqm{$seqs}));
+  translate($fseqs, $seqm{$seqs}, 2, length($seqm{$seqs}));
+  translate($fseqs, $seqm{$seqs}, 3, length($seqm{$seqs}));
+  my $rseqs=$seqs."_"."Rev";
+  my $revseq=reverse($seqm{$seqs});
+  $revseq=~tr/ATGC/TACG/;
+  translate($rseqs, $revseq, 1, length($revseq));  
+  translate($rseqs, $revseq, 2, length($revseq));  
+  translate($rseqs, $revseq, 3, length($revseq));  
 }
 
-translate($seqn,$seq, $start, $end);
 
-
+__END__
+grep "^>" /mnt/f/IRD_klon.fas | wc
+     88      88    6038
+perl translateFasta.pl /mnt/f/IRD_klon.fas > /mnt/f/IRD_klon.6F.fasta
+grep "^>" /mnt/f/IRD_klon.6F.fasta | wc
+    528     528   58770
+perl transeqUnstar.pl /mnt/f/IRD_klon.6F.fasta > /mnt/f/IRD_klon.6F.unstar.fasta
+grep "^>" /mnt/f/IRD_klon.6F.unstar.fasta  | wc
+   1697    1697  202134
 
