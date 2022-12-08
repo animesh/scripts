@@ -1,11 +1,11 @@
 #!/bin/sh
 #SBATCH --account=nn9036k --job-name=MQSLURMNAME
 #SBATCH --time=48:00:00
-#SBATCH --partition=bigmem
-#SBATCH --ntasks=16 --cpus-per-task=4
-#SBATCH --mem-per-cpu=32G
-##SBATCH --ntasks=10 --cpus-per-task=4
-##SBATCH --mem-per-cpu=4G
+##SBATCH --partition=bigmem
+##SBATCH --ntasks=16 --cpus-per-task=4
+##SBATCH --mem-per-cpu=32G
+#SBATCH --ntasks=10 --cpus-per-task=4
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
 #SBATCH --output=MQSLURMLOG

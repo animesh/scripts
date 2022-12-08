@@ -64,10 +64,12 @@ ls $WRITEDIR/*/*.slurm | wc
 #tail -f $WRITEDIR/*/*.txt
 #for i in mqpar.K8R10.xml.1664621075.results/*/*.txt ; do s=$(stat --format=%s $i) ; if (($s>10000)); then j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; ls -ltrh $d/$k.slurm; rm -rf $d/$k ; rm -rf $d/combined ; rm $d/$k.index ; sbatch $d/$k.slurm ; fi; done
 #for i in mqpar.K8R10.xml.1664621075.results/*/*.slurm ; do echo $i ; sed 's/=36/=128/g' $i > $i.p11.slurm ; done
-#for i in mqpar.K8R10.xml.1664621075.results/*/combined/txt/prot*.txt ; do s=$(stat --format=%s $i) ; if (($s>10000)); then j=$(basename $i) ; k=${j%%.*} 1188* 2022-11-01T18:38:16 for i in mqpar.K8R10.xml.1664621075.results/*/*.slurm ; do j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; if test -f $d/combined/txt/prot*txt; then ls -ltrh $d/*.slurm ; fi; done  | wc
+#for i in mqpar.K8R10.xml.1664621075.results/*/combined/txt/prot*.txt ; do s=$(stat --format=%s $i) ; if (($s>10000)); then j=$(basename $i) ; k=${j%%.*} 1188* 2022-11-01T18:38:16 
+#for i in mqpar.K8R10.xml.1664621075.results/*/*.slurm ; do j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; if test -f $d/combined/txt/prot*txt; then ls -ltrh $d/*.slurm ; fi; done  | wc
 #for i in mqpar.K8R10.xml.1664621075.results/*/*.raw ; do j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; s=$(stat --format=%s $d/combined/txt/prot*txt) ; if test -f $d/combined/txt/prot*txt; then ls $i ; fi; done
 #tar cvzf prot.tgz  mqpar.K8R10.xml.1664621075.results/*/combined/txt/prot*txt
 #ln -s /cluster/projects/nn9036k/MM/131030_SS+33983MM_run1.raw MMrerun/.
 #bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_v2.1.4.0/bin/MaxQuantCmd.exe $PWD/P36729 /cluster/projects/nn9036k/FastaDB/sORFidAAleeGaoComb.unstar.fasta mqpar.K8R10.xml scratch.slurm
 #tail -f mqpar.K8R10.xml.*/*/*.txt 
+#for i in mqpar.K8R10.xml.1668589388.results/*/*.slurm ; do j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; if [[ ! -f $d/combined/txt/proteinGroups.txt ]] ; then ls -ltrh $d/*.txt ; rm -rf $d/combined ; sbatch $d/$k.slurm ; fi; done
 
