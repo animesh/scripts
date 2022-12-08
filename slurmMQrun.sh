@@ -71,5 +71,5 @@ ls $WRITEDIR/*/*.slurm | wc
 #ln -s /cluster/projects/nn9036k/MM/131030_SS+33983MM_run1.raw MMrerun/.
 #bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_v2.1.4.0/bin/MaxQuantCmd.exe $PWD/P36729 /cluster/projects/nn9036k/FastaDB/sORFidAAleeGaoComb.unstar.fasta mqpar.K8R10.xml scratch.slurm
 #tail -f mqpar.K8R10.xml.*/*/*.txt 
-#for i in mqpar.K8R10.xml.1668589388.results/*/*.slurm ; do j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; if [[ ! -f $d/combined/txt/proteinGroups.txt ]] ; then ls -ltrh $d/*.txt ; rm -rf $d/combined ; sbatch $d/$k.slurm ; fi; done
+#for i in mqpar.K8R10.xml.1669563940.results/*/*.slurm ; do j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; if [[ ! -f $d/combined/txt/proteinGroups.txt ]] ; then ls -ltrh $d/*.txt ; rm -rf $d/combined ; sbatch $i ; fi; done
 
