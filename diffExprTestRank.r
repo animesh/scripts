@@ -1,4 +1,4 @@
-#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order.txt Tissue Ratio Rem
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order.txt LFQ.intensity. Tissue Ratio Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -8,21 +8,22 @@ print("USAGE:<path to>Rscript diffExprTestRank.r <complete path to directory con
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 5) {stop("\n\nNeeds FOUR arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example: c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestRank.r L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order.txt Tissue Ratio Rem", call.=FALSE)}
+if (length(args) != 6) {stop("\n\nNeeds SIX arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name column to use for LFQ, GROUP-to-compare, column to correct for, and data-to-REMOVE columns in Groups.txt file, for example: c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestRank.r L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order.txt LFQ.intensity. Tissue Ratio Rem", call.=FALSE)}
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
 #inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order.txt"
-lGroup <- args[3]
+selection<-args[3]
+#selection<-"LFQ.intensity."
+lGroup <- args[4]
 #lGroup<-"Tissue"
-scaleF <- args[4]
+scaleF <- args[5]
 #scaleF<-"Ratio"
-rGroup <- args[5]
+rGroup <- args[6]
 #rGroup<-"Rem"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
-selection<-"Intensity."
 thr=0.0#count
 selThr=0.1#pValue-WilcoxTest
 selThrFC=0.1#log2-MedianDifference
@@ -125,8 +126,13 @@ for(i in colnames(log2LFQsel)){
 }
 summary(log2LFQselCor)
 hist(log2LFQselCor)
-boxplot(log2LFQselCor)
+boxplot(log2LFQselCor,las=2)
 write.csv(log2LFQselCor,paste0(inpF,selection,scaleF,".log2LFQselCor.csv"))
+log2IntimpCorr<-cor(log2LFQselCor,use="pairwise.complete.obs",method="spearman")
+colnames(log2IntimpCorr)<-colnames(log2LFQselCor)
+rownames(log2IntimpCorr)<-colnames(log2LFQselCor)
+svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
+ggplot2::ggsave(paste0(inpF,selection,scaleF,"heatmap.spearman.svg"), svgPHC)
 #minmaxScale####
 colnames(log2LFQselCor)
 log2LFQsel<-log2LFQselCor

@@ -10,7 +10,7 @@ Value=[1,2,3,4,5,6]
 Frequency=[8,9,19,6,8,10]
 import matplotlib.pyplot as plt
 plt.style.use('dark_background')
-plt.plot(Value, Frequency)
+matplotlib.use("module://matplotlib.backends.html5_canvas_backend")plt.plot(Value, Frequency)#python via wasm?
 plt.plot(Frequency,Value)
 plt.hist(Value)
 def ChiSquared(expected, observed):
