@@ -1,4 +1,4 @@
-#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order.txt LFQ.intensity. Tissue Ratio Rem
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order.txt Intensity. Tissue Ratio Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -14,7 +14,7 @@ inpF <- args[1]
 inpL <- args[2]
 #inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order.txt"
 selection<-args[3]
-#selection<-"LFQ.intensity."
+#selection<-"Intensity."#"LFQ.intensity."
 lGroup <- args[4]
 #lGroup<-"Tissue"
 scaleF <- args[5]
@@ -106,7 +106,8 @@ rownames(label)
 dim(log2LFQ)
 #log2LFQ[,"standard_a_Slot2.54_1_1984"]
 colnames(log2LFQ)
-log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+log2LFQselect=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+log2LFQsel=log2LFQselect
 dim(log2LFQsel)
 hist(log2LFQsel)
 ratioFactor<-data.matrix(label[scaleF])
@@ -161,7 +162,7 @@ rownames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
 svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
 ggplot2::ggsave(paste0(outP,selection,"heatmap.svg"), svgPHC)
 #test####
-testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
+testWilcox <- function(log2LFQ,log2LFQselCor,log2LFQselect,sel1,sel2,cvThr){
   #sel1<-i#"PIN"
   #sel2<-j#"PNI"#HGcancer"
   #log2LFQ<-log2LFQselScale#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
@@ -180,6 +181,35 @@ testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
   colnames(d2)<-rownames(label[label$pair2test %in% sel2,])
   summary(d2)
   dataSellog2grpwilcoxTest<-as.matrix(cbind(d1,d2))
+  hist(log2LFQselCor)
+  e1<-data.frame(log2LFQselCor[,gsub("-",".",rownames(label[label$pair2test==sel1,]))])
+  rNe1<-rownames(e1)
+  e1<-sapply(e1, as.numeric)
+  rownames(e1)<-rNe1
+  colnames(e1)<-rownames(label[label$pair2test==sel1,])
+  summary(e1)
+  e2<-data.frame(log2LFQselCor[,gsub("-",".",rownames(label[label$pair2test %in% sel2,]))])
+  rNe2<-rownames(e2)
+  e2<-sapply(e2, as.numeric)
+  rownames(e2)<-rNe2
+  colnames(e2)<-rownames(label[label$pair2test %in% sel2,])
+  summary(e2)
+  datalog2LFQselCor<-as.matrix(cbind(e1,e2))
+  hist(log2LFQsel)
+  f1<-data.frame(log2LFQselect[,gsub("-",".",rownames(label[label$pair2test==sel1,]))])
+  rNf1<-rownames(f1)
+  f1<-sapply(f1, as.numeric)
+  rownames(f1)<-rNf1
+  colnames(f1)<-rownames(label[label$pair2test==sel1,])
+  summary(f1)
+  f2<-data.frame(log2LFQselect[,gsub("-",".",rownames(label[label$pair2test %in% sel2,]))])
+  rNf2<-rownames(f2)
+  f2<-sapply(f2, as.numeric)
+  rownames(f2)<-rNf2
+  colnames(f2)<-rownames(label[label$pair2test %in% sel2,])
+  summary(f2)
+  datalog2LFQsel<-as.matrix(cbind(f1,f2))
+  hist(datalog2LFQsel)
   if(sum(!is.na(d1))>1&sum(!is.na(d2))>1){
     hist(d1)
     hist(d2)
@@ -241,7 +271,31 @@ testWilcox <- function(log2LFQ,sel1,sel2,cvThr){
     hist(logFCmedianFC)
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
-    wilcoxTest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,WilcoxTestPval=pValNA,dataSellog2grpwilcoxTest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,log2meanDiff,RowGeneUniProtScorePeps=rownames(dataSellog2grpwilcoxTest))
+    #ratioCor
+    log2LFQselCormedianGrp1=if(is.null(dim(datalog2LFQselCor[,c(sCol:mCol)]))){datalog2LFQselCor[,c(sCol:mCol)]} else{apply(datalog2LFQselCor[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
+    log2LFQselCormeanGrp1=if(is.null(dim(datalog2LFQselCor[,c(sCol:mCol)]))){datalog2LFQselCor[,c(sCol:mCol)]} else{apply(datalog2LFQselCor[,c(sCol:mCol)],1,function(x) mean(x,na.rm=T))}
+    grplog2LFQselCor1CV=if(is.null(dim(datalog2LFQselCor[,c(sCol:mCol)]))){datalog2LFQselCor[,c(sCol:mCol)]} else{apply(datalog2LFQselCor[,c(sCol:mCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
+    #summary(log2LFQselCormedianGrp11-log2LFQselCormedianGrp1)
+    log2LFQselCormedianGrp2=if(is.null(dim(datalog2LFQselCor[,c((mCol+1):eCol)]))){datalog2LFQselCor[,c((mCol+1):eCol)]} else{apply(datalog2LFQselCor[,c((mCol+1):eCol)],1,function(x) median(x,na.rm=T))}
+    log2LFQselCormeanGrp2=if(is.null(dim(datalog2LFQselCor[,c((mCol+1):eCol)]))){datalog2LFQselCor[,c((mCol+1):eCol)]} else{apply(datalog2LFQselCor[,c((mCol+1):eCol)],1,function(x) mean(x,na.rm=T))}
+    grplog2LFQselCor2CV=if(is.null(dim(datalog2LFQselCor[,c((mCol+1):eCol)]))){datalog2LFQselCor[,c((mCol+1):eCol)]} else{apply(datalog2LFQselCor[,c((mCol+1):eCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
+    log2LFQselCormedianGrp1[is.na(log2LFQselCormedianGrp1)]=0
+    log2LFQselCormedianGrp2[is.na(log2LFQselCormedianGrp2)]=0
+    log2meanDiffCor = log2LFQselCormeanGrp1-log2LFQselCormeanGrp2
+    log2medianDiffCor = log2LFQselCormedianGrp1-log2LFQselCormedianGrp2
+    #select
+    log2LFQselmedianGrp1=if(is.null(dim(datalog2LFQsel[,c(sCol:mCol)]))){datalog2LFQsel[,c(sCol:mCol)]} else{apply(datalog2LFQsel[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
+    log2LFQselmeanGrp1=if(is.null(dim(datalog2LFQsel[,c(sCol:mCol)]))){datalog2LFQsel[,c(sCol:mCol)]} else{apply(datalog2LFQsel[,c(sCol:mCol)],1,function(x) mean(x,na.rm=T))}
+    grplog2LFQsel1CV=if(is.null(dim(datalog2LFQsel[,c(sCol:mCol)]))){datalog2LFQsel[,c(sCol:mCol)]} else{apply(datalog2LFQsel[,c(sCol:mCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
+    #summary(log2LFQselmedianGrp11-log2LFQselmedianGrp1)
+    log2LFQselmedianGrp2=if(is.null(dim(datalog2LFQsel[,c((mCol+1):eCol)]))){datalog2LFQsel[,c((mCol+1):eCol)]} else{apply(datalog2LFQsel[,c((mCol+1):eCol)],1,function(x) median(x,na.rm=T))}
+    log2LFQselmeanGrp2=if(is.null(dim(datalog2LFQsel[,c((mCol+1):eCol)]))){datalog2LFQsel[,c((mCol+1):eCol)]} else{apply(datalog2LFQsel[,c((mCol+1):eCol)],1,function(x) mean(x,na.rm=T))}
+    grplog2LFQsel2CV=if(is.null(dim(datalog2LFQsel[,c((mCol+1):eCol)]))){datalog2LFQsel[,c((mCol+1):eCol)]} else{apply(datalog2LFQsel[,c((mCol+1):eCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
+    log2LFQselmedianGrp1[is.na(log2LFQselmedianGrp1)]=0
+    log2LFQselmedianGrp2[is.na(log2LFQselmedianGrp2)]=0
+    log2meanDiffSel = log2LFQselmeanGrp1-log2LFQselmeanGrp2
+    log2medianDiffSel = log2LFQselmedianGrp1-log2LFQselmedianGrp2
+    wilcoxTest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,WilcoxTestPval=pValNA,dataSellog2grpwilcoxTest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,log2meanDiff,log2LFQselmeanGrp1,grplog2LFQsel1CV,log2medianDiffSel,log2meanDiffSel,log2LFQselCormeanGrp1,grplog2LFQselCor1CV,log2meanDiffCor,log2medianDiffCor,RowGeneUniProtScorePeps=rownames(dataSellog2grpwilcoxTest))
     writexl::write_xlsx(wilcoxTest.results,paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.xlsx"))
     write.csv(wilcoxTest.results,paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.csv"),row.names = F)
     wilcoxTest.results.return<-wilcoxTest.results
@@ -274,11 +328,11 @@ wilcox.test(tmparr[1:ncol(log2LFQsel)/2],tmparr[ncol(log2LFQsel)/2+1:ncol(log2LF
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 cnt=0
-#for(i in 1:length(rownames(table(label$pair2test)))){
-#  cnt=cnt+1
-#  i=rownames(table(label$pair2test))[cnt]
-#  j=rownames(table(label$pair2test))[-cnt]
-#  print(paste(i,j))
-#  rtPair=testWilcox(log2LFQselScale,i,j,cvThr)
-  #assign(paste0(i,j),ttPair)
-#}
+for(i in 1:length(rownames(table(label$pair2test)))){
+  cnt=cnt+1
+  i=rownames(table(label$pair2test))[cnt]
+  j=rownames(table(label$pair2test))[-cnt]
+  print(paste(i,j))
+  rtPair=testWilcox(log2LFQselScale,log2LFQselCor,log2LFQselect,i,j,cvThr)
+ #assign(paste0(i,j),ttPair)
+}

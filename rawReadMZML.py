@@ -1,3 +1,15 @@
+# https://towardsdatascience.com/top-five-clustering-algorithms-you-should-know-instead-of-k-means-clustering-b22f25e5bfb4
+from sklearn.cluster import DBSCAN
+
+dbscan = DBSCAN(eps=0.5, min_samples=5)
+
+# Fit the DBSCAN model to our data by calling the `fit` method
+dbscan.fit(customer_locations)
+
+# Access the clusters by using the `labels_` attribute
+clusters = dbscan.labels_
+
+
 #https://pyopenms.readthedocs.io/en/latest/interactive_plots.html?s=03
 from pyopenms import *
 import pandas as pd
@@ -8,6 +20,17 @@ import holoviews.operation.datashader as hd
 from holoviews.plotting.util import process_cmap
 from holoviews import opts, dim
 import sys
+
+
+# import library
+from sklearn.cluster import SpectralClustering
+
+# create instance of model and fit to data
+model = SpectralClustering()
+model.fit(data)
+
+# access model labels
+clusters = model.labels_
 
 hv.extension('bokeh')
 
