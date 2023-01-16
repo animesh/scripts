@@ -1,3 +1,45 @@
+```{r data-ctr-z-score}
+inpD<-"L:/OneDrive - NTNU/TK/"
+inpF<-paste0(inpD,"proteinGroupsZenrichPearsonValues.txt")
+data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
+data<-data[order(data$C..Cluster,decreasing = T),]
+#data = data[!data$C..Reverse=="+",]
+#data = data[!data$C..Potential.contaminant=="+",]
+data_selr<-data[,grep("_CTR",names(data))]
+#rn<-gsub(";"," ",data$T..Gene.names)
+rn<-strsplit(data$T..Gene.names, ";",fixed=T)
+rn2<-strsplit(data$T..Protein.IDs, ";",fixed=T)
+#rn2<-sub(";"," ",data$T..Protein.IDs)
+row.names(data_selr)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep="_")#,sapply(rn, "[", 6))
+annoR<-data.frame(factor(data$C..Cluster))
+row.names(annoR)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep="_")#,sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+data_selr_na0<-data_selr
+data_selr_na0=scales::squish(as.matrix(data_selr_na0),c(-3,3))
+hist(data_selr_na0)
+pheatmap::pheatmap(data_selr_na0,annotation_row = annoR,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=8,fontsize_row=4)
+data_selr_na0[is.na(data_selr_na0)]<-0
+dsubCor<-as.dist(cor(t(data_selr_na0),method="spearman",use="pairwise.complete.obs",))
+#dsubCor[is.na(dsubCor)]<-0
+hist(dsubCor)
+summary(dsubCor)
+#check
+nrow(data_selr)*(nrow(data_selr)-1)/2==length(dsubCor)
+#dsubCor<-as.dist(cor(t(dsub),use="pairwise.complete.obs",method="pearson"))
+bk1 <- c(seq(-2,-0.01,by=0.01))
+bk2 <- c(seq(0.01,2,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+p<-pheatmap::pheatmap(data_selr_scale3,clustering_distance_rows=dsubCor,clustering_distance_cols = "binary",cluster_cols=F,cluster_rows=T,fontsize_col=8,fontsize_row=4)
+#install.packages("ggplot2")
+#install.packages("svglite")
+ggplot2::ggsave(file=paste0(inpF,group,"clusterPlot.svg"),plot=svgPHC)#,  
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,group,".data_selr.csv"),row.names = F)
+```
+
 ```{r data-wikiPathway-map}
 selThr<-0.3
 inpD<-"L:/promec/Animesh/TK/"
