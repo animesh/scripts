@@ -1,4 +1,4 @@
-#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order.txt Intensity. Tissue Ratio Rem
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt "L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\Copy of corrected_order_R.txt" Intensity. Tissue Cell Remove
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -12,15 +12,15 @@ if (length(args) != 6) {stop("\n\nNeeds SIX arguments, the full path of the dire
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/Copy of corrected_order_R.txt"
 selection<-args[3]
 #selection<-"Intensity."#"LFQ.intensity."
 lGroup <- args[4]
 #lGroup<-"Tissue"
 scaleF <- args[5]
-#scaleF<-"Ratio"
+#scaleF<-"Cell"
 rGroup <- args[6]
-#rGroup<-"Rem"
+#rGroup<-"Remove"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -101,6 +101,7 @@ if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["rem
 print(label)
 table(label["removed"])
 table(label[lGroup])
+table(label[label["removed"]!="R",lGroup])
 rownames(label)
 #ratioCor####
 dim(log2LFQ)

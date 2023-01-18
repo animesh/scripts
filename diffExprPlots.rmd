@@ -1,3 +1,76 @@
+```{r data-apim-z-score}
+inpD<-"L:/OneDrive - NTNU/TK/"
+inpF<-paste0(inpD,"proteinGroupsZenrichPearsonGOValuesAPIM.txt")
+data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
+data<-data[order(data$C..Cluster,decreasing = T),]
+#data = data[!data$C..Reverse=="+",]
+#data = data[!data$C..Potential.contaminant=="+",]
+data_selr<-data[,grep("_APIM",names(data))]
+#rn<-gsub(";"," ",data$T..Gene.names)
+rn<-strsplit(data$T..Gene.names, ";",fixed=T)
+rn2<-strsplit(data$T..Protein.IDs, ";",fixed=T)
+#rn2<-sub(";"," ",data$T..Protein.IDs)
+row.names(data_selr)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep="_")#,sapply(rn, "[", 6))
+annoR<-data.frame(factor(data$C..Cluster))
+row.names(annoR)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep="_")#,sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+data_selr_na0<-data_selr
+data_selr_na0=scales::squish(as.matrix(data_selr_na0),c(-3,3))
+hist(data_selr_na0)
+svgPHC=pheatmap::pheatmap(data_selr_na0,annotation_row = annoR,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=8,fontsize_row=4)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlotAPIM.svg"),plot=svgPHC)#,  
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,".data_selr.APIM.csv"),row.names = F)
+```
+
+```{r data-apim-z-score-ERS}
+dataERS<-data[grep(";response to endoplasmic reticulum stress;",data$C..GOBP.name,fixed = T),]
+data_selr<-dataERS[,grep("_APIM",names(dataERS))]
+rn<-strsplit(dataERS$T..Gene.names, ";",fixed=T)
+rn2<-strsplit(dataERS$T..Protein.IDs, ";",fixed=T)
+row.names(data_selr)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep=";")#,sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+data_selr_na0<-data_selr
+data_selr_na0=scales::squish(as.matrix(data_selr_na0),c(-3,3))
+hist(data_selr_na0)
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=8,fontsize_row=5)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlotAPIMdataERS.svg"),plot=svgPHC)#,  
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,".data_selr.APIM.dataERS.csv"),row.names = F)
+```
+
+```{r data-apim-z-score-cluster3768}
+dataC3768<-data[data$C..Cluster=="Cluster -3768",]
+data_selr<-dataC3768[,grep("_APIM",names(dataC3768))]
+rn<-strsplit(dataC3768$T..Gene.names, ";",fixed=T)
+rn2<-strsplit(dataC3768$T..Protein.IDs, ";",fixed=T)
+row.names(data_selr)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep="_")#,sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+data_selr_na0<-data_selr
+data_selr_na0=scales::squish(as.matrix(data_selr_na0),c(-3,3))
+hist(data_selr_na0)
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=8,fontsize_row=3)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlotAPIMdataC3768.svg"),plot=svgPHC)#,  
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,".data_selr.APIM.dataC3768.csv"),row.names = F)
+```
+
+```{r data-apim-z-score-cluster3768-ERS}
+dataC3768ERS<-dataC3768[grep("response to endoplasmic reticulum stress",dataC3768$C..GOBP.name),]
+data_selr<-dataC3768ERS[,grep("_APIM",names(dataC3768ERS))]
+rn<-strsplit(dataC3768ERS$T..Gene.names, ";",fixed=T)
+rn2<-strsplit(dataC3768ERS$T..Protein.IDs, ";",fixed=T)
+row.names(data_selr)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep="_")#,sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+data_selr_na0<-data_selr
+data_selr_na0=scales::squish(as.matrix(data_selr_na0),c(-3,3))
+hist(data_selr_na0)
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=8,fontsize_row=8)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlotAPIMdataC3768ERS.svg"),plot=svgPHC)#,  
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,".data_selr.APIM.dataC3768ERS.csv"),row.names = F)
+```
+
 ```{r data-ctr-z-score}
 inpD<-"L:/OneDrive - NTNU/TK/"
 inpF<-paste0(inpD,"proteinGroupsZenrichPearsonValues.txt")
@@ -38,6 +111,22 @@ p<-pheatmap::pheatmap(data_selr_scale3,clustering_distance_rows=dsubCor,clusteri
 #install.packages("svglite")
 ggplot2::ggsave(file=paste0(inpF,group,"clusterPlot.svg"),plot=svgPHC)#,  
 write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,group,".data_selr.csv"),row.names = F)
+```
+
+```{r data-apim-z-score-ERS}
+dataERS<-data[grep(";response to endoplasmic reticulum stress;",data$C..GOBP.name,fixed = T),]
+data_selr<-dataERS[,grep("_CTR",names(dataERS))]
+rn<-strsplit(dataERS$T..Gene.names, ";",fixed=T)
+rn2<-strsplit(dataERS$T..Protein.IDs, ";",fixed=T)
+row.names(data_selr)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep=";")#,sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+data_selr_na0<-data_selr
+data_selr_na0=scales::squish(as.matrix(data_selr_na0),c(-3,3))
+hist(data_selr_na0)
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=8,fontsize_row=5)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlotCTRdataERS.svg"),plot=svgPHC)#,  
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,".data_selr.CTR.dataERS.csv"),row.names = F)
 ```
 
 ```{r data-wikiPathway-map}
