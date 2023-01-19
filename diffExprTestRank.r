@@ -133,7 +133,11 @@ write.csv(log2LFQselCor,paste0(inpF,selection,scaleF,".log2LFQselCor.csv"))
 log2IntimpCorr<-cor(log2LFQselCor,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2LFQselCor)
 rownames(log2IntimpCorr)<-colnames(log2LFQselCor)
-svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
+annoFactor<-label[lGroup]
+annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]),]))
+row.names(annoR)<-rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',])
+names(annoR)<-lGroup
+svgPHC<-pheatmap::pheatmap(log2IntimpCorr,annotation_row = annoR,annotation_col = annoR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
 ggplot2::ggsave(paste0(inpF,selection,scaleF,"heatmap.spearman.svg"), svgPHC)
 #minmaxScale####
 colnames(log2LFQselCor)
@@ -334,6 +338,7 @@ for(i in 1:length(rownames(table(label$pair2test)))){
   i=rownames(table(label$pair2test))[cnt]
   j=rownames(table(label$pair2test))[-cnt]
   print(paste(i,j))
-  rtPair=testWilcox(log2LFQselScale,log2LFQselCor,log2LFQselect,i,j,cvThr)
- #assign(paste0(i,j),ttPair)
+  #rtPair=testWilcox(log2LFQselScale,log2LFQselCor,log2LFQselect,i,j,cvThr)
+  rtPair=testWilcox(log2LFQselCor ,log2LFQselCor,log2LFQselect,i,j,cvThr)
+  #assign(paste0(i,j),ttPair)
 }
