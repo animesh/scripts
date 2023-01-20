@@ -1,4 +1,4 @@
-#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt "L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\Copy of corrected_order_R.txt" Intensity. Tissue Cell Remove
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt "L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\Copy of Copy of corrected_order_R.txt" Intensity. Tissue Cell Remove
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -9,10 +9,11 @@ args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
 if (length(args) != 6) {stop("\n\nNeeds SIX arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name column to use for LFQ, GROUP-to-compare, column to correct for, and data-to-REMOVE columns in Groups.txt file, for example: c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestRank.r L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order.txt LFQ.intensity. Tissue Ratio Rem", call.=FALSE)}
+#args####
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/Copy of corrected_order_R.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/Copy of Copy of corrected_order_R.txt"
 selection<-args[3]
 #selection<-"Intensity."#"LFQ.intensity."
 lGroup <- args[4]
@@ -31,6 +32,27 @@ cvThr=Inf#threshold for coefficient-of-variation
 hdr<-gsub("[^[:alnum:]]", "",inpD)
 outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,"VolcanoTestWilcox","pdf",sep = ".")
 pdf(outP)
+#label####
+label<-read.csv(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
+#cor(label$cell.number/label$cur.area,label$ratio.correction.factor)
+rownames(label)=sub(selection,"",rownames(label))
+label["pair2test"]<-label[lGroup]
+if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
+print(label)
+table(label["removed"])
+table(label[lGroup])
+table(label[label["removed"]!="R",lGroup])
+rownames(label)
+annoFactor<-label[lGroup]
+names(annoFactor)<-lGroup
+anno<-data.frame(factor(label[,lGroup]))
+row.names(anno)<-rownames(label)
+names(anno)<-lGroup
+table(anno)
+annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]),]))
+row.names(annoR)<-rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',])
+names(annoR)<-lGroup
+summary(annoR)
 #data####
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
 ##clean####
@@ -42,16 +64,17 @@ summary(data)
 dim(data)
 log2Int<-as.matrix(log2(data[,grep("Intensity",colnames(data))]))
 log2Int[log2Int==-Inf]=NA
+colnames(log2Int)=sub(selection,"",colnames(log2Int))
 hist(log2Int,main=paste("Mean:",mean(log2Int,na.rm=T),"SD:",sd(log2Int,na.rm=T)),breaks=round(max(log2Int,na.rm=T)),xlim=range(min(log2Int,na.rm=T),max(log2Int,na.rm=T)))
 summary(log2(data[,grep("Intensity",colnames(data))]))
 par(mar=c(12,3,1,1))
-boxplot(log2Int,las=2)
+boxplot(log2Int,las=2,main="Log2Intensity")
 #corHCint####
 scale=3
 log2Intimp<-matrix(rnorm(dim(log2Int)[1]*dim(log2Int)[2],mean=mean(log2Int,na.rm = T)-scale,sd=sd(log2Int,na.rm = T)/(scale)), dim(log2Int)[1],dim(log2Int)[2])
 log2Intimp[log2Intimp<0]<-0
 par(mar=c(12,3,1,1))
-boxplot(log2Intimp,las=2)
+boxplot(log2Intimp,las=2,main="Imputed log2Intensity")
 bk1 <- c(seq(-3,-0.01,by=0.01))
 bk2 <- c(seq(0.01,3,by=0.01))
 bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
@@ -60,8 +83,10 @@ colnames(log2Intimp)<-colnames(log2Int)
 log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2Int)
 rownames(log2IntimpCorr)<-colnames(log2Int)
-svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(outP,"heatmap.intensity.svg"), svgPHC)
+summary(log2IntimpCorr)
+hist(log2IntimpCorr)
+svgPHC<-pheatmap::pheatmap(log2IntimpCorr,annotation_row = anno, annotation_col = anno,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
+ggplot2::ggsave(paste0(inpF,"heatmap.spearman.intensity.svg"), svgPHC)
 #maxLFQ####
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 #LFQ<-LFQ[,2:ncol(LFQ)]
@@ -75,7 +100,7 @@ log2LFQ[log2LFQ==-Inf]=NA
 summary(log2LFQ)
 hist(log2LFQ,main=paste("Mean:",mean(log2LFQ,na.rm=T),"SD:",sd(log2LFQ,na.rm=T)),breaks=round(max(log2Int,na.rm=T)),xlim=range(min(log2Int,na.rm=T),max(log2Int,na.rm=T)))
 par(mar=c(12,3,1,1))
-boxplot(log2LFQ,las=2)
+boxplot(log2LFQ,las=2,main=selection)
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpD,selection,"log2.xlsx"))
 data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Gene.names, ";",fixed=T), "[", 1)), " "), "[", 1))
@@ -85,24 +110,15 @@ data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
 log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
 log2LFQimp[log2LFQimp<0]<-0
 par(mar=c(12,3,1,1))
-boxplot(log2LFQimp,las=2)
+boxplot(log2LFQimp,las=2,main=paste("imp",selection))
 colnames(log2LFQimp)<-colnames(log2LFQ)
 log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
-svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(outP,selection,"heatmap.svg"), svgPHC)
-#label####
-label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
-#cor(label$cell.number/label$cur.area,label$ratio.correction.factor)
-rownames(label)=sub(selection,"",rownames(label))
-label["pair2test"]<-label[lGroup]
-if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
-print(label)
-table(label["removed"])
-table(label[lGroup])
-table(label[label["removed"]!="R",lGroup])
-rownames(label)
+summary(log2LFQimpCorr)
+hist(log2LFQimpCorr)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,annotation_row = annoR,annotation_col = annoR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
+ggplot2::ggsave(paste0(inpF,selection,"heatmap.log2LFQ.spearman.svg"), svgPHC)
 #ratioCor####
 dim(log2LFQ)
 #log2LFQ[,"standard_a_Slot2.54_1_1984"]
@@ -128,17 +144,13 @@ for(i in colnames(log2LFQsel)){
 }
 summary(log2LFQselCor)
 hist(log2LFQselCor)
-boxplot(log2LFQselCor,las=2)
+boxplot(log2LFQselCor,las=2,main=paste(selection,scaleF,"log2LFQselCor"))
 write.csv(log2LFQselCor,paste0(inpF,selection,scaleF,".log2LFQselCor.csv"))
 log2IntimpCorr<-cor(log2LFQselCor,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2LFQselCor)
 rownames(log2IntimpCorr)<-colnames(log2LFQselCor)
-annoFactor<-label[lGroup]
-annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]),]))
-row.names(annoR)<-rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',])
-names(annoR)<-lGroup
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr,annotation_row = annoR,annotation_col = annoR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(inpF,selection,scaleF,"heatmap.spearman.svg"), svgPHC)
+ggplot2::ggsave(paste0(inpF,selection,scaleF,"heatmap.log2IntimpCorr.spearman.svg"), svgPHC)
 #minmaxScale####
 colnames(log2LFQselCor)
 log2LFQsel<-log2LFQselCor
@@ -150,26 +162,27 @@ summary(log2LFQselScale)
 log2LFQselMM<-log2LFQselScale
 summary(log2LFQselMM)
 par(mar=c(12,3,1,1))
-boxplot(log2LFQselScale,las=2)
-write.csv(log2LFQselScale,paste0(inpF,".log2LFQselScale.minmax.csv"))
+boxplot(log2LFQselScale,las=2,main=paste(selection,"minMax"))
+write.csv(log2LFQselScale,paste0(inpF,selection,scaleF,".log2LFQselScale.minMax.csv"))
 #corHCminmax####
 hist(log2LFQselScale)
 log2LFQselScaleimp<-matrix(rnorm(dim(log2LFQselScale)[1]*dim(log2LFQselScale)[2],mean=mean(log2LFQselScale,na.rm = T)-scale,sd=sd(log2LFQselScale,na.rm = T)/(scale)), dim(log2LFQselScale)[1],dim(log2LFQselScale)[2])
 hist(log2LFQselScaleimp)
 par(mar=c(12,3,1,1))
-boxplot(log2LFQselScaleimp,las=2)
+boxplot(log2LFQselScaleimp,las=2,main=paste(selection,"minMaxImp"))
 #log2LFQselScaleimp[log2LFQselScaleimp<0]<-0
 #colnames(log2LFQselScaleimp)<-colnames(log2LFQselScale)
 log2LFQselScaleimpCorr<-cor(log2LFQselScale,use="pairwise.complete.obs",method="spearman")
 hist(log2LFQselScaleimpCorr)
 colnames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
 rownames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
-svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(outP,selection,"heatmap.svg"), svgPHC)
+svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,annotation_row = annoR,annotation_col = annoR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
+ggplot2::ggsave(paste0(inpF,selection,scaleF,"heatmap.minMax.spearman.svg"), svgPHC)
 #test####
-testWilcox <- function(log2LFQ,log2LFQselCor,log2LFQselect,sel1,sel2,cvThr){
+testWilcox <- function(log2LFQ,log2LFQselCor,log2LFQselect,sel1,sel2,cvThr,cmpData){
   #sel1<-i#"PIN"
   #sel2<-j#"PNI"#HGcancer"
+  #cmpData<-"rawInt"
   #log2LFQ<-log2LFQselScale#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
   #hist(log2LFQ)
   #colnames(log2LFQ)
@@ -301,8 +314,8 @@ testWilcox <- function(log2LFQ,log2LFQselCor,log2LFQselect,sel1,sel2,cvThr){
     log2meanDiffSel = log2LFQselmeanGrp1-log2LFQselmeanGrp2
     log2medianDiffSel = log2LFQselmedianGrp1-log2LFQselmedianGrp2
     wilcoxTest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,WilcoxTestPval=pValNA,dataSellog2grpwilcoxTest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,log2meanDiff,log2LFQselmeanGrp1,grplog2LFQsel1CV,log2medianDiffSel,log2meanDiffSel,log2LFQselCormeanGrp1,grplog2LFQselCor1CV,log2meanDiffCor,log2medianDiffCor,RowGeneUniProtScorePeps=rownames(dataSellog2grpwilcoxTest))
-    writexl::write_xlsx(wilcoxTest.results,paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.xlsx"))
-    write.csv(wilcoxTest.results,paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"WilcoxTestBH.csv"),row.names = F)
+    writexl::write_xlsx(wilcoxTest.results,paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,cmpData,"WilcoxTestBH.xlsx"))
+    write.csv(wilcoxTest.results,paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,cmpData,"WilcoxTestBH.csv"),row.names = F)
     wilcoxTest.results.return<-wilcoxTest.results
     #volcano
     wilcoxTest.results$RowGeneUniProtScorePeps<-data$geneName
@@ -314,7 +327,7 @@ testWilcox <- function(log2LFQ,log2LFQselCor,log2LFQselect,sel1,sel2,cvThr){
     p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
     #f=paste(file,proc.time()[3],".jpg")
     #install.packages("svglite")
-    ggplot2::ggsave(paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTestWilcox.svg"), p)
+    ggplot2::ggsave(paste0(inpF,selection,scaleF,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,cmpData,"VolcanoTestWilcox.svg"), p)
     print(p)
     return(wilcoxTest.results.return)
   }
@@ -323,6 +336,7 @@ testWilcox <- function(log2LFQ,log2LFQselCor,log2LFQselect,sel1,sel2,cvThr){
 summary(log2LFQselScale)
 colnames(log2LFQselScale)
 dim(log2LFQselScale)
+hist(log2LFQselCor)
 hist(log2LFQselScale)
 wilcox.test(seq(1,4),seq(5,9))
 wilcox.test(seq(0.1,0.4,0.1),seq(0.5,0.9,0.1))
@@ -338,7 +352,15 @@ for(i in 1:length(rownames(table(label$pair2test)))){
   i=rownames(table(label$pair2test))[cnt]
   j=rownames(table(label$pair2test))[-cnt]
   print(paste(i,j))
-  #rtPair=testWilcox(log2LFQselScale,log2LFQselCor,log2LFQselect,i,j,cvThr)
-  rtPair=testWilcox(log2LFQselCor ,log2LFQselCor,log2LFQselect,i,j,cvThr)
+  rtPair=testWilcox(log2LFQselCor,log2LFQselCor,log2LFQselect,i,j,cvThr,"rawInt")
+  #assign(paste0(i,j),ttPair)
+}
+cnt=0
+for(i in 1:length(rownames(table(label$pair2test)))){
+  cnt=cnt+1
+  i=rownames(table(label$pair2test))[cnt]
+  j=rownames(table(label$pair2test))[-cnt]
+  print(paste(i,j))
+  rtPair=testWilcox(log2LFQselScale,log2LFQselCor,log2LFQselect,i,j,cvThr,"minMax")
   #assign(paste0(i,j),ttPair)
 }
