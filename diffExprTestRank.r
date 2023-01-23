@@ -1,4 +1,4 @@
-#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt "L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\Copy of Copy of corrected_order_R.txt" Intensity. Tissue Cell Remove
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update_lower.txt Intensity. Tissue Cell Remove
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -13,7 +13,7 @@ if (length(args) != 6) {stop("\n\nNeeds SIX arguments, the full path of the dire
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/Copy of Copy of corrected_order_R.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order_TSH_update_lower.txt"
 selection<-args[3]
 #selection<-"Intensity."#"LFQ.intensity."
 lGroup <- args[4]
@@ -86,7 +86,7 @@ rownames(log2IntimpCorr)<-colnames(log2Int)
 summary(log2IntimpCorr)
 hist(log2IntimpCorr)
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr,annotation_row = anno, annotation_col = anno,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(inpF,"heatmap.spearman.intensity.svg"), svgPHC)
+ggplot2::ggsave(paste0(inpF,lName,lGroup,"heatmap.spearman.intensity.svg"), svgPHC)
 #maxLFQ####
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 #LFQ<-LFQ[,2:ncol(LFQ)]
@@ -118,7 +118,7 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 summary(log2LFQimpCorr)
 hist(log2LFQimpCorr)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,annotation_row = annoR,annotation_col = annoR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(inpF,selection,"heatmap.log2LFQ.spearman.svg"), svgPHC)
+ggplot2::ggsave(paste0(inpF,lName,lGroup,selection,"heatmap.log2LFQ.spearman.svg"), svgPHC)
 #ratioCor####
 dim(log2LFQ)
 #log2LFQ[,"standard_a_Slot2.54_1_1984"]
@@ -145,12 +145,12 @@ for(i in colnames(log2LFQsel)){
 summary(log2LFQselCor)
 hist(log2LFQselCor)
 boxplot(log2LFQselCor,las=2,main=paste(selection,scaleF,"log2LFQselCor"))
-write.csv(log2LFQselCor,paste0(inpF,selection,scaleF,".log2LFQselCor.csv"))
+write.csv(log2LFQselCor,paste0(inpF,lName,lGroup,selection,scaleF,".log2LFQselCor.csv"))
 log2IntimpCorr<-cor(log2LFQselCor,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2LFQselCor)
 rownames(log2IntimpCorr)<-colnames(log2LFQselCor)
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr,annotation_row = annoR,annotation_col = annoR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(inpF,selection,scaleF,"heatmap.log2IntimpCorr.spearman.svg"), svgPHC)
+ggplot2::ggsave(paste0(inpF,lName,lGroup,selection,scaleF,"heatmap.log2IntimpCorr.spearman.svg"), svgPHC)
 #minmaxScale####
 colnames(log2LFQselCor)
 log2LFQsel<-log2LFQselCor
@@ -163,7 +163,7 @@ log2LFQselMM<-log2LFQselScale
 summary(log2LFQselMM)
 par(mar=c(12,3,1,1))
 boxplot(log2LFQselScale,las=2,main=paste(selection,"minMax"))
-write.csv(log2LFQselScale,paste0(inpF,selection,scaleF,".log2LFQselScale.minMax.csv"))
+write.csv(log2LFQselScale,paste0(inpF,lName,lGroup,selection,scaleF,".log2LFQselScale.minMax.csv"))
 #corHCminmax####
 hist(log2LFQselScale)
 log2LFQselScaleimp<-matrix(rnorm(dim(log2LFQselScale)[1]*dim(log2LFQselScale)[2],mean=mean(log2LFQselScale,na.rm = T)-scale,sd=sd(log2LFQselScale,na.rm = T)/(scale)), dim(log2LFQselScale)[1],dim(log2LFQselScale)[2])
@@ -177,7 +177,7 @@ hist(log2LFQselScaleimpCorr)
 colnames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
 rownames(log2LFQselScaleimpCorr)<-colnames(log2LFQselScale)
 svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,annotation_row = annoR,annotation_col = annoR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
-ggplot2::ggsave(paste0(inpF,selection,scaleF,"heatmap.minMax.spearman.svg"), svgPHC)
+ggplot2::ggsave(paste0(inpF,lName,lGroup,selection,scaleF,"heatmap.minMax.spearman.svg"), svgPHC)
 #test####
 testWilcox <- function(log2LFQ,log2LFQselCor,log2LFQselect,sel1,sel2,cvThr,cmpData){
   #sel1<-i#"PIN"
@@ -340,10 +340,6 @@ hist(log2LFQselCor)
 hist(log2LFQselScale)
 wilcox.test(seq(1,4),seq(5,9))
 wilcox.test(seq(0.1,0.4,0.1),seq(0.5,0.9,0.1))
-wilcox.test(c(0.266527699,0.284150421,0.298255709),c(0.418783725,0.393943028,0.456900289,0.45373957,0.332984375),alternative = "two.sided",exact = FALSE, correct = FALSE,na.rm=T)
-tmparr=log2LFQsel[1,1:ncol(log2LFQselScale)]
-tmparr=log2LFQselScale[1,1:ncol(log2LFQselScale)]
-wilcox.test(tmparr[1:ncol(log2LFQsel)/2],tmparr[ncol(log2LFQsel)/2+1:ncol(log2LFQsel)],alternative = "two.sided",exact = FALSE, correct = FALSE,na.rm=T)
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 cnt=0
