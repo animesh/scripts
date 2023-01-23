@@ -1,6 +1,6 @@
-#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update.txt Intensity. NCEvCancer Cell Remove
-#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update_upper.txt Intensity. NCEvCancer Cell Remove
-#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update_lower.txt Intensity. NCEvCancer Cell Remove
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update.txt Intensity. NCEvLG Cell Remove
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update_upper.txt Intensity. NCEvLG Cell Remove
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update_lower.txt Intensity. NCEvLG Cell Remove
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -15,11 +15,11 @@ if (length(args) != 6) {stop("\n\nNeeds SIX arguments, the full path of the dire
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order_TSH_update.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order_TSH_update_lower.txt"
 selection<-args[3]
 #selection<-"Intensity."#"LFQ.intensity."
 lGroup <- args[4]
-#lGroup<-"NCEvCancer"
+#lGroup<-"NCEvLG"
 scaleF <- args[5]
 #scaleF<-"Cell"
 rGroup <- args[6]
