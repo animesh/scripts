@@ -1,4 +1,6 @@
-#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update_lower.txt Intensity. Tissue Cell Remove
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update.txt Intensity. NCEvCancer Cell Remove
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update_upper.txt Intensity. NCEvCancer Cell Remove
+#..\R\bin\Rscript.exe diffExprTestRank.r L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update_lower.txt Intensity. NCEvCancer Cell Remove
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -13,11 +15,11 @@ if (length(args) != 6) {stop("\n\nNeeds SIX arguments, the full path of the dire
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order_TSH_update_lower.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order_TSH_update.txt"
 selection<-args[3]
 #selection<-"Intensity."#"LFQ.intensity."
 lGroup <- args[4]
-#lGroup<-"Tissue"
+#lGroup<-"NCEvCancer"
 scaleF <- args[5]
 #scaleF<-"Cell"
 rGroup <- args[6]
@@ -38,6 +40,7 @@ label<-read.csv(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",
 rownames(label)=sub(selection,"",rownames(label))
 label["pair2test"]<-label[lGroup]
 if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
+label[label[lGroup]=="","removed"]<-"R"
 print(label)
 table(label["removed"])
 table(label[lGroup])
