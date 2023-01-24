@@ -1,4 +1,4 @@
-#for %i in ("L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update*.txt") do ("..\R\bin\Rscript.exe" "diffExprTestRank.r" "L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt" "%i" "Intensity." "Cnt_vs_rec_stroma" "Cell" "Remove")
+#for %i in ("L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\corrected_order_TSH_update*.txt") do ("..\R\bin\Rscript.exe" "diffExprTestRank.r" "L:\promec\TIMSTOF\LARS\2022\july\Elise\combined\txt\proteinGroups.txt" "%i" "Intensity." "Cnt_vs_rec_NCE" "Cell" "Remove")
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -17,7 +17,7 @@ inpL <- args[2]
 selection<-args[3]
 #selection<-"Intensity."#"LFQ.intensity."
 lGroup <- args[4]
-#lGroup<-"Cnt_vs_rec_stroma"
+#lGroup<-"Cnt_vs_rec_NCE"
 scaleF <- args[5]
 #scaleF<-"Cell"
 rGroup <- args[6]
