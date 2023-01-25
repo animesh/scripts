@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 if len(sys.argv)!=2:    sys.exit("USAGE: python dePepGUI.py <path to tab-sep-peptide-hits>, \n e.g.,\npython dePepGUI.py F:\promec\TIMSTOF\LARS\2021\Oktober\211021Finn\n")
+
 pathFiles = Path(sys.argv[1])
 #pathFiles = Path("L:/promec/TIMSTOF/LARS/2021/Oktober/211021Finn")
 fileName='peptides.txt'
