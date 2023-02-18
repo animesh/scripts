@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH --account=nn9036k --job-name=MQSLURMNAME
-#SBATCH --time=248:00:00
+#SBATCH --time=148:00:00
 #SBATCH --partition=bigmem
 #SBATCH --ntasks=16 --cpus-per-task=4
 #SBATCH --mem-per-cpu=32G
@@ -11,7 +11,7 @@
 #SBATCH --output=MQSLURMLOG
 
 
-WORKDIR=/cluster/projects/nn9036k/scripts/TB
+WORKDIR=/cluster/projects/nn9036k/scripts/230209_Tore_Brembu_phos
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -29,6 +29,6 @@ mono --version
 module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 
-mono /cluster/projects/nn9036k/MaxQuant_v2.2.0.0/MaxQuant_v2.2.0.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/TB/mqpar.xml
+mono /cluster/projects/nn9036k/MaxQuant_v2.2.0.0/MaxQuant_v2.2.0.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/230209_Tore_Brembu_phos/mqpar.xml
 #mono MQCMD -p MQPARF
 #mono MQCMD -n MQPARF
