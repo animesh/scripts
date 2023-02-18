@@ -1,6 +1,6 @@
-#git checkout bbcce483bbea5e66edb16213f3f502f135c94941 scratch.slurm
-#ln -s /trd-project1/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2022/september/220926\ ida\ beate arthro
-#bash slurmFragpipe.sh $PWD/arthro /cluster/projects/nn9036k/FastaDB/2022-04-10-decoys-contam-uniprot_sprot.fasta scratch.slurm fp.workflow.txt
+#git checkout 3dd1d094aa04c3af35a5ff20bb54c8d7e074257b  scratch.slurm
+#cp -rf $PWD/230209_Tore_Brembu_phos/*41* $PWD/TB/.
+#bash slurmFP.sh $PWD/230209_Tore_Brembu_phos /cluster/projects/nn9036k/scripts/TB/2023-02-18-decoys-contam-uniprot-Phaeodactylum_tricor_Iso__2022.12.05.TB.fasta.fas scratch.slurm fp.workflow.txt
 DATADIR=$1
 FASTA=$2
 SLURM=$3
