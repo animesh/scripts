@@ -77,9 +77,6 @@ for(i in names(table(label$Bio))){
   print(summary(meanLog2LFQ[i]))
 }
 write.csv(meanLog2LFQ,paste0(inpF,selection,basename(inpL),lGroup,"log2LFQ.csv"))
-#testPlasma2Control####
-rownames(label[label$pair2test=="Control",])
-rownames(label[label$pair2test=="Plasma",])
 #genes####
 genes<-read.table(inpS,header=T,sep="\t")#, colClasses=c(rep("factor",3)))
 print(genes)
@@ -122,3 +119,9 @@ meanLog2gLFQ[is.na(meanLog2gLFQ)]<-log2gLFQimp[is.na(meanLog2gLFQ)]
 write.csv(meanLog2gLFQ,paste0(inpF,selection,basename(inpL),basename(inpS),"log2LFQ.mean.imp.csv"))
 svgPHC<-pheatmap::pheatmap(meanLog2gLFQ,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 ggplot2::ggsave(paste0(inpF,selection,basename(inpL),basename(inpS),"HeatMap.svg"), svgPHC)
+#remControl####
+rownames(label[label$pair2test=="Control",])
+meanLog2gLFQnc<-meanLog2gLFQ[,-grep("C_",colnames(meanLog2gLFQ))]
+svgPHC<-pheatmap::pheatmap(meanLog2gLFQnc,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+ggplot2::ggsave(paste0(inpF,selection,basename(inpL),basename(inpS),"HeatMap.NC.svg"), svgPHC)
+

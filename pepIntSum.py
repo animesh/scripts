@@ -1,11 +1,12 @@
 #dependencies: pandas and pathlib
 #install: pip install pandas pathlib
+#data: https://ftp.pride.ebi.ac.uk/pride/data/archive/2014/09/PXD000279/dynamicrangebenchmark.zip
 #USAGE: python pepIntSum.py <path to folder containing peptides.txt AND proteinGroups.txt files for the experiment>
 #e.g. tested on windows-11: python.exe pepIntSum.py  C:\Users\sharm\Downloads\dynamicrangebenchmark\
 import sys
 from pathlib import Path
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("C:\\Users\\sharm\\Downloads\\dynamicrangebenchmark\\")
+#pathFiles = Path("C:\\Users\\animeshs\\OneDrive\\Desktop\\dynamicrangebenchmark\\")
 import pandas as pd
 df=pd.read_csv(pathFiles/"peptides.txt",low_memory=False,sep='\t')
 print(df.columns)
