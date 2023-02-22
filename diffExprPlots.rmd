@@ -1,3 +1,23 @@
+```{r sensel}
+library(readxl)
+inpD<-"F:/OneDrive - NTNU/TK/"
+inpW<-paste0(inpD,"Copy of Copy of 202008 - TK Log2FC and EC summary tototalprotein biorep1-3.MO1.xlsx")
+data<-read_xlsx(inpW)
+data<-data.frame(data)
+data[data=="LOQ"]<-NA
+dataS<-data[5:40,4:24]
+dataS<-sapply(dataS,as.numeric)
+hist(dataS)
+rownames(dataS)<-data[5:40,2]
+colnames(dataS)<-paste0(data[3,4:24],data[4,4:24],colnames(dataS))
+data_selr_na0=scales::squish(as.matrix(dataS),c(-1,1))
+hist(data_selr_na0)
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=8,fontsize_row=4)
+ggplot2::ggsave(file=paste0(inpW,"clusterPlotAPIM.svg"),plot=svgPHC)#,  
+write.csv(cbind(rownames(data_selr_na0),data_selr_na0),paste0(inpW,".data_selr.APIM.csv"),row.names = F)
+#write_xlsx(dataS,inpW)
+```
+
 ```{r data-apim-z-score}
 inpD<-"L:/OneDrive - NTNU/TK/"
 inpF<-paste0(inpD,"proteinGroupsZenrichPearsonGOValuesAPIM.txt")

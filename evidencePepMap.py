@@ -2,13 +2,14 @@
 import sys
 from pathlib import Path
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("L:/promec/TIMSTOF/LARS/2021/Desember/211217_Maria/combined/txt/evidence.txt")
+#pathFiles = Path("L:\\promec\\USERS\\Alessandro\\230119_66samples-redo\\combined\\txt\\evidence.txt")
 import pandas as pd
 df=pd.read_csv(pathFiles,low_memory=False,sep='\t')
 print(df.columns)
 print(df.head())
 import matplotlib.pyplot as plt
 #plt.plot(df['PEP'])
+dfS=df.copy()
 dfS=df[df['PEP']<1]
 print(dfS['Modifications'].value_counts())
 #peptidePTM=['Unmodified','Acetyl (Protein N-term)','Oxidation (M)','Deamidation (NQ)']

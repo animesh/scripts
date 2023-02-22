@@ -6,7 +6,7 @@
 import sys
 from pathlib import Path
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("C:\\Users\\animeshs\\OneDrive\\Desktop\\dynamicrangebenchmark\\")
+#pathFiles = Path("L:\\promec\\USERS\\Alessandro\\230119_66samples-redo\\combined\\txt\\")
 import pandas as pd
 df=pd.read_csv(pathFiles/"peptides.txt",low_memory=False,sep='\t')
 print(df.columns)
@@ -19,6 +19,10 @@ dfS=df.copy()
 #plt.plot(dfS['Intensity'])
 dfS.rename({'Leading razor protein':'ID'},inplace=True,axis='columns')
 #dfS.rename({'Proteins':'ID'},inplace=True,axis='columns')
+print(dfS[dfS==0].count())
+import numpy as np
+dfS.replace(0, np.nan, inplace=True)
+print(dfS[dfS==0].count())
 dfS=dfS.groupby(dfS['ID']).aggregate('sum')
 dfS.to_csv(pathFiles/'peptides.combinedIntensity.csv')#,sep="\")#,rownames=FALSE)
 #dfP=dfS.pivot_table(index='ID', columns='Sequence', values='Intensity', aggfunc='sum')
