@@ -1,3 +1,14 @@
+```{r MM-3grps}
+#https://twitter.com/strnr/status/1628754929887092736/photo/1
+#install.packages("vctrs")
+#utils::install.packages(pkgs = "ggstatsplot")
+library(ggstatsplot)
+#data(iris)
+#ggbetweenstats(iris, Species, Sepal.Length)
+data<-read.csv("F:/OneDrive - NTNU/Aida/ML/Supplementary Table 2 for working purpose.xlsxid.T.csv",row.names = 1)
+ggbetweenstats(data,Class,MX1.P20591.F8W8T1.P20591.2.H9KVC7.H9KVC9.H9KVD3.H9KVD0.H9KVC4.H9KVC3.36)
+```
+
 ```{r sensel}
 library(readxl)
 inpD<-"F:/OneDrive - NTNU/TK/"
