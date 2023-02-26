@@ -20,6 +20,599 @@ print(data.groupby(dGroup).count())
 train_labels = data[dGroup]
 train_data = data.drop(columns=dGroup)
 print ("Data for Modeling :" + str(train_data.shape))
+# %% drift
+#https://towardsdatascience.com/mlops-understanding-data-drift-69f9bf8a2e46
+import numpy as np
+def detect_drift(X_train, X_test):
+    # Compute summary statistics for each feature in the training and test data
+    train_mean = np.mean(X_train, axis=0)
+    train_median = np.median(X_train, axis=0)
+    train_variance = np.var(X_train, axis=0)
+    train_missing = np.count_nonzero(np.isnan(X_train), axis=0)
+    train_max = np.max(X_train, axis=0)
+    train_min = np.min(X_train, axis=0)
+    
+    test_mean = np.mean(X_test, axis=0)
+    test_median = np.median(X_test, axis=0)
+    test_variance = np.var(X_test, axis=0)
+    test_missing = np.count_nonzero(np.isnan(X_test), axis=0)
+    test_max = np.max(X_test, axis=0)
+    test_min = np.min(X_test, axis=0)
+    
+    # Compare the summary statistics between the training and test data
+    if np.abs(train_mean - test_mean).sum() > 0.1:
+        return True
+    elif np.abs(train_median - test_median).sum() > 0.1:
+        return True
+    elif np.abs(train_variance - test_variance).sum() > 0.1:
+        return True
+    elif np.abs(train_missing - test_missing).sum() > 10:
+        return True
+    elif np.abs(train_max - test_max).sum() > 10:
+        return True
+    elif np.abs(train_min - test_min).sum() > 10:
+        return True
+    else:
+        return False
+import numpy as np
+from scipy.stats import entropy
+
+def jensen_shannon_divergence(p, q):
+    # Compute the Jensen-Shannon divergence between two probability distributions
+    m = (p + q) / 2
+    return (entropy(p, m) + entropy(q, m)) / 2
+
+def detect_drift(X_train, X_test):
+    # Compute the Jensen-Shannon divergence between the feature distributions in the training and test data
+    js_divergence = jensen_shannon_divergence(X_train, X_test)
+    
+    # Return True if the divergence is above a certain threshold
+    if js_divergence > 0.2:
+        return True
+    else:
+        return False
+import numpy as np
+from scipy.stats import ks_2samp
+import matplotlib.pyplot as plt
+
+def detect_drift(X_train, X_test):
+    # Compute the p-value of the two-sample KS test between the feature distributions in the training and test data
+    p_value = ks_2samp(X_train, X_test)
+    
+    # Return True if the p-value is below a certain threshold
+    if p_value < 0.05:
+        return True
+    else:
+        return False
+    
+# Plot the feature distributions in the training and test data
+plt.hist(X_train, bins=20, alpha=0.5, label='Training data')
+plt.hist(X_test, bins=20, alpha=0.5, label='Test data')
+plt.legend(loc='upper right')
+plt.show()
+import numpy as np
+from scipy.stats import wasserstein_distance
+
+def detect_drift(X_train, X_test):
+    # Compute the Wasserstein distance between the feature distributions in the training and test data
+    wd = wasserstein_distance(X_train, X_test)
+    
+    # Return True if the distance is above a certain threshold
+    if wd > 0.1:
+        return True
+    else:
+        return False
+import numpy as np
+from scipy.stats import entropy
+
+def kullback_leibler_divergence(p, q):
+    # Compute the Kullback-Leibler divergence between two probability distributions
+    return entropy(p, q)
+
+def detect_drift(X_train, X_test):
+    # Compute the Kullback-Leibler divergence between the feature distributions in the training and test data
+    kl_divergence = kullback_leibler_divergence(X_train, X_test)
+    
+    # Return True if the divergence is above a certain threshold
+    if kl_divergence > 0.1:
+        return True
+    else:
+        return False
+import numpy as np
+
+def detect_drift(X_train, X_test):
+    # Compute the mode, number of unique values, and number of missing values in the training and test data
+    train_mode = X_train.mode()
+    test_mode = X_test.mode()
+    train_unique = X_train.nunique()
+    test_unique = X_test.nunique()
+    train_missing = X_train.isnull().sum()
+    test_missing = X_test.isnull().sum()
+    
+    # Check if the mode or number of unique values has changed significantly between the training and test data
+    if (train_mode != test_mode).any() or (train_unique != test_unique).any():
+        return True
+    # Check if the number of missing values has increased significantly between the training and test data
+    elif (test_missing - train_missing) > 0.1 * X_train.size:
+        return True
+    else:
+        return False
+import numpy as np
+from scipy.stats import chi2_contingency
+
+def detect_drift(X_train, X_test):
+    # Compute the Chi Squared statistic and p-value of the test using the training and test data
+    _, p_value, _, _ = chi2_contingency(np.array([X_train, X_test]))
+    
+    # Return True if the p-value is below a certain threshold
+    if p_value < 0.05:
+        return True
+    else:
+        return False
+import numpy as np
+from scipy.stats import chi2_contingency
+
+def detect_drift(X_train, X_test):
+    # Compute the Chi Squared statistic and p-value of the test using the training and test data
+    p_value = chi2_contingency(np.array([X_train, X_test]))
+    
+    # Return True if the p-value is below a certain threshold
+    if p_value < 0.05:
+        return True
+    else:
+        return False
+import numpy as np
+from scipy.stats import fisher_exact
+
+def detect_drift(X_train, X_test):
+    # Compute the p-value of the Fisher Exact Test using the training and test data
+    p_value = fisher_exact(np.array([X_train, X_test]))
+    
+    # Return True if the p-value is below a certain threshold
+    if p_value < 0.05:
+        return True
+    else:
+        return False
+import numpy as np
+from scipy.stats import chi2_contingency, fisher_exact, wasserstein_distance
+from scipy.spatial.distance import jensenshannon
+
+class MonitorDrift:
+    def __init__(self, data):
+        self.data = data
+        
+    def feature_drift_fisher(self, feature):
+        # Compute the p-value of the Fisher Exact Test for the specified feature
+        _, p_value = fisher_exact(np.array([self.data[feature], self.data[feature]]))
+        return p_value
+    
+    def feature_drift_chi2(self, feature):
+        # Compute the Chi Squared statistic and p-value of the two-way Chi Squared test for the specified feature
+        _, p_value, _, _ = chi2_contingency(np.array([self.data[feature], self.data[feature]]))
+        return p_value
+    
+    def feature_drift_chi2_one_way(self, feature):
+        # Compute the Chi Squared statistic and p-value of the one-way Chi Squared test for the specified feature
+        _, p_value, _, _ = chi2_contingency(np.array([self.data[feature], self.data[feature]]), lambda_="log-likelihood")
+        return p_value
+    
+    def feature_drift_jensen_shannon(self, feature):
+        # Compute the Jensen Shannon distance between the training and test data for the specified feature
+        distance = jensenshannon(self.data[feature], self.data[feature])
+        return distance
+    
+    def feature_drift_wasserstein(self, feature):
+        # Compute the Wasserstein distance between the training and test data for the specified feature
+        distance = wasserstein_distance(self.data[feature], self.data[feature])
+        return distance
+# %% label-drift
+from pagehinkley import PageHinkley
+
+class MonitorLabelDrift:
+    def __init__(self, threshold=0.1):
+        # Initialize the Page-Hinkley test with the specified threshold
+        self.test = PageHinkley(threshold=threshold)
+        
+    def update(self, label):
+        # Update the test with the new label
+        self.test.update(label)
+        
+    def detected_drift(self):
+        # Return True if the test has detected a change, False otherwise
+        return self.test.detected_change()
+# Create a monitor for label drift                     
+monitor = MonitorLabelDrift()
+
+# Update the monitor with a series of labels
+labels = [1, 1, 1, 0, 1, 1, 0, 0, 0, 1]
+for label in labels:
+    monitor.update(label)
+    
+    # Check if label drift has been detected
+    if monitor.detected_drift():
+        print("Label drift detected!")
+        break
+# %% pred-drift
+from pagehinkley import PageHinkley
+
+class MonitorOutputDrift:
+    def __init__(self, threshold=0.1):
+        # Initialize the Page-Hinkley test with the specified threshold
+        self.test = PageHinkley(threshold=threshold)
+        
+    def update(self, y_true, y_pred):
+        # Calculate the accuracy of the model's predictions
+        accuracy = accuracy_score(y_true, y_pred)
+        
+        # Update the test with the accuracy
+        self.test.update(accuracy)
+        
+    def detected_drift(self):
+        # Return True if the test has detected a change, False otherwise
+        return self.test.detected_change()
+
+
+      
+# Create a monitor for output drift
+monitor = MonitorOutputDrift()
+
+# Loop through a series of predictions and update the monitor
+for i in range(100):
+    # Generate some fake predictions
+    y_true = np.random.randint(0, 2, size=100)
+    y_pred = np.random.randint(0, 2, size=100)
+    
+    # Update the monitor
+    monitor.update(y_true, y_pred)
+    
+    # Check if output drift has been detected
+    if monitor.detected_drift():
+        print("Output drift detected!")
+        break
+# %% printarr
+#https://gist.github.com/nmwsharp/54d04af87872a4988809f128e1a1d233
+def printarr(*arrs, float_width=6):
+    """
+    Print a pretty table giving name, shape, dtype, type, and content information for input tensors or scalars.
+    Call like: printarr(my_arr, some_other_arr, maybe_a_scalar). Accepts a variable number of arguments.
+    Inputs can be:
+        - Numpy tensor arrays
+        - Pytorch tensor arrays
+        - Jax tensor arrays
+        - Python ints / floats
+        - None
+    It may also work with other array-like types, but they have not been tested.
+    Use the `float_width` option specify the precision to which floating point types are printed.
+    Author: Nicholas Sharp (nmwsharp.com)
+    Canonical source: https://gist.github.com/nmwsharp/54d04af87872a4988809f128e1a1d233
+    License: This snippet may be used under an MIT license, and it is also released into the public domain. 
+             Please retain this docstring as a reference.
+    """
+    
+    frame = inspect.currentframe().f_back
+    default_name = "[temporary]"
+
+    ## helpers to gather data about each array
+    def name_from_outer_scope(a):
+        if a is None:
+            return '[None]'
+        name = default_name
+        for k, v in frame.f_locals.items():
+            if v is a:
+                name = k
+                break
+        return name
+    def dtype_str(a):
+        if a is None:
+            return 'None'
+        if isinstance(a, int):
+            return 'int'
+        if isinstance(a, float):
+            return 'float'
+        return str(a.dtype)
+    def shape_str(a):
+        if a is None:
+            return 'N/A'
+        if isinstance(a, int):
+            return 'scalar'
+        if isinstance(a, float):
+            return 'scalar'
+        return str(list(a.shape))
+    def type_str(a):
+        return str(type(a))[8:-2] # TODO this is is weird... what's the better way?
+    def device_str(a):
+        if hasattr(a, 'device'):
+            device_str = str(a.device)
+            if len(device_str) < 10:
+                # heuristic: jax returns some goofy long string we don't want, ignore it
+                return device_str
+        return ""
+    def format_float(x):
+        return f"{x:{float_width}g}"
+    def minmaxmean_str(a):
+        if a is None:
+            return ('N/A', 'N/A', 'N/A')
+        if isinstance(a, int) or isinstance(a, float): 
+            return (format_float(a), format_float(a), format_float(a))
+
+        # compute min/max/mean. if anything goes wrong, just print 'N/A'
+        min_str = "N/A"
+        try: min_str = format_float(a.min())
+        except: pass
+        max_str = "N/A"
+        try: max_str = format_float(a.max())
+        except: pass
+        mean_str = "N/A"
+        try: mean_str = format_float(a.mean())
+        except: pass
+
+        return (min_str, max_str, mean_str)
+
+    try:
+
+        props = ['name', 'dtype', 'shape', 'type', 'device', 'min', 'max', 'mean']
+
+        # precompute all of the properties for each input
+        str_props = []
+        for a in arrs:
+            minmaxmean = minmaxmean_str(a)
+            str_props.append({
+                'name' : name_from_outer_scope(a),
+                'dtype' : dtype_str(a),
+                'shape' : shape_str(a),
+                'type' : type_str(a),
+                'device' : device_str(a),
+                'min' : minmaxmean[0],
+                'max' : minmaxmean[1],
+                'mean' : minmaxmean[2],
+            })
+
+        # for each property, compute its length
+        maxlen = {}
+        for p in props: maxlen[p] = 0
+        for sp in str_props:
+            for p in props:
+                maxlen[p] = max(maxlen[p], len(sp[p]))
+
+        # if any property got all empty strings, don't bother printing it, remove if from the list
+        props = [p for p in props if maxlen[p] > 0]
+
+        # print a header
+        header_str = ""
+        for p in props:
+            prefix =  "" if p == 'name' else " | "
+            fmt_key = ">" if p == 'name' else "<"
+            header_str += f"{prefix}{p:{fmt_key}{maxlen[p]}}"
+        print(header_str)
+        print("-"*len(header_str))
+            
+        # now print the acual arrays
+        for strp in str_props:
+            for p in props:
+                prefix =  "" if p == 'name' else " | "
+                fmt_key = ">" if p == 'name' else "<"
+                print(f"{prefix}{strp[p]:{fmt_key}{maxlen[p]}}", end='')
+            print("")
+
+    finally:
+        del frame
+# %% printarr-test
+#https://gist.github.com/nmwsharp/54d04af87872a4988809f128e1a1d233
+import inspect
+if __name__ == "__main__":
+
+    ## test it!
+
+    # plain python vlaues
+    noneval = None
+    intval1 = 7
+    intval2 = -3
+    floatval0 = 42.0
+    floatval1 = 5.5 * 1e-12
+    floatval2 = 7.7232412351231231234 * 1e44
+
+    # numpy values
+    import numpy as np
+    npval1 = np.arange(100)
+    npval2 = np.arange(10000)
+    npval3 = np.arange(10000).astype(np.uint64)
+    npval4 = np.arange(10000).astype(np.float32).reshape(100,10,10)
+    npval5 = np.arange(10000)[-1]
+
+    # torch values 
+    torchval1 = None
+    torchval2 = None
+    torchval3 = None
+    torchval4 = None
+    try:
+        import torch
+        torchval1 = torch.randn((1000,12,3))
+        torchval2 = torch.randn((1000,12,3))#.cuda()
+        torchval3 = torch.arange(1000)
+        torchval4 = torch.arange(1000)[0]
+    except ModuleNotFoundError:
+        pass
+    
+    # jax values 
+    jaxval1 = None
+    jaxval2 = None
+    jaxval3 = None
+    jaxval4 = None
+    try:
+        import jax
+        import jax.numpy as jnp
+        jaxval1 = jnp.linspace(0,1,10000)
+        jaxval2 = jnp.linspace(0,1,10000).reshape(100,10,10)
+        jaxval3 = jnp.arange(1000)
+        jaxval4 = jnp.arange(1000)[0]
+    except ModuleNotFoundError:
+        pass
+        
+        
+    printarr(noneval, 
+             intval1, intval2, \
+             floatval0, floatval1, floatval2, \
+             npval1, npval2, npval3, npval4, npval4[0,:,2:], npval5, \
+             torchval1, torchval2, torchval3, torchval4, \
+             jaxval1, jaxval2, jaxval3, jaxval4, \
+    )
+# %% concept-drift
+from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+
+# Split your data into a training set and a test set
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Train a random forest classifier on the training set
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+
+# Initialize a list to store the model's accuracy over time
+accuracies = []
+
+# Monitor model performance over time by regularly evaluating the model on the test set
+while True:
+    # Evaluate the model on the test set
+    y_pred = model.predict(X_test)
+    accuracy = calculate_accuracy(y_test, y_pred)
+
+    # Add the accuracy to the list
+    accuracies.append(accuracy)
+
+    # If the mean accuracy over the past N evaluation intervals falls below a certain threshold,
+    # it could be an indication of concept drift
+    if len(accuracies) > N:
+        mean_accuracy = np.mean(accuracies[-N:])
+        if mean_accuracy < THRESHOLD:
+            # Retrain the model on fresh data and continue monitoring
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+            model.fit(X_train, y_train)
+            accuracies = []
+    else:
+        # If the model has not been evaluated N times yet, continue monitoring
+        sleep(MONITORING_INTERVAL)
+
+# %% multi-quantile-regression
+#https://towardsdatascience.com/a-new-way-to-predict-probability-distributions-e7258349f464
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from catboost import CatBoostRegressor
+sns.set()
+n = 1000
+x_train = np.random.rand(n)
+x_test = np.random.rand(n)
+noise_train = np.random.normal(0, 0.3, n)
+noise_test = np.random.normal(0, 0.3, n)
+a, b = 2, 3
+y_train = a * x_train + b + noise_train
+y_test = a * x_test + b + noise_test
+# Store quantiles 0.01 through 0.99 in a list
+quantiles = [q/100 for q in range(1, 100)]
+
+# Format the quantiles as a string for Catboost
+quantile_str = str(quantiles).replace('[','').replace(']','')
+
+# Fit the multi quantile model
+model = CatBoostRegressor(iterations=100,
+                          loss_function=f'MultiQuantile:alpha={quantile_str}')
+
+model.fit(x_train.reshape(-1,1), y_train)
+
+# Make predictions on the test set
+preds = model.predict(x_test.reshape(-1, 1))
+preds = pd.DataFrame(preds, columns=[f'pred_{q}' for q in quantiles])
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.scatter(x_test, y_test)
+
+for col in ['pred_0.05', 'pred_0.5', 'pred_0.95']:
+    ax.scatter(x_test.reshape(-1,1), preds[col], alpha=0.50, label=col)
+
+ax.legend()
+coverage_90 = np.mean((y_test <= preds['pred_0.95']) & (y_test >= preds['pred_0.05']))*100
+print(coverage_90) 
+# Give the model a new input of x = 0.4
+x = np.array([0.4])
+
+# We expect the mean of this array to be about 2*0.4 + 3 = 3.8
+# We expect the standard deviation of this array to be about 0.30
+y_pred = model.predict(x.reshape(-1, 1))
+
+mu = np.mean(y_pred)
+sigma = np.std(y_pred)
+print(mu) # Output: 3.836147287742427
+print(sigma) # Output: 0.3283984093786787
+# Plot the predicted distribution
+fig, ax = plt.subplots(figsize=(10, 6))
+_ = ax.hist(y_pred.reshape(-1,1), density=True)
+ax.set_xlabel('$y$')
+ax.set_title(f'Predicted Distribution $P(y|x=4)$, $\mu$ = {round(mu, 3)}, $\sigma$ = {round(sigma, 3)}')
+
+# Output: 91.4
+# %% Non-Linear Regression with Variable Noise
+# https://catboost.ai/en/docs/concepts/loss-functions-regression#MultiQuantile
+bounds = [(-10, -8), (-5, -4), (-4, -3), (-3, -1), (-1, 1), (1, 3), (3, 4), (4, 5), (8, 10)]
+scales = [18, 15, 8, 11, 1, 2, 9, 16, 19]
+
+x_train = np.array([])
+x_test = np.array([])
+y_train = np.array([])
+y_test = np.array([])
+
+for b, scale in zip(bounds, scales):
+
+    # Randomly select the number of samples in each region 
+    n = np.random.randint(low=100, high = 200)
+
+    # Generate values of the domain between b[0] and b[1]
+    x_curr = np.linspace(b[0], b[1], n)
+
+    # For even scales, noise comes from an exponential distribution
+    if scale % 2 == 0:
+
+        noise_train = np.random.exponential(scale=scale, size=n)
+        noise_test = np.random.exponential(scale=scale, size=n)
+
+    # For odd scales, noise comes from a normal distribution
+    else:
+
+        noise_train = np.random.normal(scale=scale, size=n)
+        noise_test = np.random.normal(scale=scale, size=n)
+
+    # Create training and testing sets
+    y_curr_train = x_curr**2  + noise_train
+    y_curr_test = x_curr**2  + noise_test
+
+    x_train = np.concatenate([x_train, x_curr])
+    x_test = np.concatenate([x_test, x_curr])
+    y_train = np.concatenate([y_train, y_curr_train])
+    y_test = np.concatenate([y_test, y_curr_test])
+model = CatBoostRegressor(iterations=300,
+                          loss_function=f'MultiQuantile:alpha={quantile_str}')
+
+model.fit(x_train.reshape(-1,1), y_train)
+
+preds = model.predict(x_test.reshape(-1, 1))
+preds = pd.DataFrame(preds, columns=[f'pred_{q}' for q in quantiles])
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.scatter(x_test, y_test)
+
+for col in ['pred_0.05', 'pred_0.5', 'pred_0.95']:
+
+    quantile = int(float(col.split('_')[-1])*100)
+    label_name = f'Predicted Quantile {quantile}'
+    ax.scatter(x_test.reshape(-1,1), preds[col], alpha=0.50, label=label_name)
+
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_title('Testing Data for Example 2 with Predicted Quantiles')
+ax.legend()
+coverage_90 = np.mean((y_test <= preds['pred_0.95']) & (y_test >= preds['pred_0.05']))*100
+print(coverage_90) 
+# Output: 90.506
+
 # %% autoML
 #https://towardsdatascience.com/auto-sklearn-scikit-learn-on-steroids-42abd4680e94
 import autosklearn
@@ -54,6 +647,7 @@ clf = load('model.joblib')
 y_probas = clf.predict_proba(X_test)
 pos_label = 'yes'
 y_proba = y_probas[:, clf.classes_.tolist().index(pos_label)]
+
 # %% h2O
 # https://towardsdatascience.com/automated-machine-learning-with-h2o-258a2f3a203f
 import h2o

@@ -6,7 +6,7 @@ library(ggstatsplot)
 #data(iris)
 #ggbetweenstats(iris, Species, Sepal.Length)
 data<-read.csv("F:/OneDrive - NTNU/Aida/ML/Supplementary Table 2 for working purpose.xlsxid.T.csv",row.names = 1)
-ggbetweenstats(data,Class,MX1.P20591.F8W8T1.P20591.2.H9KVC7.H9KVC9.H9KVD3.H9KVD0.H9KVC4.H9KVC3.36)
+ggbetweenstats(data,Class,STRN4.Q9NRL3.Q9NRL3.3.F5GYK2.M0R0P4.R4GN16.Q9NRL3.2.M0R2A7.M0QYS2.M0R0W8.M0QZM0.M0QXN2.40)
 ```
 
 ```{r sensel}
