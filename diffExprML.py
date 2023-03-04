@@ -20,6 +20,55 @@ print(data.groupby(dGroup).count())
 train_labels = data[dGroup]
 train_data = data.drop(columns=dGroup)
 print ("Data for Modeling :" + str(train_data.shape))
+# %% kNN
+#https://towardsdatascience.com/elbow-method-is-not-sufficient-to-find-best-k-in-k-means-clustering-fc820da0631d
+!pip install yellowbrick  
+
+from sklearn import datasets
+from sklearn.cluster import KMeans
+from yellowbrick.cluster import KElbowVisualizer
+
+# Load the IRIS dataset
+iris = datasets.load_iris()
+X = iris.data
+y = iris.target
+
+# Instantiate the clustering model and visualizer
+km = KMeans(random_state=42)
+visualizer = KElbowVisualizer(km, k=(2,10))
+ 
+visualizer.fit(X)        # Fit the data to the visualizer
+visualizer.show()        # Finalize and render the figure
+from sklearn import datasets
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+from yellowbrick.cluster import SilhouetteVisualizer
+
+# Load the IRIS dataset
+iris = datasets.load_iris()
+X = iris.data
+y = iris.target
+  
+fig, ax = plt.subplots(3, 2, figsize=(15,8))
+for i in [2, 3, 4, 5]:
+    '''
+    Create KMeans instances for different number of clusters
+    '''
+    km = KMeans(n_clusters=i, init='k-means++', n_init=10, max_iter=100, random_state=42)
+    q, mod = divmod(i, 2)
+    '''
+    Create SilhouetteVisualizer instance with KMeans instance
+    Fit the visualizer
+    '''
+    visualizer = SilhouetteVisualizer(km, colors='yellowbrick', ax=ax[q-1][mod])
+    visualizer.fit(X) 
+# %% hypothesize
+#https://alcampopiano.github.io/hypothesize/function_guide/#pb2gen
+#!pip install hypothesize
+from hypothesize.utilities import create_example_data, trim_mean
+from hypothesize.compare_groups_with_single_factor import pb2gen
+df=create_example_data(2)
+pb2gen(df.cell_1, df.cell_2, trim_mean, .2, alpha=.05, nboot=1000, seed=42)
 # %% drift
 #https://towardsdatascience.com/mlops-understanding-data-drift-69f9bf8a2e46
 import numpy as np
