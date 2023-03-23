@@ -24,3 +24,8 @@ RUN wget https://github.com/animesh/RawRead/raw/master/171010_Ip_Hela_ugi.raw -O
 #RUN unzip MQ.zip
 #RUN dotnet $PWD/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe -c mqpar.xml
 #RUN dotnet $PWD/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe mqpar.xml
+#RUN rm mqpar.xml 
+#RUN dotnet $PWD/MaxQuant_v2.2.0.0/MaxQuant_v2.2.0.0/bin/MaxQuantCmd.exe -c mqpar.xml
+#RUN sed "s?example.fasta?$PWD/example.fasta?" mqpar.xml  > mqpar.cf.xml
+#RUN sed "s?file.example.RAW?$PWD/file.example.RAW?" mqpar.cf.xml  > mqpar.xml
+#RUN dotnet $PWD/MaxQuant_v2.2.0.0/MaxQuant_v2.2.0.0/bin/MaxQuantCmd.exe mqpar.xml
