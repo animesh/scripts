@@ -14,8 +14,9 @@ inpD <- args[1]
 #unzip(paste0(inpD,"OpenMS.zip"),exdir = paste0(inpD,"OpenMS"))
 #generate mzML in windows prompt using cmd
 ##for %i in ("L:\promec\HF\Lars\2023\IgG Mus Therese\mzML\deconv\*.raw) do ("F:\OneDrive - NTNU\ProteoWizard 3.0.22155.0ff594f 64-bit\msconvert.exe"  --filter "peakPicking true 1-" %i)
-#run flashDeConv
-##for %i in ("*.mzML") do ("F:\OneDrive - NTNU\OpenMS-3.0.0-pre-HEAD-2022-06-23\bin\FLASHDeconv.exe" -in %i -out %i.fdc.tsv)
+#run flashDeConvL:\promec\HF\Lars\2023\IgG Mus Therese\mzML\deconv>for %i in ("*.mzML") do ("F:\OneDrive - NTNU\OpenMS-3.0.0-pre-HEAD-2022-08-16\bin\FLASHDeconv.exe" -in %i -out %i.fdc.tsv)
+##cd L:\promec\HF\Lars\2023\IgG Mus Therese\mzML\deconv>
+##for %i in ("*.mzML") do ("F:\OneDrive - NTNU\OpenMS-3.0.0-pre-HEAD-2022-08-16\bin\FLASHDeconv.exe" -in %i -out %i.fdc.tsv)
 inpFL<-list.files(pattern="*mzML.fdc.tsv$",path=inpD,full.names=F,recursive=F)
 outF=paste(inpD,"intMZ1",sep = "/")
 outP=paste(outF,"plot","pdf",sep = ".")
