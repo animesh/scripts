@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/220908PHos/d/uniprot-proteome-human-iso-june22.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scripts/sigrid/uniprot-human-iso-feb23.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -25,7 +25,6 @@
    <lfqRequireMsms>True</lfqRequireMsms>
    <lfqBayesQuant>False</lfqBayesQuant>
    <decoyMode>revert</decoyMode>
-   <boxCarMode>all</boxCarMode>
    <includeContaminants>True</includeContaminants>
    <maxPeptideMass>4600</maxPeptideMass>
    <epsilonMutationScore>True</epsilonMutationScore>
@@ -47,16 +46,16 @@
    <dependentPeptidesWithinParameterGroup>False</dependentPeptidesWithinParameterGroup>
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
-   <ibaq>True</ibaq>
-   <top3>True</top3>
+   <ibaq>False</ibaq>
+   <top3>False</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
    <splitProteinGroupsByTaxonomy>False</splitProteinGroupsByTaxonomy>
    <taxonomyLevel>Species</taxonomyLevel>
    <avalon>False</avalon>
    <nModColumns>3</nModColumns>
-   <ibaqLogFit>True</ibaqLogFit>
-   <ibaqChargeNormalization>True</ibaqChargeNormalization>
+   <ibaqLogFit>False</ibaqLogFit>
+   <ibaqChargeNormalization>False</ibaqChargeNormalization>
    <razorProteinFdr>True</razorProteinFdr>
    <deNovoSequencing>False</deNovoSequencing>
    <deNovoVarMods>False</deNovoVarMods>
@@ -72,11 +71,9 @@
    <deNovoUseWaterLossScore>True</deNovoUseWaterLossScore>
    <deNovoUseAmmoniaLossScore>True</deNovoUseAmmoniaLossScore>
    <deNovoUseA2Score>True</deNovoUseA2Score>
+   <deNovoScalingFactor>0</deNovoScalingFactor>
    <massDifferenceSearch>False</massDifferenceSearch>
    <isotopeCalc>False</isotopeCalc>
-   <writePeptidesForSpectrumFile></writePeptidesForSpectrumFile>
-   <intensityPredictionsFile>
-   </intensityPredictionsFile>
    <minPepLen>7</minPepLen>
    <psmFdrCrosslink>0.01</psmFdrCrosslink>
    <peptideFdr>0.01</peptideFdr>
@@ -119,6 +116,7 @@
    <writeDiaFragmentTable>False</writeDiaFragmentTable>
    <writeDiaFragmentQuantTable>False</writeDiaFragmentQuantTable>
    <writeMzTab>False</writeMzTab>
+   <writeSdrf>False</writeSdrf>
    <disableMd5>False</disableMd5>
    <cacheBinInds>True</cacheBinInds>
    <etdIncludeB>False</etdIncludeB>
@@ -128,15 +126,15 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.0.3.0</maxQuantVersion>
+   <maxQuantVersion>2.3.1.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>15</numThreads>
+   <numThreads>64</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
    <fixedCombinedFolder></fixedCombinedFolder>
-   <fullMinMz>-1.79589544172745E+308</fullMinMz>
-   <fullMaxMz>1.79589544172745E+308</fullMaxMz>
+   <fullMinMz>-1.79769313486232E+308</fullMinMz>
+   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -146,38 +144,38 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_FeIMAC_A1_Slot2-28_1_2536.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_FeIMAC_A2_Slot2-29_1_2537.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_FeIMAC_A3_Slot2-30_1_2538.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_FT_FeIMAC_A1_Slot2-37_1_2545.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_FT_FeIMAC_A2_Slot2-38_1_2546.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_FT_FeIMAC_A3_Slot2-39_1_2547.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_totx_A1_Slot2-34_1_2542.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_totx_A2_Slot2-35_1_2543.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_totx_A3_Slot2-36_1_2544.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_ZrIMAC_A1_Slot2-31_1_2539.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_ZrIMAC_A2_Slot2-32_1_2540.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_ZrIMAC_A3_Slot2-33_1_2541.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_FeIMAC_A1_rerun_Slot2-28_1_2561.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_FeIMAC_A2_rerun_Slot2-29_1_2562.d</string>
-      <string>/cluster/projects/nn9036k/220908PHos/d/220907_FeIMAC_A3_rerun_Slot2-30_1_2563.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_9_Slot1-40_1_4084.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_8_Slot1-39_1_4082.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_7_Slot1-38_1_4080.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_6_Slot1-37_1_4078.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_5_Slot1-36_1_4076.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_4_Slot1-35_1_4074.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_3_Slot1-34_1_4072.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_2_Slot1-33_1_4070.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_1_Slot1-32_1_4068.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_15_Slot1-46_1_4096.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_14_Slot1-45_1_4094.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_13_Slot1-44_1_4092.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_12_Slot1-43_1_4090.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_11_Slot1-42_1_4088.d</string>
+      <string>/cluster/projects/nn9036k/scripts/sigrid/230317_SIGRID_10_Slot1-41_1_4086.d</string>
    </filePaths>
    <experiments>
-      <string>FeIMAC_A1_Slot2-28_1_2536</string>
-      <string>FeIMAC_A2_Slot2-29_1_2537</string>
-      <string>FeIMAC_A3_Slot2-30_1_2538</string>
-      <string>FT_FeIMAC_A1_Slot2-37_1_2545</string>
-      <string>FT_FeIMAC_A2_Slot2-38_1_2546</string>
-      <string>FT_FeIMAC_A3_Slot2-39_1_2547</string>
-      <string>totx_A1_Slot2-34_1_2542</string>
-      <string>totx_A2_Slot2-35_1_2543</string>
-      <string>totx_A3_Slot2-36_1_2544</string>
-      <string>ZrIMAC_A1_Slot2-31_1_2539</string>
-      <string>ZrIMAC_A2_Slot2-32_1_2540</string>
-      <string>ZrIMAC_A3_Slot2-33_1_2541</string>
-      <string>FeIMAC_A1_rerun_Slot2-28_1_2561</string>
-      <string>FeIMAC_A2_rerun_Slot2-29_1_2562</string>
-      <string>FeIMAC_A3_rerun_Slot2-30_1_2563</string>
+      <string>9_Slot1-40_1_4084</string>
+      <string>8_Slot1-39_1_4082</string>
+      <string>7_Slot1-38_1_4080</string>
+      <string>6_Slot1-37_1_4078</string>
+      <string>5_Slot1-36_1_4076</string>
+      <string>4_Slot1-35_1_4074</string>
+      <string>3_Slot1-34_1_4072</string>
+      <string>2_Slot1-33_1_4070</string>
+      <string>1_Slot1-32_1_4068</string>
+      <string>15_Slot1-46_1_4096</string>
+      <string>14_Slot1-45_1_4094</string>
+      <string>13_Slot1-44_1_4092</string>
+      <string>12_Slot1-43_1_4090</string>
+      <string>11_Slot1-42_1_4088</string>
+      <string>10_Slot1-41_1_4086</string>
    </experiments>
    <fractions>
       <short>32767</short>
@@ -247,20 +245,24 @@
       <string></string>
       <string></string>
    </referenceChannel>
-   <intensPred>False</intensPred>
-   <intensPredModelReTrain>False</intensPredModelReTrain>
    <lfqTopNPeptides>0</lfqTopNPeptides>
    <diaJoinPrecChargesForLfq>False</diaJoinPrecChargesForLfq>
    <diaFragChargesForQuant>1</diaFragChargesForQuant>
-   <timsRearrangeSpectra>False</timsRearrangeSpectra>
-   <gridSpacing>0.5</gridSpacing>
+   <gridSpacing>0.7</gridSpacing>
    <proteinGroupingFile></proteinGroupingFile>
+   <useAndromeda20>False</useAndromeda20>
+   <useAndromeda20DefaultModel>False</useAndromeda20DefaultModel>
+   <andromeda20AltModelPath></andromeda20AltModelPath>
+   <intensityPredictionFolder></intensityPredictionFolder>
    <parameterGroups>
       <parameterGroup>
+         <andromeda20AltModelPath></andromeda20AltModelPath>
+         <andromeda20DefaultModel>False</andromeda20DefaultModel>
+         <useAndromeda20>False</useAndromeda20>
          <msInstrument>4</msInstrument>
          <maxCharge>4</maxCharge>
          <minPeakLen>2</minPeakLen>
-         <diaMinPeakLen>2</diaMinPeakLen>
+         <diaMinPeakLen>1</diaMinPeakLen>
          <useMs1Centroids>False</useMs1Centroids>
          <useMs2Centroids>False</useMs2Centroids>
          <cutPeaks>True</cutPeaks>
@@ -268,15 +270,16 @@
          <minTime>NaN</minTime>
          <maxTime>NaN</maxTime>
          <matchType>MatchFromAndTo</matchType>
-         <intensityDetermination>3</intensityDetermination>
+         <intensityDetermination>1</intensityDetermination>
          <centroidMatchTol>10</centroidMatchTol>
          <centroidMatchTolInPpm>True</centroidMatchTolInPpm>
          <centroidHalfWidth>35</centroidHalfWidth>
          <centroidHalfWidthInPpm>True</centroidHalfWidthInPpm>
-         <valleyFactor>1.2</valleyFactor>
+         <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1>30</intensityThresholdMs1>
+         <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dia>70</intensityThresholdMs1Dia>
          <intensityThresholdMs2>30</intensityThresholdMs2>
          <labelMods>
             <string></string>
@@ -318,7 +321,6 @@
             <string>Oxidation (M)</string>
             <string>Acetyl (Protein N-term)</string>
             <string>Deamidation (NQ)</string>
-            <string>Phospho (STY)</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
@@ -340,7 +342,7 @@
          <searchTolInPpm>True</searchTolInPpm>
          <isotopeMatchTol>0.005</isotopeMatchTol>
          <isotopeMatchTolInPpm>False</isotopeMatchTolInPpm>
-         <isotopeTimeCorrelation>0.6</isotopeTimeCorrelation>
+         <isotopeTimeCorrelation>0.3</isotopeTimeCorrelation>
          <theorIsotopeCorrelation>0.6</theorIsotopeCorrelation>
          <checkMassDeficit>False</checkMassDeficit>
          <recalibrationInPpm>True</recalibrationInPpm>
@@ -356,9 +358,9 @@
          <filterPif>False</filterPif>
          <reporterFraction>NaN</reporterFraction>
          <reporterBasePeakRatio>NaN</reporterBasePeakRatio>
-         <timsHalfWidth>6</timsHalfWidth>
+         <timsHalfWidth>10</timsHalfWidth>
          <timsStep>3</timsStep>
-         <timsResolution>32000</timsResolution>
+         <timsResolution>35000</timsResolution>
          <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
@@ -367,9 +369,9 @@
          <crossLinker></crossLinker>
          <minMatchXl>3</minMatchXl>
          <minPairedPepLenXl>6</minPairedPepLenXl>
-         <minScore_Dipeptide>40</minScore_Dipeptide>
-         <minScore_Monopeptide>0</minScore_Monopeptide>
-         <minScore_PartialCross>10</minScore_PartialCross>
+         <minScoreDipeptide>40</minScoreDipeptide>
+         <minScoreMonopeptide>0</minScoreMonopeptide>
+         <minScorePartialCross>10</minScorePartialCross>
          <crosslinkOnlyIntraProtein>False</crosslinkOnlyIntraProtein>
          <crosslinkIntensityBasedPrecursor>True</crosslinkIntensityBasedPrecursor>
          <isHybridPrecDetermination>False</isHybridPrecDetermination>
@@ -395,18 +397,18 @@
          <diaLibraryType>0</diaLibraryType>
          <diaLibraryPaths>
          </diaLibraryPaths>
-         <diaPeptidePaths>
-         </diaPeptidePaths>
          <diaEvidencePaths>
          </diaEvidencePaths>
          <diaMsmsPaths>
          </diaMsmsPaths>
+         <diaLabelIndsForLibraryMatch>
+         </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
-         <diaInitialFragMassTolPpm>20</diaInitialFragMassTolPpm>
+         <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
          <diaCorrThresholdFeatureClustering>0.85</diaCorrThresholdFeatureClustering>
          <diaPrecTolPpmFeatureClustering>2</diaPrecTolPpmFeatureClustering>
          <diaFragTolPpmFeatureClustering>2</diaFragTolPpmFeatureClustering>
-         <diaScoreN>7</diaScoreN>
+         <diaScoreN>12</diaScoreN>
          <diaMinScore>1.99</diaMinScore>
          <diaXgBoostBaseScore>0.4</diaXgBoostBaseScore>
          <diaXgBoostSubSample>0.9</diaXgBoostSubSample>
@@ -414,13 +416,14 @@
          <diaQuantMethod>7</diaQuantMethod>
          <diaFeatureQuantMethod>2</diaFeatureQuantMethod>
          <lfqNormType>1</lfqNormType>
-         <diaTopNForQuant>10</diaTopNForQuant>
-         <diaMinMsmsIntensityForQuant>0</diaMinMsmsIntensityForQuant>
+         <diaTopNForQuant>4</diaTopNForQuant>
+         <diaMinMsmsIntensityForQuant>30</diaMinMsmsIntensityForQuant>
          <diaTopMsmsIntensityQuantileForQuant>0.85</diaTopMsmsIntensityQuantileForQuant>
-         <diaPrecursorFilterType>0</diaPrecursorFilterType>
          <diaMinFragmentOverlapScore>1</diaMinFragmentOverlapScore>
-         <diaMinPrecursorScore>0.5</diaMinPrecursorScore>
-         <diaMinProfileCorrelation>0</diaMinProfileCorrelation>
+         <diaMinPrecursorScore>0</diaMinPrecursorScore>
+         <diaUseProfileCorrelation>True</diaUseProfileCorrelation>
+         <diaMinPrecProfileCorrelation>0</diaMinPrecProfileCorrelation>
+         <diaMinFragProfileCorrelation>0</diaMinFragProfileCorrelation>
          <diaXgBoostMinChildWeight>9</diaXgBoostMinChildWeight>
          <diaXgBoostMaximumTreeDepth>12</diaXgBoostMaximumTreeDepth>
          <diaXgBoostEstimators>580</diaXgBoostEstimators>
@@ -429,21 +432,49 @@
          <diaGlobalMl>True</diaGlobalMl>
          <diaAdaptiveMassAccuracy>False</diaAdaptiveMassAccuracy>
          <diaMassWindowFactor>3.3</diaMassWindowFactor>
-         <diaRtPrediction>False</diaRtPrediction>
-         <diaRtPredictionSecondRound>False</diaRtPredictionSecondRound>
          <diaNoMl>False</diaNoMl>
          <diaPermuteRt>False</diaPermuteRt>
          <diaPermuteCcs>False</diaPermuteCcs>
          <diaBackgroundSubtraction>False</diaBackgroundSubtraction>
          <diaBackgroundSubtractionQuantile>0.5</diaBackgroundSubtractionQuantile>
          <diaBackgroundSubtractionFactor>4</diaBackgroundSubtractionFactor>
-         <diaLfqWeightedMedian>True</diaLfqWeightedMedian>
+         <diaLfqRatioType>0</diaLfqRatioType>
          <diaTransferQvalue>0.3</diaTransferQvalue>
          <diaOnlyIsosForRecal>True</diaOnlyIsosForRecal>
          <diaMinPeaksForRecal>5</diaMinPeaksForRecal>
          <diaUseFragIntensForMl>False</diaUseFragIntensForMl>
          <diaUseFragMassesForMl>False</diaUseFragMassesForMl>
          <diaMaxTrainInstances>1000000</diaMaxTrainInstances>
+         <diaMaxFragmentCharge>3</diaMaxFragmentCharge>
+         <diaAdaptiveMlScoring>False</diaAdaptiveMlScoring>
+         <diaDynamicScoringMaxInstances>25000</diaDynamicScoringMaxInstances>
+         <diaMaxPrecursorMz>0</diaMaxPrecursorMz>
+         <diaHardRtFilter>True</diaHardRtFilter>
+         <diaConvertLibraryCharge2Fragments>False</diaConvertLibraryCharge2Fragments>
+         <diaChargeNormalizationLibrary>False</diaChargeNormalizationLibrary>
+         <diaChargeNormalizationSample>False</diaChargeNormalizationSample>
+         <diaDeleteIntermediateResults>True</diaDeleteIntermediateResults>
+         <diaScoreWeightScanIndex>-1</diaScoreWeightScanIndex>
+         <diaScoreWeightScanValue>1</diaScoreWeightScanValue>
+         <diaNumNonleadingMatches>1</diaNumNonleadingMatches>
+         <diaUseDefaultFragmentModel>True</diaUseDefaultFragmentModel>
+         <diaAltFragmentModelPath></diaAltFragmentModelPath>
+         <diaUseDefaultRtModel>True</diaUseDefaultRtModel>
+         <diaAltRtModelPath></diaAltRtModelPath>
+         <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
+         <diaAltCcsModelPath></diaAltCcsModelPath>
+         <diaChargeAffinityFilter>0</diaChargeAffinityFilter>
+         <diaPeptideEfficiencyFilter>0</diaPeptideEfficiencyFilter>
+         <diaMinPeptidesPerProtein>3</diaMinPeptidesPerProtein>
+         <diaBatchProcessing>True</diaBatchProcessing>
+         <diaBatchSize>10</diaBatchSize>
+         <diaFirstBatch>-1</diaFirstBatch>
+         <diaLastBatch>-1</diaLastBatch>
+         <diaOnlyPreprocess>False</diaOnlyPreprocess>
+         <diaOnlyPostprocess>False</diaOnlyPostprocess>
+         <isM2FragTypeOverride>False</isM2FragTypeOverride>
+         <ms2FragTypeOverride>0</ms2FragTypeOverride>
+         <classicLfqForSingleShots>False</classicLfqForSingleShots>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
@@ -461,6 +492,8 @@
          <HigherCharges>True</HigherCharges>
          <IncludeWater>True</IncludeWater>
          <IncludeAmmonia>True</IncludeAmmonia>
+         <IncludeWaterCross>False</IncludeWaterCross>
+         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
          <DependentLosses>True</DependentLosses>
          <Recalibration>False</Recalibration>
       </msmsParams>
@@ -478,23 +511,27 @@
          <HigherCharges>True</HigherCharges>
          <IncludeWater>True</IncludeWater>
          <IncludeAmmonia>True</IncludeAmmonia>
+         <IncludeWaterCross>False</IncludeWaterCross>
+         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
          <DependentLosses>True</DependentLosses>
          <Recalibration>False</Recalibration>
       </msmsParams>
       <msmsParams>
          <Name>TOF</Name>
-         <MatchTolerance>40</MatchTolerance>
+         <MatchTolerance>25</MatchTolerance>
          <MatchToleranceInPpm>True</MatchToleranceInPpm>
          <DeisotopeTolerance>0.01</DeisotopeTolerance>
          <DeisotopeToleranceInPpm>False</DeisotopeToleranceInPpm>
          <DeNovoTolerance>25</DeNovoTolerance>
          <DeNovoToleranceInPpm>True</DeNovoToleranceInPpm>
          <Deisotope>True</Deisotope>
-         <Topx>10</Topx>
+         <Topx>16</Topx>
          <TopxInterval>100</TopxInterval>
          <HigherCharges>True</HigherCharges>
          <IncludeWater>True</IncludeWater>
          <IncludeAmmonia>True</IncludeAmmonia>
+         <IncludeWaterCross>False</IncludeWaterCross>
+         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
          <DependentLosses>True</DependentLosses>
          <Recalibration>False</Recalibration>
       </msmsParams>
@@ -512,87 +549,65 @@
          <HigherCharges>True</HigherCharges>
          <IncludeWater>True</IncludeWater>
          <IncludeAmmonia>True</IncludeAmmonia>
+         <IncludeWaterCross>False</IncludeWaterCross>
+         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
          <DependentLosses>True</DependentLosses>
          <Recalibration>False</Recalibration>
       </msmsParams>
    </msmsParamsArray>
    <fragmentationParamsArray>
       <fragmentationParams>
-         <Name>CID</Name>
-         <Connected>False</Connected>
-         <ConnectedScore0>1</ConnectedScore0>
-         <ConnectedScore1>1</ConnectedScore1>
-         <ConnectedScore2>1</ConnectedScore2>
+         <Name>HCD</Name>
+         <UseIntensityPrediction>False</UseIntensityPrediction>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
-         <Name>HCD</Name>
-         <Connected>False</Connected>
-         <ConnectedScore0>1</ConnectedScore0>
-         <ConnectedScore1>1</ConnectedScore1>
-         <ConnectedScore2>1</ConnectedScore2>
+         <Name>CID</Name>
+         <UseIntensityPrediction>False</UseIntensityPrediction>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>ETD</Name>
-         <Connected>False</Connected>
-         <ConnectedScore0>1</ConnectedScore0>
-         <ConnectedScore1>1</ConnectedScore1>
-         <ConnectedScore2>1</ConnectedScore2>
+         <UseIntensityPrediction>False</UseIntensityPrediction>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>PQD</Name>
-         <Connected>False</Connected>
-         <ConnectedScore0>1</ConnectedScore0>
-         <ConnectedScore1>1</ConnectedScore1>
-         <ConnectedScore2>1</ConnectedScore2>
+         <UseIntensityPrediction>False</UseIntensityPrediction>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>ETHCD</Name>
-         <Connected>False</Connected>
-         <ConnectedScore0>1</ConnectedScore0>
-         <ConnectedScore1>1</ConnectedScore1>
-         <ConnectedScore2>1</ConnectedScore2>
+         <UseIntensityPrediction>False</UseIntensityPrediction>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>ETCID</Name>
-         <Connected>False</Connected>
-         <ConnectedScore0>1</ConnectedScore0>
-         <ConnectedScore1>1</ConnectedScore1>
-         <ConnectedScore2>1</ConnectedScore2>
+         <UseIntensityPrediction>False</UseIntensityPrediction>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>UVPD</Name>
-         <Connected>False</Connected>
-         <ConnectedScore0>1</ConnectedScore0>
-         <ConnectedScore1>1</ConnectedScore1>
-         <ConnectedScore2>1</ConnectedScore2>
+         <UseIntensityPrediction>False</UseIntensityPrediction>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
          <Name>Unknown</Name>
-         <Connected>False</Connected>
-         <ConnectedScore0>1</ConnectedScore0>
-         <ConnectedScore1>1</ConnectedScore1>
-         <ConnectedScore2>1</ConnectedScore2>
+         <UseIntensityPrediction>False</UseIntensityPrediction>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
