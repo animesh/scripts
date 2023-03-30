@@ -1,19 +1,20 @@
-#Rscript F:\GD\OneDrive\Dokumenter\GitHub\scripts\proteinGroupsTtest.r C:\Users\animeshs\R\bin\Rscript.exe F:/promec/Qexactive/Mirta/EYE_PRPF31/2023_RP11_RetinalOrganoids/combined/txt/
+#C:\Users\animeshs>R-4.2.3\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprTestT.r OneDrive\Desktop\ Bio
 args = commandArgs(trailingOnly=TRUE)
 print(args)
 if (length(args) != 2) {stop("\n\nNeeds the full path of the directory containing BOTH proteinGroups.txt from MaxQuant & Groups.txt files followed by the name of GROUP column in Groups.txt file whch will be used for the t-test, for example
 \"c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r F:/promec/Qexactive/Mirta/EYE_PRPF31/2023_RP11_RetinalOrganoids/combined/txt/ Bio\"
                              ", call.=FALSE)}
 #setup####
-#install.packages("ggplot2")
-#install.packages("svglite")
-#install.packages("limma")
 #install.packages("writexl")
 #install.packages("pheatmap")
+#install.packages("ggplot2")
+#install.packages("svglite")
+#install.packages("BiocManager")
+#BiocManager::install("limma")
 inpD <- args[1]
-#inpD <-"F:/promec/Qexactive/Mirta/EYE_PRPF31/2023_RP11_RetinalOrganoids/combined/txt/"
+#inpD <-"C:/Users/animeshs/OneDrive/Desktop/"
 lGroup <- args[2]
-#lGroup<-"Sample"
+#lGroup<-"Bio"
 inpF<-paste0(inpD,"proteinGroups.txt")
 inpL<-paste0(inpD,"Groups.txt")
 selection<-"LFQ.intensity."
@@ -42,6 +43,7 @@ LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 colnames(LFQ)=sub(selection,"",colnames(LFQ))
 dim(LFQ)
 log2LFQ<-log2(LFQ)
+colnames(log2LFQ)<-colnames(LFQ)
 log2LFQ[log2LFQ==-Inf]=NA
 log2LFQ[log2LFQ==0]=NA
 summary(log2LFQ)
@@ -72,13 +74,14 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 ggplot2::ggsave(paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"HeatMap.svg"), svgPHC)
 #test####
-testT <- function(log2LFQ,sel1,sel2,cvThr){
-  #sel1<-"MINE"
+testT <- function(log2LFQt,sel1,sel2,cvThr){
+  #sel1<-"DMSO"
   #sel2<-"WT"
-  #log2LFQ<-medianLog2LFQ
-  log2LFQ<-sapply(log2LFQ, as.numeric)
-  d1<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
-  d2<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel2,]))]
+  #log2LFQt<-log2LFQ
+  colnames(log2LFQt)
+  #log2LFQt<-sapply(log2LFQt, as.numeric)
+  d1<-log2LFQt[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
+  d2<-log2LFQt[,gsub("-",".",rownames(label[label$pair2test==sel2,]))]
   dataSellog2grpTtest<-as.matrix(cbind(d1,d2))
   if(sum(!is.na(d1))>1&sum(!is.na(d2))>1){
     hist(d1,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
@@ -154,27 +157,10 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     return(ttest.results)
   }
 }
-#medianMINEandWT####
-colnames(log2LFQ)
-table(label$Bio)
-medianLog2LFQ <- data.frame(matrix(ncol=length(names(table(label$Bio))),nrow=nrow(log2LFQ)))
-colnames(medianLog2LFQ) <- names(table(label$Bio))
-rownames(medianLog2LFQ)<-rownames(log2LFQ)
-for(i in names(table(label$Bio))){
-  print(i)
-  log2LFQvals<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$Bio==i,]))])
-  print(summary(log2LFQvals))
-  medianLog2LFQ[i]<-apply(log2LFQvals,1, function(x) median(x,na.rm=T))
-  print(summary(medianLog2LFQ[i]))
-}
-#testMINE2WT####
-label <- data.frame(matrix(ncol=1,nrow=length(colnames(medianLog2LFQ))))
-label$pair2test<-sapply(strsplit(colnames(medianLog2LFQ), "_",fixed=T), "[", 1)
-rownames(label)<-colnames(medianLog2LFQ)
-rownames(label)
+#testCFZR/DMSO-2WT####
 table(label$pair2test)
-label$pair2test<-c("ctr","ctr","ctr","NP","sym","sym","sym")
-table(label$pair2test)
-rownames(label[label$pair2test=="ctr",])
-rownames(label[label$pair2test=="sym",])
-ttMINE2WT=testT(medianLog2LFQ,"sym","ctr",cvThr)
+rownames(label[label$pair2test=="WT",])
+rownames(label[label$pair2test=="DMSO",])
+ttDMSO2WT=testT(log2LFQ,"DMSO","WT",cvThr)
+ttDMSO2WT=testT(log2LFQ,"DMSO","CFZR",cvThr)
+ttDMSO2WT=testT(log2LFQ,"CFZR","WT",cvThr)
