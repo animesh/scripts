@@ -1,18 +1,17 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=sigr
-#SBATCH --time=144:00:00
-##SBATCH --partition=bigmem
-##SBATCH --ntasks=16 --cpus-per-task=4
-##SBATCH --mem-per-cpu=32G
-#SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
-##--ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
-#SBATCH --mem-per-cpu=4G
+#SBATCH --account=nn9036k --job-name=chun
+#SBATCH --time=298:00:00
+#SBATCH --partition=bigmem
+#SBATCH --ntasks=16 --cpus-per-task=4
+#SBATCH --mem-per-cpu=32G
+##SBATCH --ntasks=10 --cpus-per-task=4
+##SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=sigrMQSLURMLOG
+#SBATCH --output=chunMQSLURMLOG
 
 
-WORKDIR=/cluster/projects/nn9036k/scripts/sigrid
+WORKDIR=/cluster/projects/nn9036k/scripts/chunmei
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -30,6 +29,4 @@ mono --version
 module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe  -p 20 /cluster/projects/nn9036k/scripts/sigrid/mqpar.linux.xml
-#mono MQCMD -p MQPARF
-#mono MQCMD -n MQPARF
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe -p 13 /cluster/projects/nn9036k/scripts/chunmei/mqpar.linux.xml
