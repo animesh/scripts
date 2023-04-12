@@ -1,18 +1,17 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=sigr
+#SBATCH --account=nn9036k --job-name=dkatj
 #SBATCH --time=144:00:00
 ##SBATCH --partition=bigmem
 ##SBATCH --ntasks=16 --cpus-per-task=4
 ##SBATCH --mem-per-cpu=32G
-#SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
-##--ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
+#SBATCH --ntasks=10 --cpus-per-task=4 --nodes=1
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=sigrMQSLURMLOG
+#SBATCH --output=dkatjMQSLURMLOG
 
 
-WORKDIR=/cluster/projects/nn9036k/scripts/sigrid
+WORKDIR=/cluster/projects/nn9036k/scripts/katja/d
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -30,6 +29,7 @@ mono --version
 module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe  -p 20 /cluster/projects/nn9036k/scripts/sigrid/mqpar.linux.xml
-#mono MQCMD -p MQPARF
-#mono MQCMD -n MQPARF
+#dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe   /cluster/projects/nn9036k/scripts/katja/d/mqpar.bup.xml
+#dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe -p 19  /cluster/projects/nn9036k/scripts/katja/d/mqpar.bup.xml
+#dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe -p 28  /cluster/projects/nn9036k/scripts/katja/d/mqpar.bup.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe -p 31  /cluster/projects/nn9036k/scripts/katja/d/mqpar.linux.xml
