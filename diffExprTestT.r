@@ -1,8 +1,8 @@
-#C:\Users\animeshs>R-4.2.3\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprTestT.r OneDrive\Desktop\ Bio
+#C:\Users\animeshs\R-4.2.3\bin\Rscript.exe diffExprTestT.r "L:/promec/TIMSTOF/LARS/2023/230222 Katja/" Bio
 args = commandArgs(trailingOnly=TRUE)
 print(args)
 if (length(args) != 2) {stop("\n\nNeeds the full path of the directory containing BOTH proteinGroups.txt from MaxQuant & Groups.txt files followed by the name of GROUP column in Groups.txt file whch will be used for the t-test, for example
-\"c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r F:/promec/Qexactive/Mirta/EYE_PRPF31/2023_RP11_RetinalOrganoids/combined/txt/ Bio\"
+\"c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r F:/promec/Qexactive/ Bio\"
                              ", call.=FALSE)}
 #setup####
 #install.packages("writexl")
@@ -12,14 +12,14 @@ if (length(args) != 2) {stop("\n\nNeeds the full path of the directory containin
 #install.packages("BiocManager")
 #BiocManager::install("limma")
 inpD <- args[1]
-#inpD <-"C:/Users/animeshs/OneDrive/Desktop/"
+#inpD <-"L:/promec/TIMSTOF/LARS/2023/230222 Katja/"
 lGroup <- args[2]
 #lGroup<-"Bio"
 inpF<-paste0(inpD,"proteinGroups.txt")
 inpL<-paste0(inpD,"Groups.txt")
 selection<-"LFQ.intensity."
 thr=0.0#count
-selThr=0.05#pValue-tTest
+selThr=0.1#pValue-tTest
 selThrFC=0.5#log2-MedianDifference
 cvThr=0.05#threshold for coefficient-of-variation
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
@@ -157,10 +157,19 @@ testT <- function(log2LFQt,sel1,sel2,cvThr){
     return(ttest.results)
   }
 }
-#testCFZR/DMSO-2WT####
+#compGrp####
 table(label$pair2test)
-rownames(label[label$pair2test=="WT",])
-rownames(label[label$pair2test=="DMSO",])
-ttDMSO2WT=testT(log2LFQ,"DMSO","WT",cvThr)
-ttDMSO2WT=testT(log2LFQ,"DMSO","CFZR",cvThr)
-ttDMSO2WT=testT(log2LFQ,"CFZR","WT",cvThr)
+rownames(label[label$pair2test=="WTM",])
+rownames(label[label$pair2test=="N3M",])
+ttN3M=testT(log2LFQ,"N3M","WTM",cvThr)
+rownames(label[label$pair2test=="ADM",])
+ttADM=testT(log2LFQ,"ADM","WTM",cvThr)
+rownames(label[label$pair2test=="ADN3M",])
+ttADN3MAD=testT(log2LFQ,"ADN3M","ADM",cvThr)
+rownames(label[label$pair2test=="WTF",])
+rownames(label[label$pair2test=="N3F",])
+ttN3F=testT(log2LFQ,"N3F","WTF",cvThr)
+rownames(label[label$pair2test=="ADF",])
+ttADF=testT(log2LFQ,"ADF","WTF",cvThr)
+rownames(label[label$pair2test=="ADN3F",])
+ttADN3FAD=testT(log2LFQ,"ADN3F","ADF",cvThr)
