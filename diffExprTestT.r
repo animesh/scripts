@@ -1,8 +1,8 @@
-#C:\Users\animeshs\R-4.2.3\bin\Rscript.exe diffExprTestT.r "L:/promec/TIMSTOF/LARS/2023/230222 Katja/" Bio
+#C:\Users\animeshs\R-4.2.3\bin\Rscript.exe diffExprTestT.r L:\promec\TIMSTOF\LARS\2023\230217_Caroline\combined\txt\ Bio
 args = commandArgs(trailingOnly=TRUE)
 print(args)
-if (length(args) != 2) {stop("\n\nNeeds the full path of the directory containing BOTH proteinGroups.txt from MaxQuant & Groups.txt files followed by the name of GROUP column in Groups.txt file whch will be used for the t-test, for example
-\"c:/Users/animeshs/R/bin/Rscript.exe diffExprTestT.r F:/promec/Qexactive/ Bio\"
+if (length(args) != 2) {stop("\n\nNeeds the full path of the directory containing BOTH proteinGroups.txt from MaxQuant & Groups.txt files followed by the name of GROUP column in Groups.txt file whch will be used for the rank-test, for example
+\"c:/Users/animeshs/R/bin/Rscript.exe diffExprTestRank.r F:/combined/txt/ Bio\"
                              ", call.=FALSE)}
 #setup####
 #install.packages("writexl")
@@ -12,16 +12,16 @@ if (length(args) != 2) {stop("\n\nNeeds the full path of the directory containin
 #install.packages("BiocManager")
 #BiocManager::install("limma")
 inpD <- args[1]
-#inpD <-"L:/promec/TIMSTOF/LARS/2023/230222 Katja/"
+#inpD <-"L:/promec/TIMSTOF/LARS/2023/230217_Caroline/combined/txt/"
 lGroup <- args[2]
 #lGroup<-"Bio"
 inpF<-paste0(inpD,"proteinGroups.txt")
-inpL<-paste0(inpD,"Groups.txt")
+inpL<-paste0(inpD,"Copy of Groups_CP.txt")
 selection<-"LFQ.intensity."
 thr=0.0#count
-selThr=0.1#pValue-tTest
+selThr=0.05#pValue-rTest
 selThrFC=0.5#log2-MedianDifference
-cvThr=0.05#threshold for coefficient-of-variation
+cvThr=Inf#threshold for coefficient-of-variation
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,"VolcanoTestT","pdf",sep = ".")
 pdf(outP)
@@ -101,13 +101,15 @@ testT <- function(log2LFQt,sel1,sel2,cvThr){
       dataSellog2grpTtest, 1, function(x)
         if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
       else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
-        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
+        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),paired=T)$p.value}
       else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1&(sd(x[c(sCol:mCol)],na.rm=T)/mean(x[c(sCol:mCol)],na.rm=T))<cvThr){0}
       else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1&(sd(x[c((mCol+1):eCol)],na.rm=T)/mean(x[c((mCol+1):eCol)],na.rm=T))<cvThr){0}
       else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
-        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+        x[is.na(x)]<-0
+        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),paired=T)$p.value}
       else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
-        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+        x[is.na(x)]<-0
+        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),paired=T)$p.value}
       else{NA}
     )
     summary(warnings())
@@ -134,13 +136,20 @@ testT <- function(log2LFQt,sel1,sel2,cvThr){
     hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
     plot(hda)
     limma::vennDiagram(hda>0)
-    logFCmedian = logFCmedianGrp1-logFCmedianGrp2
+    d1c<-d1
+    d2c<-d2
+    d1c[is.na(d1c)]<-0
+    d2c[is.na(d2c)]<-0
+    logFCt =d1c-d2c
+    logFCt[logFCt==0]<-NA
+    logFCmedian = apply(logFCt,1,function(x) median(x,na.rm=T))
+    logFCaverage = apply(logFCt,1,function(x) mean(x,na.rm=T))
     logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
     logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
     hist(logFCmedianFC)
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
-    ttest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+    ttest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,logFCmedianGrp1,logFCmedianGrp2,tTestPval=pValNA,CorrectedPValueBH=pValBHna,Log2MedianChange=logFCmedian,Log2AverageChange=logFCaverage,dataSellog2grpTtest,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
     writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.xlsx"))
     write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.csv"),row.names = F)
     ttest.results$RowGeneUniProtScorePeps<-data$geneName
@@ -157,19 +166,10 @@ testT <- function(log2LFQt,sel1,sel2,cvThr){
     return(ttest.results)
   }
 }
-#compGrp####
+#testttOmego1Cntr12####
 table(label$pair2test)
-rownames(label[label$pair2test=="WTM",])
-rownames(label[label$pair2test=="N3M",])
-ttN3M=testT(log2LFQ,"N3M","WTM",cvThr)
-rownames(label[label$pair2test=="ADM",])
-ttADM=testT(log2LFQ,"ADM","WTM",cvThr)
-rownames(label[label$pair2test=="ADN3M",])
-ttADN3MAD=testT(log2LFQ,"ADN3M","ADM",cvThr)
-rownames(label[label$pair2test=="WTF",])
-rownames(label[label$pair2test=="N3F",])
-ttN3F=testT(log2LFQ,"N3F","WTF",cvThr)
-rownames(label[label$pair2test=="ADF",])
-ttADF=testT(log2LFQ,"ADF","WTF",cvThr)
-rownames(label[label$pair2test=="ADN3F",])
-ttADN3FAD=testT(log2LFQ,"ADN3F","ADF",cvThr)
+rownames(label[label$pair2test=="Omego1",])
+rownames(label[label$pair2test=="Cntr1",])
+label<-label[order(label$Rep),]
+log2LFQs <- log2LFQ[,order(label$Rep)]
+ttOmego1Cntr12=testT(log2LFQs,"Omego1","Cntr1",cvThr)
