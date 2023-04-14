@@ -19,9 +19,10 @@ inpF<-paste0(inpD,"proteinGroups.txt")
 inpL<-paste0(inpD,"Copy of Groups_CP.txt")
 selection<-"LFQ.intensity."
 thr=0.0#count
-selThr=0.05#pValue-rTest
+selThr=0.1#pValue-rTest
 selThrFC=0.5#log2-MedianDifference
 cvThr=Inf#threshold for coefficient-of-variation
+testName="1way"
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,"VolcanoTestT","pdf",sep = ".")
 pdf(outP)
@@ -74,10 +75,11 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 ggplot2::ggsave(paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"HeatMap.svg"), svgPHC)
 #test####
-testT <- function(log2LFQt,sel1,sel2,cvThr){
-  #sel1<-"DMSO"
-  #sel2<-"WT"
+testT <- function(log2LFQt,sel1,sel2,cvThr,testName){
+  #sel1<-"Omego1"
+  #sel2<-"Cntr1"
   #log2LFQt<-log2LFQ
+  #testName<-"paired"
   colnames(log2LFQt)
   #log2LFQt<-sapply(log2LFQt, as.numeric)
   d1<-log2LFQt[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
@@ -97,20 +99,18 @@ testT <- function(log2LFQt,sel1,sel2,cvThr){
     mCol<-ncol(d1)#ceiling((eCol-sCol+1)/2)
     dim(dataSellog2grpTtest)
     options(nwarnings = 1000000)
+    d1c<-d1
+    d2c<-d2
+    d1c[is.na(d1c)]<-0
+    d2c[is.na(d2c)]<-0
+    logFCt =d1c-d2c
+    logFCt[logFCt==0]<-NA
     pValNA = apply(
-      dataSellog2grpTtest, 1, function(x)
-        if(sum(!is.na(x[c(sCol:mCol)]))<2&sum(!is.na(x[c((mCol+1):eCol)]))<2){NA}
-      else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
-        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),paired=T)$p.value}
-      else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1&(sd(x[c(sCol:mCol)],na.rm=T)/mean(x[c(sCol:mCol)],na.rm=T))<cvThr){0}
-      else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1&(sd(x[c((mCol+1):eCol)],na.rm=T)/mean(x[c((mCol+1):eCol)],na.rm=T))<cvThr){0}
-      else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
-        x[is.na(x)]<-0
-        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),paired=T)$p.value}
-      else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
-        x[is.na(x)]<-0
-        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),paired=T)$p.value}
-      else{NA}
+      logFCt, 1, function(x)
+      if(sum(!is.na(x))<2){NA}
+      #else if(sum(!is.na(x))<2){1}
+      else{
+        t.test(as.numeric(x),na.rm=T)$p.value}
     )
     summary(warnings())
     hist(pValNA)
@@ -136,12 +136,6 @@ testT <- function(log2LFQt,sel1,sel2,cvThr){
     hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
     plot(hda)
     limma::vennDiagram(hda>0)
-    d1c<-d1
-    d2c<-d2
-    d1c[is.na(d1c)]<-0
-    d2c[is.na(d2c)]<-0
-    logFCt =d1c-d2c
-    logFCt[logFCt==0]<-NA
     logFCmedian = apply(logFCt,1,function(x) median(x,na.rm=T))
     logFCaverage = apply(logFCt,1,function(x) mean(x,na.rm=T))
     logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
@@ -150,8 +144,8 @@ testT <- function(log2LFQt,sel1,sel2,cvThr){
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
     ttest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,logFCmedianGrp1,logFCmedianGrp2,tTestPval=pValNA,CorrectedPValueBH=pValBHna,Log2MedianChange=logFCmedian,Log2AverageChange=logFCaverage,dataSellog2grpTtest,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
-    writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.xlsx"))
-    write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.csv"),row.names = F)
+    writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,testName,"tTestBH.xlsx"))
+    write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,testName,"tTestBH.csv"),row.names = F)
     ttest.results$RowGeneUniProtScorePeps<-data$geneName
     ttest.results[is.na(ttest.results)]=selThr
     Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
@@ -161,7 +155,7 @@ testT <- function(log2LFQt,sel1,sel2,cvThr){
     p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
     #f=paste(file,proc.time()[3],".jpg")
     #install.packages("svglite")
-    ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"VolcanoTest.svg"), p)
+    ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,testName,"VolcanoTest.svg"), p)
     print(p)
     return(ttest.results)
   }
@@ -172,4 +166,4 @@ rownames(label[label$pair2test=="Omego1",])
 rownames(label[label$pair2test=="Cntr1",])
 label<-label[order(label$Rep),]
 log2LFQs <- log2LFQ[,order(label$Rep)]
-ttOmego1Cntr12=testT(log2LFQs,"Omego1","Cntr1",cvThr)
+ttOmego1Cntr12=testT(log2LFQs,"Omego1","Cntr1",cvThr,testName)
