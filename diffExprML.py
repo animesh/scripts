@@ -20,6 +20,11 @@ print(data.groupby(dGroup).count())
 train_labels = data[dGroup]
 train_data = data.drop(columns=dGroup)
 print ("Data for Modeling :" + str(train_data.shape))
+# %% dataheroes
+#https://dataheroes.ai/blog/how-to-automate-data-cleaning/?utm_medium=email&_hsmi=256170599&_hsenc=p2ANqtz-8lQlNFWgx1KAoh9c4J_kdw_Qivvdy9iOfWP6VmCQzqRUEKiYiPdtuqE2nA20GfRQOUqnkeyW95ixbVPkG3iShoy3m2Hw&utm_content=256170599&utm_source=hs_email
+#pip install dataheroes
+from dataheroes.utils import activate_account
+activate_account("animesh.sharma@ntnu.no")
 # %% kNN
 #https://towardsdatascience.com/elbow-method-is-not-sufficient-to-find-best-k-in-k-means-clustering-fc820da0631d
 !pip install yellowbrick  

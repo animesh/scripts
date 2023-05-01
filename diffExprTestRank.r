@@ -74,7 +74,7 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 ggplot2::ggsave(paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,"HeatMap.svg"), svgPHC)
 #test####
-testRank <- function(log2LFQt,sel1,sel2,cvThr){
+testRank <- function(log2LFQt,sel1,sel2,sel0,cvThr){
   #sel1<-"DMSO"
   #sel2<-"WT"
   #log2LFQt<-log2LFQ
@@ -82,7 +82,8 @@ testRank <- function(log2LFQt,sel1,sel2,cvThr){
   #log2LFQt<-sapply(log2LFQt, as.numeric)
   d1<-log2LFQt[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
   d2<-log2LFQt[,gsub("-",".",rownames(label[label$pair2test==sel2,]))]
-  dataSellog2grpRankTest<-as.matrix(cbind(d1,d2))
+  d0<-log2LFQt[,gsub("-",".",rownames(label[label$pair2test==sel0,]))]
+  dataSellog2grpRankTest<-as.matrix(cbind(d1-d0,d2-d0))
   if(sum(!is.na(d1))>1&sum(!is.na(d2))>1){
     hist(d1,breaks=round(max(dataSellog2grpRankTest,na.rm=T)))
     hist(d2,breaks=round(max(dataSellog2grpRankTest,na.rm=T)))
@@ -91,7 +92,7 @@ testRank <- function(log2LFQt,sel1,sel2,cvThr){
     dataSellog2grpRankTest[dataSellog2grpRankTest==0]=NA
     hist(dataSellog2grpRankTest,breaks=round(max(dataSellog2grpRankTest,na.rm=T)))
     row.names(dataSellog2grpRankTest)<-row.names(data)
-    comp<-paste0(sel1,sel2)
+    comp<-paste0(sel1,sel2,sel0)
     sCol<-1
     eCol<-ncol(dataSellog2grpRankTest)
     mCol<-ncol(d1)#ceiling((eCol-sCol+1)/2)
@@ -161,17 +162,20 @@ table(label$pair2test)
 rownames(label[label$pair2test=="Omego1",])
 rownames(label[label$pair2test=="Cntr1",])
 label<-label[order(label$Rep),]
+range(log2LFQ,na.rm=T)
+log2LFQ[is.na(log2LFQ)]<-0
+range(log2LFQ)
 log2LFQs <- log2LFQ[,order(label$Rep)]
 range(log2LFQs,na.rm=T)
-trOmego1Cntr12=testRank(log2LFQs,"Omego1","Cntr1",cvThr)
+trOmego1Cntr12=testRank(log2LFQs,"Omego1","Cntr1","h0",cvThr)
 range(trOmego1Cntr12$Log2MedianChange,na.rm=T)
 hist(trOmego1Cntr12$Log2MedianChange,breaks = 100)
-trOmego12Cntr122=testRank(log2LFQs,"Omego12","Cntr12",cvThr)
+trOmego12Cntr122=testRank(log2LFQs,"Omego12","Cntr12","h0",cvThr)
 range(trOmego12Cntr122$Log2MedianChange,na.rm=T)
 hist(trOmego12Cntr122$Log2MedianChange,breaks = 100)
-trOmego3Cntr3=testRank(log2LFQs,"Omego3","Cntr3",cvThr)
+trOmego3Cntr3=testRank(log2LFQs,"Omego3","Cntr3","h0",cvThr)
 range(trOmego3Cntr3$Log2MedianChange,na.rm=T)
 hist(trOmego3Cntr3$Log2MedianChange,breaks = 100)
-trOmego6Cntr6=testRank(log2LFQs,"Omego6","Cntr6",cvThr)
+trOmego6Cntr6=testRank(log2LFQs,"Omego6","Cntr6","h0",cvThr)
 range(trOmego6Cntr6$Log2MedianChange,na.rm=T)
 hist(trOmego6Cntr6$Log2MedianChange,breaks = 100)

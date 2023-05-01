@@ -1,8 +1,7 @@
+#C:\Users\animeshs\R-4.2.3\bin\Rscript.exe proteinGroups.r ..\..\..\230421_plasma\New\DIA\combined\txt\proteinGroups.txt
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
-#example####
-#..\R\bin\Rscript.exe proteinGroups.r "L:\promec\Qexactive\LARS\2022\juli\toktam\PDv2p5\Beer\220706_toktam1_Proteins.txt"
 #supplying input file for testing
-#inpF<-file.path("L:/promec/Qexactive/LARS/2022/juli/toktam/PDv2p5/Beer/220706_toktam1_Proteins.txt")
+#inpF<-file.path("C:/Users/animeshs/230421_plasma/New/DIA/combined/txt/proteinGroups.txt")
 #parse argument(s)0
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -20,13 +19,15 @@ print("Selecting Raw Intensity Values(s)")
 if(sum(grep(selection,colnames(data)))>0){
   #clean####
   nData<-nrow(data)
-  data = data[!data[["Reverse"]]=="+",]
+  if(sum(is.na(data[["Reverse"]]))<nData){data = data[!data[["Reverse"]]=="+",]}
   dim(data)
   nrow(data)/nData
-  data = data[!data[["Potential.contaminant"]]=="+",]
+  nDataR<-nrow(data)
+  if(sum(is.na(data[["Potential.contaminant"]]))<nDataR){data = data[!data[["Potential.contaminant"]]=="+",]}
   dim(data)
   nrow(data)/nData
-  data = data[!data[["Only.identified.by.site"]]=="+",]
+  nDataC<-nrow(data)
+  if(sum(is.na(data[["Only.identified.by.site"]]))<nDataC){data = data[!data[["Only.identified.by.site"]]=="+",]}
   dim(data)
   nrow(data)/nData
   print("Removed Reverse,Potential.contaminant and Only.identified.by.site")
@@ -144,12 +145,21 @@ summary(intensityLFQ)
 print(paste("Selected and log2 transformed columns",selection))
 if(dim(log2LFQ)[2]>0){
   barplot(isNA,main=paste("Protein group #",paste(t(colSums(!is.na(intensityLFQ)))),paste(t(colSums(is.na(intensityLFQ))))))
-  boxplot(intensity)
+  boxplot(intensity,main="Intensity")
   par(mar=c(12,3,1,1))
-  boxplot(intensityLFQ,las=2)
+  boxplot(intensityLFQ,las=2,main="log2Intensity")
   par(mar=c(12,3,1,1))
-  boxplot(log2LFQ,las=2)
-  boxplot(2^log2LFQ)
+  boxplot(log2LFQ,las=2,main="log2LFQ")
+  boxplot(2^log2LFQ,main="LFQ")
+  log2LFQhigh<-log2LFQ
+  log2LFQhigh[log2LFQhigh<5]=NA
+  hist(log2LFQ,breaks=100,main="log2LFQ bin 100")
+  hist(log2LFQhigh,breaks=100,main="log2LFQ>5 bin 100")
+  boxplot(log2LFQhigh,las=2,main="log2LFQ>5")
+  log2LFQhigh<-log2LFQ
+  log2LFQhigh[log2LFQhigh<quantile(log2LFQhigh,na.rm=T,probs = 0.375)]=NA
+  hist(log2LFQhigh,breaks=100,main="log2LFQ>probs=0.375 bin 100")
+  boxplot(log2LFQhigh,las=2,main="log2LFQ>probs=0.375")
   NAcols<-colSums(is.na(log2LFQ))
   NAcols<-c(NAcols, mean(NAcols),median(NAcols),sum(is.na(NAcols)),sd(NAcols)/mean(NAcols),sum(NAcols),"MissingValue(s)")
   print(paste("Summarised missing-values in log2 transformed columns",t(NAcols)))
