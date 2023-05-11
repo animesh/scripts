@@ -21,8 +21,9 @@ RUN apt-get install -y psmisc parallel gnupg ca-certificates apt-transport-https
 #unzip MQ.zip
 #rm mqpar.xml 
 #dotnet $PWD/MaxQuant*/bin/MaxQuantCmd.exe -c mqpar.xml
-#wget "https://rest.uniprot.org/uniprotkb/stream?format=fasta&includeIsoform=true&query=%28%28proteome%3AUP000005640%29%29" -O example.fasta
+#wget "https://rest.uniprot.org/uniprotkb/stream?format=fasta&includeIsoform=true&query=%28%28proteome%3AUP000005640%29%29" -O uniprot_human_iso_$(date +%d%b%Y).fasta
 #sed "s?example.fasta?$PWD/uniprot_human_iso_$(date +%d%b%Y).fasta?" mqpar.xml  > mqpar.cf.xml
 #wget https://github.com/animesh/RawRead/raw/master/171010_Ip_Hela_ugi.raw
 #sed "s?file.example.RAW?$PWD/171010_Ip_Hela_ugi.raw?" mqpar.cf.xml  > mqpar.xml
 #dotnet $PWD/MaxQuant*/bin/MaxQuantCmd.exe $PWD/mqpar.xml
+#grep "Q5JVX7" combined/txt/proteinGroups.txt | awk '{print $1,$20}'#11.746

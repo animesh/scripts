@@ -1,7 +1,7 @@
-#C:\Users\animeshs\R-4.2.3\bin\Rscript.exe proteinGroups.r ..\..\..\230421_plasma\New\DIA\combined\txt\proteinGroups.txt
+#C:\Users\animeshs\R-4.2.3\bin\Rscript.exe proteinGroups.r C:\Users\animeshs\230504_hela_test\combined\txtMC1
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
 #supplying input file for testing
-#inpF<-file.path("C:/Users/animeshs/230421_plasma/New/DIA/combined/txt/proteinGroups.txt")
+#inpF<-file.path("C:/Users/animeshs/230504_hela_test/combined/txtMC1/proteinGroups.txt")
 #parse argument(s)0
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
