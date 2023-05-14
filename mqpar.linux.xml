@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scripts/katja/d/uniprot-mouse-iso-Mar23.fasta</fastaFilePath>
+	      <fastaFilePath>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/uniprot-human-iso-apr23.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -128,13 +128,13 @@
    <name>session1</name>
    <maxQuantVersion>2.3.1.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>40</numThreads>
+   <numThreads>36</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
    <fixedCombinedFolder></fixedCombinedFolder>
-   <fullMinMz>-1.79769313486232E+308</fullMinMz>
-   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
+   <fullMinMz>-1.79589544172745E+308</fullMinMz>
+   <fullMaxMz>1.79589544172745E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -144,118 +144,34 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_73_Slot1-19_1_3843.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_78_Slot1-20_1_3845.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_79_Slot1-14_1_3833.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_80_Slot1-15_1_3835.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_115_Slot1-38_1_3886.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_118_Slot1-17_1_3839.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_122_Slot1-39_1_3888.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_131_Slot1-40_1_3890.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_135_Slot1-34_1_3873.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_136_Slot1-35_1_3875.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_138_Slot1-36_1_3880.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_139_Slot1-37_1_3882.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_141_Slot1-11_1_3827.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_142_Slot1-12_1_3829.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_150_Slot1-3_1_3812.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_151_Slot1-2_1_3810.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_155_Slot1-1_1_3808.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_156_Slot1-5_1_3815.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_167_Slot1-28_1_3861.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_170_Slot1-23_1_3851.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_171_Slot1-29_1_3863.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_173_Slot1-6_1_3817.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_174_Slot1-24_1_3853.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_175_Slot1-25_1_3855.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_181_Slot1-8_1_3821.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_182_Slot1-7_1_3819.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_222_Slot1-16_1_3837.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_228_Slot1-31_1_3867.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_231_Slot1-32_1_3869.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_275_Slot1-30_1_3865.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_566_Slot1-9_1_3823.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_1170_Slot1-26_1_3857.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_1171_Slot1-27_1_3859.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_1180_Slot1-21_1_3847.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_1181_Slot1-22_1_3849.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_1277_Slot1-10_1_3825.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_1280_Slot1-4_1_3813.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_64_Slot1-18_1_3841.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_65_Slot1-13_1_3831.d</string>
-      <string>/cluster/projects/nn9036k/scripts/katja/d/230222_Katja_66_Slot1-33_1_3871.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_1_Slot2-28_1_4276.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_2_Slot2-29_1_4277.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_3_Slot2-30_1_4278.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_4_Slot2-31_1_4279.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_5_Slot2-32_1_4281.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_6_Slot2-33_1_4282.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_7_Slot2-34_1_4283.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_8_Slot2-35_1_4284.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_9_Slot2-36_1_4286.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_10_Slot2-37_1_4287.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_11_Slot2-38_1_4288.d</string>
+      <string>/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/230330_ANDERS_SUNDAN_12_Slot2-39_1_4289.d</string>
    </filePaths>
    <experiments>
-      <string>73_Slot1-19_1_3843</string>
-      <string>78_Slot1-20_1_3845</string>
-      <string>79_Slot1-14_1_3833</string>
-      <string>80_Slot1-15_1_3835</string>
-      <string>115_Slot1-38_1_3886</string>
-      <string>118_Slot1-17_1_3839</string>
-      <string>122_Slot1-39_1_3888</string>
-      <string>131_Slot1-40_1_3890</string>
-      <string>135_Slot1-34_1_3873</string>
-      <string>136_Slot1-35_1_3875</string>
-      <string>138_Slot1-36_1_3880</string>
-      <string>139_Slot1-37_1_3882</string>
-      <string>141_Slot1-11_1_3827</string>
-      <string>142_Slot1-12_1_3829</string>
-      <string>150_Slot1-3_1_3812</string>
-      <string>151_Slot1-2_1_3810</string>
-      <string>155_Slot1-1_1_3808</string>
-      <string>156_Slot1-5_1_3815</string>
-      <string>167_Slot1-28_1_3861</string>
-      <string>170_Slot1-23_1_3851</string>
-      <string>171_Slot1-29_1_3863</string>
-      <string>173_Slot1-6_1_3817</string>
-      <string>174_Slot1-24_1_3853</string>
-      <string>175_Slot1-25_1_3855</string>
-      <string>181_Slot1-8_1_3821</string>
-      <string>182_Slot1-7_1_3819</string>
-      <string>222_Slot1-16_1_3837</string>
-      <string>228_Slot1-31_1_3867</string>
-      <string>231_Slot1-32_1_3869</string>
-      <string>275_Slot1-30_1_3865</string>
-      <string>566_Slot1-9_1_3823</string>
-      <string>1170_Slot1-26_1_3857</string>
-      <string>1171_Slot1-27_1_3859</string>
-      <string>1180_Slot1-21_1_3847</string>
-      <string>1181_Slot1-22_1_3849</string>
-      <string>1277_Slot1-10_1_3825</string>
-      <string>1280_Slot1-4_1_3813</string>
-      <string>64_Slot1-18_1_3841</string>
-      <string>65_Slot1-13_1_3831</string>
-      <string>66_Slot1-33_1_3871</string>
+      <string>1_Slot2-28_1_4276</string>
+      <string>2_Slot2-29_1_4277</string>
+      <string>3_Slot2-30_1_4278</string>
+      <string>4_Slot2-31_1_4279</string>
+      <string>5_Slot2-32_1_4281</string>
+      <string>6_Slot2-33_1_4282</string>
+      <string>7_Slot2-34_1_4283</string>
+      <string>8_Slot2-35_1_4284</string>
+      <string>9_Slot2-36_1_4286</string>
+      <string>10_Slot2-37_1_4287</string>
+      <string>11_Slot2-38_1_4288</string>
+      <string>12_Slot2-39_1_4289</string>
    </experiments>
    <fractions>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -282,34 +198,6 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
@@ -324,64 +212,8 @@
       <int>0</int>
       <int>0</int>
       <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
       <string></string>
       <string></string>
       <string></string>

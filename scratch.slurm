@@ -1,17 +1,15 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=dkatj
-#SBATCH --time=144:00:00
+#SBATCH --account=nn9036k --job-name=anders
+#SBATCH --time=160:00:00
 ##SBATCH --partition=bigmem
-##SBATCH --ntasks=16 --cpus-per-task=4
-##SBATCH --mem-per-cpu=32G
-#SBATCH --ntasks=10 --cpus-per-task=4 --nodes=1
+#SBATCH --ntasks=4 --cpus-per-task=10 --nodes=1
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=dkatjMQSLURMLOG
+#SBATCH --output=andersMQSLURMLOG
 
 
-WORKDIR=/cluster/projects/nn9036k/scripts/katja/d
+WORKDIR=/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -24,12 +22,11 @@ echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 
 module purge
-module load MaxQuant/1.6.17.0-foss-2019b
+module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
 mono --version
-module load dotNET-SDK/3.1.300-linux-x64
+module --ignore-cache load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 
-#dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe   /cluster/projects/nn9036k/scripts/katja/d/mqpar.bup.xml
-#dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe -p 19  /cluster/projects/nn9036k/scripts/katja/d/mqpar.bup.xml
-#dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe -p 28  /cluster/projects/nn9036k/scripts/katja/d/mqpar.bup.xml
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.3.1.0/bin/MaxQuantCmd.exe -p 31  /cluster/projects/nn9036k/scripts/katja/d/mqpar.linux.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.4/bin/MaxQuantCmd.exe -p 19 /cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/mqpar.linux.xml
+#mono MQCMD -p MQPARF
+#mono MQCMD -n MQPARF
