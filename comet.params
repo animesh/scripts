@@ -12,7 +12,7 @@
 # https://github.com/percolator/percolator/wiki/Example 
 # comet.win64.exe L:\promec\HF\Lars\2022\june\Plasmatest\220601_HF_QC_BSA.raw
 # percolator.exe -X L:\promec\HF\Lars\2022\june\Plasmatest\220601_HF_QC_BSA.pep.xml L:\promec\HF\Lars\2022\june\Plasmatest\220601_HF_QC_BSA.pin >  result.tsv
-database_name = human.fasta
+database_name = proteoformer_LeeGao_uniprot_plusisoform_2019_04.fasta
 decoy_search = 1                       # 0=no (default), 1=concatenated search, 2=separate search
 peff_format = 0                        # 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
 peff_obo = # PSI-MOD.obo
@@ -44,8 +44,8 @@ require_variable_mod = 0
 # fragment ions
 # ion trap ms/ms:  1.0005 tolerance, 0.4 offset (mono masses), theoretical_fragment_ions = 1
 # high res ms/ms:    0.02 tolerance, 0.0 offset (mono masses), theoretical_fragment_ions = 0, spectrum_batch_size = 15000
-fragment_bin_tol = 0.02              # binning to use on fragment ions
-fragment_bin_offset = 0.0              # offset position to start the binning (0.0 to 1.0)
+fragment_bin_tol = 1.0005              # binning to use on fragment ions
+fragment_bin_offset = 0.4              # offset position to start the binning (0.0 to 1.0)
 theoretical_fragment_ions = 1          # 0=use flanking peaks, 1=M peak only
 use_A_ions = 0
 use_B_ions = 1

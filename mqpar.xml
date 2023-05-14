@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>example.fasta</fastaFilePath>
+         <fastaFilePath>/home/ash022/scripts/uniprot_human_iso_05May2023.fasta</fastaFilePath>
          <identifierParseRule>>(.*)</identifierParseRule>
          <descriptionParseRule></descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -125,7 +125,7 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>templateSession</name>
-   <maxQuantVersion>2.3.1.0</maxQuantVersion>
+   <maxQuantVersion>2.4.0.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
    <numThreads>1</numThreads>
    <emailAddress></emailAddress>
@@ -143,7 +143,7 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>file.example.RAW</string>
+      <string>/home/ash022/scripts/171010_Ip_Hela_ugi.raw</string>
    </filePaths>
    <experiments>
       <string>experiment.example</string>
@@ -323,6 +323,7 @@
          <diaPrecTolPpmFeatureClustering>2</diaPrecTolPpmFeatureClustering>
          <diaFragTolPpmFeatureClustering>2</diaFragTolPpmFeatureClustering>
          <diaScoreN>12</diaScoreN>
+         <diaScoreNAdditional>5</diaScoreNAdditional>
          <diaMinScore>1.99</diaMinScore>
          <diaXgBoostBaseScore>0.4</diaXgBoostBaseScore>
          <diaXgBoostSubSample>0.9</diaXgBoostSubSample>
@@ -333,7 +334,7 @@
          <diaTopNForQuant>10</diaTopNForQuant>
          <diaMinMsmsIntensityForQuant>0</diaMinMsmsIntensityForQuant>
          <diaTopMsmsIntensityQuantileForQuant>0.85</diaTopMsmsIntensityQuantileForQuant>
-         <diaMinFragmentOverlapScore>1</diaMinFragmentOverlapScore>
+         <diaMinFragmentOverlapScore>0</diaMinFragmentOverlapScore>
          <diaMinPrecursorScore>0</diaMinPrecursorScore>
          <diaUseProfileCorrelation>True</diaUseProfileCorrelation>
          <diaMinPrecProfileCorrelation>0</diaMinPrecProfileCorrelation>
@@ -385,6 +386,7 @@
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
+         <diaMultiplexQuantMethod>2</diaMultiplexQuantMethod>
          <diaOnlyPostprocess>False</diaOnlyPostprocess>
          <isM2FragTypeOverride>False</isM2FragTypeOverride>
          <ms2FragTypeOverride>0</ms2FragTypeOverride>
