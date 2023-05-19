@@ -1,3 +1,23 @@
+```{r prostomics-cancVrest}
+#utils::install.packages(pkgs = "ggstatsplot")
+#Patil, I. (2021). Visualizations with statistical details: The 'ggstatsplot' approach. Journal of Open Source Software, 6(61), 3167, doi:10.21105/joss.03167
+library(ggstatsplot)
+#data<-read.csv("L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/proteinGroups.txtIntensity.Cell198cancer0.10.1Infcancer_vs_restRemovecorrected_order2_TSHcanVrest.txtrawIntWilcoxTestBH.csv",row.names = 120)
+data<-read.csv("L:/promec/TIMSTOF/LARS/2022/july/Elise/combined/txt/corrected_order2_TSHcanVrestPerData.txt",sep="\t")#,row.names = 1)
+table(data$C..cancer_vs_rest)
+#Q13336 P0CAP1 Q96HC4 Q96K37 Q9BR39
+summary(data$Q13336.Q13336.2.M0QYS8.K7EQM7.F5GWS2.B4DFJ8.E9NSU1)
+ggbetweenstats(data,C..cancer_vs_rest,Q13336.Q13336.2.M0QYS8.K7EQM7.F5GWS2.B4DFJ8.E9NSU1)
+summary(data$P0CAP1.10.P0CAP1.3.P0CAP1.P0CAP1.4.H8Y6P7.P0CAP1.7.P0CAP1.6.P0CAP1.2.P0CAP1.11.P0CAP1.8.P0CAP1.5.P0CAP1.9.H0YCD3)
+ggbetweenstats(data,C..cancer_vs_rest,P0CAP1.10.P0CAP1.3.P0CAP1.P0CAP1.4.H8Y6P7.P0CAP1.7.P0CAP1.6.P0CAP1.2.P0CAP1.11.P0CAP1.8.P0CAP1.5.P0CAP1.9.H0YCD3)
+summary(data$Q96HC4.4.Q96HC4.7.Q96HC4.6.Q96HC4.2.H0YBI4)
+ggbetweenstats(data,C..cancer_vs_rest,Q96HC4.4.Q96HC4.7.Q96HC4.6.Q96HC4.2.H0YBI4)
+summary(data$Q96K37.H7C1I0.Q96K37.2.C9JK45)
+ggbetweenstats(data,C..cancer_vs_rest,Q96K37.H7C1I0.Q96K37.2.C9JK45)
+summary(data$Q9BR39)
+ggbetweenstats(data,C..cancer_vs_rest,Q9BR39)
+```
+
 ```{r MM-3grps}
 #https://twitter.com/strnr/status/1628754929887092736/photo/1
 #install.packages("vctrs")
