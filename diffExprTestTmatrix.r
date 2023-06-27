@@ -1,4 +1,4 @@
-#..\R-4.2.1-win\bin\Rscript.exe diffExprTestTmatrix.r "L:\OneDrive - NTNU\Aida\sORF\mqpar.K8R10.xml.1664621075.results\peptides.txt.Count.normH2L.csv" "L:\OneDrive - NTNU\Aida\sORF\mqpar.K8R10.xml.1664621075.results\Groups2.txt" Class Rem
+#C:\Users\animeshs\R-4.2.3\bin\Rscript.exe diffExprTestTmatrix.r "F:\OneDrive - NTNU\Aida\Survival\Supplementary Table 2 for working purpose.xlsxid.csv"  "F:\OneDrive - NTNU\Aida\Survival\Groups.txt" MM Survival Remove
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -13,15 +13,15 @@ if (length(args) < 4) {stop("\n\nNeeds at least 4 arguments, the full path of th
 c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestTmatrix.r \"L:\\OneDrive - NTNU\\Aida\\sORF\\mqpar.K8R10.xml.1664621075.results\\peptides.txt.Count.normH2L.csv\" \"L:\\OneDrive - NTNU\\Aida\\sORF\\mqpar.K8R10.xml.1664621075.results\\Groups.txt\" Class Rem
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:\\promec\\Qexactive\\LARS\\2022\\juli\\toktam\\PDv2p5\\Beer\\220706_toktam1_Proteins.txt.Abundance.Normalized..log2.csv"
+#inpF <-"F:/OneDrive - NTNU/Aida/Survival/Supplementary Table 2 for working purpose.xlsxid.csv"
 inpL <- args[2]
-#inpL <-"L:\\promec\\Qexactive\\LARS\\2022\\juli\\toktam\\PDv2p5\\Beer\\GroupsR1.txt"
+#inpL <-"F:/OneDrive - NTNU/Aida/Survival/Groups.txt"
 selection <- args[3]
-#selection<-"Sample"
+#selection<-"MM"
 lGroup <- args[4]
-#lGroup<-"Class"
+#lGroup<-"Survival"
 rGroup <- args[5]
-#rGroup<-"Rem"
+#rGroup<-"Remove"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -67,10 +67,9 @@ if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["rem
 print(label)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr){
-  #sel1<-"MM"
-  #sel2<-"MGUS"
+  #sel1<-"Long"
+  #sel2<-"Short"
   #log2LFQ<-log2LFQsel#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
-  #log2LFQ<-sapply(log2LFQ, as.numeric)
   #colnames(log2LFQ)
   d1<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
   d2<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel2,]))]
@@ -133,7 +132,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     hist(logFCmedianFC)
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
-    ttest.results = data.frame(Uniprot=data$uniprot,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+    ttest.results = data.frame(Uniprot=sapply(strsplit(row.names(dataSellog2grpTtest),";"), `[`, 2),logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
     writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.xlsx"))
     write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.csv"),row.names = F)
     ttest.results.return<-ttest.results
@@ -165,6 +164,9 @@ colnames(log2LFQsel)
 dim(log2LFQsel)
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
+sum(table(label$pair2test))
+print(colnames(log2LFQsel)==rownames(label))
+sum(colnames(log2LFQsel)==rownames(label))
 for(i in rownames(table(label$pair2test))){
   for(j in rownames(table(label$pair2test))){
     if(i!=j){
