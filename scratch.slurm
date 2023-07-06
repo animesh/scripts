@@ -25,7 +25,8 @@ echo "Total of $SLURM_NTASKS cores"
 
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
-module load HISAT2/2.2.1-gompi-2022a
-hisat2 -p 40 -U  FASTFILE --dta -x HISATGENOMEDIR -S FASTFILE.sam 2>FASTFILE.hisat.summary.txt
-
+module purge
+module load SAMtools/1.17-GCC-12.2.0
+samtools view -@40 -m40g -bS SAMFILE > BAMFILE
+samtools sort -@40  BAMFILE > SORTBAMFILE
 
