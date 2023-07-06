@@ -43,6 +43,304 @@ plot(A)
 system.time (B <- crossprod(A))
 plot(B)
 ```
+
+```{r regression}
+#https://elevanth.org/blog/2021/06/15/regression-fire-and-dangerous-things-1-3/
+set.seed(1908)
+a = rnorm(500000)
+summary(a)
+noise = rnorm(500000)
+summary(noise)
+p = a + noise
+summary(p)
+d = data.frame(a, p)
+plot(d)
+# question 1
+print(lm(a ~ p, data=d))
+print(lm(p ~ a, data=d))
+
+# question 2
+a_hat = predict(lm(a ~ p, data=d), d)
+print(cor(a_hat - a, a))
+print(cor(a_hat - a, a_hat))
+
+# question 3
+print(cor(p - a, a))
+print(cor(p - a, p))
+
+N <- 200 # number of pairs
+U <- rnorm(N) # simulate confounds
+# birth order and family sizes
+B1 <- rbinom(N,size=1,prob=0.5) # 50% first borns
+M <- rnorm( N , 2*B1 + U )
+B2 <- rbinom(N,size=1,prob=0.5)
+D <- rnorm( N , 2*B2 + U + 0*M ) # change the 0 to turn on causal influence of mom
+
+#In this code, the variables are: B1 mom’s birth order, M mom’s family size, B2 daughter’s birth order, D daughter’s family size. Those are the variables we get to use for inference. The variable U is part of the generative model, but we haven’t measured it in our thought experiment, so it isn’t available for use in what follows.
+
+# fit the two regression models
+summary( lm( D ~ M ) )
+summary( lm( D ~ M + B1 + B2 ) )
+
+# compare the models with AIC
+AIC( lm( D ~ M ) )
+AIC( lm( D ~ M + B1 + B2 ) )
+
+
+The first model, D ~ M, gives you:
+
+  Estimate Std. Error t value Pr(>|t|)
+(Intercept)   0.7128     0.1244   5.729 3.71e-08 ***
+  M             0.2596     0.0619   4.194 4.12e-05 ***
+  To coefficient for M is positive and has a small standard error. This is a result of the U confound, we know from the generative model above. The AIC for this model is 740. The second regression gives us:
+
+  Estimate Std. Error t value Pr(>|t|)
+(Intercept) -0.03980    0.15280  -0.260   0.7948
+M            0.39468    0.06326   6.239 2.67e-09 ***
+  B1          -0.52544    0.22049  -2.383   0.0181 *
+  B2           1.80475    0.17101  10.553  < 2e-16 ***
+
+
+  The first step is to stop thinking about regression and start thinking about a generative model of the data. So let’s think about each variable and which other variables influence it. Here is the simulation code again, to get us moving.
+
+set.seed(1908)
+N <- 200 # number of pairs
+U <- rnorm(N) # simulate confounds
+# birth order and family sizes
+B1 <- rbinom(N,size=1,prob=0.5) # 50% first borns
+M <- rnorm( N , 2*B1 + U )
+B2 <- rbinom(N,size=1,prob=0.5)
+D <- rnorm( N , 2*B2 + U + 0*M ) # change the 0 to turn on causal influence of mom
+view rawRFDT1.R hosted with ❤ by GitHub
+First let’s consider M, mom’s family size. This is influenced by B1, her birth order. But it’s also influenced by the unobserved confounds U. So M is some function of B1 and U. We could make this into a graph, with arrows indicating causal influence, like this:
+
+  B1 —> M <— U
+
+The daughter’s family size D is influenced, possibly, by M. That’s the point of the exercise, to estimate that influence. What else influences D? B2 and U, just like M. So D is some function of M, B2, and U. If you draw this as a graph, there will be three arrows entering D.
+
+
+If b is the causal influence of B1 on M, then the expected covariance between B1 and M is the causal effect b multiplied by the variance of B1. cov(B1,M) = b var(B1). Of course usually we don’t know b but want to estimate it. In that case we just solve for b and get b = cov(B1,M)/var(B1). You can try this on the R command line:
+
+  cov( B1 , M ) / var( B1 )
+
+But watch this. The covariance of B1 and D is something we can compute. And the expected covariance, thinking like the graph, is:
+
+  cov( B1 , D ) = b m var( B1 )
+
+When there are multiple arrows on the path, we multiply the causes. Okay so now we are ready to estimate m, because we know or can estimate every other part of the formula above. Solving for m:
+
+  m = cov( B1 , D ) / ( b var( B1 ) )
+
+We know the formula for b = cov( B1 , M ) / var( B1 ), so we can substitute that in and simplify to:
+
+  m = cov( B1 , D ) / cov( B1 , M )
+
+And there you have it. Try out that calculation in R and you’ll see it gets very close to the right answer (zero). Now modify the simulation so that m is some non-zero value like 0.5 and try again. You’ll see that you again get close to the right answer, using the ratio of covariances above. If you increase the sample size in the simulation to for example N = 1e5, you should get the causal effect exactly right.
+
+
+
+set.seed(1908)
+N <- 200 # number of pairs
+U <- rnorm(N,0,1) # simulate confounds
+# birth order and family sizes
+B1 <- rbinom(N,size=1,prob=0.5) # 50% first borns
+M <- rnorm( N , 2*B1 + U )
+B2 <- rbinom(N,size=1,prob=0.5)
+D <- rnorm( N , 2*B2 + U + 0*M )
+
+f <- function(data,indices) with(data[indices,], cov(B1,D) / cov(B1,M) )
+dat <- data.frame(M=M,D=D,B1=B1,B2=B2)
+library(boot)
+boot( data=dat , statistic=f , R=1e4 )
+
+
+The causal influence of interest is defined by this intervention, written as p(D|do(M)), the distribution of D when we intervene on M.
+
+
+(1) Express the model as a joint distribution
+To remind you, the generative model in this example is given by the simulation itself:
+
+  set.seed(1908)
+N <- 200 # number of pairs
+U <- rnorm(N) # simulate confounds
+# birth order and family sizes
+B1 <- rbinom(N,size=1,prob=0.5) # 50% first borns
+M <- rnorm( N , 2*B1 + U )
+B2 <- rbinom(N,size=1,prob=0.5)
+D <- rnorm( N , 2*B2 + U + 0*M ) # change the 0 to turn on causal influence of mom
+
+
+(2) Teach the distribution to a computer
+Now that we have expressed the generative model this way, it automatically implies (by the axioms of probability) a joint probability distribution of all of the variables. The variables are the data (the observed variables) and the parameters (the latent variables).
+
+
+# full-luxury bayesian inference https://github.com/rmcelreath/rethinking#quick-installation
+library(rethinking)
+library(cmdstanr)
+dat <- list(N=N,M=M,D=D,B1=B1,B2=B2)
+set.seed(1908)
+flbi <- ulam(
+  alist(
+    # mom model
+    M ~ normal( mu , sigma ),
+    mu <- a1 + b*B1 + k*U[i],
+    # daughter model
+    D ~ normal( nu , tau ),
+    nu <- a2 + b*B2 + m*M + k*U[i],
+    # B1 and B2
+    B1 ~ bernoulli(p),
+    B2 ~ bernoulli(p),
+    # unmeasured confound
+    vector[N]:U ~ normal(0,1),
+    # priors
+    c(a1,a2,b,m) ~ normal( 0 , 0.5 ),
+    c(k,sigma,tau) ~ exponential( 1 ),
+    p ~ beta(2,2)
+  ), data=dat , chains=4 , cores=4 , iter=2000 , cmdstan=TRUE )
+
+
+inference for the effect m, b, and k. The rethinking package gives a concise summary of the marginal distributions of these variables with precis(flbi,pars=c("m","b","k")). The output is:
+
+  mean   sd  5.5% 94.5% n_eff Rhat4
+m 0.12 0.10 -0.04  0.27   237  1.01
+b 1.85 0.12  1.65  2.05  1889  1.00
+k 0.68 0.20  0.30  0.96   156  1.02
+
+(3) Simulate causal interventions
+In this example, the causal query is so simple that there is a single parameter for it, m.
+
+# simulate interventions
+
+# B1 -> D (should be b*m as its linear)
+post <- extract.samples(flbi)
+quantile( with(post,b*m) )
+
+# now do the same with simulation
+
+# B1 = 0
+# B1 -> M
+M_B1_0 <- with( post , a1 + b*0 + k*0 )
+# M -> D
+D_B1_0 <- with( post , a2 + b*0 + m*M_B1_0 + k*0 )
+
+# now same but with B1 = 1
+M_B1_1 <- with( post , a1 + b*1 + k*0 )
+D_B1_1 <- with( post , a2 + b*0 + m*M_B1_1 + k*0 )
+
+# difference to get causal effect
+d_D_B1 <- D_B1_1 - D_B1_0
+quantile(d_D_B1)
+view rawRFDT5.R hosted with ❤ by GitHub
+The first chunk of code computes the distribution of the causal effect of B1 on D. The output is:
+
+# version that marginalizes out the missing data https://gist.github.com/rmcelreath/6eb3c96ac52d53ae8f972e8fbf88e30d
+  flbi_plus <- ulam(
+    alist(
+      c(M,D) ~ multi_normal( c(mu,nu) , Rho , Sigma ),
+      mu <- a1 + b*B1,
+      nu <- a2 + b*B2 + m*M,
+      c(a1,a2,b,m) ~ normal( 0 , 0.5 ),
+      Rho ~ lkj_corr( 2 ),
+      Sigma ~ exponential( 1 )
+    ), data=dat , chains=4 , cores=4 , cmdstan=TRUE )
+
+precis(flbi_plus,3)
+```
+
+```{r sample}
+#https://medium.com/evidentebm/sample-size-matters-a30e975a2f90
+install.packages("stats")
+library(stats)
+# Calculate sample size for a two-sample t-test
+power.t.test(d = 0.5, # effect size
+             power = 0.8, # desired power
+             sig.level = 0.05, # alpha level
+             alternative = "two.sided") # two-sided test
+
+# Install and import the statistics library
+!pip install statistics
+import statistics
+# Calculate sample size for a two-sample t-test in Python
+statistics.samplesize.ttest_ind_samplesize(0.5, # effect size
+                                           alpha=0.05, # alpha level
+                                           power=0.8, # desired power
+                                           alternative="two-sided") # two-sided test
+Both of these examples will calculate the required sample size for each group in a two-sample t-test with an effect size of 0.5, an alpha level of 0.05, and a power of 0.8.
+
+You can also use the samplesize module to calculate sample size for other types of statistical tests, such as ANOVA and regression. For example:
+
+  # Calculate sample size for one-way ANOVA in Python
+  statistics.samplesize.anova_oneway_samplesize(0.5, # effect size
+                                                alpha=0.05, # alpha level
+                                                power=0.8) # desired power
+# Calculate sample size for regression in Python
+statistics.samplesize.regression_samplesize(0.5, # effect size
+                                            alpha=0.05, # alpha level
+                                            power=0.8, # desired power
+                                            p=2, # number of predictors
+                                            ratio=1) # ratio of control to treatment group
+
+
+```
+
+```{r chartBB}
+#https://rpubs.com/Mayank7j_2020/billboard_2020
+# Target Web site URL
+hot100page <- "https://www.billboard.com/charts/hot-100"
+# Capture the HTML and XML level website information
+#install.packages("xml2")
+hot100 <- xml2::read_html(hot100page)
+#"%>%" <- function(x,f) do.call(f,list(x))#https://www.datacamp.com/tutorial/pipe-r-tutorial
+#https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/
+#install.packages("rvest")
+rank <- hot100 |> 
+  rvest::html_nodes('body') |> 
+  xml2::xml_find_all("//span[contains(@class, 'chart-element__rank__number')]") |> 
+  rvest::html_text()
+
+# Extract artist of the song
+artist <- hot100 |> 
+  rvest::html_nodes('body') |> 
+  xml2::xml_find_all("//span[contains(@class, 'chart-element__information__artist')]") |> 
+  rvest::html_text()
+
+# Extrat title of the song
+title <- hot100 |> 
+  rvest::html_nodes('body') |> 
+  xml2::xml_find_all("//span[contains(@class, 'chart-element__information__song')]") |> 
+  rvest::html_text()
+
+#charts > div > div.chart-list.container > ol > li:nth-child(1) > button > div > div.chart-element__meta.text--center.color--secondary.text--peak
+
+chart_top_100 <- data.frame(rank, artist, title)
+head(chart_top_100, 20)
+```
+
+```{r PCA}
+#https://medium.com/@gajendra.k.s/principal-component-analysis-pca-a190315de80b
+data<-data.frame("M"=c(90,90,60,60,30),"E"=c(60,90,60,60,30),"A"=c(90,30,60,90,30))
+biplot(princomp(data))
+#https://www.marsja.se/how-to-calculate-z-score-in-r/
+mData <- apply(data, 2, mean)
+sData <- apply(data, 2, sd)
+#dataZ <- sweep(data, 2, mData, FUN = "-") / sData
+dataZ <- t((t(data)-(mData))/(sData))
+biplot(princomp(dataZ))
+dataCov<-cov(data)
+biplot(princomp(dataCov))
+MM<-apply(data["M"]*data["M"],2,mean)-mData["M"]*mData["M"]
+ME<-apply(data["M"]*data["E"],2,mean)-mData["M"]*mData["E"]
+MA<-apply(data["M"]*data["A"],2,mean)-mData["M"]*mData["A"]
+EE<-apply(data["E"]*data["E"],2,mean)-mData["E"]*mData["E"]
+EA<-apply(data["A"]*data["E"],2,mean)-mData["A"]*mData["E"]
+AA<-apply(data["A"]*data["A"],2,mean)-mData["A"]*mData["A"]
+dataC<-data.frame("MM"=c(MM,ME,MA),"EE"=c(ME,EE,EA),"AA"=c(MA,EA,AA))
+biplot(princomp(dataC))
+dataE<-eigen(dataC)
+print(dataE$values)#comes in reverse of actual since it is auto sort to descending
+print(dataE$vectors)
+```
+
 ```{r}
 #https://twitter.com/ATpoint90/status/1504515297683902467?t=KKSz6X4CEI9Ka_H2aO7svw&s=03
 DESeq2::results() or the limma::treat() and edgeR::glmTreat() 
