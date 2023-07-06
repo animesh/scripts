@@ -9,7 +9,7 @@
 #SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
 #SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
-#SBATCH --output=seqRNA
+#SBATCH --output=seqRNAlog
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -25,5 +25,7 @@ echo "Total of $SLURM_NTASKS cores"
 
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
-module load HISAT2/2.2.1-gompi-2022amodule load Java/13.0.2
-for i in *.fastq.gz ; do echo $i; j=$(basename $i); k=${j%%.fastq*}; echo  $k ; hisat2 -p 40 -U  $i --dta -x grch38_tran/genome_tran -S $k.sam 2>$k.hisat.summary.txt ; done
+module load HISAT2/2.2.1-gompi-2022a
+hisat2 -p 40 -U  FASTFILE --dta -x HISATGENOMEDIR -S FASTFILE.sam 2>FASTFILE.hisat.summary.txt
+
+
