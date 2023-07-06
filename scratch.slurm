@@ -1,15 +1,17 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=anders
-#SBATCH --time=160:00:00
 ##SBATCH --partition=bigmem
-#SBATCH --ntasks=4 --cpus-per-task=10 --nodes=1
-#SBATCH --mem-per-cpu=4G
+#SBATCH --account=nn9036k --job-name=seqRNA
+##SBATCH --account=nn9036k --job-name=seqRNABM
+#SBATCH --time=1:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
+##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
+##SBATCH --mem-per-cpu=16G
+#SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
+#SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
-#SBATCH --output=andersMQSLURMLOG
+#SBATCH --output=seqRNA
 
-
-WORKDIR=/cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/
+WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -21,12 +23,7 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 
-module purge
-module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
-mono --version
-module --ignore-cache load dotNET-SDK/3.1.300-linux-x64
-dotnet --version
-
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.4/bin/MaxQuantCmd.exe -p 19 /cluster/home/ash022/scripts/230330_ANDERS_SUNDAN/mqpar.linux.xml
-#mono MQCMD -p MQPARF
-#mono MQCMD -n MQPARF
+export http_proxy=proxy.saga:3128
+export https_proxy=proxy.saga:3128
+module load HISAT2/2.2.1-gompi-2022amodule load Java/13.0.2
+for i in *.fastq.gz ; do echo $i; j=$(basename $i); k=${j%%.fastq*}; echo  $k ; hisat2 -p 40 -U  $i --dta -x grch38_tran/genome_tran -S $k.sam 2>$k.hisat.summary.txt ; done
