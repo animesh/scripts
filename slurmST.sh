@@ -1,4 +1,4 @@
-#git checkout ccf153b66954f9b301a2c842308eb399418a107b scratch.slurm slurmST.sh
+#git checkout 0cf41e42d18d0da31feed531324412b0d7a7288b scratch.slurm slurmST.sh
 #dos2unix scratch.slurm slurmST.sh#perl -pi -e's/\015\012/\012/g' slurmST.sh
 #bash slurmST.sh $PWD/AYU/hisat2.1688724920.results
 DATADIR=$1
