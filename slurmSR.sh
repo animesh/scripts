@@ -1,5 +1,6 @@
-#perl -pi -e's/\015\012/\012/g' slurmST.sh
-#bash slurmSR.sh /cluster/projects/nn9036k/rnaSeqChk/hisat2.1688649889.results/samtools.1688653985.results/Homo_sapiens.GRCh38.109.gtf /cluster/projects/nn9036k/rnaSeqChk/hisat2.1688649889.results/samtools.1688653985.results
+#git checkout 8da41fec0e5f683e9d6b1b0a18e5cad84d3c7c59 slurmSR.sh scratch.slurm
+#dos2unix slurmSR.sh scratch.slurm#perl -pi -e's/\015\012/\012/g' slurmSR.sh
+#bash slurmSR.sh /cluster/projects/nn9036k/rnaSeqChk/hisat2.1688649889.results/samtools.1688653985.results/Homo_sapiens.GRCh38.109.gtf $PWD/AYU/hisat2.1688724920.results/samtools.1688725428.results
 RUNCMD=subread
 MAPFILE=$1
 mfj=$(basename $MAPFILE); 
@@ -21,4 +22,5 @@ echo "featureCounts -T $CPU  -t exon -g gene_id -O -a $MAPFILE -o $DATADIR/$WRIT
 cat $DATADIR/$WRITEDIR/$PARAMFILE
 echo $DATADIR/$WRITEDIR/$PARAMFILE
 sbatch $DATADIR/$WRITEDIR/$PARAMFILE
+echo $DATADIR/$WRITEDIR/$mfk.$CPU.counts.txt
 
