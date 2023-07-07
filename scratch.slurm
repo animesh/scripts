@@ -22,11 +22,11 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-#export LMOD_DISABLE_SAME_NAME_AUTOSWAP=FALSE
+
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module purge
-module load HISAT2/2.2.1-gompi-2022a
-hisat2 -p 40 -U  FASTFILE --dta -x HISATGENOMEDIR -S FASTFILE.sam 2>FASTFILE.hisat.summary.txt
-
+module load SAMtools/1.17-GCC-12.2.0
+samtools view -@40 -m40g -bS SAMFILE > BAMFILE
+samtools sort -@40  BAMFILE > SORTBAMFILE
 
