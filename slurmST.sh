@@ -1,5 +1,6 @@
-#perl -pi -e's/\015\012/\012/g' slurmST.sh
-#bash slurmST.sh /cluster/projects/nn9036k/rnaSeqChk/hisat2.1688649627.results
+#git checkout 7243207be51cffa7633344530419e2790d382afb scratch.slurm
+#dos2unix scratch.slurm slurmST.sh
+#bash slurmST.sh TK/hisat2.1689928244.results
 DATADIR=$1
 RUNCMD=samtools
 PARAMFILE=scratch.slurm

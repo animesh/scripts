@@ -1,6 +1,6 @@
 #git checkout 71a2f5b100d3cc6c3e543098d234ebaafdd88d4e slurmSR.sh
 #dos2unix slurmSR.sh
-#bash slurmSR.sh /cluster/projects/nn9036k/rnaSeqChk/hisat2.1688649889.results/samtools.1688653985.results/Homo_sapiens.GRCh38.109.gtf  TK/hisat2.1689410858.results/samtools.1689594992.results
+#bash slurmSR.sh hg38v110/Homo_sapiens.GRCh38.110.gtf TK/hisat2.1689928244.results/samtools.1689938696.results
 RUNCMD=subread
 MAPFILE=$1
 mfj=$(basename $MAPFILE); 
@@ -18,10 +18,10 @@ sed "s|SLURMJOB|$RUNCMD.$mfk.$CPU|g" $PARAMFILE > $DATADIR/$WRITEDIR/$PARAMFILE
 echo "module purge" >> $DATADIR/$WRITEDIR/$PARAMFILE
 echo "module load Subread/2.0.3-GCC-11.2.0" >> $DATADIR/$WRITEDIR/$PARAMFILE
 
-echo "featureCounts -T $CPU -p -t exon -g gene_id -O -a $MAPFILE -o $DATADIR/$WRITEDIR/$mfk.$CPU.countOnlyPairs.txt $SORTBAMFILES" >> $DATADIR/$WRITEDIR/$PARAMFILE
-#echo "featureCounts -T $CPU -p --countReadPairs -C -t exon -g gene_id -O -a $MAPFILE -o $DATADIR/$WRITEDIR/$mfk.$CPU.countOnlyPairs.txt $SORTBAMFILES" >> $DATADIR/$WRITEDIR/$PARAMFILE
+echo "featureCounts -T $CPU -p -t exon -g gene_id -O -a $MAPFILE -o $DATADIR/$WRITEDIR/$mfk.$CPU.count.txt $SORTBAMFILES" >> $DATADIR/$WRITEDIR/$PARAMFILE
+echo "featureCounts -T $CPU -p --countReadPairs -C -t exon -g gene_id -O -a $MAPFILE -o $DATADIR/$WRITEDIR/$mfk.$CPU.countOnlyPairs.txt $SORTBAMFILES" >> $DATADIR/$WRITEDIR/$PARAMFILE
 cat $DATADIR/$WRITEDIR/$PARAMFILE
 echo $DATADIR/$WRITEDIR/$PARAMFILE
 sbatch $DATADIR/$WRITEDIR/$PARAMFILE
-echo $DATADIR/$WRITEDIR/$mfk.$CPU.countOnlyPairs.txt
+echo $DATADIR/$WRITEDIR/$mfk.$CPU.countWithPairs.txt
 

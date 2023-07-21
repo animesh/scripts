@@ -1,0 +1,21 @@
+#git checkout 71a2f5b100d3cc6c3e543098d234ebaafdd88d4e scratch.slurm slurmFastQC.sh
+#dos2unix scratch.slurm slurmFastQC.sh
+#bash slurmFastQC.sh $PWD/TK
+RUNCMD=fastqc
+DATADIR=$1
+PARAMFILE=scratch.slurm
+CPU=40
+CURRENTEPOCTIME=`date +%s`
+WRITEDIR=$RUNCMD.$CURRENTEPOCTIME.results
+FILES=$(ls $DATADIR/*.f*q.gz|tr "\n" " ")
+echo $DATADIR $WRITEDIR $FILES
+mkdir $DATADIR/$WRITEDIR
+sed "s|SLURMJOB|$RUNCMD.$CPU|g" $PARAMFILE > $DATADIR/$WRITEDIR/$PARAMFILE
+echo "module purge" >> $DATADIR/$WRITEDIR/$PARAMFILE
+echo "module load FastQC/0.11.9-Java-11" >> $DATADIR/$WRITEDIR/$PARAMFILE
+echo "$RUNCMD -t $CPU -o $DATADIR/$WRITEDIR $DATADIR/*.f*q.gz" >> $DATADIR/$WRITEDIR/$PARAMFILE
+cat $DATADIR/$WRITEDIR/$PARAMFILE
+echo $DATADIR/$WRITEDIR/$PARAMFILE
+sbatch $DATADIR/$WRITEDIR/$PARAMFILE
+echo $DATADIR/$WRITEDIR/
+
