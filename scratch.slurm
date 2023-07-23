@@ -26,14 +26,7 @@ echo "Total of $SLURM_NTASKS cores"
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module purge
-module load STAR/2.7.10b-GCC-11.3.0
-#STAR --genomeDir STARGENOMEDIR/ \
-STAR --genomeDir /cluster/home/ash022/scripts/hg38v110star/hg38_index_len150/ \
-	--runThreadN 40 \
-	--readFilesIn FASTFILE1 FASTFILE2 \
-	--quantMode GeneCounts \
-	--readFilesCommand zcat \
-	--outFileNamePrefix FASTFILElen150 \
-	--outSAMtype BAM SortedByCoordinate \
-	--outSAMunmapped Within \
-	--outSAMattributes Standard 
+module load HISAT2/2.2.1-gompi-2022a
+hisat2 -p 40 -1 FASTFILE1 -2 FASTFILE2 --dta -x HISATGENOMEDIR -S FASTFILE.sam 2>FASTFILE.hisat.summary.txt
+
+
