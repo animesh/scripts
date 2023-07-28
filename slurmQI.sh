@@ -1,4 +1,4 @@
-#git checkout master scratch.slurm slurmQI.sh
+#git checkout def35f5515d2a6bb0c49b9952a4c9a844a7bb73a scratch.slurm slurmQI.sh
 #dos2unix scratch.slurm slurmQI.sh
 #bash slurmQI.sh  $PWD/TK/hisat2.1690116069.results/samtools.1690538848.results
 DATADIR=$1
