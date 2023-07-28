@@ -1,7 +1,7 @@
 #!/bin/sh
 ##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=seqRNA
-##SBATCH --account=nn9036k --job-name=seqRNABM
+#SBATCH --account=nn9036k --job-name=QIseqRNA
+##SBATCH --account=nn9036k --job-name=QIseqRNABM
 #SBATCH --time=1:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 ##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
@@ -9,7 +9,7 @@
 #SBATCH --ntasks=1 --cpus-per-task=NCPU
 #SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
-#SBATCH --output=seqRNAlog
+#SBATCH --output=OUTDIRlog
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -26,8 +26,6 @@ echo "Total of $SLURM_NTASKS cores"
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module purge
-module load SAMtools/1.17-GCC-12.2.0
-samtools view -@NCPU -m10g -bS SAMFILE > BAMFILE
-samtools sort -@NCPU  BAMFILE > SORTBAMFILE
-samtools index -@NCPU INDEXSORT
+module load Qualimap/2.3-foss-2022b-R-4.2.2
+qualimap --java-mem-size=NCPUG bamqc -gd hg38 -bam SORTBAMFILE -gff /cluster/projects/nn9036k/scripts/hg38v110star/Homo_sapiens.GRCh38.110.gtf -ip -nt NCPU  -nr 10000 -nw 100  -p non-strand-specific -outdir OUTDIR -outformat PDF:HTML -outfile report.hg38.NCPU.ip.nonstrand.nr10000.nw100.pdf
 
