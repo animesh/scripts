@@ -27,8 +27,7 @@ export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 
 module purge
-module load Qualimap/2.2.1-foss-2021b-R-4.1.2
-
+module load Qualimap/2.3-foss-2022b-R-4.2.2
 #qualimap -h
 #qualimap --java-mem-size=64G bamqc -nt 6 -bam cluster/rnaSeqChk/hisat2.1688721150.results/WT_1_R1.sam
 #qualimap --java-mem-size=40G bamqc -bam scripts/TK/star.1690114446.results/*.bam -outdir R49/bamqc -outformat PDF:HTML
@@ -38,6 +37,6 @@ module load Qualimap/2.2.1-foss-2021b-R-4.1.2
 #cat bamFP  | awk -F '/' '{print $9}' | awk -F '.' '{print $1}' > sampleName
 #cat sampleName | awk -F '_' '{print $1}' > groupName
 #paste sampleName bamFP groupName > TK/dataTK.qi.hisat2.list
-qualimap --java-mem-size=40G multi-bamqc -r -d $PWD/TK/dataTK.qi.hisat2.list -gff $PWD/hg38v110/Homo_sapiens.GRCh38.110.gtf -outdir $PWD/TK/multibamqcHISAT2 -outformat PDF:HTML
+qualimap --java-mem-size=40G multi-bamqc -r -d $PWD/TK/dataTK.qi.hisat2.list -gff $PWD/hg38v110/Homo_sapiens.GRCh38.110.gtf -outdir $PWD/TK/multibamqc23HISAT2 -outformat PDF:HTML
 #qualimap --java-mem-size=40G multi-bamqc -r -d $PWD/TK/dataTK.qi.list -gff $PWD/hg38v110star/Homo_sapiens.GRCh38.110.gtf -outdir $PWD/TK/multibamqc -outformat PDF:HTML
 
