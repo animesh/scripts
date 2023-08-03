@@ -1,15 +1,15 @@
 #!/bin/sh
 ##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=seqRNA
-##SBATCH --account=nn9036k --job-name=seqRNABM
+#SBATCH --account=nn9036k --job-name=QIseqRNA
+##SBATCH --account=nn9036k --job-name=QIseqRNABM
 #SBATCH --time=1:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 ##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
 ##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
+#SBATCH --ntasks=1 --cpus-per-task=NCPU
 #SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
-#SBATCH --output=seqRNAlog
+#SBATCH --output=OUTDIRlog
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -22,26 +22,10 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-#export LMOD_DISABLE_SAME_NAME_AUTOSWAP=FALSE
+
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module purge
-module load STAR/2.7.10b-GCC-11.3.0
-STAR --genomeDir STARGENOMEDIR/ \
-	--runThreadN 40 \
-	--readFilesIn FASTFILE1 FASTFILE2 \
-	--quantMode GeneCounts \
-	--readFilesCommand zcat \
-	--outFileNamePrefix FASTFILElen150 \
-	--outSAMtype BAM SortedByCoordinate \
-	--outSAMunmapped Within \
-	--outFilterMultimapNmax 20 \
-	--alignSJoverhangMin 8 \
-	--alignSJDBoverhangMin 1 \
-	--outFilterMismatchNmax 10 \
-	--outFilterMismatchNoverLmax 0.04 \
-	--alignIntronMin 20 \
-	--alignIntronMax 1000000 \
-	--chimSegmentMin 30 \
-	--outSAMattributes Standard 
+module load Qualimap/2.3-foss-2022b-R-4.2.2
+qualimap --java-mem-size=NCPUG bamqc -bam SORTBAMFILE -gff FILEGFF -ip -nt NCPU -p non-strand-specific -outdir OUTDIR -outformat PDF:HTML -outfile report.NCPU.ip.nonstrand.pdf
 

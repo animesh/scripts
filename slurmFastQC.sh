@@ -1,4 +1,4 @@
-#git checkout 71a2f5b100d3cc6c3e543098d234ebaafdd88d4e scratch.slurm slurmFastQC.sh
+#git checkout 5600b6d208fba90345e1ce52284626a976d9f63c scratch.slurm slurmFastQC.sh
 #dos2unix scratch.slurm slurmFastQC.sh
 #bash slurmFastQC.sh $PWD/TK
 RUNCMD=fastqc
