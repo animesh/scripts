@@ -27,8 +27,11 @@ export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module purge
 module load SAMtools/1.17-GCC-12.2.0
+
+samtools fastq -f12 SAMFILE > BAMFILE.both.unmapped.fastq
+samtools fastq -f 4 -F 8 SAMFILE > BAMFILE.1.unmapped.fastq
+samtools fastq -f 8 -F 4 SAMFILE > BAMFILE.2.unmapped.fastq
 samtools view -@NCPU -m10g -bS SAMFILE > BAMFILE
 samtools sort -@NCPU  BAMFILE > SORTBAMFILE
 samtools index -@NCPU INDEXSORT
-samtools view -b -f12  > output.both_mates_unmapped.bam
 
