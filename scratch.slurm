@@ -1,15 +1,15 @@
 #!/bin/sh
 ##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=seqRNA
-##SBATCH --account=nn9036k --job-name=seqRNABM
-#SBATCH --time=1:00:00
+#SBATCH --account=nn9036k --job-name=nfTK
+##SBATCH --account=nn9036k --job-name=nextflowBM
+#SBATCH --time=120:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 ##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
 ##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=1 --cpus-per-task=NCPU
-#SBATCH --mem-per-cpu=1G
+#SBATCH --ntasks=1 --cpus-per-task=36
+#SBATCH --mem-per-cpu=2G
 #SBATCH --mail-type=ALL
-#SBATCH --output=seqRNAlog
+#SBATCH --output=nfTKlog
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -25,13 +25,17 @@ echo "Total of $SLURM_NTASKS cores"
 
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
-module purge
-module load SAMtools/1.17-GCC-12.2.0
 
-samtools fastq -f12 SAMFILE > BAMFILE.both.unmapped.fastq
-samtools fastq -f 4 -F 8 SAMFILE > BAMFILE.1.unmapped.fastq
-samtools fastq -f 8 -F 4 SAMFILE > BAMFILE.2.unmapped.fastq
-samtools view -@NCPU -m10g -bS SAMFILE > BAMFILE
-samtools sort -@NCPU  BAMFILE > SORTBAMFILE
-samtools index -@NCPU INDEXSORT
+module purge
+module load FastQC/0.11.9-Java-11
+
+#ls -1 $PWD/TK/*1.fq.gz > r1
+#ls -1 $PWD/TK/*2.fq.gz > r2
+#awk -F '/' '{print $6}' | sed 's|TK|auto|' > orient 
+#echo "sample,fastq_1,fastq_2,strandedness" > TK/sample.csv 
+#paste -d ','  sample r1 r2 orient >> TK/sample.csv
+#cat TK/sample.csv
+#ln -s $HOME/.nextflow/assets/nf-core/rnaseq/conf .
+
+$HOME/bin/nextflow run nf-core/rnaseq  --outdir $PWD/TK/nextflowHG37 --input $PWD/TK/sample.csv --genome GRCh37 -profile singularity
 
