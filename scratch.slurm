@@ -1,17 +1,15 @@
 #!/bin/sh
+#SBATCH --account=nn9036k --job-name=S35
+#SBATCH --time=164:00:00
 ##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=QIseqRNAt2t
-##SBATCH --account=nn9036k --job-name=QIseqRNABMt2t
-#SBATCH --time=1:00:00
+#SBATCH --ntasks=1 --cpus-per-task=35
+#SBATCH --mem-per-cpu=5G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
-##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=1 --cpus-per-task=NCPU
-#SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
-#SBATCH --output=OUTDIRt2tlog
+#SBATCH --output=S35MQSLURMLOG
 
-WORKDIR=${SLURM_SUBMIT_DIR}
+
+WORKDIR=/cluster/home/ash022/scripts/S35/
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -23,9 +21,12 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 
-export http_proxy=proxy.saga:3128
-export https_proxy=proxy.saga:3128
 module purge
-module load Qualimap/2.3-foss-2022b-R-4.2.2
-qualimap --java-mem-size=NCPUG bamqc -bam SORTBAMFILE -gff /cluster/home/ash022/cluster/scripts/CHM13v2-T2T/GCF_009914755.1_T2T-CHM13v2.0_genomic.gtf -ip -nt NCPU  -p non-strand-specific -outdir OUTDIR -outformat PDF:HTML -outfile report.T2T.NCPU.ip.nonstrand.pdf
+module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
+mono --version
+module --ignore-cache load dotNET-SDK/3.1.300-linux-x64
+dotnet --version
 
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.4/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/mqpar.linux.xml
+#mono MQCMD -p MQPARF
+#mono MQCMD -n MQPARF
