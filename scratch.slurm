@@ -1,17 +1,15 @@
 #!/bin/sh
+#SBATCH --account=nn9036k --job-name=S35
+#SBATCH --time=164:00:00
 ##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=starBAMQISLURMJOB
-##SBATCH --account=nn9036k --job-name=SLURMJOBBM
-#SBATCH --time=48:00:00
+#SBATCH --ntasks=1 --cpus-per-task=35
+#SBATCH --mem-per-cpu=5G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
-##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=1 --cpus-per-task=10
-#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=ALL
-#SBATCH --output=QIlog
+#SBATCH --output=S35MQSLURMLOG
 
-WORKDIR=${SLURM_SUBMIT_DIR}
+
+WORKDIR=/cluster/home/ash022/scripts/S35/
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -23,22 +21,12 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 
-export http_proxy=proxy.saga:3128
-export https_proxy=proxy.saga:3128
-
 module purge
-module load  Qualimap/2.3-foss-2022b-R-4.2.2 
+module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
+mono --version
+module --ignore-cache load dotNET-SDK/3.1.300-linux-x64
+dotnet --version
 
-#qualimap -h
-#qualimap --java-mem-size=64G bamqc -nt 6 -bam cluster/rnaSeqChk/hisat2.1688721150.results/WT_1_R1.sam
-#qualimap --java-mem-size=40G bamqc -bam scripts/TK/star.1690114446.results/*.bam -outdir R49/bamqc -outformat PDF:HTML
-#qualimap --java-mem-size=40G rnaseq -a uniquely-mapped-reads -bam scripts/TK/star.1690114446.results/TK10_49_len150Aligned.sortedByCoord.out.bam -gtf scripts/hg38v110star/Homo_sapiens.GRCh38.110.gtf -oc TK10_49.out -outdir $PWD  -outformat PDF:HTML -p non-strand-specific  -pe -s
-#qualimap --java-mem-size=40G rnaseq -bam scripts/TK/star.1690114446.results/TK10_49_len150Aligned.sortedByCoord.out.bam -gtf scripts/hg38v110star/Homo_sapiens.GRCh38.110.gtf -oc TK10_49.out -outdir $PWD/R49  -outformat PDF:HTML -p non-strand-specific  -pe -s
-#ls /cluster/projects/nn9036k/scripts/TK/hisat2.1690116069.results/samtools.1690117388.results/*.sort.bam  > bamFP
-#cat bamFP  | awk -F '/' '{print $9}' | awk -F '.' '{print $1}' > sampleName
-#cat sampleName | awk -F '_' '{print $1}' > groupName
-#paste sampleName bamFP groupName > TK/dataTK.qi.hisat2.list
-#qualimap --java-mem-size=40G multi-bamqc -r -d $PWD/TK/dataTK.qi.list -gff $PWD/hg38v110star/Homo_sapiens.GRCh38.110.gtf -outdir $PWD/TK/multibamqc -outformat PDF:HTML
-#qualimap --java-mem-size=40G multi-bamqc -r -d $PWD/TK/dataTK.qi.hisat2.list -gff $PWD/hg38v110/Homo_sapiens.GRCh38.110.gtf -outdir $PWD/TK/multibamqcHISAT2slurm -outformat PDF:HTML
-qualimap --java-mem-size=40G multi-bamqc -r -d $PWD/TK/dataTK.qi.list -gff $PWD/hg38v110star/Homo_sapiens.GRCh38.110.gtf -outdir $PWD/TK/multibamqcSTARslurm -outformat PDF:HTML
-
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.4/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/mqpar.linux.xml
+#mono MQCMD -p MQPARF
+#mono MQCMD -n MQPARF
