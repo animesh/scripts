@@ -102,7 +102,7 @@
    <alignmentIonMobilityWindow>1</alignmentIonMobilityWindow>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
-   <quantMode>2</quantMode>
+   <quantMode>1</quantMode>
    <massDifferenceMods>
    </massDifferenceMods>
    <mainSearchMaxCombinations>200</mainSearchMaxCombinations>
