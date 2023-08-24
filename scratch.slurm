@@ -1,9 +1,9 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=S35
+#SBATCH --account=nn9036k --job-name=S3517
 #SBATCH --time=164:00:00
 ##SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=35
-#SBATCH --mem-per-cpu=5G
+#SBATCH --ntasks=4 --cpus-per-task=10
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
 #SBATCH --output=S35MQSLURMLOG

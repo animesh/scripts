@@ -391,7 +391,7 @@
          <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>17</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dda>70</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>70</intensityThresholdMs1Dia>
          <intensityThresholdMs2>11</intensityThresholdMs2>
          <labelMods>
