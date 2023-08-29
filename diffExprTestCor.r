@@ -1,5 +1,5 @@
 #install.packages(c("readxl","writexl","svglite","ggplot2"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#F:\R-4.3.1\bin\Rscript.exe diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\SurvivalUpdates.xlsx" "LFQ.intensity." "Group" "Remove" "Spine.stage"
+#F:\R-4.3.1\bin\Rscript.exe diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\SurvivalUpdates_other parameters.xlsx" "LFQ.intensity." "Group" "Remove" "pH"
 print("USAGE:<path to>Rscript diffExprTestCor.r <complete path to directory containing proteinGroups.txt> AND <SurvivalUpdates.xlsx file>  \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -14,7 +14,7 @@ print(paste("Thresholds used - ", thr ,"#count-valid-samples," ,selThr,"#pValue-
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali//combined/txtNoDN/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali//combined/txtNoDN/SurvivalUpdates.xlsx"
+#inpL <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali//combined/txtNoDN/SurvivalUpdates_other parameters.xlsx"
 selection<-args[3]
 #selection<-"LFQ.intensity."
 lGroup <- args[4]
@@ -22,7 +22,7 @@ lGroup <- args[4]
 rGroup <- args[5]
 #rGroup<-"Remove"
 scaleF <- args[6]
-#scaleF<-"Fertilisation"
+#scaleF<-"pH"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -43,21 +43,8 @@ table(label[lGroup])
 table(label[is.na(label["removed"]),lGroup])
 rownames(label)<-sub("-",".",rownames(label))
 plot(label)
-hist(label$Fertilisation)
-hist(label$eyed.stage)
-hist(label$Hatching)
-hist(label$Spine.stage)
-label$pH<-as.numeric(label$pH)
-hist(label$pH)
-hist(label$RWH)
-label$Osmolality<-as.numeric(label$Osmolality)
-hist(label$Osmolality)
-label$AST<-as.numeric(label$AST)
-hist(label$AST)
-plot(label$Fertilisation,label$eyed.stage)#,na.rm=T)
-plot(label$Fertilisation,label$Hatching)#,na.rm=T)
-plot(label$eyed.stage~label$Hatching)#abline(lm(label$eyed.stage~label$Hatching))#,na.rm=T)
-cor.test(label$eyed.stage,label$Hatching)
+label[,scaleF]<-as.numeric(label[,scaleF])
+hist(label[,scaleF])
 write.table(label,paste0(inpL,".txt"),sep="\t",row.names = F,quote = F)
 annoFactor<-label[lGroup]
 names(annoFactor)<-lGroup
@@ -105,7 +92,10 @@ summary(log2LFQ)
 hist(log2LFQ,main=paste("Mean:",mean(log2LFQ,na.rm=T),"SD:",sd(log2LFQ,na.rm=T)),breaks=round(max(log2Int,na.rm=T)),xlim=range(min(log2Int,na.rm=T),max(log2Int,na.rm=T)))
 par(mar=c(12,3,1,1))
 boxplot(log2LFQ,las=2,main=selection)
-writexl::write_xlsx(as.data.frame(cbind(data$rowName,log2LFQ,rownames(data))),paste0(inpD,selection,"log2.xlsx"))
+#writeCSVcor####
+corFac=data.frame(t(label[,scaleF]))
+names(corFac)<-rownames(label)
+write.csv(as.data.frame(cbind(data$rowName,log2LFQ,corFac)),paste0(inpF,selection,"log2.csv"))
 #corHClfq####
 log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="pearson")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
@@ -116,9 +106,8 @@ heatmap(log2LFQimpCorr)
 #test####
 testCor <- function(log2LFQ,sel1,sel2){
   #sel1<-"EP"
-  #sel2<-"Fertilisation"
+  #sel2<-"pH"
   #selection<-selection
-  #log2LFQ<-log2LFQselCor
   #hist(log2LFQ)
   #colnames(log2LFQ)
   d1<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1&!is.na(label$pair2test),]))])
@@ -142,13 +131,14 @@ testCor <- function(log2LFQ,sel1,sel2){
     comp<-paste0(sel1,sel2)
     options(nwarnings = 1000000)
     resCor=apply(d1, 1,function(x)
-      if(sum(!is.na(x))<thr){NA}
+      if((sum(!is.na(x))<thr)){NA}
       #if(sum(!is.na(x))<2){NA}
-      else{
+      else if(sum(!is.na(x-d2))>=thr){
         cort=cor.test(as.numeric(x),as.numeric(d2),use="pairwise.complete.obs",method="pearson")
         cort=unlist(cort)
-      paste(cort[[1]],cort[[2]],cort[[3]],cort[[4]],sep="--VALS--")
-    }
+        paste(cort[[1]],cort[[2]],cort[[3]],cort[[4]],sep="--VALS--")
+      }
+      else{NA}
     )
     pValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 3)
     #pValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 1)
@@ -203,7 +193,6 @@ testCor <- function(log2LFQ,sel1,sel2){
   }
 }
 #compare####
-cor.test(seq(0.,0.4,0.1),seq(0.5,0.9,0.1))
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 cnt=0
