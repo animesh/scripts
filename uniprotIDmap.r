@@ -1,4 +1,4 @@
-#..\R\bin\Rscript.exe s
+#F:\R-4.3.1\bin\Rscript.exe uniprotIDmap.r
 #setup####
 #install.packages(c("readxl","writexl","BiocManager"), dependencies=TRUE)
 #BiocManager::install("UniProt.ws")#http://bioconductor.org/packages/release/bioc/vignettes/UniProt.ws/inst/doc/UniProt.ws.html
@@ -24,8 +24,8 @@ for(inpF in inpFL){
   print(colnames(data))
   upData<-mapUniProt(from="UniProtKB_AC-ID",to='Ensembl',query=data$Uniprot)
   writexl::write_xlsx(upData,paste0(inpF,"EnsemblID.xlsx"))
-  write.csv(upData,paste0(inpF,"EnsemblID.xlsx"))
+  write.csv(upData,paste0(inpF,"EnsemblID.csv"))
   dataMap<-merge(data,upData,by.y="From",by.x="Uniprot",all.x=TRUE)
   writexl::write_xlsx(dataMap,paste0(inpF,"EnsemblIDmap.xlsx"))
-  write.csv(dataMap,paste0(inpF,"EnsemblIDmap.xlsx"))
+  write.csv(dataMap,paste0(inpF,"EnsemblIDmap.csv"))
 }
