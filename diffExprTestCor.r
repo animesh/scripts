@@ -1,5 +1,5 @@
 #install.packages(c("readxl","writexl","svglite","ggplot2"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#F:\R-4.3.1\bin\Rscript.exe diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\SurvivalUpdates.xlsx" "LFQ.intensity." "Group" "Remove" "Hatching"
+#F:\R-4.3.1\bin\Rscript.exe diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\SurvivalUpdates.xlsx" "LFQ.intensity." "Group" "Remove" "Spine.stage"
 print("USAGE:<path to>Rscript diffExprTestCor.r <complete path to directory containing proteinGroups.txt> AND <SurvivalUpdates.xlsx file>  \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
