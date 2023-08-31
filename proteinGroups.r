@@ -1,7 +1,7 @@
-#C:\Users\animeshs\R-4.2.3\bin\Rscript.exe proteinGroups.r C:\Users\animeshs\230504_hela_test\combined\txtMC1
+#F:\R-4.3.1\bin\Rscript.exe proteinGroups.r "F:\OneDrive - NTNU\Ale\proteinGroups mouse.txt"
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
 #supplying input file for testing
-#inpF<-file.path("C:/Users/animeshs/230504_hela_test/combined/txtMC1/proteinGroups.txt")
+#inpF<-file.path("F:/OneDrive - NTNU/Ale/proteinGroups mouse.txt")
 #parse argument(s)0
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -59,6 +59,44 @@ print(isNA)
 #select from arg[]
 rownames(intensity)<-rownames(data)
 print("Converted Fasta headers to rownames intensity DF")
+write.csv(intensityLFQ,paste(inpF,selection,"csv",sep = "."))
+outP<-paste(inpF,selection,"pdf",sep = ".")
+pdf(outP)
+par(mar=c(12,3,1,1))
+boxplot(intensityLFQ,las=2,main=selection)
+#logBAQ####
+selection="iBAQ."
+if(sum(grep(selection,colnames(data)))>0){
+  LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+  LFQ<- LFQ[,colnames(LFQ)!=paste0(selection,"peptides")]
+  protNum<-1:ncol(LFQ);colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_");print(selection)
+  log2LFQ<-log2(LFQ)
+  log2LFQ[log2LFQ==-Inf]=NA
+  write.csv(log2LFQ,paste(inpF,selection,"csv",sep = "."))
+  boxplot(log2LFQ,las=2,main=selection)
+  }
+#logTop3####
+selection="Top3."
+if(sum(grep(selection,colnames(data)))>0){
+  LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+  LFQ<- LFQ[,colnames(LFQ)!=paste0(selection,"peptides")]
+  protNum<-1:ncol(LFQ);colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_");print(selection)
+  log2LFQ<-log2(LFQ)
+  log2LFQ[log2LFQ==-Inf]=NA
+  write.csv(log2LFQ,paste(inpF,selection,"csv",sep = "."))
+  boxplot(log2LFQ,las=2,main=selection)
+}
+#logMS2####
+selection="MS.MS.count."
+if(sum(grep(selection,colnames(data)))>0){
+  LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+  LFQ<- LFQ[,colnames(LFQ)!=paste0(selection,"peptides")]
+  protNum<-1:ncol(LFQ);colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),protNum,sep="_");print(selection)
+  log2LFQ<-LFQ
+  log2LFQ[log2LFQ==0]=NA
+  write.csv(log2LFQ,paste(inpF,selection,"csv",sep = "."))
+  boxplot(log2LFQ,las=2,main=selection)
+}
 #logLFQ####
 if(sum(grep("LFQ",colnames(data)))>0){
   selection="LFQ.intensity";print(paste("No columns to select, using"));
@@ -92,8 +130,6 @@ if(sum(grep("LFQ",colnames(data)))>0){
 } else{LFQ=intensity}
 summary(LFQ)
 dim(LFQ)
-outP<-paste(inpF,selection,"pdf",sep = ".")
-pdf(outP)
 #select certain marker proteins and calculate their intensity proportion, e.g. using histone as a protein ruler http://www.coxdocs.org/doku.php?id=perseus:user:plugins:proteomicruler
 LFQHordein<-LFQ[grep("Hordein",row.names(LFQ),ignore.case = TRUE),]
 print("Proportion of Hordein(s)")
