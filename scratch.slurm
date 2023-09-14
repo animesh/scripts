@@ -1,15 +1,15 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=S35MS211
+#SBATCH --account=nn9036k --job-name=S3517
 #SBATCH --time=164:00:00
-#SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=35
-#SBATCH --mem-per-cpu=5G
+##SBATCH --partition=bigmem
+#SBATCH --ntasks=4 --cpus-per-task=10
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=S35MQSLURMLOG11MS2
+#SBATCH --output=S35MQSLURMLOG
 
 
-WORKDIR=/cluster/home/ash022/scripts/S35-4/
+WORKDIR=/cluster/home/ash022/scripts/S35-2/
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -27,6 +27,6 @@ mono --version
 module --ignore-cache load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.4/bin/MaxQuantCmd.exe -p 13  /cluster/projects/nn9036k/scripts/S35-4/mqpar.linux.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.4/bin/MaxQuantCmd.exe -p 13 /cluster/projects/nn9036k/scripts/S35-2/mqpar.linux.xml
 #mono MQCMD -p MQPARF
 #mono MQCMD -n MQPARF

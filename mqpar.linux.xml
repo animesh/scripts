@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-	      <fastaFilePath>/cluster/projects/nn9036k/scripts/S35-4/uniprot-mouse-iso-Mar23.fasta</fastaFilePath>
+	      <fastaFilePath>/cluster/projects/nn9036k/scripts/S35-2/uniprot-mouse-iso-Mar23.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -144,41 +144,41 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M1_2080_2_Slot1-12_1_3568.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M1_2080_3_Slot1-13_1_3596.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M1_2080_4_Slot1-14_1_3588.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M1_2080_C1_Slot1-1_1_3528.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M1_2080_C2_Slot1-2_1_3530.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M2_4060_1_Slot1-15_1_3554.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M2_4060_2_Slot1-16_1_3550.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M2_4060_3_Slot1-17_1_3552.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M2_4060_4_Slot1-18_1_3594.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M2_4060_C1_Slot1-3_1_3532.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M2_4060_C2_Slot1-4_1_3534.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M3_AP_1_Slot1-19_1_3562.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M3_AP_2_Slot1-20_1_3592.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M3_AP_3_Slot1-21_1_3564.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M3_AP_4_Slot1-22_1_3574.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M3_AP_C1_Slot1-5_1_3536.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M3_AP_C2_Slot1-6_1_3538.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_1.1_Slot1-23_1_3582.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_1.2_Slot1-24_1_3576.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_1.3_Slot1-25_1_3570.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_2.1_Slot1-26_1_3578.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_2.2_Slot1-27_1_3556.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_2.3_Slot1-28_1_3590.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_3.1_Slot1-29_1_3566.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_3.3_Slot1-30_1_3572.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_4.1_Slot1-31_1_3586.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_C1_Slot1-7_1_3540.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M4_UP_C2_Slot1-8_1_3542.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M7_FUC_1_Slot1-32_1_3558.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M7_FUC_2_Slot1-33_1_3580.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M7_FUC_3_Slot1-34_1_3560.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M7_FUC_C1_Slot1-9_1_3544.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M7_FUC_C2_Slot1-10_1_3546.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M7_FUC4_Slot1-35_1_3548.d</string>
-      <string>/cluster/projects/nn9036k/scripts/S35-4/230130_M1_2080_1_Slot1-11_1_3584.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M1_2080_2_Slot1-12_1_3568.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M1_2080_3_Slot1-13_1_3596.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M1_2080_4_Slot1-14_1_3588.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M1_2080_C1_Slot1-1_1_3528.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M1_2080_C2_Slot1-2_1_3530.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M2_4060_1_Slot1-15_1_3554.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M2_4060_2_Slot1-16_1_3550.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M2_4060_3_Slot1-17_1_3552.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M2_4060_4_Slot1-18_1_3594.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M2_4060_C1_Slot1-3_1_3532.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M2_4060_C2_Slot1-4_1_3534.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M3_AP_1_Slot1-19_1_3562.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M3_AP_2_Slot1-20_1_3592.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M3_AP_3_Slot1-21_1_3564.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M3_AP_4_Slot1-22_1_3574.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M3_AP_C1_Slot1-5_1_3536.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M3_AP_C2_Slot1-6_1_3538.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_1.1_Slot1-23_1_3582.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_1.2_Slot1-24_1_3576.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_1.3_Slot1-25_1_3570.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_2.1_Slot1-26_1_3578.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_2.2_Slot1-27_1_3556.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_2.3_Slot1-28_1_3590.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_3.1_Slot1-29_1_3566.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_3.3_Slot1-30_1_3572.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_4.1_Slot1-31_1_3586.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_C1_Slot1-7_1_3540.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M4_UP_C2_Slot1-8_1_3542.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M7_FUC_1_Slot1-32_1_3558.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M7_FUC_2_Slot1-33_1_3580.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M7_FUC_3_Slot1-34_1_3560.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M7_FUC_C1_Slot1-9_1_3544.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M7_FUC_C2_Slot1-10_1_3546.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M7_FUC4_Slot1-35_1_3548.d</string>
+      <string>/cluster/projects/nn9036k/scripts/S35-2/230130_M1_2080_1_Slot1-11_1_3584.d</string>
    </filePaths>
    <experiments>
       <string>1_2080_2_Slot1-12_1_3568</string>
@@ -391,9 +391,9 @@
          <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>17</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dda>70</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>70</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>30</intensityThresholdMs2>
+         <intensityThresholdMs2>11</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
