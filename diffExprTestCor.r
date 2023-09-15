@@ -1,5 +1,5 @@
 #install.packages(c("readxl","writexl","svglite","ggplot2"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#F:\R-4.3.1\bin\Rscript.exe diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\SurvivalUpdates_other parameters_new_14092023.xlsx" "LFQ.intensity." "Group" "Remove" "RWH"
+#F:\R-4.3.1\bin\Rscript.exe diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\SurvivalUpdates_other parameters_new_14092023.xlsx" "LFQ.intensity." "Group" "Remove" "Osmolality"
 print("USAGE:<path to>Rscript diffExprTestCor.r <complete path to directory containing proteinGroups.txt> AND <SurvivalUpdates.xlsx file>  \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -22,7 +22,7 @@ lGroup <- args[4]
 rGroup <- args[5]
 #rGroup<-"Remove"
 scaleF <- args[6]
-#scaleF<-"RWH"
+#scaleF<-"Osmolality"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
