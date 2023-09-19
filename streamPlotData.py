@@ -19,7 +19,7 @@ df1=pd.read_csv("dataMM.csv", index_col=0)
 #from annotated_text import annotated_text
 #annotated_text(("LFQ","#faa"))
 st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-term=st.text_input("Uniprot IDs/GENE symbols?Like LAMP1 for e.g. one can also combine multiple using | symbol", "LAMP1|TFRC|Q9BXV9")
+term=st.text_input("Uniprot IDs/GENE symbols?Like TP53RK for e.g. one can also combine multiple using | symbol", "NBEAL2|TP53RK")
 term=term.rsplit(' ', 1)[0]
 term=term.strip()
 #term="IDH1|ASS1"
@@ -43,23 +43,22 @@ if(len(term)>0):
   #plt.plot(sel2.logFCmedianGrp1)
 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.cm import jet
 fig = plt.figure()#figsize=(16, 12))
 #ax = Axes3D(fig)
-ax = plt.axes(projection='3d')
+ax = plt.axes()
 #print(type(ax))
 sel1v['Group']=['MGUS','MGUS','MGUS','MGUS','MGUS','MGUS','MGUS','MGUS','MGUS','Ml','Ml','Ml','Ml','Ml','Ml','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM','MM']
-mapping = {'MGUS':'red','MM':'black','Ml':'green'}
+mapping = {'MGUS':'green','MM':'blue','Ml':'red'}
 sel1v=sel1v.replace({'Group': mapping})
 x = sel1v.iloc[:,0]
 y = sel1v.iloc[:,1]
-z = sel1v.iloc[:,2]
+#z = sel1v.iloc[:,2]
 c = sel1v['Group']
-ax.scatter(x,y,z, c=c)#, cmap='coolwarm')
-plt.title('Proteins log2SILAC 3D scatterplot')
+ax.scatter(x,y, c=c)#, cmap='coolwarm')
+plt.title('Proteins log2SILAC scatterplot')
 ax.set_xlabel(sel1v.columns[0])
 ax.set_ylabel(sel1v.columns[1])
-ax.set_zlabel(sel1v.columns[2])
+#ax.set_zlabel(sel1v.columns[2])
 #create your figure and get the figure object returned
 st.pyplot(fig)
