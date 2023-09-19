@@ -1,5 +1,4 @@
-#git checkout c16022351e13c77dae02926044c2bf59cdf4d7ec diffExprTestT.r
-#C:\Users\animeshs\OneDrive\Desktop\Scripts>C:\Users\animeshs\R-4.2.3\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2023\230614 Anders Sundan\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230614 Anders Sundan\combined\txt\Groups.txt" Bio Rem
+#F:\R-4.3.1\bin\Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230130_Alessandro_35_samples\m16lfqClassic\proteinGroups.txt" "L:\promec\USERS\Alessandro\230130_Alessandro_35_samples\m16lfqClassic\GroupsRem.txt" "Bead" "Rem"
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -14,11 +13,11 @@ if (length(args) != 4) {stop("\n\nNeeds FOUR arguments, the full path of the dir
 c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt\" Bio Rem
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2023/230614 Anders Sundan/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/USERS/Alessandro/230130_Alessandro_35_samples/m16lfqClassic/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2023/230614 Anders Sundan/combined/txt/Groups.txt"
+#inpL <-"L:/promec/USERS/Alessandro/230130_Alessandro_35_samples/m16lfqClassic/GroupsRem.txt"
 lGroup <- args[3]
-#lGroup<-"Bio"
+#lGroup<-"Bead"
 rGroup <- args[4]
 #rGroup<-"Rem"
 inpD<-dirname(inpF)
@@ -28,7 +27,7 @@ selection<-"LFQ.intensity."
 thr=0.0#count
 selThr=0.05#pValue-tTest
 selThrFC=0.5#log2-MedianDifference
-cvThr=0.05#threshold for coefficient-of-variation
+cvThr=0.1#threshold for coefficient-of-variation
 hdr<-gsub("[^[:alnum:]]", "",inpD)
 outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,"VolcanoTestT","pdf",sep = ".")
 pdf(outP)
@@ -181,7 +180,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     #install.packages("svglite")
     ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTest.svg"), p)
     print(p)
-    return(ttest.results.return)
+    return(sum(Significance))
   }
 }
 #compare####
@@ -196,7 +195,7 @@ for(i in rownames(table(label$pair2test))){
     if(i!=j){
       print(paste(i,j))
       ttPair=testT(log2LFQsel,i,j,cvThr)
-      #assign(paste0(i,j),ttPair)
+      print(ttPair)
     }
   }
 }
