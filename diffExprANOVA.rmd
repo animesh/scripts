@@ -6,7 +6,7 @@
 #plot
 #par(mfrow=c(1,2))
 #data
-inpD <-"L:/promec/TIMSTOF/LARS/2023/230222 Katja/"
+inpD <-"L:/promec/TIMSTOF/LARS/2023/Data/combined/txt/"
 thr<-20
 selThr=0.1
 selThrFC=1
@@ -62,9 +62,23 @@ writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),inpW)
 ```
 
 ```{r label}
-inpL<-paste0(inpD,"Groups.txt")
+inpL<-paste0(inpD,"groups_stopus.txt")
 label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
+rownames(label)<-gsub("LFQ intensity ","",rownames(label))
+rownames(label)<-gsub("\\-","\\.",rownames(label))
 label
+lGroup<-"Group"
+annoFactor<-label[lGroup]
+names(annoFactor)<-lGroup
+anno<-data.frame(factor(label[,lGroup]))
+row.names(anno)<-rownames(label)
+names(anno)<-lGroup
+table(anno)
+annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label$Remove)|label$Remove==" "|label$removed=='',]),]))
+row.names(annoR)<-rownames(label[is.na(label$removed)|label$Remove==" "|label$Remove=='',])
+names(annoR)<-lGroup
+summary(annoR)
+
 ```
 
 ```{r corHC}
@@ -84,10 +98,10 @@ my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1
 colnames(log2LFQimp)<-colnames(log2LFQ)
 #pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=8,cluster_cols=T,cluster_rows=T,color = my_palette,fontsize_col  = 8)
 #pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=1,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
-log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
+log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="pearson")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
-svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",annotation_row = anno, annotation_col = anno,fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 #pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
 #svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,labels_row = paste(label$RawFnum,label$ID_ROLF,label$Tank,label$Diet,label$Fish))
 ggplot2::ggsave(file=paste0(inpF,hdr,selection,"log2spearClust.svg"),plot=svgPHC)#,  
