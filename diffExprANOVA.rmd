@@ -67,7 +67,7 @@ label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor
 rownames(label)<-gsub("LFQ intensity ","",rownames(label))
 rownames(label)<-gsub("\\-","\\.",rownames(label))
 label
-lGroup<-"Group"
+lGroup<-"GroupC"
 annoFactor<-label[lGroup]
 names(annoFactor)<-lGroup
 anno<-data.frame(factor(label[,lGroup]))
