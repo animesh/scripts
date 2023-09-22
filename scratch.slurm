@@ -1,15 +1,17 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=S3517
-#SBATCH --time=164:00:00
 ##SBATCH --partition=bigmem
-#SBATCH --ntasks=4 --cpus-per-task=10
-#SBATCH --mem-per-cpu=4G
+#SBATCH --account=nn9036k --job-name=seqRNAtrim
+##SBATCH --account=nn9036k --job-name=seqRNABMtrim
+#SBATCH --time=1:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
+##SBATCH --ntasks=1 --cpus-per-task=10 --ntasks-per-node=1
+##SBATCH --mem-per-cpu=4G
+#SBATCH --ntasks=1 --cpus-per-task=10
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=ALL
-#SBATCH --output=S35MQSLURMLOG
+#SBATCH --output=seqRNAtrimlog
 
-
-WORKDIR=/cluster/home/ash022/scripts/S35-2/
+WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -21,12 +23,11 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 
+export http_proxy=proxy.saga:3128
+export https_proxy=proxy.saga:3128
 module purge
-module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
-mono --version
-module --ignore-cache load dotNET-SDK/3.1.300-linux-x64
-dotnet --version
+module load Trimmomatic/0.39-Java-11
 
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.4/bin/MaxQuantCmd.exe -p 13 /cluster/projects/nn9036k/scripts/S35-2/mqpar.linux.xml
-#mono MQCMD -p MQPARF
-#mono MQCMD -n MQPARF
+#java -jar -Xmx160G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 40 -phred33 -trimlog trimLog.txt -summary trimSummary.txt -validatePairs TK12_R1_1.fq.gz TK12_R1_2.fq.gz TK12_R1_1.1p.fq.gz TK12_R1_1.1u.fq.gz TK12_R1_1.2p.fq.gz TK12_R1_1.2u.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/TruSeq2-PE.fa:2:30:10:true LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:30
+java -jar -Xmx40G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 10 -phred33 -trimlog FASTFILE.trimLog.txt -summary FASTFILE.trimSummary.txt -validatePairs P1FASTFILE P2FASTFILE P1FASTFILE.1P.fq.gz P1FASTFILE.1U.fq.gz P2FASTFILE P2FASTFILE.2P.fq.gz P2FASTFILE.2U.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/TruSeq2-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:30
+
