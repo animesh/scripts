@@ -19,7 +19,7 @@ df1=pd.read_csv("dataMM.csv", index_col=0)
 #from annotated_text import annotated_text
 #annotated_text(("LFQ","#faa"))
 st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-term=st.text_input("Uniprot IDs/GENE symbols?Like TP53RK for e.g. one can also combine multiple using | symbol", "NBEAL2|TP53RK")
+term=st.text_input("Uniprot IDs/GENE symbols?Like TP53RK for e.g. one can also combine multiple using | symbol", "LAMP1|RSU1")
 term=term.rsplit(' ', 1)[0]
 term=term.strip()
 #term="IDH1|ASS1"
