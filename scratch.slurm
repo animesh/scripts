@@ -28,6 +28,5 @@ export https_proxy=proxy.saga:3128
 module purge
 module load Trimmomatic/0.39-Java-11
 
-#java -jar -Xmx160G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 40 -phred33 -trimlog trimLog.txt -summary trimSummary.txt -validatePairs TK12_R1_1.fq.gz TK12_R1_2.fq.gz TK12_R1_1.1p.fq.gz TK12_R1_1.1u.fq.gz TK12_R1_1.2p.fq.gz TK12_R1_1.2u.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/TruSeq2-PE.fa:2:30:10:true LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:30
-java -jar -Xmx40G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 10 -phred33 -trimlog FASTFILE.trimLog.txt -summary FASTFILE.trimSummary.txt -validatePairs P1FASTFILE P2FASTFILE P1FASTFILE.1P.fq.gz P1FASTFILE.1U.fq.gz P2FASTFILE P2FASTFILE.2P.fq.gz P2FASTFILE.2U.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/TruSeq2-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:30
+java -jar -Xmx40G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 10 -phred33 -trimlog FASTFILE.trimLog.txt -summary FASTFILE.trimSummary.txt -validatePairs P1FASTFILE P2FASTFILE P1FASTFILE.1P.fq.gz P1FASTFILE.1U.fq.gz  P2FASTFILE.2P.fq.gz P2FASTFILE.2U.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/TruSeq2-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:30
 
