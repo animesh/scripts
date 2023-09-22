@@ -1,4 +1,4 @@
-#F:\R-4.3.1\bin\Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230130_Alessandro_35_samples\m16lfqClassic\proteinGroups.txt" "L:\promec\USERS\Alessandro\230130_Alessandro_35_samples\m16lfqClassic\GroupsRem.txt" "Bead" "Rem"
+#F:\R-4.3.1\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2023\Data\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\Data\combined\txt\groups_stopus.txt" "GroupC" "Remove"
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -10,16 +10,16 @@ print(paste("supplied argument(s):", length(args)))
 print(args)
 if (length(args) != 4) {stop("\n\nNeeds FOUR arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
 
-c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt\" Bio Rem
+c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/Data/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/Data/combined/txt/Groups.txt\" Groups Remove
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/USERS/Alessandro/230130_Alessandro_35_samples/m16lfqClassic/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2023/Data/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/USERS/Alessandro/230130_Alessandro_35_samples/m16lfqClassic/GroupsRem.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2023/Data/combined/txt/groups_stopus.txt"
 lGroup <- args[3]
-#lGroup<-"Bead"
+#lGroup<-"GroupC"
 rGroup <- args[4]
-#rGroup<-"Rem"
+#rGroup<-"Remove"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -86,16 +86,27 @@ rownames(label)=sub(selection,"",rownames(label))
 label["pair2test"]<-label[lGroup]
 if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
 print(label)
+#anno####
+annoFactor<-label[lGroup]
+names(annoFactor)<-lGroup
+anno<-data.frame(factor(label[,lGroup]))
+row.names(anno)<-rownames(label)
+names(anno)<-lGroup
+table(anno)
+annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]),]))
+row.names(annoR)<-gsub("\\-","\\.",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))
+names(annoR)<-lGroup
+summary(annoR)
 #corHClfq####
 log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
 log2LFQimp[log2LFQimp<0]<-0
 par(mar=c(12,3,1,1))
 boxplot(log2LFQimp,las=2)
 colnames(log2LFQimp)<-colnames(log2LFQ)
-log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
+log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="pearson")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
-svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8,annotation_row = annoR,annotation_col = annoR)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr){
   #sel1<-"MNPHCKO"#"MNPSC"
