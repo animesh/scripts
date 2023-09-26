@@ -1,0 +1,12 @@
+sra: [] #  paired-end SRAs, comma separated, can leave empty, e.g. SRR629563
+fq: [PEFASTS] # paired-end fastq prefixes, comma separated, can leave empty, e.g. TestPairedEnd
+sra_se: [] # single-end SRAs, comma separated, can leave empty, e.g. SRR8070095
+fq_se: [] # single-end fastq prefixes, comma separated, can leave empty, e.g. TestSingleEnd
+analysis_directory: [DATADIR] # for paths to drive e.g. /mnt/c/AnalysisFolder
+species: "Homo_sapiens" # ensembl species name
+genome: "GRCh38" # ensembl genome version
+release: "100" # ensembl release version
+organism: "human" # based on uniprot
+# analyses: [isoform,variant,quant] # isoform construction, variant calling, transcript quantification
+analyses: [variant,isoform]
+prebuilt_spritz_mods: False
