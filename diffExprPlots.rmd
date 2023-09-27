@@ -28,6 +28,15 @@ library(ggstatsplot)
 data<-read.csv("F:/OneDrive - NTNU/Aida/ML/Supplementary Table 2 for working purpose.xlsxid.T.csv",row.names = 1)
 ggbetweenstats(data,Class,LAMP1.P11279.P11279.2.7)
 ggbetweenstats(data,Class,RSU1.Q15404.Q15404.2.494)
+pairs(trisl, 1:4], panel=function(X,y){
+# Get a vector of colors for each point in the plot
+colors <- ifelse(iris$Species == "setosa", "red",
+ifelse(iris$Species == "versicolor", "green", "blue"))
+# Plot the points with the corresponding colors
+points(x, y, col = colors)
+# Add a regression line
+abline(lm(y~x), col='red")
+])
 ```
 
 ```{r sensel}
