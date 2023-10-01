@@ -2,7 +2,7 @@
 ##SBATCH --partition=bigmem
 #SBATCH --account=nn9036k --job-name=SLURMJOB
 ##SBATCH --account=nn9036k --job-name=SLURMJOBBM
-#SBATCH --time=4:00:00
+#SBATCH --time=48:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 ##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
 ##SBATCH --mem-per-cpu=16G
@@ -26,6 +26,8 @@ echo "Total of $SLURM_NTASKS cores"
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module load Miniconda3/22.11.1-1
+#mamba install yaml
 conda activate spritzbase
-snakemake -j 8 --use-conda --conda-frontend mamba --resources mem_mb=32000
+snakemake -j 8  --unlock
+snakemake -j 8 --use-conda --conda-frontend mamba --resources mem_mb=32000 --rerun-incomplete 
 
