@@ -1,7 +1,7 @@
 #F:\R-4.3.1\bin\Rscript.exe proteinGroups.r "F:\OneDrive - NTNU\Ale\proteinGroups mouse.txt"
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
 #supplying input file for testing
-#inpF<-file.path("F:/OneDrive - NTNU/Ale/proteinGroups mouse.txt")
+#inpF<-file.path("L:/promec/TIMSTOF/LARS/2023/230222 Katja/proteinGroups.txt")
 #parse argument(s)0
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -172,7 +172,7 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQimpCorr)
 heatmap(log2LFQimpCorr)
 if(require("pheatmap")){#https://stackoverflow.com/a/43051932
   grid::grid.draw(pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col=6)$gtable)
-  }
+}
 dim(log2LFQ)
 log2LFQt<-na.omit(log2LFQ)
 dim(log2LFQ)

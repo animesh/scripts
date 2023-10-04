@@ -39,8 +39,9 @@ aaCnt=parser.amino_acid_composition(peptideCombined)
 compDF=pd.DataFrame([dict(aaCnt)])
 compDF=compDF.transpose()
 compDF=compDF.sort_values(0)
+compDF=compDF.sort_index()
 print(compDF)
-compDF.plot.barh().get_figure().savefig(fastaFO+'comp.png',dpi=100,bbox_inches = "tight")
+compDF.plot.bar().get_figure().savefig(fastaFO+'comp.png',dpi=100,bbox_inches = "tight")
 
 import pickle
 with open(fastaFO+'.pkl','wb') as f: pickle.dump(unique_peptides, f)#unique_peptides= pickle.load(f)

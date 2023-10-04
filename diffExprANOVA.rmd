@@ -6,7 +6,7 @@
 #plot
 #par(mfrow=c(1,2))
 #data
-inpD <-"L:/promec/TIMSTOF/LARS/2023/Data/combined/txt/"
+inpD <-"L:/promec/TIMSTOF/LARS/2023/230222 Katja/"
 thr<-20
 selThr=0.1
 selThrFC=1
@@ -36,9 +36,9 @@ t.test(c(24.00049729, 23.97020359, 24.91145672), c(24.93876407, 24.84723287, 23.
 inpF<-paste0(inpD,"proteinGroups.txt")
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
 #clean
-data = data[!data$Reverse=="+",]
-data = data[!data$Potential.contaminant=="+",]
-data = data[!data$Only.identified.by.site=="+",]
+#data = data[!data$Reverse=="+",]
+#data = data[!data$Potential.contaminant=="+",]
+#data = data[!data$Only.identified.by.site=="+",]
 row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
 summary(data)
 dim(data)
@@ -62,52 +62,27 @@ writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),inpW)
 ```
 
 ```{r label}
-inpL<-paste0(inpD,"groups_stopus.txt")
+inpL<-paste0(inpD,"Groups.txt")
+#lGroup<-"Grpup"
+lGroup<-"Gender"
+#lGroup<-"Bio"
+rGroup<-"Rem"
 label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
 rownames(label)<-gsub("LFQ intensity ","",rownames(label))
 rownames(label)<-gsub("\\-","\\.",rownames(label))
 label
-lGroup<-"GroupC"
 annoFactor<-label[lGroup]
 names(annoFactor)<-lGroup
 anno<-data.frame(factor(label[,lGroup]))
 row.names(anno)<-rownames(label)
 names(anno)<-lGroup
 table(anno)
-annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label$Remove)|label$Remove==" "|label$removed=='',]),]))
-row.names(annoR)<-rownames(label[is.na(label$removed)|label$Remove==" "|label$Remove=='',])
+annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),]))
+row.names(annoR)<-rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',])
 names(annoR)<-lGroup
 summary(annoR)
-
 ```
 
-```{r corHC}
-#corrplot::corrplot(cor(log2LFQ))
-#log2LFQ0=log2LFQ
-#log2LFQ0[log2LFQ0==NA]=0
-#pheatmap::pheatmap(log2LFQ0,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
-scale=3
-log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
-log2LFQimp[log2LFQimp<0]<-0
-bk1 <- c(seq(-3,-0.01,by=0.01))
-bk2 <- c(seq(0.01,3,by=0.01))
-bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
-my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
-              "gray", "gray",
-              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
-colnames(log2LFQimp)<-colnames(log2LFQ)
-#pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=8,cluster_cols=T,cluster_rows=T,color = my_palette,fontsize_col  = 8)
-#pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=1,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
-log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="pearson")
-colnames(log2LFQimpCorr)<-colnames(log2LFQ)
-rownames(log2LFQimpCorr)<-colnames(log2LFQ)
-svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",annotation_row = anno, annotation_col = anno,fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
-#pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
-#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,labels_row = paste(label$RawFnum,label$ID_ROLF,label$Tank,label$Diet,label$Fish))
-ggplot2::ggsave(file=paste0(inpF,hdr,selection,"log2spearClust.svg"),plot=svgPHC)#,  
-assign(paste0(selection,"clusterData"),log2LFQimpCorr)
-write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,hdr,selection,"log2spearClust.csv"),row.names=F)
-```
 
 ```{r PCA, echo = FALSE}
 options(nwarnings = 1000000)
@@ -116,7 +91,7 @@ set.seed(scale)
 boxplot(log2LFQ)
 hist(log2LFQ)
 colnames(log2LFQ)
-log2LFQrem<-log2LFQ[,gsub("-",".",rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]))]
+log2LFQrem<-log2LFQ[,gsub("-",".",rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]))]
 boxplot(log2LFQrem)
 hist(log2LFQrem)
 colnames(log2LFQrem)
@@ -156,25 +131,65 @@ legend("topleft", col = factor(rownames(log2LFQt)), legend = factor(rownames(log
 dev.off()
 svglite::svglite(paste0(inpF,"log2LFQtPCA12group.svg"),width = 8, height = 8)
 op <- par(cex = 0.5)
-label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Grpup"]
-plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Grpup"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed scale",scale,"\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
-legend("topleft", col = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Grpup"]), legend = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Grpup"]), pch = 16)
+label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Grpup"]
+plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Grpup"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed scale",scale,"\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+legend("topleft", col = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Grpup"]), legend = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Grpup"]), pch = 16)
 dev.off()
 svglite::svglite(paste0(inpF,"log2LFQtPCA12gender.svg"),width = 8, height = 8)
 op <- par(cex = 0.5)
-label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]
-plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed scale",scale,"\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
-legend("topleft", col = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]), legend = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]), pch = 16)
+label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]
+plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed scale",scale,"\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+legend("topleft", col = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]), legend = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]), pch = 16)
 dev.off()
 ```
 
+```{r corHC}
+#corrplot::corrplot(cor(log2LFQ))
+#log2LFQ0=log2LFQ
+#log2LFQ0[log2LFQ0==NA]=0
+#pheatmap::pheatmap(log2LFQ0,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=4,cluster_cols=FALSE,cluster_rows=T,color = my_palette,fontsize_col  = 4)
+scale=3
+log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
+log2LFQimp[log2LFQimp<0]<-0
+bk1 <- c(seq(-3,-0.01,by=0.01))
+bk2 <- c(seq(0.01,3,by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),
+              "gray", "gray",
+              c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+colnames(log2LFQimp)<-colnames(log2LFQ)
+#pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "binary",clustering_distance_cols = "correlation",fontsize_row=8,cluster_cols=T,cluster_rows=T,color = my_palette,fontsize_col  = 8)
+#pheatmap::pheatmap(log2LFQimp,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=1,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+log2LFQimp<-log2LFQ
+dim(log2LFQimp)
+log2LFQimpCorr<-cor(log2LFQimp,use="pairwise.complete.obs",method="pearson")
+dim(log2LFQimpCorr)
+colnames(log2LFQimpCorr)<-colnames(log2LFQimp)
+rownames(log2LFQimpCorr)<-colnames(log2LFQimp)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+log2LFQrem<-log2LFQ[,gsub("-",".",rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]))]
+log2LFQimp<-log2LFQrem
+dim(log2LFQimp)
+log2LFQimpCorr<-cor(log2LFQimp,use="pairwise.complete.obs",method="pearson")
+dim(log2LFQimpCorr)
+colnames(log2LFQimpCorr)<-colnames(log2LFQimp)
+rownames(log2LFQimpCorr)<-colnames(log2LFQimp)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",annotation_row = anno, annotation_col = anno,fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+#pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
+#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,labels_row = paste(label$RawFnum,label$ID_ROLF,label$Tank,label$Diet,label$Fish))
+ggplot2::ggsave(file=paste0(inpF,hdr,selection,"log2pearClust.svg"),plot=svgPHC)#,  
+assign(paste0(selection,"clusterData"),log2LFQimpCorr)
+write.csv(cbind(rownames(log2LFQimpCorr),log2LFQimpCorr),paste0(inpF,hdr,selection,"log2spearClust.csv"),row.names=F)
+```
+
 ```{r fmPCA}
-plot(log2LFQtPCA$x[,16], log2LFQtPCA$x[,5], pch = 16, col = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]),xlab = paste0("PC3 (", round(100*log2LFQtPCAsumm$importance[2,3],1), "%)"), ylab = paste0("PC16 (", round(100*log2LFQtPCAsumm$importance[2,16],1), "%)"),main=paste("PCA 3/16 with 0 containing proteinGroups imputed scale",scale,"\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
-legend("topleft", col = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]), legend = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]), pch = 16)
-plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,3], pch = 16, col = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,3],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+plot(log2LFQtPCA$x[,16], log2LFQtPCA$x[,5], pch = 16, col = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]),xlab = paste0("PC3 (", round(100*log2LFQtPCAsumm$importance[2,3],1), "%)"), ylab = paste0("PC16 (", round(100*log2LFQtPCAsumm$importance[2,16],1), "%)"),main=paste("PCA 3/16 with 0 containing proteinGroups imputed scale",scale,"\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+legend("topleft", col = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]), legend = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]), pch = 16)
+plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,3], pch = 16, col = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,3],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
 legend("topleft", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
-plot(log2LFQtPCA$x[,3], log2LFQtPCA$x[,2], pch = 16, col = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,3],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
-plot(log2LFQtPCA$x[,19], log2LFQtPCA$x[,18], pch = 16, col = factor(label[rownames(label[is.na(label$Rem)|label$Rem==" "|label$Rem=='',]),"Gender"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,3],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,4],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+plot(log2LFQtPCA$x[,3], log2LFQtPCA$x[,2], pch = 16, col = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,3],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+plot(log2LFQtPCA$x[,19], log2LFQtPCA$x[,18], pch = 16, col = factor(label[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),"Gender"]),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,3],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,4],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed","\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
 pca_results <- FactoMineR::PCA(log2LFQrem, scale.unit=TRUE, ncp=25, graph=T) 
 FactoMineR::fviz_pca_ind(pca_results, axes = c(1,2))+ 
   FactoMineR::geom_point(FactoMineR::aes(colour = rownames())) +
