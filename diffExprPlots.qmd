@@ -1,0 +1,32 @@
+---
+title: "diffExpr"
+format: html
+server: shiny
+---
+
+## data
+
+```{r}
+#| context: setup
+#| include: true
+inpF<-"L:\\promec\\USERS\\Alessandro\\230130_Alessandro_35_samples\\m16lfqClassic - Copy\\proteinGroups.txtLFQ.intensity.18APB20800.050.50.1BeadRemGroups.txttTestBH.csv"
+data<-read.csv(inpF)
+```
+
+## EDA
+
+plot:
+
+```{r}
+sliderInput("bins", "Number of bins:", min = 1, max = 100, value = 50)
+plotOutput("distPlot")
+```
+
+```{r}
+#| context: server
+output$distPlot <- renderPlot({
+   x <- data$Log2MedianChange
+   bins <- seq(min(x), max(x), length.out = input$bins + 1)
+   hist(x, breaks = bins, col = 'darkgray', border = 'white',xlab = 'log2LFQ',main = inpF)
+})
+```

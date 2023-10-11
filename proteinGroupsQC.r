@@ -1,7 +1,8 @@
 ## CRAN
 install.packages("PTXQC")
 cat(paste0("\nPTXQC was installed to '", .libPaths()[1], "'.\n\n"))
-createReport("F:\\promec\\TIMSTOF\\LARS\\2023\\230821_GlyGly_test\\combined\\txt")
+library("PTXQC")
+createReport("F:/promec/USERS/Alessandro/230130_Alessandro_35_samples/mouse_16samples_run3_ClassicLFQ_WholeProcessing/combined/txt/")
 #check for peptides -> sequence with git clone https://github.com/pierrepeterlongo/kmer2sequences.git
 #f:\promec\Pythonv3p11\python.exe -m pip install AA_stat
 #f:\promec\Pythonv3p11\Scripts\AA_stat.exe --pepxml 230607_hela_Slot1-54_1_4598.pepXML
@@ -66,11 +67,11 @@ poisson_intervals <-
   )
 
 poisson_intervals
-## # A tibble: 2 × 7
+## # A tibble: 2 ? 7
 ##   term             .lower .estimate .upper .alpha .method          .replicates
 ##   <chr>             <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2]>>
-## 1 Coaching_flagYes  0.236    0.654   1.04    0.05 student-t        [1,001 × 2]
-## 2 Dating_flagYes   -0.351    0.0428  0.448   0.05 student-t        [1,001 × 2]
+## 1 Coaching_flagYes  0.236    0.654   1.04    0.05 student-t        [1,001 ? 2]
+## 2 Dating_flagYes   -0.351    0.0428  0.448   0.05 student-t        [1,001 ? 2]
 Notice the .replicates column where we have each of the 1000 results from our 1000 bootstrap resamples. We can unnest() this column and make a visualization:
 
   poisson_intervals |>

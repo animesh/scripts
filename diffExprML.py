@@ -3,14 +3,15 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 conda install -c conda-forge mamba pycaret xgboost catboost
 mamba install -c rapidsai -c nvidia -c conda-forge cuml
+python -m pip install dvc scikit-learn scikit-image pandas numpy
 ln -s /mnt/f/GD/OneDrive/Dokumenter/GitHub/scripts .
 tail -f scripts/logs.log
 # %% mm
 import pandas as pd
 data=pd.read_csv("/home/ash022/1d/Aida/ML/dataTmmS42T.csv")
 dGroup="Class"
-print(data.groupby(dGroup).count())
-#mapping = {'MGUS':1,'MM':2,'Ml':3}
+print("Grouping by: ", dGroup)
+print(data.groupby(dGroup).count())#mapping = {'MGUS':1,'MM':2,'Ml':3}
 #mapping = {'MGUS':'G','MM':'M','Ml':'M'}
 mapping = {'MGUS':'G','MM':'M','Ml':'L'}
 #mapping = {'MGUS':'0000FF','MM':'FF0000','Ml':'00FF00'}
@@ -20,11 +21,103 @@ print(data.groupby(dGroup).count())
 train_labels = data[dGroup]
 train_data = data.drop(columns=dGroup)
 print ("Data for Modeling :" + str(train_data.shape))
-# %% dataheroes
-#https://dataheroes.ai/blog/how-to-automate-data-cleaning/?utm_medium=email&_hsmi=256170599&_hsenc=p2ANqtz-8lQlNFWgx1KAoh9c4J_kdw_Qivvdy9iOfWP6VmCQzqRUEKiYiPdtuqE2nA20GfRQOUqnkeyW95ixbVPkG3iShoy3m2Hw&utm_content=256170599&utm_source=hs_email
-#pip install dataheroes
-from dataheroes.utils import activate_account
-activate_account("animesh.sharma@ntnu.no")
+# %% DVC
+python -m pip install dvc scikit-learn scikit-image pandas numpy
+ln -s /mnt/f/OneDrive\ -\ NTNU/Data data
+mv proteinGroups.txt data/.
+git clone https://github.com/animesh/DVC
+git checkout -b "first_experiment"
+dvc init
+dvc config core.analytics false
+mkdir DVCrem
+dvc remote add -d remote_storage ~/ntnu1d/DVCrem
+less .dvc/config 
+dvc add data/raw/train
+# %% aim
+from aimstack.base import Run
+aim_run = Run(repo='./.aim')
+
+from aimstack.base import Run, Metric
+# Create a run
+run = Run()
+run['hparams'] = {
+    'lr': 0.001,
+    'batch_size': 32
+}
+# Create a metric
+metric = Metric(run, name='loss', context={'epoch': 1})
+for i in range(1000):
+      metric.track(i, epoch=1)
+# %% weka
+sudo apt-get update  --fix-missing
+sudo apt-get install weka libsvm-java
+pip install weka
+export CLASSPATH=/usr/share/java/weka.jar 
+java weka.core.converters.CSVLoader /home/ash022/1d/Aida/ML/dataTmmS42T.csv > /home/ash022/1d/Aida/ML/dataTmmS42T.arff
+java weka.classifiers.meta.ClassificationViaRegression -x 46 -t /home/ash022/1d/Aida/ML/dataTmmS42T.arff  | less
+java weka.clusterers.SimpleKMeans  -A "weka.core.EuclideanDistance -R first-last"  -t /home/ash022/1d/Aida/ML/dataTmmS42T.arff  
+java weka.clusterers.EM -t /home/ash022/1d/Aida/ML/dataTmmS42T.arff  
+from weka.classifiers import Classifier
+c = Classifier(name='weka.classifiers.meta.ClassificationViaRegression', ckargs={'-x':10})
+c.train('/home/ash022/1d/Aida/ML/dataTmmS42T.arff')
+predictions = c.predict('query.arff')
+Alternatively, you can instantiate the classifier by calling its name directly:
+weka.core,converters.csvloader 
+from weka.core.converters import CSVLoader
+
+weka.classifiers.meta.ClassificationViaRegression -W weka.classifiers.trees.M5P -- -M 4.0 -num-decimal-places 4
+from weka.classifiers import IBk
+c = IBk(K=1)
+c.train('training.arff')
+predictions = c.predict('query.arff')
+The instance contains Weka's serialized model, so the classifier can be easily pickled and unpickled like any normal Python instance:
+
+c.save('myclassifier.pkl')
+c = Classifier.load('myclassifier.pkl')
+predictions = c.predict('query.arff')
+# %% RF
+#https://www.blog.dailydoseofds.com/p/your-random-forest-is-underperforming
+from sklearn.ensemble import RandomForestClassifier
+model=RandomForestClassifier(n_estimators=100)
+model.fit(train_data,train_labels)
+model.score(train_data,train_labels)
+model.estimators_
+#Compute accuracy
+model_accs = I] # list to store accuracies
+for idx, tree in enumerate (model.estimators_):
+score = tree.score(X_test, y-test) # find accuracy
+model_accs. append ([idx, scorel]) # store accuracy
+model_accs = np.array (model_accs)
+model_accs
+sorted_indices = np.argsort(model_accs[:, 1])[::-1]
+model_ids = model_accs[sorted_indices][:,0].astype(int)
+#array([65, 97, 18, 24, 38, 11,...
+# create numpy array, rearrange the models and convert back to list
+model.estimators_ = np.array(model.estimators_)[model_ids].tolist()
+#array([[ 0.   ,  0.815], # [tree id, test accuracy]
+#cum acc
+import сору
+result = []] # array to store cumulative score
+total_models = len(model. estimators_)
+for k in range(2, total_models) :
+# create a copy of current model
+    small_model = copy .deepcopy (model)
+# set its trees to first 'k' trees of original model
+    small_model.estimators_ = model.estimators_[: k]
+# compute the score
+    score = small_model. score (X_test, _test)
+    result. append ([i, score])
+>>> model. score (X_test, y_test)
+#
+0.845
+»>> small_model.score (X_test, y_test)
+# 0.875
+Run-time
+›››
+%timeit model.predict (X_test)
+# Run-time: 4.69 ms
+›>> %timeit small_model.predict (X_test)
+# Run-time: 720 uS
 # %% kNN
 #https://towardsdatascience.com/elbow-method-is-not-sufficient-to-find-best-k-in-k-means-clustering-fc820da0631d
 !pip install yellowbrick  
@@ -56,15 +149,8 @@ y = iris.target
   
 fig, ax = plt.subplots(3, 2, figsize=(15,8))
 for i in [2, 3, 4, 5]:
-    '''
-    Create KMeans instances for different number of clusters
-    '''
     km = KMeans(n_clusters=i, init='k-means++', n_init=10, max_iter=100, random_state=42)
     q, mod = divmod(i, 2)
-    '''
-    Create SilhouetteVisualizer instance with KMeans instance
-    Fit the visualizer
-    '''
     visualizer = SilhouetteVisualizer(km, colors='yellowbrick', ax=ax[q-1][mod])
     visualizer.fit(X) 
 # %% hypothesize
