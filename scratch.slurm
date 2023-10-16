@@ -1,17 +1,15 @@
 #!/bin/sh
-##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=SLURMJOB
-##SBATCH --account=nn9036k --job-name=SLURMJOBBM
-#SBATCH --time=48:00:00
+#SBATCH --account=nn9036k --job-name=IRD
+#SBATCH --time=294:00:00
+#SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=26
+#SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
-##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=1 --cpus-per-task=8 
-#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=ALL
-#SBATCH --output=SLURMJOBlog
-##cd /cluster/home/ash022/scripts/Spritz/Spritz/workflow
-WORKDIR=${SLURM_SUBMIT_DIR}
+#SBATCH --output=IRDMQSLURMLOG
+
+
+WORKDIR=$PWD
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -23,11 +21,12 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 
-export http_proxy=proxy.saga:3128
-export https_proxy=proxy.saga:3128
-module load Miniconda3/22.11.1-1
-#mamba install yaml
-conda activate spritzbase
-snakemake -j 8  --unlock
-snakemake -j 8 --use-conda --conda-frontend mamba --resources mem_mb=32000 --rerun-incomplete 
+module purge
+module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
+mono --version
+module --ignore-cache load dotNET-SDK/3.1.300-linux-x64
+dotnet --version
 
+dotnet /cluster/projects/nn9036k/MaxQuant_v_2.4.8.0/bin/MaxQuantCmd.exe  $PWD/mqpar.linux.xml
+#mono MQCMD -p MQPARF
+#mono MQCMD -n MQPARF
