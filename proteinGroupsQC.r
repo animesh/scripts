@@ -2,7 +2,7 @@
 install.packages("PTXQC")
 cat(paste0("\nPTXQC was installed to '", .libPaths()[1], "'.\n\n"))
 library("PTXQC")
-createReport("F:/promec/USERS/Alessandro/230130_Alessandro_35_samples/mouse_16samples_run3_ClassicLFQ_WholeProcessing/combined/txt/")
+createReport("L:\\promec\\TIMSTOF\\LARS\\2023\\230526 ROLF\\combined\\txt")
 #check for peptides -> sequence with git clone https://github.com/pierrepeterlongo/kmer2sequences.git
 #f:\promec\Pythonv3p11\python.exe -m pip install AA_stat
 #f:\promec\Pythonv3p11\Scripts\AA_stat.exe --pepxml 230607_hela_Slot1-54_1_4598.pepXML

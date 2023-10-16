@@ -14,6 +14,19 @@ summary(data)
 #heatmap(data)
 ```
 
+```{r CoRegNet}
+#https://github.com/animesh/CoRegNet
+#remotes::install_github("Jiasheng-Wang/CoRegNet")
+library(CoRegNet)
+DEGMatrix <- create_DEGMatrix()
+RandCoRegMatrix_Generation(Ncores = 10,
+                           EachCoreSims = 100, #The number of total samplings is Ncores x EachCoreSims.
+                           RowSumVector = rowSums(DEGMatrix),
+                           ColSumVector = colSums(DEGMatrix),
+                           save_path = "~/CoregNet_Test/RBM/")
+
+```
+
 ```{r rank100}
 #?rank
 #dataRank=rank(data)

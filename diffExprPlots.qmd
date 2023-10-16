@@ -4,29 +4,30 @@ format: html
 server: shiny
 ---
 
-## data
-
-```{r}
+```{r data}
 #| context: setup
 #| include: true
-inpF<-"L:\\promec\\USERS\\Alessandro\\230130_Alessandro_35_samples\\m16lfqClassic - Copy\\proteinGroups.txtLFQ.intensity.18APB20800.050.50.1BeadRemGroups.txttTestBH.csv"
-data<-read.csv(inpF)
+inpF<-"L:\\promec\\TIMSTOF\\LARS\\2023\\230222 Katja\\Protein comparison ADN3 vs AD for figure 1.csv"
+data<-read.csv(inpF,header=TRUE,sep=",",row.names=1)
+#data<-as.numeric(data)
+#summary(data)
+dataNAR<-data
+dataNAR[is.na(dataNAR)]<-0
+#summary(dataNAR)
 ```
 
-## EDA
+data select:
 
-plot:
-
-```{r}
-sliderInput("bins", "Number of bins:", min = 1, max = 100, value = 50)
+```{r select}
+sliderInput("sample", "Number of samples", min = 1, max = ncol(data), value = 1)
 plotOutput("distPlot")
 ```
 
-```{r}
+```{r plot}
 #| context: server
 output$distPlot <- renderPlot({
-   x <- data$Log2MedianChange
-   bins <- seq(min(x), max(x), length.out = input$bins + 1)
-   hist(x, breaks = bins, col = 'darkgray', border = 'white',xlab = 'log2LFQ',main = inpF)
+   x <- dataNAR[,input$sample]
+   hist(x, col = 'darkgray', border = 'white',xlab = 'log2LFQ',main = inpF)
 })
 ```
+
