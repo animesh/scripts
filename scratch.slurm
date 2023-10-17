@@ -27,6 +27,6 @@ mono --version
 module --ignore-cache load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 
-dotnet /cluster/projects/nn9036k/MaxQuant_v_2.4.8.0/bin/MaxQuantCmd.exe  $PWD/mqpar.linux.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_v_2.4.8.0/bin/MaxQuantCmd.exe -p 51  $PWD/mqpar.linux.xml
 #mono MQCMD -p MQPARF
 #mono MQCMD -n MQPARF

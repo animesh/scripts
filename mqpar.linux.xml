@@ -3,7 +3,7 @@
    <fastaFiles>
       <FastaFileInfo>
          <fastaFilePath>/cluster/projects/nn9036k/scripts/IRD/HUMAN_IRD_klon.6F.unstarXP.fasta</fastaFilePath>
-         <identifierParseRule>>([^ ]*)</identifierParseRule>
+         <identifierParseRule>>([^\s]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
@@ -40,7 +40,7 @@
    <rtShift>False</rtShift>
    <separateLfq>False</separateLfq>
    <lfqStabilizeLargeRatios>True</lfqStabilizeLargeRatios>
-   <lfqRequireMsms>False</lfqRequireMsms>
+   <lfqRequireMsms>True</lfqRequireMsms>
    <lfqBayesQuant>False</lfqBayesQuant>
    <decoyMode>revert</decoyMode>
    <includeContaminants>True</includeContaminants>
@@ -114,7 +114,7 @@
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
    </restrictMods>
-   <matchingTimeWindow>0.5</matchingTimeWindow>
+   <matchingTimeWindow>1</matchingTimeWindow>
    <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
    <alignmentTimeWindow>20</alignmentTimeWindow>
    <alignmentIonMobilityWindow>1</alignmentIonMobilityWindow>
@@ -144,7 +144,7 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.4.8.0</maxQuantVersion>
+   <maxQuantVersion>2.4.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
    <numThreads>26</numThreads>
    <emailAddress></emailAddress>
@@ -528,11 +528,8 @@
          <diaBackgroundSubtractionFactor>4</diaBackgroundSubtractionFactor>
          <diaLfqRatioType>0</diaLfqRatioType>
          <diaTransferQvalue>0.3</diaTransferQvalue>
-         <diaTransferQvalueBetweenLabels>0.01</diaTransferQvalueBetweenLabels>
-         <diaTransferQvalueBetweenFractions>0.01</diaTransferQvalueBetweenFractions>
-         <diaTransferQvalueBetweenFaims>0.01</diaTransferQvalueBetweenFaims>
          <diaOnlyIsosForRecal>True</diaOnlyIsosForRecal>
-         <diaMinPeaks>5</diaMinPeaks>
+         <diaMinPeaksForRecal>5</diaMinPeaksForRecal>
          <diaUseFragIntensForMl>False</diaUseFragIntensForMl>
          <diaUseFragMassesForMl>False</diaUseFragMassesForMl>
          <diaMaxTrainInstances>500000</diaMaxTrainInstances>
@@ -555,7 +552,7 @@
          <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
          <diaAltCcsModelPath></diaAltCcsModelPath>
          <diaBatchProcessing>True</diaBatchProcessing>
-         <diaBatchSize>25</diaBatchSize>
+         <diaBatchSize>10</diaBatchSize>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
@@ -575,9 +572,7 @@
          <classicLfqForSingleShots>True</classicLfqForSingleShots>
          <sequenceBasedModifier>False</sequenceBasedModifier>
          <diaRtFromSamplesForExport>True</diaRtFromSamplesForExport>
-         <diaCcsFromSamplesForExport>True</diaCcsFromSamplesForExport>
          <diaLibraryExport>0</diaLibraryExport>
-         <diaUseApexWeightsForPtmLoc>False</diaUseApexWeightsForPtmLoc>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
