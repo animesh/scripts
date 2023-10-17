@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=IRD
+#SBATCH --account=nn9036k --job-name=PK
 #SBATCH --time=294:00:00
 #SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=26
+#SBATCH --ntasks=1 --cpus-per-task=32
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=IRDMQSLURMLOG
+#SBATCH --output=PKMQSLURMLOG
 
 
 WORKDIR=$PWD
@@ -27,6 +27,6 @@ mono --version
 module --ignore-cache load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 
-dotnet /cluster/projects/nn9036k/MaxQuant_v_2.4.8.0/bin/MaxQuantCmd.exe -p 51  $PWD/mqpar.linux.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_2.4.3.0/bin/MaxQuantCmd.exe $PWD/mqpar.linux.xml
 #mono MQCMD -p MQPARF
 #mono MQCMD -n MQPARF

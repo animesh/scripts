@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scripts/IRD/HUMAN_IRD_klon.6F.unstarXP.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scripts/PK/Add.fasta</fastaFilePath>
          <identifierParseRule>>([^\s]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -11,22 +11,40 @@
          <taxonomyId></taxonomyId>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scripts/IRD/UP000005640_9606.fasta</fastaFilePath>
-         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
+         <fastaFilePath>/cluster/projects/nn9036k/scripts/PK/gencode.vM33.pc_translations.fa</fastaFilePath>
+         <identifierParseRule>>ENSMUS([^\| .]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
-         <taxonomyId>9606</taxonomyId>
+         <taxonomyId></taxonomyId>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scripts/IRD/UP000005640_9606_additional.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scripts/PK/uniprotkb_proteome_UP000000589_2023_10_10.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
-         <taxonomyId>9606</taxonomyId>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/scripts/PK/UP000000589_10090.fasta</fastaFilePath>
+         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId>10090</taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/scripts/PK/UP000000589_10090_additional.fasta</fastaFilePath>
+         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId>10090</taxonomyId>
       </FastaFileInfo>
    </fastaFiles>
    <fastaFilesProteogenomics>
@@ -56,9 +74,9 @@
    <matchBetweenRuns>True</matchBetweenRuns>
    <matchUnidentifiedFeatures>True</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
-   <dependentPeptides>True</dependentPeptides>
-   <dependentPeptideFdr>0.01</dependentPeptideFdr>
-   <dependentPeptideMassBin>0.0065</dependentPeptideMassBin>
+   <dependentPeptides>False</dependentPeptides>
+   <dependentPeptideFdr>0</dependentPeptideFdr>
+   <dependentPeptideMassBin>0</dependentPeptideMassBin>
    <dependentPeptidesBetweenRuns>False</dependentPeptidesBetweenRuns>
    <dependentPeptidesWithinExperiment>False</dependentPeptidesWithinExperiment>
    <dependentPeptidesWithinParameterGroup>False</dependentPeptidesWithinParameterGroup>
@@ -146,7 +164,7 @@
    <name>session1</name>
    <maxQuantVersion>2.4.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>26</numThreads>
+   <numThreads>63</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -162,62 +180,173 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_1_D1_T1_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_2_D11_T2_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_3_D11_T3_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_4_D11_T4_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_5_D11_T5_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_6_D11_T6_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_7_D22_T1_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_8_D22_T2_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_9_D22_T3_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_10_D22_T4_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_11_D22_T5_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_12_D22_T6_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_13_D20_T1_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_14_D20_T2_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_15_D20_T3_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_16_D20_T4_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_17_D20_T5_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_18_D20_T6_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_29_D7_T1_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_30_D7_T2_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_31_D7_T3_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_32_D7_T4_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_33_D7_T5_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_34_D7_T6_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_35_D7_T7_dda.raw</string>
-      <string>/cluster/projects/nn9036k/scripts/IRD/231006_IRD_36_D7_T8_dda.raw</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_10_Slot1-20_1_5297.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_11_Slot1-29_1_5316.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_12_Slot2-2_1_5337.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_13_Slot2-11_1_5355.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_14_Slot2-47_1_5384.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_15_Slot1-3_1_5263.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_16_Slot1-12_1_5281.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_17_Slot1-21_1_5299.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_18_Slot1-30_1_5319.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_19_Slot2-3_1_5339.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_1_Slot1-1_1_5259.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_20_Slot2-12_1_5357.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_21_Slot2-48_1_5386.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_22_Slot1-4_1_5265.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_23_Slot1-13_1_5283.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_24_Slot1-22_1_5301.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_25_Slot1-31_1_5377.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_26_Slot2-4_1_5341.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_27_Slot2-13_1_5359.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_28_Slot2-49_1_5388.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_29_Slot1-5_1_5267.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_2_Slot1-10_1_5371.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_30_Slot1-14_1_5285.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_31_Slot1-23_1_5303.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_32_Slot1-32_1_5323.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_33_Slot2-5_1_5343.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_34_Slot2-14_1_5361.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_35_Slot2-50_1_5390.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_36_Slot1-6_1_5269.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_37_Slot1-15_1_5287.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_38_Slot1-24_1_5306.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_39_Slot1-33_1_5325.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_3_Slot1-19_1_5295.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_40_Slot2-6_1_5345.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_41_Slot2-15_1_5363.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_42_Slot2-51_1_5392.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_43_Slot1-7_1_5271.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_44_Slot1-16_1_5373.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_45_Slot1-25_1_5375.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_46_Slot1-34_1_5327.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_47_Slot2-7_1_5347.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_48_Slot2-16_1_5365.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_49_Slot2-52_1_5394.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_4_Slot1-28_1_5314.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_50_Slot1-8_1_5273.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_51_Slot1-17_1_5291.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_52_Slot1-26_1_5310.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_53_Slot1-35_1_5400.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_54_Slot2-8_1_5349.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_55_Slot2-17_1_5367.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_56_Slot2-53_1_5396.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_57_Slot1-9_1_5275.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_58_Slot1-18_1_5293.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_59_Slot1-27_1_5312.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_5_Slot2-1_1_5335.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_60_Slot1-36_1_5333.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_61_Slot2-9_1_5351.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_62_Slot2-18_1_5369.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_63_Slot2-54_1_5398.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_6_Slot2-10_1_5353.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_7_Slot2-46_1_5382.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_8_Slot1-2_1_5261.d</string>
+      <string>/cluster/projects/nn9036k/scripts/PK/230927_Preei_Kute_9_Slot1-11_1_5279.d</string>
    </filePaths>
    <experiments>
-      <string>1_D1_T1</string>
-      <string>2_D11_T2</string>
-      <string>3_D11_T3</string>
-      <string>4_D11_T4</string>
-      <string>5_D11_T5</string>
-      <string>6_D11_T6</string>
-      <string>7_D22_T1</string>
-      <string>8_D22_T2</string>
-      <string>9_D22_T3</string>
-      <string>10_D22_T4</string>
-      <string>11_D22_T5</string>
-      <string>12_D22_T6</string>
-      <string>13_D20_T1</string>
-      <string>14_D20_T2</string>
-      <string>15_D20_T3</string>
-      <string>16_D20_T4</string>
-      <string>17_D20_T5</string>
-      <string>18_D20_T6</string>
-      <string>29_D7_T1</string>
-      <string>30_D7_T2</string>
-      <string>31_D7_T3</string>
-      <string>32_D7_T4</string>
-      <string>33_D7_T5</string>
-      <string>34_D7_T6</string>
-      <string>35_D7_T7</string>
-      <string>36_D7_T8</string>
+      <string>C11-parent-60S-SET2</string>
+      <string>C11-parent-80S-SET2</string>
+      <string>C11-parent-Disome-SET2</string>
+      <string>C11-parent-polysomes-SET2</string>
+      <string>C11-parent-Bump-SET2</string>
+      <string>C11-parent-total-SET3</string>
+      <string>C11-parent-40S-SET3</string>
+      <string>C11-parent-60S-SET3</string>
+      <string>C11-parent-80S-SET3</string>
+      <string>C11-parent-Disome-SET3</string>
+      <string>C11-parent-total-SET1</string>
+      <string>C11-parent-polysomes-SET3</string>
+      <string>C11-parent-Bump-SET3</string>
+      <string>C11-CHOW-total-SET1</string>
+      <string>C11-CHOW-40S-SET1</string>
+      <string>C11-CHOW-60S-SET1</string>
+      <string>C11-CHOW-80S-SET1</string>
+      <string>C11-CHOW-Disome-SET1</string>
+      <string>C11-CHOW-polysomes-SET1</string>
+      <string>C11-CHOW-Bump-SET1</string>
+      <string>C11-CHOW-total-SET2</string>
+      <string>C11-parent-40S-SET1</string>
+      <string>C11-CHOW-40S-SET2</string>
+      <string>C11-CHOW-60S-SET2</string>
+      <string>C11-CHOW-80S-SET2</string>
+      <string>C11-CHOW-Disome-SET2</string>
+      <string>C11-CHOW-polysomes-SET2</string>
+      <string>C11-CHOW-Bump-SET2</string>
+      <string>C11-CHOW-total-SET3</string>
+      <string>C11-CHOW-40S-SET3</string>
+      <string>C11-CHOW-60S-SET3</string>
+      <string>C11-CHOW-80S-SET3</string>
+      <string>C11-parent-60S-SET1</string>
+      <string>C11-CHOW-Disome-SET3</string>
+      <string>C11-CHOW-polysomes-SET3</string>
+      <string>C11-CHOW-Bump-SET3</string>
+      <string>C11-HFD-total-SET1</string>
+      <string>C11-HFD-40S-SET1</string>
+      <string>C11-HFD-60S-SET1</string>
+      <string>C11-HFD-80S-SET1</string>
+      <string>C11-HFD-Disome-SET1</string>
+      <string>C11-HFD-polysomes-SET1</string>
+      <string>C11-HFD-Bump-SET1</string>
+      <string>C11-parent-80S-SET1</string>
+      <string>C11-HFD-total-SET2</string>
+      <string>C11-HFD-40S-SET2</string>
+      <string>C11-HFD-60S-SET2</string>
+      <string>C11-HFD-80S-SET2</string>
+      <string>C11-HFD-Disome-SET2</string>
+      <string>C11-HFD-polysomes-SET2</string>
+      <string>C11-HFD-Bump-SET2</string>
+      <string>C11-HFD-total-SET3</string>
+      <string>C11-HFD-40S-SET3</string>
+      <string>C11-HFD-60S-SET3</string>
+      <string>C11-parent-Disome-SET1</string>
+      <string>C11-HFD-80S-SET3</string>
+      <string>C11-HFD-Disome-SET3</string>
+      <string>C11-HFD-polysomes-SET3</string>
+      <string>C11-HFD-Bump-SET3</string>
+      <string>C11-parent-polysomes-SET1</string>
+      <string>C11-parent-Bump-SET1</string>
+      <string>C11-parent-total-SET2</string>
+      <string>C11-parent-40S-SET2</string>
    </experiments>
    <fractions>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -272,8 +401,82 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
       <int>0</int>
       <int>0</int>
       <int>0</int>
@@ -328,6 +531,43 @@
       <string></string>
       <string></string>
       <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
    </referenceChannel>
    <lfqTopNPeptides>0</lfqTopNPeptides>
    <diaJoinPrecChargesForLfq>False</diaJoinPrecChargesForLfq>
@@ -343,8 +583,8 @@
          <andromeda20AltModelPath></andromeda20AltModelPath>
          <andromeda20DefaultModel>False</andromeda20DefaultModel>
          <useAndromeda20>False</useAndromeda20>
-         <msInstrument>0</msInstrument>
-         <maxCharge>7</maxCharge>
+         <msInstrument>4</msInstrument>
+         <maxCharge>4</maxCharge>
          <minPeakLen>2</minPeakLen>
          <diaMinPeakLen>1</diaMinPeakLen>
          <useMs1Centroids>False</useMs1Centroids>
@@ -354,21 +594,21 @@
          <minTime>NaN</minTime>
          <maxTime>NaN</maxTime>
          <matchType>MatchFromAndTo</matchType>
-         <intensityDetermination>0</intensityDetermination>
-         <centroidMatchTol>8</centroidMatchTol>
+         <intensityDetermination>1</intensityDetermination>
+         <centroidMatchTol>10</centroidMatchTol>
          <centroidMatchTolInPpm>True</centroidMatchTolInPpm>
          <centroidHalfWidth>35</centroidHalfWidth>
          <centroidHalfWidthInPpm>True</centroidHalfWidthInPpm>
-         <valleyFactor>1.4</valleyFactor>
+         <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
-         <advancedPeakSplitting>False</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>0</intensityThresholdMs1Dda>
-         <intensityThresholdMs1Dia>0</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>0</intensityThresholdMs2>
+         <advancedPeakSplitting>True</advancedPeakSplitting>
+         <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dia>30</intensityThresholdMs1Dia>
+         <intensityThresholdMs2>15</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
-         <lcmsRunType>Standard</lcmsRunType>
+         <lcmsRunType>TIMS-DDA</lcmsRunType>
          <reQuantify>False</reQuantify>
          <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
@@ -423,16 +663,16 @@
          </additionalVariableModificationProteins>
          <doMassFiltering>True</doMassFiltering>
          <firstSearchTol>20</firstSearchTol>
-         <mainSearchTol>4.5</mainSearchTol>
+         <mainSearchTol>10</mainSearchTol>
          <searchTolInPpm>True</searchTolInPpm>
-         <isotopeMatchTol>2</isotopeMatchTol>
-         <isotopeMatchTolInPpm>True</isotopeMatchTolInPpm>
+         <isotopeMatchTol>0.005</isotopeMatchTol>
+         <isotopeMatchTolInPpm>False</isotopeMatchTolInPpm>
          <isotopeTimeCorrelation>0.6</isotopeTimeCorrelation>
          <theorIsotopeCorrelation>0.6</theorIsotopeCorrelation>
-         <checkMassDeficit>True</checkMassDeficit>
+         <checkMassDeficit>False</checkMassDeficit>
          <recalibrationInPpm>True</recalibrationInPpm>
-         <intensityDependentCalibration>False</intensityDependentCalibration>
-         <minScoreForCalibration>70</minScoreForCalibration>
+         <intensityDependentCalibration>True</intensityDependentCalibration>
+         <minScoreForCalibration>40</minScoreForCalibration>
          <matchLibraryFile>False</matchLibraryFile>
          <libraryFile></libraryFile>
          <matchLibraryMassTolPpm>0</matchLibraryMassTolPpm>
@@ -443,10 +683,10 @@
          <filterPif>False</filterPif>
          <reporterFraction>NaN</reporterFraction>
          <reporterBasePeakRatio>NaN</reporterBasePeakRatio>
-         <timsHalfWidth>0</timsHalfWidth>
-         <timsStep>0</timsStep>
-         <timsResolution>0</timsResolution>
-         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
+         <timsHalfWidth>10</timsHalfWidth>
+         <timsStep>3</timsStep>
+         <timsResolution>35000</timsResolution>
+         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -489,7 +729,7 @@
          <diaLabelIndsForLibraryMatch>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
-         <diaInitialFragMassTolPpm>20</diaInitialFragMassTolPpm>
+         <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
          <diaCorrThresholdFeatureClustering>0.85</diaCorrThresholdFeatureClustering>
          <diaPrecTolPpmFeatureClustering>2</diaPrecTolPpmFeatureClustering>
          <diaFragTolPpmFeatureClustering>2</diaFragTolPpmFeatureClustering>
@@ -505,7 +745,7 @@
          <diaTopNForQuant>12</diaTopNForQuant>
          <diaTopNCorrelationForQuant>7</diaTopNCorrelationForQuant>
          <diaFragmentCorrelationForQuant>0.78</diaFragmentCorrelationForQuant>
-         <diaMinMsmsIntensityForQuant>0</diaMinMsmsIntensityForQuant>
+         <diaMinMsmsIntensityForQuant>30</diaMinMsmsIntensityForQuant>
          <diaTopMsmsIntensityQuantileForQuant>0.85</diaTopMsmsIntensityQuantileForQuant>
          <diaMinFragmentOverlapScore>0</diaMinFragmentOverlapScore>
          <diaMinPrecursorScore>0</diaMinPrecursorScore>
@@ -539,8 +779,8 @@
          <diaMaxPrecursorMz>0</diaMaxPrecursorMz>
          <diaHardRtFilter>True</diaHardRtFilter>
          <diaConvertLibraryCharge2Fragments>False</diaConvertLibraryCharge2Fragments>
-         <diaChargeNormalizationLibrary>True</diaChargeNormalizationLibrary>
-         <diaChargeNormalizationSample>True</diaChargeNormalizationSample>
+         <diaChargeNormalizationLibrary>False</diaChargeNormalizationLibrary>
+         <diaChargeNormalizationSample>False</diaChargeNormalizationSample>
          <diaDeleteIntermediateResults>True</diaDeleteIntermediateResults>
          <diaScoreWeightScanIndex>-1</diaScoreWeightScanIndex>
          <diaScoreWeightScanValue>1</diaScoreWeightScanValue>
