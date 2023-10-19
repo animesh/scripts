@@ -1,6 +1,6 @@
-#git checkout 7243207be51cffa7633344530419e2790d382afb scratch.slurm
-#dos2unix scratch.slurm slurmST.sh
-#bash slurmST.sh /cluster/home/ash022/scripts/TK/hisat2.1691148661.results
+#git checkout 4d8b6e7e3c6d924c56bf97e5e9cb30bf46e1ea69 scratch.slurm
+#dos2unix scratch.slurm 
+#bash slurmST.sh $PWD/TK9/hisat2.1697716972.results
 DATADIR=$1
 RUNCMD=samtools
 PARAMFILE=scratch.slurm

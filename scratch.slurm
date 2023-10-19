@@ -6,7 +6,7 @@
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 ##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
 ##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=4 --cpus-per-task=10 --ntasks-per-node=4
+#SBATCH --ntasks=1 --cpus-per-task=NCPU
 #SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
 #SBATCH --output=seqRNAlog
@@ -22,11 +22,12 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-#export LMOD_DISABLE_SAME_NAME_AUTOSWAP=FALSE
+
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module purge
-module load HISAT2/2.2.1-gompi-2022a
-hisat2 -p 40 -1 FASTFILE1 -2 FASTFILE2 --dta -x HISATGENOMEDIR -S FASTFILE.sam 2>FASTFILE.hisat.summary.txt
-
+module load SAMtools/1.17-GCC-12.2.0
+samtools view -@NCPU -m10g -bS SAMFILE > BAMFILE
+samtools sort -@NCPU  BAMFILE > SORTBAMFILE
+samtools index -@NCPU INDEXSORT
 
