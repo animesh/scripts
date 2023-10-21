@@ -1,15 +1,15 @@
 #!/bin/sh
 ##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=seqRNA
-##SBATCH --account=nn9036k --job-name=seqRNABM
+#SBATCH --account=nn9036k --job-name=seqRNAtrim
+##SBATCH --account=nn9036k --job-name=seqRNABMtrim
 #SBATCH --time=1:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
-##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=1 --cpus-per-task=NCPU
-#SBATCH --mem-per-cpu=1G
+##SBATCH --ntasks=1 --cpus-per-task=10 --ntasks-per-node=1
+##SBATCH --mem-per-cpu=4G
+#SBATCH --ntasks=1 --cpus-per-task=10
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=ALL
-#SBATCH --output=seqRNAlog
+#SBATCH --output=seqRNAtrimlog
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -26,8 +26,7 @@ echo "Total of $SLURM_NTASKS cores"
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module purge
-module load SAMtools/1.17-GCC-12.2.0
-samtools view -@NCPU -m10g -bS SAMFILE > BAMFILE
-samtools sort -@NCPU  BAMFILE > SORTBAMFILE
-samtools index -@NCPU INDEXSORT
+module load Trimmomatic/0.39-Java-11
+
+java -jar -Xmx40G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 10 -phred33 -trimlog FASTFILE.trimLog.txt -summary FASTFILE.trimSummary.txt -validatePairs P1FASTFILE P2FASTFILE PD1FASTFILE.1P.fq.gz PD1FASTFILE.1U.fq.gz  PD2FASTFILE.2P.fq.gz PD2FASTFILE.2U.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/NexteraPE-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:30
 
