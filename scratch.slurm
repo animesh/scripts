@@ -1,15 +1,15 @@
 #!/bin/sh
 ##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=seqRNAtrim
-##SBATCH --account=nn9036k --job-name=seqRNABMtrim
+#SBATCH --account=nn9036k --job-name=seqRNA
+##SBATCH --account=nn9036k --job-name=seqRNABM
 #SBATCH --time=1:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=10 --ntasks-per-node=1
-##SBATCH --mem-per-cpu=4G
-#SBATCH --ntasks=1 --cpus-per-task=10
+##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
+##SBATCH --mem-per-cpu=16G
+#SBATCH --ntasks=1 --cpus-per-task=8 --ntasks-per-node=1
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=ALL
-#SBATCH --output=seqRNAtrimlog
+#SBATCH --output=seqRNAlog
 
 WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
@@ -22,11 +22,11 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-
+#export LMOD_DISABLE_SAME_NAME_AUTOSWAP=FALSE
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module purge
-module load Trimmomatic/0.39-Java-11
+module load HISAT2/2.2.1-gompi-2022a
+hisat2 -p 8 -1 FASTFILE1 -2 FASTFILE2 --dta -x HISATGENOMEDIR -S FASTFILE.sam 2>FASTFILE.hisat.summary.txt
 
-java -jar -Xmx40G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 10 -phred33 -trimlog FASTFILE.trimLog.txt -summary FASTFILE.trimSummary.txt -validatePairs P1FASTFILE P2FASTFILE PD1FASTFILE.1P.fq.gz PD1FASTFILE.1U.fq.gz  PD2FASTFILE.2P.fq.gz PD2FASTFILE.2U.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/NexteraPE-PE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:30
 
