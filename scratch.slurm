@@ -1,17 +1,15 @@
 #!/bin/sh
-##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=SLURMJOB
-##SBATCH --account=nn9036k --job-name=SLURMJOBBM
-#SBATCH --time=2:00:00
+#SBATCH --account=nn9036k --job-name=NFTK
+#SBATCH --time=198:00:00
+#SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=32
+#SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
-##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=NCPU 
-#SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
-#SBATCH --output=SLURMJOBlog
+#SBATCH --output=nfSLURMLOG
 
-WORKDIR=${SLURM_SUBMIT_DIR}
+
+WORKDIR=$PWD
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -25,4 +23,22 @@ echo "Total of $SLURM_NTASKS cores"
 
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
+module load Miniconda3/22.11.1-1
+#conda config --prepend channels bioconda
+#conda config --show channels
+#mamba install python=3.11 nf-core nextflow
+#nf-core create
+#cd nf-core-spritz/
+#git checkout dev
+#git remote add origin https://github.com/animesh/spritz_nf.git
+#git push --all origin
+#ln -s /cluster/projects/nn9036k/scripts/TK9/*.gz .
+#vim samples.csv
+conda activate nf-core
+#nextflow  self-update
+nextflow  -v
+#nextflow run hello
+
+nextflow run nf-core/rnaseq  --outdir HG37A --input samples.csv --genome GRCh37 -profile singularity -resume
+
 
