@@ -7,16 +7,62 @@ inpD<-"F:/OneDrive - NTNU/TK/mergeHISAT/subread.1697973662.results/"
 inpF<-"Homo_sapiens.GRCh38.110.30.count.txt"
 countTable = read.table(paste0(inpD,inpF),header=TRUE,row.names=1)
 colnames(countTable)
+countTable[countTable==0]=NA
+countTable$rowLength<-log2(countTable$Length)
+hist(countTable$rowLength)
+countTable$rowLog2Length<-log2(countTable$Length)
+hist(countTable$rowLog2Length)
+countTable$rowMinMaxLength<-(countTable$rowLog2Length-min(countTable$rowLog2Length))/(max(countTable$rowLog2Length)-min(countTable$rowLog2Length))
+hist(countTable$rowMinMaxLength)
+countTable$rowStart<-as.numeric(paste(sapply(strsplit(paste(sapply(strsplit(countTable$Start, ";",fixed=T), "[", 1)), " "), "[", 1)))
+hist(countTable$rowStart)
+summary(countTable$rowStart)
+countTable$rowStrand<-paste(sapply(strsplit(paste(sapply(strsplit(countTable$Strand, ";",fixed=T), "[", 1)), " "), "[", 1))
+table(countTable$rowStrand)
+countTable$rowChr<-paste(sapply(strsplit(paste(sapply(strsplit(countTable$Chr, ";",fixed=T), "[", 1)), " "), "[", 1))
+table(countTable$rowChr)
+countTableChr13<-countTable[countTable$rowChr=="13",]
+countTableChr13$X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam <- with(countTableChr13, ifelse(rowStrand=="-", -X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam, X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam))
+#index <- mydata$Var1 <= 1
+#countTableChr13[countTableChr13$rowStrand=="-","X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam"]=countTableChr13[countTableChr13$rowStrand=="-","X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam"]*(-1)
+#plot(countTableChr13$rowStart,log2(countTableChr13$X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam))
+plot(countTableChr13$rowStart,countTableChr13$X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam,,pch=16,col=gray(countTableChr13$rowMinMaxLength))
+countTableChr13<-countTable[countTable$rowChr=="13",]
+summary(countTableChr13)
+countTableChr13$X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK9_1L5_R.sort.bam <- with(countTableChr13, ifelse(rowStrand=="-", -X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK9_1L5_R.sort.bam, X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK9_1L5_R.sort.bam))
+summary(countTableChr13)
+#index <- mydata$Var1 <= 1
+#countTableChr13[countTableChr13$rowStrand=="-","X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam"]=countTableChr13[countTableChr13$rowStrand=="-","X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam"]*(-1)
+#plot(countTableChr13$rowStart,log2(countTableChr13$X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK12_R3_.sort.bam))
+plot(countTableChr13$rowStart,countTableChr13$X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.TK9_1L5_R.sort.bam,,pch=16,col=gray(countTableChr13$rowMinMaxLength))
+countTableSelLog2lenStartStrand<-merge(countTableSelLog2,countTableLen[,c("rowLength","rowStart","rowStrand")],by="row.names")
 countTableSel=countTable[,grep("TK",colnames(countTable))]
 colnames(countTableSel)
 colnames(countTableSel)=gsub("X.cluster.projects.nn9036k.scripts.TK.mergeHISAT.","",colnames(countTableSel))
 colnames(countTableSel)
 colnames(countTableSel)=gsub(".sort.bam","",colnames(countTableSel))
 colnames(countTableSel)
-boxplot(countTableSel)
-countTableNorm=limma::voom(countTableSel, design = NULL, lib.size = NULL, normalize.method = "quantile",block = NULL, correlation = NULL, weights = NULL,span = 0.5, plot = FALSE, save.plot = FALSE)
+hist(sapply(countTableSel,as.numeric))
+par(mar=c(12,3,1,1))
+boxplot(countTableSel,las=2,main="countTableSel")
 countTableSelLog2=log2(countTableSel)
-boxplot(countTableSelLog2)
+countTableSelLog2[countTableSelLog2==-Inf]=NA
+summary(countTableSelLog2)
+min(countTableSelLog2,na.rm=T)
+max(countTableSelLog2,na.rm=T)
+hist(sapply(countTableSelLog2,as.numeric),breaks=100)
+par(mar=c(12,3,1,1))
+boxplot(countTableSelLog2,las=2,main="countTableSelLog2")
+countTableLen<-countTable[,grep("row",colnames(countTable))]
+hist(countTable$Length)
+countTableSelLog2NA0<-countTableSelLog2lenStartStrand
+#countTableSelLog2NA0[is.na(countTableSelLog2NA0)]=0.0
+summary(countTableSelLog2NA0)
+countTableSelLog2Chr12<-countTableSelLog2NA0[countTableSelLog2NA0$rowStrand=='+',]
+plot(countTableSelLog2Chr12$rowStart,countTableSelLog2Chr12$TK12_R3_,col=gray(countTableSelLog2Chr12))
+countTableNorm=limma::voom(countTableSel, design = NULL, lib.size = NULL, normalize.method = "quantile",block = NULL, correlation = NULL, weights = NULL,span = 0.5, plot = FALSE, save.plot = FALSE)
+par(mar=c(12,3,1,1))
+boxplot(countTableNorm[["E"]],las=2,main="countTableNorm")
 countTableSelNorm=limma::voom(countTableSel, design = NULL, lib.size = NULL, normalize.method = "quantile",block = NULL, correlation = NULL, weights = NULL,span = 0.5, plot = FALSE, save.plot = FALSE)
 range(log2(countTableNorm[["E"]]),na.rm=T)
 hist(countTableSelNorm[["E"]])

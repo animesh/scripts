@@ -14,9 +14,10 @@ inpD <- args[1]
 #unzip(paste0(inpD,"OpenMS.zip"),exdir = paste0(inpD,"OpenMS"))
 #generate mzML in windows prompt using cmd
 ##for %i in ("L:\promec\HF\Lars\2023\IgG Mus Therese\mzML\deconv\*.raw) do ("F:\OneDrive - NTNU\ProteoWizard 3.0.22155.0ff594f 64-bit\msconvert.exe"  --filter "peakPicking true 1-" %i)
-#run flashDeConvL:\promec\HF\Lars\2023\IgG Mus Therese\mzML\deconv>for %i in ("*.mzML") do ("F:\OneDrive - NTNU\OpenMS-3.0.0-pre-HEAD-2022-08-16\bin\FLASHDeconv.exe" -in %i -out %i.fdc.tsv)
-##cd L:\promec\HF\Lars\2023\IgG Mus Therese\mzML\deconv>
-##for %i in ("*.mzML") do ("F:\OneDrive - NTNU\OpenMS-3.0.0-pre-HEAD-2022-08-16\bin\FLASHDeconv.exe" -in %i -out %i.fdc.tsv)
+#runFLASHDeconv####
+#cd F:\IRD
+#for %i in ("*.mzML") do ("F:\OpenMS-3.0.0\bin\FLASHDeconv.exe"  -in 231006_IRD_10_D22_T4_ddaPD.mzML -out 231006_IRD_10_D22_T4_ddaPD.mzML.fdc.tsv )
+#merge####
 inpFL<-list.files(pattern="*mzML.fdc.tsv$",path=inpD,full.names=F,recursive=F)
 outF=paste(inpD,"intMZ1",sep = "/")
 outP=paste(outF,"plot","pdf",sep = ".")
@@ -36,7 +37,6 @@ for(inpF in inpFL){
     assign(inpF,dataSA)
 }
 hist(dfMZ1)
-#merge####
 data<-data.frame(MZ1=dfMZ1)
 #data<-merge(data,`210408_EL500_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
 #plot(data$MZ1,data$MZ1210408_EL500_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv)

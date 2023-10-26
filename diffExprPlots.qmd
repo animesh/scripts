@@ -7,18 +7,52 @@ server: shiny
 ```{r data}
 #| context: setup
 #| include: true
-inpF<-"L:\\promec\\TIMSTOF\\LARS\\2023\\230222 Katja\\Protein comparison ADN3 vs AD for figure 1.csv"
-data<-read.csv(inpF,header=TRUE,sep=",",row.names=1)
+inpF <-"L:/promec/TIMSTOF/LARS/2023/231017_Jana/combined/txt/proteinGroups.txt"
+data<-read.csv(inpF,header=TRUE,sep="\t")
+#clean
+data = data[!data$Reverse=="+",]
+data = data[!data$Potential.contaminant=="+",]
+#data = data[!data$Only.identified.by.site=="+",]
+row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
+summary(data)
+dim(data)
+hist(as.matrix(log2(data[,grep("Intensity",colnames(data))])))
+summary(log2(data[,grep("Intensity",colnames(data))]))
+selection<-"LFQ.intensity."
+LFQ<-as.matrix(data[,grep(selection,colnames(data))])
+#protNum<-1:ncol(LFQ)
+#protNum<-"LFQ intensity"#1:ncol(LFQ)
+#colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),sep=";")
+colnames(LFQ)=sub(selection,"",colnames(LFQ))
+dim(LFQ)
+log2LFQ<-log2(LFQ)
+log2LFQ[log2LFQ==-Inf]=NA
+log2LFQ[log2LFQ==0]=NA
+summary(log2LFQ)
+hist(log2LFQ)
+inpW<-paste0(inpD,hdr,"log2LFQ.xlsx")
+rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
+rowNameG<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "GN=",fixed=T), "[", 2)), " "), "[", 1))
+#rownames(log2LFQ)<-data$Gene.names
+rownames(log2LFQ)<-rowNameG
+writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpF,".xlsx"))
 #data<-as.numeric(data)
 #summary(data)
-dataNAR<-data
+dataNAR<-log2LFQ
 dataNAR[is.na(dataNAR)]<-0
-#summary(dataNAR)
+dataNAR<-as.matrix(dataNAR[rowSums(dataNAR)>0,])
+summary(dataNAR)
 ```
 
 data select:
 
 ```{r select}
+svgPHC<-pheatmap::pheatmap(dataNAR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4)
+#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",annotation_row = anno, annotation_col = anno,fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+#pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
+#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,labels_row = paste(label$RawFnum,label$ID_ROLF,label$Tank,label$Diet,label$Fish))
+ggplot2::ggsave(file=paste0(inpF,"log2selectClust.svg"),plot=svgPHC,width = 5, height = 15, dpi = 600)#,  
+
 sliderInput("sample", "Number of samples", min = 1, max = ncol(data), value = 1)
 plotOutput("distPlot")
 ```
