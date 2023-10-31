@@ -1,7 +1,7 @@
 #F:\R-4.3.1\bin\Rscript.exe proteinGroups.r "F:\OneDrive - NTNU\Ale\proteinGroups mouse.txt"
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
 #supplying input file for testing
-#inpF<-file.path("L:/promec/TIMSTOF/LARS/2023/230222 Katja/proteinGroups.txt")
+#inpF<-file.path("F:/OneDrive - NTNU/PK/proteinGroups.txt")
 #parse argument(s)0
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -17,19 +17,28 @@ selection="Intensity.";
 print("Selecting Raw Intensity Values(s)")
 #summary(data)
 if(sum(grep(selection,colnames(data)))>0){
+  intensity<-as.matrix(data[,grep(selection,colnames(data))])
+  intensityLFQ<-log2(intensity)
+  intensityLFQ[intensityLFQ==-Inf]=NA
+  print("Quantified Total Intensity for protein-groups(s)")
+  print(data.frame(colSums(!is.na(intensityLFQ))))
+  print("Unquantified protein-groups(s)")
+  print(data.frame(colSums(is.na(intensityLFQ))))
   #clean####
   nData<-nrow(data)
   if(sum(is.na(data[["Reverse"]]))<nData){data = data[!data[["Reverse"]]=="+",]}
-  dim(data)
-  nrow(data)/nData
+  print("Removed Reverse + ID(s)")
+  print(dim(data))
+  print(nrow(data)/nData)
   nDataR<-nrow(data)
   if(sum(is.na(data[["Potential.contaminant"]]))<nDataR){data = data[!data[["Potential.contaminant"]]=="+",]}
-  dim(data)
-  nrow(data)/nData
+  print("Removed Reverse and Potential.contaminant + ID(s)")
+  print(dim(data))
+  print(nrow(data)/nData)
   nDataC<-nrow(data)
   if(sum(is.na(data[["Only.identified.by.site"]]))<nDataC){data = data[!data[["Only.identified.by.site"]]=="+",]}
-  dim(data)
-  nrow(data)/nData
+  print(dim(data))
+  print(nrow(data)/nData)
   print("Removed Reverse,Potential.contaminant and Only.identified.by.site")
   intensity<-as.matrix(data[,grep(selection,colnames(data))]);protNum<-1:nrow(data);row.names(data)<-paste(protNum,data$Fasta.headers,protNum,sep=";")}  else if(sum(grep("Abundance.",colnames(data)))>0){selection<-"Abundance.";intensity<-as.matrix(data[,grep("Abundance.",colnames(data))]);data = data[data[["Master"]]=="IsMasterProtein",];protNum<-1:nrow(data);row.names(data)<-paste(protNum,data$FASTA.Title.Lines,protNum,sep=";")}  else{print('Neither Abundance[PD] nor Intensity[MQ] columns detected!')}
 print("Converted Fasta.headers to rownames")

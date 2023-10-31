@@ -1,4 +1,4 @@
-#F:\R-4.3.1\bin\Rscript.exe diffExprRNAseqPlot.r "F:\OneDrive - NTNU\TK\mergeHISAT\subread.1697973662.results\Homo_sapiens.GRCh38.110.30.count.txt"
+#F:\R-4.3.1\bin\Rscript.exe diffExprRNAseqPlot.r "F:\seqRNA\count.thread6.txt"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 if (length(args) != 1) {stop("USAGE:<path to Rscript.exe> diffExprRNAseqPlot.r <complete path to counts file>
@@ -7,7 +7,7 @@ if (length(args) != 1) {stop("USAGE:<path to Rscript.exe> diffExprRNAseqPlot.r <
 print(paste("supplied argument(s):", length(args)))
 inpF<-args[1]
 print(args)
-#inpF<-"F:/OneDrive - NTNU/TK/mergeHISAT/subread.1697973662.results/Homo_sapiens.GRCh38.110.30.count.txt"
+#inpF<-"F:/seqRNA/count.thread6.txt"
 colName<-1
 colChr<-2
 colStart<-3
@@ -15,7 +15,7 @@ colStrand<-5
 colLen<-6
 colSample<-7
 #data####
-countTable = read.table(inpF,header=TRUE)
+countTable = read.table(inpF,header=TRUE,comment.char = "#")
 numSample<-length(countTable)
 print(paste("colName","colChr","colStart","colStrand","colLen","colSample","Total"))
 paramName<-paste(colName,colChr,colStart,colStrand,colLen,colSample,numSample-colSample+1,sep=".")
