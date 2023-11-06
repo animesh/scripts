@@ -1,0 +1,53 @@
+{
+    "database": {
+        "bucket_size": 8192,
+        "enzyme": {
+            "missed_cleavages": 2,
+            "min_len": 7,
+            "max_len": 50,
+            "cleave_at": "KR"
+        },
+        "fragment_min_mz": 150.0,
+        "fragment_max_mz": 1500.0,
+        "peptide_min_mass": 500.0,
+        "peptide_max_mass": 5000.0,
+        "ion_kinds": [
+            "b",
+            "y"
+        ],
+        "min_ion_index": 2,
+        "max_variable_mods": 2,
+        "static_mods": {
+            "C": 57.0214
+        },
+        "variable_mods": {
+            "M": 15.9949
+        },
+        "decoy_tag": "rev_",
+        "generate_decoys": true,
+        "fasta": "/cluster/projects/nn9036k/FastaDB/2022-04-21-decoys-isoforms-contam-UP000005640.fas"
+    },
+    "precursor_tol": {
+        "da": [
+            -500,
+            100
+        ]
+    },
+    "fragment_tol": {
+        "ppm": [
+            -10,
+            10
+        ]
+    },
+    "deisotope": true,
+    "chimera": true,
+    "min_peaks": 15,
+    "max_peaks": 250,
+    "min_matched_peaks": 4,
+    "max_fragment_charge": 1,
+    "report_psms": 2,
+    "predict_rt": true,
+    "mzml_paths": [
+        "IRD/231006_IRD_7_D22_T1_ddaPD.mzML"
+    ]
+}

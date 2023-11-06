@@ -23,13 +23,7 @@ echo "Total of $SLURM_NTASKS cores"
 
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
-module load Miniconda3/22.11.1-1
-conda activate bamplot
-#conda install -c bioconda perbase
-#pip install bam2plot
-#rm -rf output_folder/
-#cd $PWD/TK/mergeHISAT
-for i in *.sort.bam ; do echo $i; rm -f *.sorted.bam.tmp.* ; bam2plot --bam $i  -i True -s True --sample_name sample.$i --outpath output.$i ; done
+./sage-v0.14.4-x86_64-unknown-linux-gnu/sage sage.json $PWD/IRD/ -f IRD/human_crap_ird.fasta -o IRD/sage
 
 
 
