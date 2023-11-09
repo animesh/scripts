@@ -1,29 +1,37 @@
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_2.0.3.1/bin/MaxQuantCmd.exe /trd-project1/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/MQTest123/ /cluster/projects/nn9036k/FastaDB/uniprot-proteome-human-iso-june22.fasta  mqparTTP.phoSTY.xml scratch.slurm
-#make sure mqrun.xml is in the directory where the script is and CHANGE following paths according to the MaxQuant Installation and representative parameter file for that version respectively CANNOT handle path containing spaces! create a symlink in such cases e.g. 
-#for i in $HOME/PD/TIMSTOF/LARS/2021/November/*.d ; do echo $i; j=${i// /_}; echo $j; k=$(basename $j) ; echo $k; ln -s "$i" "$k"; done
-#or make a local link without space for root directory
-#ln -s /trd-project1/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2022/september/220908\ PHos/ phos
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_2.0.3.1/bin/MaxQuantCmd.exe $PWD/phos /cluster/projects/nn9036k/FastaDB/uniprot-proteome-human-iso-june22.fasta  mqparTTP.phoSTY.xml scratch.slurm
+#git checkout 63547a6144ddd94f4a6801e24ca33515a4c8f50e scratch.slurm
+#dos2unix slurmMQrunTTP.sh scratch.slurm mqparTTPdia.xml
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/plasma /cluster/projects/nn9036k/FastaDB mqparTTPdia.xml scratch.slurm
+#wget "https://maxquant.org/p/maxquant/MaxQuant_v_2.4.10.0.zip?md5=bwPYOvsI5oXolBP_wXUyzg&expires=1700127616" -O MQv24100.zip
+#unzip MQv24100.zip
+#wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=homo_sapiens.zip" -O HS.DIA.zip
+#unzip HS.DIA.zip
+#mv *.fasta FastaDB/.
+#mv *.txt FastaDB/.
+#mv MaxQuant_v_1.4.10.0 MaxQuant_v_2.4.10.0
+#cd scripts/
+#mkdir plasma
+#rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2023/231030_hela_peptides/DIA/*.d plasma/
+#cat scratch.slurm
 MAXQUANTCMD=$1
 DATADIR=$2
-FASTAFILE=$3
+FASTADIR=$3
 PARAMFILE=$4
 MQSLURMFILE=$5
-CPU=40
-FDR=0.01
+CPU=10
+thrMS=20
 #leave following empty to include ALL files
 PREFIXRAW=
 SEARCHTEXT=TestFile.d
 SEARCHTEXT2=SequencesFasta
 SEARCHTEXT3=LocalCombinedFolder
-SEARCHTEXT4="Fdr>0.01"
+SEARCHTEXT4=thrMS
 LDIR=$PWD
 CURRENTEPOCTIME=`date +%s`
 WRITEDIR=$PARAMFILE.$CURRENTEPOCTIME.results
 mkdir $WRITEDIR
 #perl -pe 's/\r$//' < mqrun.sh  > tmp
 dos2unix $PARAMFILE
-for i in $DATADIR/*.d ; do echo $i ; 	j=$(basename $i) ; 	k=${j%%.*} ; mkdir $WRITEDIR/$k ; cp -r $i $WRITEDIR/$k ; sed "s|$SEARCHTEXT2|$FASTAFILE|" $LDIR/$PARAMFILE > $WRITEDIR/$k/$PARAMFILE.tmp1 ; sed "s|$SEARCHTEXT|$LDIR/$WRITEDIR/$k/$j|"  $WRITEDIR/$k/$PARAMFILE.tmp1 > $WRITEDIR/$k/$PARAMFILE.tmp2 ; sed "s|$SEARCHTEXT4|Fdr>$FDR|"  $WRITEDIR/$k/$PARAMFILE.tmp2 > $WRITEDIR/$k/$PARAMFILE.tmp3 ; sed "s|$SEARCHTEXT3|$LDIR/$WRITEDIR/$k|"  $WRITEDIR/$k/$PARAMFILE.tmp3 > $WRITEDIR/$k/$k.xml ; rm $WRITEDIR/$k/$PARAMFILE.tmp*  ;done
+for i in $DATADIR/*.d ; do echo $i ; 	j=$(basename $i) ; 	k=${j%%.*} ; mkdir $WRITEDIR/$k ; cp -r $i $WRITEDIR/$k ; sed "s|$SEARCHTEXT2|$FASTADIR|g" $LDIR/$PARAMFILE > $WRITEDIR/$k/$PARAMFILE.tmp1 ; sed "s|$SEARCHTEXT|$LDIR/$WRITEDIR/$k/$j|"  $WRITEDIR/$k/$PARAMFILE.tmp1 > $WRITEDIR/$k/$PARAMFILE.tmp2 ; sed "s|$SEARCHTEXT4|$thrMS|g"  $WRITEDIR/$k/$PARAMFILE.tmp2 > $WRITEDIR/$k/$PARAMFILE.tmp3 ; sed "s|$SEARCHTEXT3|$LDIR/$WRITEDIR/$k|"  $WRITEDIR/$k/$PARAMFILE.tmp3 > $WRITEDIR/$k/$k.xml ; rm $WRITEDIR/$k/$PARAMFILE.tmp*  ;done
 #mono $MAXQUANTCMD $k.xml ; cp -rf ./combined/txt $k.REP ; echo $k ; cd $LDIR 
 echo $WRITEDIR
 #mv tmp  mqrun.sh

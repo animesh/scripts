@@ -1,15 +1,15 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=BPTK
-#SBATCH --time=48:00:00
+#SBATCH --account=nn9036k --job-name=MQSLURMNAME
+#SBATCH --time=24:00:00
 ##SBATCH --partition=bigmem
+##SBATCH --ntasks=16 --cpus-per-task=4
+##SBATCH --mem-per-cpu=32G
 #SBATCH --ntasks=1 --cpus-per-task=10
-#SBATCH --mem-per-cpu=4G
+#SBATCH --mem-per-cpu=1G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=nfSLURMLOG
-
-
-WORKDIR=$PWD
+#SBATCH --output=MQSLURMLOG
+WORKDIR=MQWD
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -20,12 +20,9 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-
-export http_proxy=proxy.saga:3128
-export https_proxy=proxy.saga:3128
-./sage-v0.14.4-x86_64-unknown-linux-gnu/sage sage.json $PWD/IRD/ -f IRD/human_crap_ird.fasta -o IRD/sage
-
-
-
-
-
+module purge
+module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
+mono --version
+module load dotNET-SDK/3.1.300-linux-x64
+dotnet --version
+dotnet MQCMD MQPARF
