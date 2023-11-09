@@ -208,7 +208,6 @@
          <intensityThresholdMs2>thrMS</intensityThresholdMs2>
          <labelMods>
             <string></string>
-            <string>Arg10;Lys8</string>
          </labelMods>
          <lcmsRunType>TIMS-MaxDIA</lcmsRunType>
          <reQuantify>True</reQuantify>
@@ -226,10 +225,10 @@
          <lfqMinRatioCount>2</lfqMinRatioCount>
          <lfqMinRatioCountDia>2</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
-         <maxLabeledAa>3</maxLabeledAa>
+         <maxLabeledAa>0</maxLabeledAa>
          <maxNmods>5</maxNmods>
          <maxMissedCleavages>2</maxMissedCleavages>
-         <multiplicity>2</multiplicity>
+         <multiplicity>1</multiplicity>
          <enzymeMode>0</enzymeMode>
          <complementaryReporterType>0</complementaryReporterType>
          <reporterNormalization>0</reporterNormalization>
