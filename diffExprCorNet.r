@@ -27,15 +27,15 @@ rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nro
 hist(dataComb)
 #selGen####
 dataCombT<-t(dataComb)
-colnames(dataCombT)[grep("XP",colnames(dataCombT))]
-summary(dataCombT[,"XPO1;O14980;C9JKM9;C9IZS4;C9JQ02;C9JV99;F8WF71;C9JF49;C9IYM2;H7BZC5;3853"])
-dataCombTcorXPO1=cor(dataCombT[,"XPO1;O14980;C9JKM9;C9IZS4;C9JQ02;C9JV99;F8WF71;C9JF49;C9IYM2;H7BZC5;3853"],dataCombT)
-hist(dataCombTcorXPO1)
+genSel <- "XPO1"
+summary(dataCombT[,colnames(dataCombT)[grep(genSel,colnames(dataCombT))]])
+#dataCombTcorXPO1=cor(dataCombT[,"XPO1;O14980;C9JKM9;C9IZS4;C9JQ02;C9JV99;F8WF71;C9JF49;C9IYM2;H7BZC5;3853"],dataCombT)
+#hist(dataCombTcorXPO1)
 #cor####
-dataCombTcor=t(dataCombT[,-c(grep("XPO1",colnames(dataCombT)))])
+dataCombTcor=t(dataCombT[,-c(grep(genSel,colnames(dataCombT)))])
 resCor=apply(dataCombTcor, 1,function(x)
   if((sum(!is.na(x))>0)){
-    cort=cor.test(as.numeric(x),as.numeric(dataCombT[,"XPO1;O14980;C9JKM9;C9IZS4;C9JQ02;C9JV99;F8WF71;C9JF49;C9IYM2;H7BZC5;3853"]),use="pairwise.complete.obs",method="pearson")
+    cort=cor.test(as.numeric(x),as.numeric(dataCombT[,colnames(dataCombT)[grep(genSel,colnames(dataCombT))]]),use="pairwise.complete.obs",method="pearson")
     cort=unlist(cort)
     paste(cort[[1]],cort[[2]],cort[[3]],cort[[4]],sep="--VALS--")
   }
@@ -73,8 +73,7 @@ hist(pValBHnaMinusLog10)
 geneName<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(dataCombTcor), ";",fixed=T), "[", 1)), "-"), "[", 1))
 uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(dataCombTcor), ";",fixed=T), "[", 2)), "-"), "[", 1))
 corTest.results = data.frame(Uniprot=uniprotID,Gene=geneName,PValueMinusLog10=pValNAminusLog10,CorrectedPValueBH=pValBHna,CorTestPval=pValNA,Cor=cValNA,dataCombTcor,Fasta=row.names(dataCombTcor))
-writexl::write_xlsx(corTest.results,paste0(inpF,"CorTestBH.xlsx"))
-
+writexl::write_xlsx(corTest.results,paste0(inpF,genSel,"CorTestBH.xlsx"))
 #dist####
 log2LFQimpCorr<-cor(t(dataComb),use="pairwise.complete.obs",method="spearman")
 hist(log2LFQimpCorr)
