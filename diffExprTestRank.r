@@ -1,4 +1,4 @@
-#F:\R-4.3.1\bin\Rscript.exe diffExprTestRank.r "L:\promec\TIMSTOF\LARS\2023\231027_plasma_beads\combined\txtMC3MS3010\proteinGroups.txt" L:\promec\TIMSTOF\LARS\2023\231027_plasma_beads\combined\txtMC0\Groups.txt "Intensity." "Bead" "Rem"
+#F:\R-4.3.1\bin\Rscript.exe diffExprTestRank.r "L:\promec\TIMSTOF\LARS\2023\231027_plasma_beads\combined\txt\proteinGroups.txt" L:\promec\TIMSTOF\LARS\2023\231027_plasma_beads\combined\txt\Groups.txt "Intensity." "Bead" "Rem"
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -20,15 +20,15 @@ lGroup <- args[4]
 #lGroup<-"Bead"
 rGroup <- args[5]
 #rGroup<-"Rem"
-scale=3
-set.seed(scale)
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
 thr=0.0#count
 selThr=0.1#pValue-WilcoxTest
-selThrFC=0.1#log2-MedianDifference
+selThrFC=0.01#log2-MedianMinMaxDifference
 cvThr=Inf#threshold for coefficient-of-variation
+scale=3#impute
+set.seed(scale)
 hdr<-gsub("[^[:alnum:]]", "",inpD)
 outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,"VolcanoTestWilcox","pdf",sep = ".")
 pdf(outP)
@@ -62,7 +62,7 @@ data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", com
 #data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
 data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "GN=",fixed=T), "[", 2)), " "), "[", 1))
-data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$Protein.IDs, ";",fixed=T), "[", 1)), "-"), "[", 1))
+data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$Protein.IDs, ";",fixed=T), "[", 1)), " "), "[", 1))
 data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
 row.names(data)<-paste(row.names(data),data$uniprotID,data$geneName,data$Fasta.headers,data$Score,data$Peptide.counts..unique.,sep=";;")
 summary(data)
@@ -163,12 +163,12 @@ testWilcox <- function(log2LFQmm,sel1,sel2,fName){
     writexl::write_xlsx(wilcoxTest.results,paste0(inpF,fName,selection,scale,lGroup,sCol,sel1,mCol,paste(sel2,collapse=""),eCol,selThr,selThrFC,cvThr,rGroup,lName,"WilcoxTestBH.xlsx"))
     write.csv(wilcoxTest.results,paste0(inpF,fName,selection,scale,lGroup,sCol,sel1,mCol,paste(sel2,collapse=""),eCol,selThr,selThrFC,cvThr,rGroup,lName,"WilcoxTestBH.csv"),row.names = F)
     #select
-    cat(paste(sel1,paste(wilcoxTest.results[!is.na(wilcoxTest.results$logFCmedianGrp1),"Uniprot"],collapse=" "),sum(!is.na(wilcoxTest.results$logFCmedianGrp1)),sep = ","),file=paste0(inpF,fName,"combine.csv"),sep="\n",append=TRUE)
+    cat(paste(sel1,paste(wilcoxTest.results[!is.na(wilcoxTest.results$logFCmedianGrp1),"Uniprot"],collapse=","),sum(!is.na(wilcoxTest.results$logFCmedianGrp1)),sep = "\t"),file=paste0(inpF,fName,"combine.txt"),sep="\n",append=TRUE)
     #write.csv(cbind(sel1,sum(!is.na(wilcoxTest.results$logFCmedianGrp1)),paste(wilcoxTest.results[!is.na(wilcoxTest.results$logFCmedianGrp1),"Uniprot"],collapse=" ")),paste0(inpF,"combine.csv"))
     #volcano
     wilcoxTest.results$RowGeneUniProtScorePeps<-data$geneName
     wilcoxTest.results[is.na(wilcoxTest.results)]=selThr
-    Significance=wilcoxTest.results$CorrectedPValueBH<selThr&wilcoxTest.results$CorrectedPValueBH<selThr&abs(wilcoxTest.results$Log2MedianChange)>selThrFC
+    Significance=(wilcoxTest.results$CorrectedPValueBH<selThr)&(wilcoxTest.results$Log2MedianChange>selThrFC)
     dsub <- subset(wilcoxTest.results,Significance)
     p <- ggplot2::ggplot(wilcoxTest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance))
     p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")

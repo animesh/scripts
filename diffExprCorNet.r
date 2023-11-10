@@ -1,5 +1,5 @@
 #setup####
-inpD <-"C:/Users/animeshs/OneDrive - NTNU/Singh/"
+inpD <-"F:/OneDrive - NTNU/Aida/XPO/"
 .libPaths( c( .libPaths(), inpD) )
 .libPaths()
 par(mfrow=c(1,2))
@@ -10,11 +10,11 @@ selThrFC=0.5
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 setwd(inpD)
 getwd()
-inpF<-paste0(inpD,"Supplementary Table 2 for working purpose.xlsx")
+inpF<-paste0(inpD,"Supplementary Table 2.xlsx")
 #install.packages("readxl")
-install.packages("ellipsis")
+#install.packages("ellipsis")
 #devtools::install_github("r-lib/ellipsis")
-data <- readxl::read_excel(inpF)
+data <- readxl::read_excel(inpF,sheet = 2)
 #transform####
 dataLog2<-sapply(data, as.numeric)
 #select####
@@ -22,8 +22,59 @@ colnames(dataLog2)
 dataComb<-data.frame(dataLog2[,grep("^M",colnames(dataLog2))])
 dataComb<-sapply(dataComb,as.numeric)
 boxplot(dataComb)
+head(data$`T: T: Gene names`)
 rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nrow(dataComb),sep=";")
 hist(dataComb)
+#selGen####
+dataCombT<-t(dataComb)
+colnames(dataCombT)[grep("XP",colnames(dataCombT))]
+summary(dataCombT[,"XPO1;O14980;C9JKM9;C9IZS4;C9JQ02;C9JV99;F8WF71;C9JF49;C9IYM2;H7BZC5;3853"])
+dataCombTcorXPO1=cor(dataCombT[,"XPO1;O14980;C9JKM9;C9IZS4;C9JQ02;C9JV99;F8WF71;C9JF49;C9IYM2;H7BZC5;3853"],dataCombT)
+hist(dataCombTcorXPO1)
+#cor####
+dataCombTcor=t(dataCombT[,-c(grep("XPO1",colnames(dataCombT)))])
+resCor=apply(dataCombTcor, 1,function(x)
+  if((sum(!is.na(x))>0)){
+    cort=cor.test(as.numeric(x),as.numeric(dataCombT[,"XPO1;O14980;C9JKM9;C9IZS4;C9JQ02;C9JV99;F8WF71;C9JF49;C9IYM2;H7BZC5;3853"]),use="pairwise.complete.obs",method="pearson")
+    cort=unlist(cort)
+    paste(cort[[1]],cort[[2]],cort[[3]],cort[[4]],sep="--VALS--")
+  }
+  else{NA}
+)
+pValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 3)
+pValNA<-sapply(pValCor,as.numeric)
+hist(pValNA)
+cValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 4)
+cValNA<-sapply(cValCor,as.numeric)
+hist(cValNA)
+tValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 1)
+tValNA<-sapply(tValCor,as.numeric)
+hist(tValNA)
+yValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 2)
+yValNA<-sapply(yValCor,as.numeric)
+hist(yValNA)
+summary(warnings())
+summary(pValNA)
+summary(cValNA)
+if(sum(is.na(pValNA))==nrow(dataCombTcor)){pValNA[is.na(pValNA)]=1}
+hist(pValNA)
+dfpValNA<-as.data.frame(ceiling(pValNA))
+pValNAdm<-cbind(pValNA,dataCombTcor,row.names(dataCombTcor))
+pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
+hist(pValNAminusLog10)
+library(scales)
+pValNAminusLog10=squish(pValNAminusLog10,c(0,5))
+hist(pValNAminusLog10)
+length(pValNA)-(sum(is.na(pValNA))+sum(ceiling(pValNA)==0,na.rm = T))
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
+hist(pValBHnaMinusLog10)
+geneName<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(dataCombTcor), ";",fixed=T), "[", 1)), "-"), "[", 1))
+uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(row.names(dataCombTcor), ";",fixed=T), "[", 2)), "-"), "[", 1))
+corTest.results = data.frame(Uniprot=uniprotID,Gene=geneName,PValueMinusLog10=pValNAminusLog10,CorrectedPValueBH=pValBHna,CorTestPval=pValNA,Cor=cValNA,dataCombTcor,Fasta=row.names(dataCombTcor))
+writexl::write_xlsx(corTest.results,paste0(inpF,"CorTestBH.xlsx"))
+
 #dist####
 log2LFQimpCorr<-cor(t(dataComb),use="pairwise.complete.obs",method="spearman")
 hist(log2LFQimpCorr)

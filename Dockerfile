@@ -1,7 +1,7 @@
 # docker pull docker.io/animesh1977/scripts
 # base https://github.com/UNINETTSigma2/helm-charts-dockerfiles/blob/05c68273357e38481591058b2ef1d6ef2549dd9c/deep-learning-tools2/Dockerfile https://github.com/UNINETTSigma2/helm-charts-dockerfiles/tree/05c68273357e38481591058b2ef1d6ef2549dd9c/jupyter-spark https://quay.io/repository/nird-toolkit/deep-learning-tools2?tab=history 
 # get tag from https://quay.io/repository/nird-toolkit/deep-learning-tools2?tab=history https://hub.docker.com/r/thtb2access/deep-learning-tools2/tags
-FROM quay.io/nird-toolkit/deep-learning-tools2:20230125-3292015
+FROM quay.io/nird-toolkit/deep-learning-tools2:20230823-211329a
 # download the repo: git clone scripts
 # move into the cloned directory: cd scripts
 # create image with CMD:  docker build --no-cache .
