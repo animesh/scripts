@@ -1,16 +1,27 @@
-# Workflow: Open
+# Workflow: fp
 
 
 # Please edit the following path to point to the correct location.
 # In Windows, please replace single '\' with '\\'
-database.db-path=FPFASTAFILE
+database.db-path=2023-11-11-decoys-reviewed-contam-UP000005640.fas
+
 crystalc.run-crystalc=false
+
 database.decoy-tag=rev_
+fragpipe-config.bin-ionquant=/home/ash022/fragpipe/tools/IonQuant-1.9.8.jar
+fragpipe-config.bin-msfragger=/home/ash022/fragpipe/tools/MSFragger-3.8/MSFragger-3.8.jar
+fragpipe-config.bin-philosopher=/home/ash022/fragpipe/tools/philosopher_v5.0.0_linux_amd64/philosopher
+fragpipe-config.bin-python=python
+
 diann.fragpipe.cmd-opts=
+diann.heavy=
 diann.library=
+diann.light=
+diann.medium=
 diann.q-value=0.01
 diann.quantification-strategy=3
 diann.run-dia-nn=false
+diann.run-dia-plex=false
 diann.run-specific-protein-q-value=false
 diann.unrelated-runs=false
 diann.use-predicted-spectra=true
@@ -89,6 +100,7 @@ msfragger.digest_min_length=7
 msfragger.fragment_ion_series=b,y
 msfragger.fragment_mass_tolerance=20
 msfragger.fragment_mass_units=1
+msfragger.group_variable=0
 msfragger.intensity_transform=0
 msfragger.ion_series_definitions=
 msfragger.isotope_error=0
@@ -119,6 +131,8 @@ msfragger.num_enzyme_termini=2
 msfragger.output_format=pepXML_pin
 msfragger.output_max_expect=50
 msfragger.output_report_topN=1
+msfragger.output_report_topN_dia1=5
+msfragger.output_report_topN_dia2=3
 msfragger.override_charge=false
 msfragger.precursor_mass_lower=-150
 msfragger.precursor_mass_mode=corrected
@@ -129,7 +143,9 @@ msfragger.precursor_true_units=1
 msfragger.remainder_fragment_masses=
 msfragger.remove_precursor_peak=1
 msfragger.report_alternative_proteins=true
+msfragger.require_precursor=true
 msfragger.restrict_deltamass_to=all
+msfragger.reuse_dia_fragment_peaks=false
 msfragger.run-msfragger=true
 msfragger.search_enzyme_cut_1=KR
 msfragger.search_enzyme_cut_2=
@@ -150,12 +166,15 @@ msfragger.zero_bin_accept_expect=0
 msfragger.zero_bin_mult_expect=1
 opair.activation1=HCD
 opair.activation2=ETD
+opair.filterOxonium=true
 opair.glyco_db=
 opair.max_glycans=4
 opair.max_isotope_error=2
 opair.min_isotope_error=0
 opair.ms1_tol=20
 opair.ms2_tol=20
+opair.oxonium_filtering_file=
+opair.oxonium_minimum_intensity=0.05
 opair.reverse_scan_order=false
 opair.run-opair=false
 opair.single_scan_type=false
@@ -265,6 +284,8 @@ speclibgen.keep-intermediate-files=false
 speclibgen.run-speclibgen=false
 tab-run.delete_calibrated_mzml=false
 tab-run.delete_temp_files=false
+tab-run.sub_mzml_prob_threshold=0.5
+tab-run.write_sub_mzml=false
 tmtintegrator.add_Ref=-1
 tmtintegrator.aggregation_method=0
 tmtintegrator.allow_overlabel=true
@@ -297,6 +318,6 @@ tmtintegrator.unique_gene=0
 tmtintegrator.unique_pep=false
 tmtintegrator.use_glycan_composition=false
 workflow.description=<p style\="margin-top\: 0in">Open search workflow for PTM analysis. MSFragger localization-aware open search (LOS) algorithm, with deisotoping, mass calibration, parameter optimization, and monoisotope correction enabled. Mass range -150 to 500 Da. PeptideProphet with extended mass model. Crystal-C for artifact removal. Precursor ion quantification using Freequant. PTM-Shepherd for mass shift summarization. For faster run time, in MSFragger change the number of allowed missed cleavages to 1.</p>
-workflow.input.data-type.im-ms=false
-workflow.input.data-type.regular-ms=true
-workflow.saved-with-ver=19.1
+workflow.input.data-type.im-ms=true
+workflow.input.data-type.regular-ms=false
+workflow.saved-with-ver=20.0

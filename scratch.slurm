@@ -1,15 +1,17 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=MQSLURMNAME
-#SBATCH --time=48:00:00
 ##SBATCH --partition=bigmem
-##SBATCH --ntasks=16 --cpus-per-task=4
-##SBATCH --mem-per-cpu=32G
-#SBATCH --ntasks=1 --cpus-per-task=10
-#SBATCH --mem-per-cpu=4G
+#SBATCH --account=nn9036k --job-name=FPSLURMNAME
+##SBATCH --account=nn9036k --job-name=FPSLURMNAMEBM
+#SBATCH --time=1:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
+##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
+##SBATCH --mem-per-cpu=16G
+#SBATCH --ntasks=1 --cpus-per-task=10 --ntasks-per-node=1
+#SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
-#SBATCH --output=MQSLURMLOG
-WORKDIR=MQWD
+#SBATCH --output=FPSLURMLOG
+
+WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -20,9 +22,9 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-module purge
-module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
-mono --version
-module load dotNET-SDK/3.1.300-linux-x64
-dotnet --version
-dotnet MQCMD MQPARF
+
+export http_proxy=proxy.saga:3128
+export https_proxy=proxy.saga:3128
+module load Java/13.0.2
+#wget https://github.com/Nesvilab/FragPipe/releases/download/19.1/FragPipe-19.1.zip
+/cluster/projects/nn9036k/fragpipe/bin/fragpipe --headless --threads 10 --ram 10 --workflow FPWORKFLOW --manifest FPMANIFESTFILE --workdir FPWORKDIR
