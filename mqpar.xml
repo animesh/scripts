@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/home/ash022/scripts/uniprot_human_iso_05May2023.fasta</fastaFilePath>
+         <fastaFilePath>/home/ash022/scripts/uniprot_human_iso_10Nov2023.fasta</fastaFilePath>
          <identifierParseRule>>(.*)</identifierParseRule>
          <descriptionParseRule></descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -71,6 +71,7 @@
    <deNovoUseWaterLossScore>True</deNovoUseWaterLossScore>
    <deNovoUseAmmoniaLossScore>True</deNovoUseAmmoniaLossScore>
    <deNovoUseA2Score>True</deNovoUseA2Score>
+   <deNovoMassClusterTolDa>0</deNovoMassClusterTolDa>
    <deNovoScalingFactor>0</deNovoScalingFactor>
    <massDifferenceSearch>False</massDifferenceSearch>
    <isotopeCalc>False</isotopeCalc>
@@ -125,22 +126,22 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>templateSession</name>
-   <maxQuantVersion>2.4.0.0</maxQuantVersion>
+   <maxQuantVersion>2.4.7.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
    <numThreads>1</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
    <fixedCombinedFolder></fixedCombinedFolder>
-   <fullMinMz>-1.7976931348623157E+308</fullMinMz>
-   <fullMaxMz>1.7976931348623157E+308</fullMaxMz>
+   <fullMinMz>-1.79769313486232E+308</fullMinMz>
+   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
    <calcPeakProperties>False</calcPeakProperties>
    <showCentroidMassDifferences>False</showCentroidMassDifferences>
    <showIsotopeMassDifferences>False</showIsotopeMassDifferences>
-   <useDotNetCore>True</useDotNetCore>
+   <useDotNetCore>False</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
       <string>/home/ash022/scripts/171010_Ip_Hela_ugi.raw</string>
@@ -193,9 +194,9 @@
          <valleyFactor>1.4</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>False</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>0</intensityThresholdMs1Dda>
-         <intensityThresholdMs1Dia>0</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>0</intensityThresholdMs2>
+         <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dia>20</intensityThresholdMs1Dia>
+         <intensityThresholdMs2>18</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
@@ -213,6 +214,8 @@
          <fastLfq>True</fastLfq>
          <lfqRestrictFeatures>False</lfqRestrictFeatures>
          <lfqMinRatioCount>2</lfqMinRatioCount>
+         <lfqMinRatioCountDia>2</lfqMinRatioCountDia>
+         <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
          <maxLabeledAa>0</maxLabeledAa>
          <maxNmods>5</maxNmods>
          <maxMissedCleavages>2</maxMissedCleavages>
@@ -331,12 +334,14 @@
          <diaQuantMethod>7</diaQuantMethod>
          <diaFeatureQuantMethod>2</diaFeatureQuantMethod>
          <lfqNormType>1</lfqNormType>
-         <diaTopNForQuant>10</diaTopNForQuant>
+         <diaTopNForQuant>12</diaTopNForQuant>
+         <diaTopNCorrelationForQuant>7</diaTopNCorrelationForQuant>
+         <diaFragmentCorrelationForQuant>0.78</diaFragmentCorrelationForQuant>
          <diaMinMsmsIntensityForQuant>0</diaMinMsmsIntensityForQuant>
          <diaTopMsmsIntensityQuantileForQuant>0.85</diaTopMsmsIntensityQuantileForQuant>
          <diaMinFragmentOverlapScore>0</diaMinFragmentOverlapScore>
          <diaMinPrecursorScore>0</diaMinPrecursorScore>
-         <diaUseProfileCorrelation>True</diaUseProfileCorrelation>
+         <diaUseProfileCorrelation>False</diaUseProfileCorrelation>
          <diaMinPrecProfileCorrelation>0</diaMinPrecProfileCorrelation>
          <diaMinFragProfileCorrelation>0</diaMinFragProfileCorrelation>
          <diaXgBoostMinChildWeight>9</diaXgBoostMinChildWeight>
@@ -355,11 +360,14 @@
          <diaBackgroundSubtractionFactor>4</diaBackgroundSubtractionFactor>
          <diaLfqRatioType>0</diaLfqRatioType>
          <diaTransferQvalue>0.3</diaTransferQvalue>
+         <diaTransferQvalueBetweenLabels>0.01</diaTransferQvalueBetweenLabels>
+         <diaTransferQvalueBetweenFractions>0.01</diaTransferQvalueBetweenFractions>
+         <diaTransferQvalueBetweenFaims>0.01</diaTransferQvalueBetweenFaims>
          <diaOnlyIsosForRecal>True</diaOnlyIsosForRecal>
-         <diaMinPeaksForRecal>5</diaMinPeaksForRecal>
+         <diaMinPeaks>5</diaMinPeaks>
          <diaUseFragIntensForMl>False</diaUseFragIntensForMl>
          <diaUseFragMassesForMl>False</diaUseFragMassesForMl>
-         <diaMaxTrainInstances>1000000</diaMaxTrainInstances>
+         <diaMaxTrainInstances>500000</diaMaxTrainInstances>
          <diaMaxFragmentCharge>3</diaMaxFragmentCharge>
          <diaAdaptiveMlScoring>False</diaAdaptiveMlScoring>
          <diaDynamicScoringMaxInstances>25000</diaDynamicScoringMaxInstances>
@@ -371,26 +379,37 @@
          <diaDeleteIntermediateResults>True</diaDeleteIntermediateResults>
          <diaScoreWeightScanIndex>-1</diaScoreWeightScanIndex>
          <diaScoreWeightScanValue>1</diaScoreWeightScanValue>
-         <diaNumNonleadingMatches>0</diaNumNonleadingMatches>
+         <diaNumNonleadingMatches>1</diaNumNonleadingMatches>
          <diaUseDefaultFragmentModel>True</diaUseDefaultFragmentModel>
          <diaAltFragmentModelPath></diaAltFragmentModelPath>
          <diaUseDefaultRtModel>True</diaUseDefaultRtModel>
          <diaAltRtModelPath></diaAltRtModelPath>
          <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
          <diaAltCcsModelPath></diaAltCcsModelPath>
-         <diaChargeAffinityFilter>0</diaChargeAffinityFilter>
-         <diaPeptideEfficiencyFilter>0</diaPeptideEfficiencyFilter>
-         <diaMinPeptidesPerProtein>3</diaMinPeptidesPerProtein>
          <diaBatchProcessing>True</diaBatchProcessing>
-         <diaBatchSize>10</diaBatchSize>
+         <diaBatchSize>25</diaBatchSize>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
          <diaMultiplexQuantMethod>2</diaMultiplexQuantMethod>
          <diaOnlyPostprocess>False</diaOnlyPostprocess>
+         <diaRequirePrecursor>False</diaRequirePrecursor>
+         <diaFuturePeptides>False</diaFuturePeptides>
+         <diaOverrideRtWithPrediction>False</diaOverrideRtWithPrediction>
+         <diaMaxModifications>0</diaMaxModifications>
+         <diaMaxPositionings>0</diaMaxPositionings>
+         <diaUseProbScore>False</diaUseProbScore>
+         <diaProbScoreP>1.2</diaProbScoreP>
+         <diaProbScoreG>1</diaProbScoreG>
+         <diaProbScoreStep>0.1</diaProbScoreStep>
          <isM2FragTypeOverride>False</isM2FragTypeOverride>
          <ms2FragTypeOverride>0</ms2FragTypeOverride>
          <classicLfqForSingleShots>True</classicLfqForSingleShots>
+         <sequenceBasedModifier>False</sequenceBasedModifier>
+         <diaRtFromSamplesForExport>True</diaRtFromSamplesForExport>
+         <diaCcsFromSamplesForExport>True</diaCcsFromSamplesForExport>
+         <diaLibraryExport>0</diaLibraryExport>
+         <diaUseApexWeightsForPtmLoc>False</diaUseApexWeightsForPtmLoc>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
@@ -475,6 +494,7 @@
       <fragmentationParams>
          <Name>HCD</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
+         <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
@@ -482,6 +502,7 @@
       <fragmentationParams>
          <Name>CID</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
+         <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
@@ -489,6 +510,7 @@
       <fragmentationParams>
          <Name>ETD</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
+         <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
@@ -496,6 +518,7 @@
       <fragmentationParams>
          <Name>PQD</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
+         <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
@@ -503,6 +526,7 @@
       <fragmentationParams>
          <Name>ETHCD</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
+         <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
@@ -510,6 +534,7 @@
       <fragmentationParams>
          <Name>ETCID</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
+         <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
@@ -517,6 +542,7 @@
       <fragmentationParams>
          <Name>UVPD</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
+         <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
@@ -524,6 +550,7 @@
       <fragmentationParams>
          <Name>Unknown</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
+         <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
          <InternalFragmentWeight>1</InternalFragmentWeight>
          <InternalFragmentAas>KRH</InternalFragmentAas>
