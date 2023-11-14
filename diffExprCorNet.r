@@ -5,8 +5,8 @@ inpD <-"F:/OneDrive - NTNU/Aida/XPO/"
 par(mfrow=c(1,2))
 warnings()
 #data####
-selThr=0.3
-selThrFC=0.5
+selThr=0.1
+selThrFC=0.1
 hdr<-gsub("[^[:alnum:] ]", "",inpD)
 setwd(inpD)
 getwd()
@@ -18,20 +18,75 @@ data <- readxl::read_excel(inpF,sheet = 2)
 #transform####
 dataLog2<-sapply(data, as.numeric)
 #select####
-colnames(dataLog2)
-dataComb<-data.frame(dataLog2[,grep("^M",colnames(dataLog2))])
-dataComb<-sapply(dataComb,as.numeric)
-boxplot(dataComb)
-head(data$`T: T: Gene names`)
-rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nrow(dataComb),sep=";")
-hist(dataComb)
 #selGen####
+repDNA<-read.csv("F:/OneDrive - NTNU/Aida/DNArepair/list.txt",sep="\t",header=T)
+dim(repDNA)
+grep("RAD23A",data$`T: T: Gene names`)
+dataRep<-data[-2779,]#double, taking first
+repDNA[grep("PNKP",repDNA$`Name`),"Name"]#found space, fix in name
+repDNAmerge<-merge(repDNA,dataRep,by.x="Name",by.y="T: T: Gene names")
+grep("PNKP",repDNAmerge$Name)#check if space rem
+repDNAmergeSelC<-data.frame(repDNAmerge[,grep("^M",colnames(repDNAmerge))])
+dim(repDNAmergeSelC)
+repDNAmergeSelC<-sapply(repDNAmergeSelC, as.numeric)
+rownames(repDNAmergeSelC)<-repDNAmerge$Name
+#repDNAmergeSelC<-repDNAmergeSelC[,-1]
+dim(repDNAmergeSelC)
+boxplot(repDNAmergeSelC)
+repDNAmergeSelCt<-t(repDNAmergeSelC)
+dim(repDNAmergeSelCt)
+boxplot(repDNAmergeSelCt)
+#test####
+summary(repDNAmergeSelCt)
+pValNA = apply(
+  repDNAmergeSelCt, 1, function(x)
+  if(sum(!is.na(x)>1)){
+    #t.test(as.numeric(x),alternative = 'greater',na.rm=T)$p
+    t.test(as.numeric(x),na.rm=T)$p.value}
+  else{NA}
+)
+summary(pValNA)
+hist(pValNA)
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+pVlog10=-log10(pValNA)
+hist(pVlog10)
+meanSSR=rowMeans(repDNAmergeSelCt,na.rm=T)
+medianSSR=apply(repDNAmergeSelCt,1,function(x) median(x,na.rm=T))
+tTestDF<-data.frame(cbind(pValBHna,pValNA,pVlog10,meanSSR,medianSSR,repDNAmergeSelCt))
+row.names(tTestDF)<-rownames(repDNAmergeSelCt)
+write.csv(tTestDF,paste0(inpF,"tTest.csv"),row.names = T)
+writexl::write_xlsx(data.frame(row.names(tTestDF),tTestDF),paste0(inpF,"tTest.xlsx"))
+#plot####
+tTestDF$RowGeneUniProtScorePeps<-rownames(tTestDF)
+Significance=(tTestDF$pValBHna<selThr)&(abs(tTestDF$medianSSR)>selThrFC)
+sum(Significance)
+dsub <- subset(tTestDF,Significance)
+p <- ggplot2::ggplot(tTestDF,ggplot2::aes(medianSSR,pVlog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance))
+p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=2,position=ggplot2::position_jitter(width=0.01,height=0.01)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+#f=paste(file,proc.time()[3],".jpg")
+#install.packages("svglite")
+ggplot2::ggsave(paste0(inpF,"VolcanoTest.svg"), p,width=6, height=6,dpi = 320)
+print(p)
+#f=paste(file,proc.time()[3],".jpg")
+#install.packages("svglite")
+ggplot2::ggsave(paste0(inpF,"volcanoTestBH.svg"), p)
+
+#length(dataComb[repDNA$Name %in% data$`T: T: Gene names`,])
+#selGen####
+rownames(dataComb)<-paste(data$`T: T: Gene names`,data$`T: T: Protein IDs`,1:nrow(dataComb),sep=";")
 dataCombT<-t(dataComb)
 genSel <- "XPO1"
 summary(dataCombT[,colnames(dataCombT)[grep(genSel,colnames(dataCombT))]])
 #dataCombTcorXPO1=cor(dataCombT[,"XPO1;O14980;C9JKM9;C9IZS4;C9JQ02;C9JV99;F8WF71;C9JF49;C9IYM2;H7BZC5;3853"],dataCombT)
 #hist(dataCombTcorXPO1)
 #cor####
+colnames(dataLog2)
+dataComb<-data.frame(dataLog2[,grep("^M",colnames(dataLog2))])
+dataComb<-sapply(dataComb,as.numeric)
+boxplot(dataComb)
+head(data$`T: T: Gene names`)
+hist(dataComb)
 dataCombTcor=t(dataCombT[,-c(grep(genSel,colnames(dataCombT)))])
 resCor=apply(dataCombTcor, 1,function(x)
   if((sum(!is.na(x))>0)){
