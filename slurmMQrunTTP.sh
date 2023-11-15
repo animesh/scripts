@@ -1,10 +1,10 @@
 #cd scripts/
-#git checkout 594e6bb178a00a02680f3428b167f2004fe70f69 scratch.slurm
-#cat scratch.slurm
+#mkdir helaDDA
+#rsync -Parv login.nird-lmd.sigma2.no:/nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2023/230504_hela_test/*.d helaDDA/
+#git checkout 7cca5a459b903717c5dbf7f08cfb51ef31345a3b scratch.slurm
 #dos2unix slurmMQrunTTP.sh
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/helaDIA /cluster/projects/nn9036k/FastaDB mqparTTPdia.xml scratch.slurm
-#mkdir helaDIA
-#rsync -Parv login.nird-lmd.sigma2.no:/nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2023/230504_hela_test/DIA/ helaDIA/
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/helaDDA /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
+#find mqparTTPdda.xml.1699892695.results -name "proteinGroups.txt"
 #wget "https://maxquant.org/p/maxquant/MaxQuant_v_2.4.10.0.zip?md5=bwPYOvsI5oXolBP_wXUyzg&expires=1700127616" -O MQv24100.zip
 #unzip MQv24100.zip
 #wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=homo_sapiens.zip" -O HS.DIA.zip
