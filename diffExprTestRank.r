@@ -1,4 +1,4 @@
-#F:\R-4.3.1\bin\Rscript.exe diffExprTestRank.r "L:\promec\TIMSTOF\LARS\2023\231027_plasma_beads\combined\txt\proteinGroups.txt" L:\promec\TIMSTOF\LARS\2023\231027_plasma_beads\combined\txt\Groups.txt "Intensity." "Bead" "Rem"
+#F:\R-4.3.1\bin\Rscript.exe diffExprTestRank.r "L:\promec\TIMSTOF\LARS\2023\231025_Kamila_zub\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\231025_Kamila_zub\combined\txt\Groups.txt" "Group" "Rem"
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -8,21 +8,20 @@ print("USAGE:<path to>Rscript diffExprTestRank.r <complete path to directory con
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 5) {stop("\n\nNeeds 5 arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name column to use for LFQ, GROUP-to-compare, column to correct for, and data-to-REMOVE columns in Groups.txt file, for example: c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestRank.r L:/promec/TIMSTOF/LARS/2023/231027_plasma_beads/combined/txtMC3MS3010/proteinGroups.txt L:/promec/TIMSTOF/LARS/2023/231027_plasma_beads/combined/txtMC0/Groups.txt Intensity. Bead Rem", call.=FALSE)}
+if (length(args) != 4) {stop("\n\nNeeds 4 arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name column to use for Intensity, GROUP-to-compare, column to correct for, and data-to-REMOVE columns in Groups.txt file, for example: c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestRank.r L:/promec/TIMSTOF/LARS/2023/Data/combined/txtMC3MS3010/proteinGroups.txt L:/promec/TIMSTOF/LARS/2023/Data/combined/txtMC0/Groups.txt Intensity. Group Rem", call.=FALSE)}
 #args####
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2023/231027_plasma_beads/combined/txtMC3MS3010/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2023/231025_Kamila_zub/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2023/231027_plasma_beads/combined/txtMC0/Groups.txt"
-selection<-args[3]
-#selection<-"Intensity."
-lGroup <- args[4]
-#lGroup<-"Bead"
-rGroup <- args[5]
+#inpL <-"L:/promec/TIMSTOF/LARS/2023/231025_Kamila_zub/combined/txt/Groups.txt"
+lGroup <- args[3]
+#lGroup<-"Group"
+rGroup <- args[4]
 #rGroup<-"Rem"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
+selection<-"Intensity."
 thr=0.0#count
 selThr=0.1#pValue-WilcoxTest
 selThrFC=0.01#log2-MedianMinMaxDifference
@@ -166,6 +165,7 @@ testWilcox <- function(log2LFQmm,sel1,sel2,fName){
     cat(paste(sel1,paste(wilcoxTest.results[!is.na(wilcoxTest.results$logFCmedianGrp1),"Uniprot"],collapse=","),sum(!is.na(wilcoxTest.results$logFCmedianGrp1)),sep = "\t"),file=paste0(inpF,fName,"combine.txt"),sep="\n",append=TRUE)
     #write.csv(cbind(sel1,sum(!is.na(wilcoxTest.results$logFCmedianGrp1)),paste(wilcoxTest.results[!is.na(wilcoxTest.results$logFCmedianGrp1),"Uniprot"],collapse=" ")),paste0(inpF,"combine.csv"))
     #volcano
+    wilcoxTest.results.ret<-wilcoxTest.results
     wilcoxTest.results$RowGeneUniProtScorePeps<-data$geneName
     wilcoxTest.results[is.na(wilcoxTest.results)]=selThr
     Significance=(wilcoxTest.results$CorrectedPValueBH<selThr)&(wilcoxTest.results$Log2MedianChange>selThrFC)
@@ -176,7 +176,7 @@ testWilcox <- function(log2LFQmm,sel1,sel2,fName){
     #install.packages("svglite")
     ggplot2::ggsave(paste0(inpF,fName,selection,scale,lGroup,sCol,sel1,mCol,paste(sel2,collapse=""),eCol,selThr,selThrFC,cvThr,rGroup,lName,"WilcoxTestBH.svg"), p)
     print(p)
-    return(sum(Significance))
+    return(wilcoxTest.results.ret)
   }
 }
 #log2selection####
@@ -227,8 +227,32 @@ rownames(log2LFQselScaleimpCorr)<-colnames(log2LFQselMM)
 svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,annotation_row = annoR,annotation_col = annoR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col=4)
 ggplot2::ggsave(paste0(inpF,lName,lGroup,selection,scale,"heatmap.minMax.pearson.svg"), svgPHC)
 #compare####
+colnames(log2LFQ)
+log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+colnames(log2LFQsel)
+dim(log2LFQsel)
+label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
+table(label$pair2test)
 for(i in (names(table(label[,lGroup])))){
   print(i)
   print(label[label[,lGroup]==i,])
-  print(testWilcox(log2LFQselMM,i,setdiff(names(table(label[,lGroup])),i),"minMaxLog2LFQ"))
+  assign(i,testWilcox(log2LFQsel,i,setdiff(names(table(label[,lGroup])),i),"log2Int"))
 }
+#merge####
+dataFC<-data.frame(rowSums(log2LFQsel,na.rm=T))
+colnames(dataFC)<-"sum"
+dataFC["RowGeneUniProtScorePeps"]<-row.names(data)
+dim(dataFC)
+summary(dataFC)
+for (obj in (names(table(label[,lGroup])))) {
+  print(obj)
+  dataT<-get(obj)
+  dataC<-data.frame(cbind(dataT$RowGeneUniProtScorePeps,dataT$logFCmedianGrp1))
+  colnames(dataC)<-c("RowGeneUniProtScorePeps",paste0(obj,"log2MedInt"))
+  dataFC<-merge(dataFC,dataC,by='RowGeneUniProtScorePeps',all=T)
+}
+writexl::write_xlsx(dataFC,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"merge.xlsx"))
+#completeCases####
+dataFCnar<-dataFC[complete.cases(dataFC), ]
+dataFCnar<-dataFCnar[order(dataFCnar$sum,decreasing=F),]
+writexl::write_xlsx(dataFCnar,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"completeCase.xlsx"))
