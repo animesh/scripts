@@ -49,10 +49,13 @@ metric = Metric(run, name='loss', context={'epoch': 1})
 for i in range(1000):
       metric.track(i, epoch=1)
 # %% weka
-sudo apt-get update  --fix-missing
-sudo apt-get install weka libsvm-java
-pip install weka
-export CLASSPATH=/usr/share/java/weka.jar 
+#sudo apt-get update  --fix-missing
+#sudo apt-get install weka libsvm-java
+#export CLASSPATH=/usr/share/java/weka.jar 
+#wget  "https://prdownloads.sourceforge.net/weka/weka-3-9-6.zip"
+#unzip weka-3-9-6.zip
+#pip install weka
+#export CLASSPATH=$PWD/weka-3-9-6/weka.jar 
 java weka.core.converters.CSVLoader /home/ash022/1d/Aida/ML/dataTmmS42T.csv > /home/ash022/1d/Aida/ML/dataTmmS42T.arff
 java weka.classifiers.meta.ClassificationViaRegression -x 46 -t /home/ash022/1d/Aida/ML/dataTmmS42T.arff  | less
 java weka.clusterers.SimpleKMeans  -A "weka.core.EuclideanDistance -R first-last"  -t /home/ash022/1d/Aida/ML/dataTmmS42T.arff  
