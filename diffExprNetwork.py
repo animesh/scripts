@@ -50,3 +50,30 @@ nx.draw(g,with_labels=True,node_size=1000,alpha=0.5,arrows=True,node_color="skyb
 plt.savefig(path+"GraphX.png", format="PNG")
 plt.show()
 #nx.draw_networkx(nx.minimum_spanning_tree(g))
+#https://lopezyse.medium.com/knowledge-graphs-from-scratch-with-python-f3c2a05914cc
+from node2vec import Node2Vec
+
+# Generate node embeddings using node2vec
+node2vec = Node2Vec(G, dimensions=64, walk_length=30, num_walks=200, workers=4) # You can adjust these parameters
+model = node2vec.fit(window=10, min_count=1, batch_words=4) # Training the model
+
+# Visualize node embeddings using t-SNE
+from sklearn.manifold import TSNE
+import numpy as np
+
+# Get embeddings for all nodes
+embeddings = np.array([model.wv[node] for node in G.nodes()])
+
+# Reduce dimensionality using t-SNE
+tsne = TSNE(n_components=2, perplexity=10, n_iter=400)
+embeddings_2d = tsne.fit_transform(embeddings)
+
+# Visualize embeddings in 2D space with node labels
+plt.figure(figsize=(12, 10))
+plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1], c='blue', alpha=0.7)
+
+# Add node labels
+for i, node in enumerate(G.nodes()):
+plt.text(embeddings_2d[i, 0], embeddings_2d[i, 1], node, fontsize=8)
+plt.title('Node Embeddings Visualization')
+plt.show()

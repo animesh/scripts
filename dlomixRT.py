@@ -25,10 +25,8 @@ from dlomix.models import RetentionTimePredictor
 model = RetentionTimePredictor(seq_length=30)
 from dlomix.eval import TimeDeltaMetric
 model.compile(optimizer='adam',loss='mse',metrics=['mean_absolute_error', TimeDeltaMetric()])
-from aim.tensorflow import AimCallback
 logdir="./logs"
-aim_CB=AimCallback(repo=logdir, experiment='dlomix')
-history = model.fit(rtdata.train_data,validation_data=rtdata.val_data,epochs=1,callbacks=[aim_CB])
+model.fit(rtdata.train_data,validation_data=rtdata.val_data,epochs=1)
 TEST_DATAPATH = 'https://raw.githubusercontent.com/wilhelm-lab/dlomix/develop/example_dataset/proteomTools_test.csv'
 
 test_rtdata = RetentionTimeDataset(data_source=TEST_DATAPATH,seq_length=30, batch_size=32, test=True)
@@ -47,13 +45,9 @@ results_df = pd.DataFrame({"sequence": test_rtdata.sequences,"irt": test_rtdata.
 print(results_df)
 results_df.to_csv("predictions_irt.csv", index=False)
 print(pd.read_csv("predictions_irt.csv"))
-import matplotlib.pyplot as plt
-from aim import Run, Image
 
-aim_run = aim_CB.run
+import matplotlib.pyplot as plt
 fig = plt.figure()
 plt.plot(results_df["irt"], results_df["predicted_irt"],'bo')
 plt.savefig("writeMSMS.png",dpi=100,bbox_inches = "tight")
 plt.close(fig)
-aim_img = Image(fig)
-aim_run.track(aim_img, step=0, name="matplotlib_images")
