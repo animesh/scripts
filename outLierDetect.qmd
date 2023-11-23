@@ -1,0 +1,96 @@
+---
+title: "outlierDetect"
+format: html
+server: shiny
+---
+
+## data
+
+```{python}
+#data####
+import pandas as pd
+df = pd.read_csv("F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.csv")
+df.head()
+df.columns = df.columns.str.strip('230502_hela')
+df.hist()
+df.set_index('ID',inplace=True)
+print(df.shape)
+# %% codon
+cor=df.corr()
+#cor=df.T.corr() # proteins
+print(cor)
+# %% codon
+#setup####
+import matplotlib.pyplot as plt
+plt.plot(cor)
+plt.show()
+#setup####
+df=df.drop_duplicates(keep="first")
+df.to_csv("F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.uniq.csv")
+```
+# df scatter
+```{r}
+#plot(df[,-ncol(df)])
+```
+# cor
+```{python}
+df.shape
+corr=df.corr()
+#cor=df.T.corr() # proteins
+print(corr)
+plt.plot(corr)
+plt.show()
+print(corr-cor)
+rowlen=len(df.index)
+import numpy as np
+tstat=corr*np.sqrt((rowlen-2)/(1-corr*corr))
+import scipy.stats as ss
+#ss.t.cdf(tstat, rowlen-2)[0,1]
+pval=ss.t.cdf(tstat, rowlen-2)
+#corcol.iloc[0,1]
+plt.hist(pval)
+print(pval.shape,pval)
+plt.imshow(corr, cmap='hot', interpolation='nearest')
+plt.colorbar()
+plt.show()
+print(df.columns)
+plt.savefig('test.png', dpi=300)
+np.savetxt(r'test.txt',pval,delimiter='\t')
+```
+## select
+
+```{r slider, echo=FALSE}
+sliderInput("bins", "Number of bins:", min = 1, max = 100, value = 30)
+selectInput("options","Select an option:",choices = c(1:4),selected = 1)
+#hist(data[,1])
+#selectInput("options","Select an option:",choices = colnames(data),selected = colnames(data)[1])
+#hist(data[,colnames(data)[1]])
+plotOutput("distPlot")
+```
+
+```{r}
+data<-read.csv("F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.uniq.csv",row.names = 1)
+data[is.na(data)] <- 0
+dataDiff<-data[,c(1:4)]-data[,c(5:8)]
+dataDiff<-dataDiff[sort(data$Sum),]
+dataDiff[dataDiff==0]<-NA
+for(i in 1:ncol(dataDiff)){
+  plot(dataDiff[,i],type="l",main=colnames(dataDiff)[i])
+}
+write.csv(dataDiff,"F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.uniq.diff.csv")
+```
+
+
+```{r}
+#| context: server
+dataDiff<-read.csv("F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.uniq.diff.csv",row.names = 1)
+output$distPlot <- renderPlot({
+   x <- dataDiff[, as.integer(input$options)]  
+   bins <- seq(min(x,na.rm=T), max(x,na.rm=T), length.out = input$bins + 1)
+   hist(x, breaks = bins, col = 'darkgray', border = 'white',
+        xlab = 'LFQ (in log2) difference', ylab = 'Frequency',
+        main = colnames(dataDiff)[as.integer(input$options)])
+})
+```
+
+

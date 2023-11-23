@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 from pathlib import Path
 fileName = 'evidence.txt'
+df.columns = df.columns.str.strip('_x')
 # counting the peptideHits for each file, can change to other columns like "Sequence","Proteins"...
 colStrName = ["Raw file","Proteins"]
 if len(sys.argv) != 2:
