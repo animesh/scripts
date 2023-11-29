@@ -1,17 +1,15 @@
 #!/bin/sh
-##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=seqRNAtrim
-##SBATCH --account=nn9036k --job-name=seqRNABMtrim
-#SBATCH --time=4:00:00
+#SBATCH --account=nn9036k --job-name=GH37NFTK
+#SBATCH --time=168:00:00
+#SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=32
+#SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=10 --ntasks-per-node=1
-##SBATCH --mem-per-cpu=4G
-#SBATCH --ntasks=1 --cpus-per-task=10
-#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-type=ALL
-#SBATCH --output=seqRNAtrimlog
+#SBATCH --output=NFSLURMLOG
 
-WORKDIR=${SLURM_SUBMIT_DIR}
+
+WORKDIR=$PWD
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -25,8 +23,31 @@ echo "Total of $SLURM_NTASKS cores"
 
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
-module purge
-module load Trimmomatic/0.39-Java-11
+module load Miniconda3/22.11.1-1
+#conda config --prepend channels bioconda
+#conda config --show channels
+#mamba install python=3.11 nf-core nextflow
+#nf-core create
+#cd nf-core-spritz/
+#git checkout dev
+#git remote add origin https://github.com/animesh/spritz_nf.git
+#git push --all origin
+#ln -s /cluster/projects/nn9036k/scripts/TK9/*.gz .
+#vim samples.csv
+conda activate nf-core
+#nextflow  self-update
+nextflow  -v
+#nextflow run hello
 
-java -jar -Xmx40G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 10 -phred33 -trimlog FASTFILE.trimLog.txt -summary FASTFILE.trimSummary.txt -validatePairs P1FASTFILE P2FASTFILE PD1FASTFILE.1P.fq.gz PD1FASTFILE.1U.fq.gz  PD2FASTFILE.2P.fq.gz PD2FASTFILE.2U.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/NexteraPE-PE.fa:2:30:10 
+nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 64  --outdir HG37all --input samples.csv --genome GRCh37 -profile singularity -resume
+
+#rsync -Parv  login.nird-lmd.sigma2.no:PD/Animesh/TK/TK9R/*gz .
+#rename  'R1.fastq.gz' '_1.fq.gz' *
+#rename  'R2.fastq.gz' '_2.fq.gz' *
+#ls -1 *2.fq.gz  > S2
+#ls -1 *1.fq.gz  > S1
+#printf 'auto\n%.0s' {1..30} > S3
+#echo "sample,fastq_1,fastq_2,strandedness" > samples.csv
+#paste -d ','  S? >> samples.csv
+#cat samples.csv
 
