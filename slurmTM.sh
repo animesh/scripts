@@ -1,6 +1,7 @@
-#git checkout 119d313328587684637b161d95a06c140bebe3e0 slurmTM.sh scratch.slurm
+#defaults https://www.ridom.de/u/Illumina_Adapter_Trimming_(Trimmomatic).html
+#git checkout 65c53035fdd2c01c99c721a8a85be467e1e8bd4e slurmTM.sh scratch.slurm
 #dos2unix scratch.slurm slurmTM.sh
-#bash slurmTM.sh $PWD/TK9
+#bash slurmTM.sh $PWD/TK9R
 DATADIR=$1
 RUNCMD=trimmomatic
 PARAMFILE=scratch.slurm

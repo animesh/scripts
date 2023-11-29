@@ -1,15 +1,17 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=MQSLURMNAME
-#SBATCH --time=48:00:00
 ##SBATCH --partition=bigmem
-##SBATCH --ntasks=16 --cpus-per-task=4
-##SBATCH --mem-per-cpu=32G
+#SBATCH --account=nn9036k --job-name=seqRNAtrim
+##SBATCH --account=nn9036k --job-name=seqRNABMtrim
+#SBATCH --time=4:00:00
+#SBATCH --mail-user=animesh.sharma@ntnu.no
+##SBATCH --ntasks=1 --cpus-per-task=10 --ntasks-per-node=1
+##SBATCH --mem-per-cpu=4G
 #SBATCH --ntasks=1 --cpus-per-task=10
 #SBATCH --mem-per-cpu=4G
-#SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=MQSLURMLOG
-WORKDIR=MQWD
+#SBATCH --output=seqRNAtrimlog
+
+WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -20,9 +22,11 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
+
+export http_proxy=proxy.saga:3128
+export https_proxy=proxy.saga:3128
 module purge
-module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
-mono --version
-module load dotNET-SDK/3.1.300-linux-x64
-dotnet --version
-dotnet MQCMD MQPARF
+module load Trimmomatic/0.39-Java-11
+
+java -jar -Xmx40G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 10 -phred33 -trimlog FASTFILE.trimLog.txt -summary FASTFILE.trimSummary.txt -validatePairs P1FASTFILE P2FASTFILE PD1FASTFILE.1P.fq.gz PD1FASTFILE.1U.fq.gz  PD2FASTFILE.2P.fq.gz PD2FASTFILE.2U.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/NexteraPE-PE.fa:2:30:10 
+
