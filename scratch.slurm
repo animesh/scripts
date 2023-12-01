@@ -1,5 +1,5 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=GH37NFTK
+#SBATCH --account=nn9036k --job-name=hg38NFTK
 #SBATCH --time=168:00:00
 #SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=32
@@ -38,8 +38,9 @@ conda activate nf-core
 #nextflow  self-update
 nextflow  -v
 #nextflow run hello
-
-nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 64  --outdir HG37all --input samples.csv --genome GRCh37 -profile singularity -resume
+nextflow pull nf-core/rnaseq
+#https://nf-co.re/rnaseq/3.13.2/docs/usage -r <pipeline version eg 1.3.1> for Reproducibility
+nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 30  --outdir hg38lall --input samples.csv --gtf /cluster/projects/nn9036k/scripts/hg38v110/Homo_sapiens.GRCh38.110.gtf --fasta /cluster/projects/nn9036k/scripts/hg38v110/genome.fa --genome null  --igenomes_ignore  -profile singularity -resume
 
 #rsync -Parv  login.nird-lmd.sigma2.no:PD/Animesh/TK/TK9R/*gz .
 #rename  'R1.fastq.gz' '_1.fq.gz' *
@@ -47,6 +48,7 @@ nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 64  --outdir HG37a
 #ls -1 *2.fq.gz  > S2
 #ls -1 *1.fq.gz  > S1
 #printf 'auto\n%.0s' {1..30} > S3
+#ls -1 *_1.fq.gz | awk -F '_' '{print $1$2$5}' > S0
 #echo "sample,fastq_1,fastq_2,strandedness" > samples.csv
 #paste -d ','  S? >> samples.csv
 #cat samples.csv
