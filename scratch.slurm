@@ -1,55 +1,27 @@
-#!/bin/sh
-#SBATCH --account=nn9036k --job-name=hg38NFTK
-#SBATCH --time=168:00:00
-#SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=32
-#SBATCH --mem-per-cpu=8G
-#SBATCH --mail-user=animesh.sharma@ntnu.no
-#SBATCH --mail-type=ALL
-#SBATCH --output=NFSLURMLOG
+#!/bin/bash
+#SBATCH --job-name=testGPU
+#SBATCH --account=nn9036k
+#SBATCH --time=05:00
+#SBATCH --mem-per-cpu=4G
+#SBATCH --qos=devel
+#SBATCH --partition=accel
+#SBATCH --gpus=1
 
+## Set up job environment:
+set -o errexit  # Exit the script on any error
+set -o nounset  # Treat any unset variables as an error
 
-WORKDIR=$PWD
-cd ${WORKDIR}
-export PATH=$PATH:$PWD
-echo "we are running from this directory: $SLURM_SUBMIT_DIR"
-echo " the name of the job is: $SLURM_JOB_NAME"
-echo "Th job ID is $SLURM_JOB_ID"
-echo "The job was run on these nodes: $SLURM_JOB_NODELIST"
-echo "Number of nodes: $SLURM_JOB_NUM_NODES"
-echo "We are using $SLURM_CPUS_ON_NODE cores"
-echo "We are using $SLURM_CPUS_ON_NODE cores per node"
-echo "Total of $SLURM_NTASKS cores"
+module --quiet purge  # Reset the modules to the system default
+module load TensorFlow/2.11.0-foss-2022a-CUDA-11.7.0 
+module list
 
-export http_proxy=proxy.saga:3128
-export https_proxy=proxy.saga:3128
-module load Miniconda3/22.11.1-1
-#conda config --prepend channels bioconda
-#conda config --show channels
-#mamba install python=3.11 nf-core nextflow
-#nf-core create
-#cd nf-core-spritz/
-#git checkout dev
-#git remote add origin https://github.com/animesh/spritz_nf.git
-#git push --all origin
-#ln -s /cluster/projects/nn9036k/scripts/TK9/*.gz .
-#vim samples.csv
-conda activate nf-core
-#nextflow  self-update
-nextflow  -v
-#nextflow run hello
-nextflow pull nf-core/rnaseq
-#https://nf-co.re/rnaseq/3.13.2/docs/usage -r <pipeline version eg 1.3.1> for Reproducibility
-nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 30  --outdir hg38lall --input samples.csv --gtf /cluster/projects/nn9036k/scripts/hg38v110/Homo_sapiens.GRCh38.110.gtf --fasta /cluster/projects/nn9036k/scripts/hg38v110/genome.fa --genome null  --igenomes_ignore  -profile singularity -resume
-
-#rsync -Parv  login.nird-lmd.sigma2.no:PD/Animesh/TK/TK9R/*gz .
-#rename  'R1.fastq.gz' '_1.fq.gz' *
-#rename  'R2.fastq.gz' '_2.fq.gz' *
-#ls -1 *2.fq.gz  > S2
-#ls -1 *1.fq.gz  > S1
-#printf 'auto\n%.0s' {1..30} > S3
-#ls -1 *_1.fq.gz | awk -F '_' '{print $1$2$5}' > S0
-#echo "sample,fastq_1,fastq_2,strandedness" > samples.csv
-#paste -d ','  S? >> samples.csv
-#cat samples.csv
+# https://documentation.sigma2.no/code_development/guides/gpu/tensorflow.html
+# Setup monitoring
+nvidia-smi --query-gpu=timestamp,utilization.gpu,utilization.memory \
+	--format=csv --loop=1 > "slurm-gpu-$SLURM_JOB_ID.csv" &
+NVIDIA_MONITOR_PID=$!  # Capture PID of monitoring process
+# Run our computation
+python testGPU.py 
+# After computation stop monitoring
+kill -SIGINT "$NVIDIA_MONITOR_PID"
 
