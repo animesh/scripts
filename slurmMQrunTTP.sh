@@ -1,5 +1,7 @@
-#git checkout 6635da4904bd62acf5f811ad7813524b96e5e348 scratch.slurm 
-#dos2unix slurmMQrunTTP.sh scratch.slurm mqparTTPdia.xml
+#git checkout 6635da4904bd62acf5f811ad7813524b96e5e348 slurmMQrunTTP.sh scratch.slurm mqparTTPdda.xml  
+#dos2unix slurmMQrunTTP.sh scratch.slurm mqparTTPdda.xml
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /nird/projects/NS9036K//NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2023/231128_plasma_KF /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
+#for i in  mqparTTPdda.xml.1701596769.results/*/*.slurm ; do echo $i ; dos2unix $i slurmMQrunTTP.sh ; sbatch $i ; done
 #mkdir -p 231128_plasma_KF/DIA
 #rsync -Parv login.nird-lmd.sigma2.no:/nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2023/231128_plasma_KF/*dia*.d 231128_plasma_KF/DIA/.
 #bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231128_plasma_KF/DIA /cluster/projects/nn9036k/FastaDB mqparTTPdia.xml scratch.slurm
@@ -33,8 +35,8 @@ CURRENTEPOCTIME=`date +%s`
 WRITEDIR=$PARAMFILE.$CURRENTEPOCTIME.results
 mkdir $WRITEDIR
 #perl -pe 's/\r$//' < mqrun.sh  > tmp
-dos2unix $PARAMFILE
-for i in $DATADIR/*.d ; do echo $i ; 	j=$(basename $i) ; 	k=${j%%.*} ; mkdir $WRITEDIR/$k ; cp -r $i $WRITEDIR/$k ; sed "s|$SEARCHTEXT2|$FASTADIR|g" $LDIR/$PARAMFILE > $WRITEDIR/$k/$PARAMFILE.tmp1 ; sed "s|$SEARCHTEXT|$LDIR/$WRITEDIR/$k/$j|"  $WRITEDIR/$k/$PARAMFILE.tmp1 > $WRITEDIR/$k/$PARAMFILE.tmp2 ; sed "s|$SEARCHTEXT4|$thrMS|g"  $WRITEDIR/$k/$PARAMFILE.tmp2 > $WRITEDIR/$k/$PARAMFILE.tmp3 ; sed "s|$SEARCHTEXT3|$LDIR/$WRITEDIR/$k|"  $WRITEDIR/$k/$PARAMFILE.tmp3 > $WRITEDIR/$k/$k.xml ; rm $WRITEDIR/$k/$PARAMFILE.tmp*  ;done
+dos2unix $PARAMFILE $MQSLURMFILE 
+for i in $DATADIR/*dda*.d ; do echo $i ; 	j=$(basename $i) ; 	k=${j%%.*} ; mkdir $WRITEDIR/$k ; cp -r $i $WRITEDIR/$k ; sed "s|$SEARCHTEXT2|$FASTADIR|g" $LDIR/$PARAMFILE > $WRITEDIR/$k/$PARAMFILE.tmp1 ; sed "s|$SEARCHTEXT|$LDIR/$WRITEDIR/$k/$j|"  $WRITEDIR/$k/$PARAMFILE.tmp1 > $WRITEDIR/$k/$PARAMFILE.tmp2 ; sed "s|$SEARCHTEXT4|$thrMS|g"  $WRITEDIR/$k/$PARAMFILE.tmp2 > $WRITEDIR/$k/$PARAMFILE.tmp3 ; sed "s|$SEARCHTEXT3|$LDIR/$WRITEDIR/$k|"  $WRITEDIR/$k/$PARAMFILE.tmp3 > $WRITEDIR/$k/$k.xml ; rm $WRITEDIR/$k/$PARAMFILE.tmp*  ;done
 #mono $MAXQUANTCMD $k.xml ; cp -rf ./combined/txt $k.REP ; echo $k ; cd $LDIR 
 echo $WRITEDIR
 #mv tmp  mqrun.sh

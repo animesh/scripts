@@ -27,6 +27,3 @@ module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
 dotnet MQCMD MQPARF
 
-
-#rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2023/231123_dia_dda/*.d 231123_dia_dda/DIA/.
-#for i in mqparTTPdia.xml.1701590929.results/*/*.slurm; do echo $i; grep "1G" $i ; sed -i  's/1G/8G/' $i; grep "8G" $i;  sbatch $i; done
