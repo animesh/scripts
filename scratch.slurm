@@ -1,15 +1,15 @@
 #!/bin/sh
-##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=seqRNAtrim
-##SBATCH --account=nn9036k --job-name=seqRNABMtrim
-#SBATCH --time=24:00:00
-#SBATCH --mail-user=animesh.sharma@ntnu.no
-#SBATCH --ntasks=1 --cpus-per-task=5
+#SBATCH --account=nn9036k --job-name=CH13NFTK
+#SBATCH --time=48:00:00
+#SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=32
 #SBATCH --mem-per-cpu=8G
+#SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=seqRNAtrimlog
+#SBATCH --output=NFSLURMLOG
 
-WORKDIR=${SLURM_SUBMIT_DIR}
+
+WORKDIR=$PWD
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -23,8 +23,34 @@ echo "Total of $SLURM_NTASKS cores"
 
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
-module purge
-module load Trimmomatic/0.39-Java-11
-
-java -jar -Xmx40G $EBROOTTRIMMOMATIC/trimmomatic-0.39.jar PE -threads 10 -phred33 -trimlog FASTFILE.trimLog.txt -summary FASTFILE.trimSummary.txt -validatePairs P1FASTFILE P2FASTFILE PD1FASTFILE.1P.fq.gz PD1FASTFILE.1U.fq.gz  PD2FASTFILE.2P.fq.gz PD2FASTFILE.2U.fq.gz ILLUMINACLIP:$EBROOTTRIMMOMATIC/adapters/NexteraPE-PE.fa:2:30:10
+module load Miniconda3/22.11.1-1
+#conda config --prepend channels bioconda
+#conda config --show channels
+#mamba install python=3.11 nf-core nextflow
+#nf-core create
+#cd nf-core-spritz/
+#git checkout dev
+#git remote add origin https://github.com/animesh/spritz_nf.git
+#git push --all origin
+#ln -s /cluster/projects/nn9036k/scripts/TK9/*.gz .
+#vim samples.csv
+conda activate nf-core
+nextflow  -v
+nextflow  self-update
+nextflow  -v
+#nextflow run hello
+nextflow pull nf-core/rnaseq
+nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 32  --outdir nfch13all --input samples.csv --genome CHM13 -profile singularity -resume
+#nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 30  --outdir CH13lall --input samples.csv --gtf /cluster/projects/nn9036k/scripts/CHM13v2-T2T/GCF_009914755.1_T2T-CHM13v2.0_genomic.gtf --fasta /cluster/projects/nn9036k/scripts/CHM13v2-T2T/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna  --genome null  --igenomes_ignore  -profile singularity -resume
+#https://nf-co.re/rnaseq/3.13.2/docs/usage -r <pipeline version eg 1.3.1> for Reproducibility
+#rsync -Parv  login.nird-lmd.sigma2.no:PD/Animesh/TK/TK9R/*gz .
+#rename  'R1.fastq.gz' '_1.fq.gz' *
+#rename  'R2.fastq.gz' '_2.fq.gz' *
+#ls -1 *2.fq.gz  > S2
+#ls -1 *1.fq.gz  > S1
+#printf 'auto\n%.0s' {1..30} > S3
+#ls -1 *_1.fq.gz | awk -F '_' '{print $1$2$5}' > S0
+#echo "sample,fastq_1,fastq_2,strandedness" > samples.csv
+#paste -d ','  S? >> samples.csv
+#cat samples.csv
 
