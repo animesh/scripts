@@ -13,6 +13,10 @@ hdr<-gsub("[^[:alnum:] ]", "",inpD)
 setwd(inpD)
 getwd()
 #https://en.wikipedia.org/wiki/Hypergeometric_distribution
+#https://current.geneontology.org/annotations/goa_human.gaf.gz
+#https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/README
+#https://www.uniprot.org/help/downloads
+#https://string-db.org/cgi/help.pl?subpage=api%23getting-functional-enrichment
 fisher.test(rbind(c(1,9),c(11,3)), alternative="less")$p.value
 (choose(10,1)*choose(14,11))/(choose(24,12))+(choose(10,0)*choose(14,12))/(choose(24,12))
 (choose(628,6)*choose(4458,11))/(choose(5086,17))
