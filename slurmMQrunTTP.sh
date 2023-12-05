@@ -1,10 +1,7 @@
-#cd scripts/
-#mkdir helaDDA
-#rsync -Parv login.nird-lmd.sigma2.no:/nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2023/230504_hela_test/*.d helaDDA/
-#git checkout 7cca5a459b903717c5dbf7f08cfb51ef31345a3b scratch.slurm
-#dos2unix slurmMQrunTTP.sh
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/helaDDA /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
-#find mqparTTPdda.xml.1699892695.results -name "proteinGroups.txt"
+#git checkout 5219840f97be1d57690b7fc36ed2144df4691d5c slurmMQrunTTP.sh scratch.slurm mqparTTPdda.xml  
+#dos2unix slurmMQrunTTP.sh scratch.slurm mqparTTPdda.xml
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /nird/projects/NS9036K//NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2023/231123_dia_dda /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
+#for i in  mqparTTPdda.xml.1701596940.results/*/*.slurm ; do echo $i ; dos2unix $i slurmMQrunTTP.sh ; sbatch $i ; done
 #wget "https://maxquant.org/p/maxquant/MaxQuant_v_2.4.10.0.zip?md5=bwPYOvsI5oXolBP_wXUyzg&expires=1700127616" -O MQv24100.zip
 #unzip MQv24100.zip
 #wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=homo_sapiens.zip" -O HS.DIA.zip
@@ -30,8 +27,8 @@ CURRENTEPOCTIME=`date +%s`
 WRITEDIR=$PARAMFILE.$CURRENTEPOCTIME.results
 mkdir $WRITEDIR
 #perl -pe 's/\r$//' < mqrun.sh  > tmp
-dos2unix $PARAMFILE $MQSLURMFILE
-for i in $DATADIR/*.d ; do echo $i ; 	j=$(basename $i) ; 	k=${j%%.*} ; mkdir $WRITEDIR/$k ; cp -Lr $i $WRITEDIR/$k ; sed "s|$SEARCHTEXT2|$FASTADIR|g" $LDIR/$PARAMFILE > $WRITEDIR/$k/$PARAMFILE.tmp1 ; sed "s|$SEARCHTEXT|$LDIR/$WRITEDIR/$k/$j|"  $WRITEDIR/$k/$PARAMFILE.tmp1 > $WRITEDIR/$k/$PARAMFILE.tmp2 ; sed "s|$SEARCHTEXT4|$thrMS|g"  $WRITEDIR/$k/$PARAMFILE.tmp2 > $WRITEDIR/$k/$PARAMFILE.tmp3 ; sed "s|$SEARCHTEXT3|$LDIR/$WRITEDIR/$k|"  $WRITEDIR/$k/$PARAMFILE.tmp3 > $WRITEDIR/$k/$k.xml ; rm $WRITEDIR/$k/$PARAMFILE.tmp*  ;done
+dos2unix $PARAMFILE $MQSLURMFILE 
+for i in $DATADIR/*dda*.d ; do echo $i ; 	j=$(basename $i) ; 	k=${j%%.*} ; mkdir $WRITEDIR/$k ; cp -r $i $WRITEDIR/$k ; sed "s|$SEARCHTEXT2|$FASTADIR|g" $LDIR/$PARAMFILE > $WRITEDIR/$k/$PARAMFILE.tmp1 ; sed "s|$SEARCHTEXT|$LDIR/$WRITEDIR/$k/$j|"  $WRITEDIR/$k/$PARAMFILE.tmp1 > $WRITEDIR/$k/$PARAMFILE.tmp2 ; sed "s|$SEARCHTEXT4|$thrMS|g"  $WRITEDIR/$k/$PARAMFILE.tmp2 > $WRITEDIR/$k/$PARAMFILE.tmp3 ; sed "s|$SEARCHTEXT3|$LDIR/$WRITEDIR/$k|"  $WRITEDIR/$k/$PARAMFILE.tmp3 > $WRITEDIR/$k/$k.xml ; rm $WRITEDIR/$k/$PARAMFILE.tmp*  ;done
 #mono $MAXQUANTCMD $k.xml ; cp -rf ./combined/txt $k.REP ; echo $k ; cd $LDIR 
 echo $WRITEDIR
 #mv tmp  mqrun.sh
@@ -60,4 +57,3 @@ for i in $PWD/$WRITEDIR/*/*.xml
 done
 tail -n 4 $WRITEDIR/*/*.slurm
 ls $WRITEDIR/*/*.slurm | wc
-#for i in mqparTTPdia.xml.1699532779.results/*/*.slurm ; do echo $i ; sed -i 's|1G|4G|g' $i ; sbatch $i; done

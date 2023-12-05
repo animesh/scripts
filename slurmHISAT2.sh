@@ -1,14 +1,10 @@
 #git checkout d0c2421846c29bbb3facddd46b16511f4537649b scratch.slurm
 #dos2unix slurmHISAT2.sh scratch.slurm
-#mkdir TK9trim
-#ln -s $PWD/TK9/trimmomatic.1697725340.results/*P.fq.gz TK9trim/.
-#cd TK9trim/
-#rename 'P.fq.gz' '.fq.gz' *
-#rename 'R.' 'R' *
-#rename 'fq.gz' 'fastq.gz' *
-#cd ..
-#cat slurmHISAT2.sh
-#bash slurmHISAT2.sh $PWD/TK9trim /cluster/projects/nn9036k/rnaSeqChk/grch38_tran/genome_tran
+rename 'fq.gz' 'fastq.gz' TK9/*
+#mkdir TK9
+#ln -s $PWD/TK/TK9*fq.gz TK9/.
+#rename 'fq.gz' 'fastq.gz' TK9/*
+#bash slurmHISAT2.sh $PWD/TK9 $PWD/hg38v110/genome_tran
 DATADIR=$1
 MAPFILE=$2
 RUNCMD=hisat2
