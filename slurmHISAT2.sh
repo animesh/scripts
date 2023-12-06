@@ -1,10 +1,8 @@
 #git checkout d0c2421846c29bbb3facddd46b16511f4537649b scratch.slurm
 #dos2unix slurmHISAT2.sh scratch.slurm
-rename 'fq.gz' 'fastq.gz' TK9/*
-#mkdir TK9
-#ln -s $PWD/TK/TK9*fq.gz TK9/.
-#rename 'fq.gz' 'fastq.gz' TK9/*
-#bash slurmHISAT2.sh $PWD/TK9 $PWD/hg38v110/genome_tran
+#rename '__.1P.fq.gz' '_1.fastq.gz' /cluster/home/ash022/scripts/TK9/trimmomatic.1701618021.results/*
+#rename '__.2P.fq.gz' '_2.fastq.gz' /cluster/home/ash022/scripts/TK9/trimmomatic.1701618021.results/*
+#bash slurmHISAT2.sh $PWD/TK9/trimmomatic.1701618021.results $PWD/hg38v110/genome_tran
 DATADIR=$1
 MAPFILE=$2
 RUNCMD=hisat2
