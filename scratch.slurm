@@ -1,15 +1,17 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=MQSLURMNAME
-#SBATCH --time=48:00:00
 ##SBATCH --partition=bigmem
-##SBATCH --ntasks=16 --cpus-per-task=4
-##SBATCH --mem-per-cpu=32G
-#SBATCH --ntasks=1 --cpus-per-task=5
-#SBATCH --mem-per-cpu=8G
+#SBATCH --account=nn9036k --job-name=seqRNA
+##SBATCH --account=nn9036k --job-name=seqRNABM
+#SBATCH --time=1:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
+##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
+##SBATCH --mem-per-cpu=16G
+#SBATCH --ntasks=1 --cpus-per-task=NCPU
+#SBATCH --mem-per-cpu=1G
 #SBATCH --mail-type=ALL
-#SBATCH --output=MQSLURMLOG
-WORKDIR=MQWD
+#SBATCH --output=seqRNAlog
+
+WORKDIR=${SLURM_SUBMIT_DIR}
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -20,9 +22,12 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
+
+export http_proxy=proxy.saga:3128
+export https_proxy=proxy.saga:3128
 module purge
-module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
-mono --version
-module load dotNET-SDK/3.1.300-linux-x64
-dotnet --version
-dotnet MQCMD MQPARF
+module load SAMtools/1.17-GCC-12.2.0
+samtools view -@NCPU -m10g -bS SAMFILE > BAMFILE
+samtools sort -@NCPU  BAMFILE > SORTBAMFILE
+samtools index -@NCPU INDEXSORT
+
