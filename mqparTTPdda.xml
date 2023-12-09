@@ -208,6 +208,7 @@
          <intensityThresholdMs2>thrMS</intensityThresholdMs2>
          <labelMods>
             <string></string>
+            <string>Arg10;Lys8</string>
          </labelMods>
          <lcmsRunType>TIMS-DDA</lcmsRunType>
          <reQuantify>True</reQuantify>
@@ -225,10 +226,10 @@
          <lfqMinRatioCount>2</lfqMinRatioCount>
          <lfqMinRatioCountDia>2</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
-         <maxLabeledAa>0</maxLabeledAa>
+         <maxLabeledAa>3</maxLabeledAa>
          <maxNmods>5</maxNmods>
          <maxMissedCleavages>2</maxMissedCleavages>
-         <multiplicity>1</multiplicity>
+         <multiplicity>2</multiplicity>
          <enzymeMode>0</enzymeMode>
          <complementaryReporterType>0</complementaryReporterType>
          <reporterNormalization>0</reporterNormalization>
@@ -324,10 +325,13 @@
          <diaLibraryPaths>
          </diaLibraryPaths>
          <diaEvidencePaths>
+            <string>SequencesFasta/evidence.txt</string>
          </diaEvidencePaths>
          <diaMsmsPaths>
+            <string>SequencesFasta/msms.txt</string>
          </diaMsmsPaths>
          <diaLabelIndsForLibraryMatch>
+            <int>0</int>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
          <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>

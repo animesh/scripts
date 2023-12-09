@@ -1,8 +1,8 @@
-#git checkout 594e6bb178a00a02680f3428b167f2004fe70f69 mqparTTPdia.xml scratch.slurm slurmMQrunTTP.sh
+#git checkout 92ca83be3bc60f118b7b5ab7072aa5dd542fc11c mqparTTPdda.xml scratch.slurm slurmMQrunTTP.sh
 #grep "multiplicity" *.xml
 #grep "Atg10;Lys8" mqparTTPdia.xml
-#dos2unix mqparTTPdia.xml scratch.slurm slurmMQrunTTP.sh
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DIA /cluster/projects/nn9036k/FastaDB mqparTTPdia.xml scratch.slurm
+#dos2unix mqparTTPdda.xml scratch.slurm slurmMQrunTTP.sh
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DDA /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
 #wget "https://maxquant.org/p/maxquant/MaxQuant_v_2.4.10.0.zip?md5=bwPYOvsI5oXolBP_wXUyzg&expires=1700127616" -O MQv24100.zip
 #unzip MQv24100.zip
 #wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=homo_sapiens.zip" -O HS.DIA.zip
