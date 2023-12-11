@@ -1,6 +1,6 @@
 #git checkout master scratch.slurm slurmQI.sh
 #dos2unix scratch.slurm slurmQI.sh
-#bash slurmQI.sh  $PWD/TK/hisat2.1690116069.results/samtools.1690538848.results
+#bash slurmQI.sh $PWD/TKSB
 DATADIR=$1
 RUNCMD=qualimap
 PARAMFILE=scratch.slurm
