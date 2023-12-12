@@ -1,7 +1,7 @@
-#F:\R-4.3.1\bin\Rscript.exe proteinGroups.r "F:\OneDrive - NTNU\Ale\proteinGroups mouse.txt"
+#"F:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" C:\Users\animeshs\OneDrive\Desktop\Scripts\proteinGroups.r L:\promec\TIMSTOF\LARS\2023\231130_Anders_S\combined\txt\proteinGroups.txt
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
 #supplying input file for testing
-#inpF<-file.path("F:/OneDrive - NTNU/PK/proteinGroups.txt")
+#inpF<-file.path("L:/promec/TIMSTOF/LARS/2023/231130_Anders_S/combined/txt/proteinGroups.txt")
 #parse argument(s)0
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -12,6 +12,8 @@ print(paste("Using proteinGroups.txt file",inpF,"with dimension(s)"))
 #read MaxQuant output
 options(nwarnings = 1000000)
 data<-read.table(inpF,header=T,sep="\t")
+#if(require("writexl")){writexl::write_xlsx(as.data.frame(data),paste0(inpF,".xlsx"))}#'String exceeds Excel's limit of 32,767 characters.'
+write.csv(data,paste0(inpF,".csv"),row.names = F)
 dim(data)
 selection="Intensity.";
 print("Selecting Raw Intensity Values(s)")

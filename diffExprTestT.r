@@ -1,5 +1,5 @@
-#git checkout c16022351e13c77dae02926044c2bf59cdf4d7ec diffExprTestT.r
-#C:\Users\animeshs\OneDrive\Desktop\Scripts>C:\Users\animeshs\R-4.2.3\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2023\230614 Anders Sundan\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230614 Anders Sundan\combined\txt\Groups.txt" Bio Rem
+#git checkout fe5cce062e43922487d62a10466d317dc7dbfc94 diffExprTestT.r
+#"F:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" C:\Users\animeshs\OneDrive\Desktop\Scripts\diffExprTestT.r L:\promec\TIMSTOF\LARS\2023\231130_Anders_S\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2023\231130_Anders_S\combined\txt\Groups.txt Group Remove
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -11,12 +11,12 @@ print(paste("supplied argument(s):", length(args)))
 print(args)
 if (length(args) != 4) {stop("\n\nNeeds FOUR arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file, for example:
 
-c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/LARS/2022/september/220928 Ida Beate/Brusk/combined/txt/Groups.txt\" Bio Rem
+c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/Data/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/Data/combined/txt/Groups.txt\" Groups Remove
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2023/230614 Anders Sundan/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2023/231130_Anders_S/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2023/230614 Anders Sundan/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2023/231130_Anders_S/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
