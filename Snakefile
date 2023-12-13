@@ -23,7 +23,7 @@ rule prose:
     output: "{dir}/prose.txt"
     log: "{dir}/prose.log"
     conda: "envs/default.yaml"
-    shell: "python scripts/prose.py {output} 2> {log}"
+    shell: "/cluster/projects/nn9036k/.conda/envs/spritzbase/bin/python3 scripts/prose.py {output} 2> {log}"
 
 include: "rules/downloads.smk"
 include: "rules/align.smk"
