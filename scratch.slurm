@@ -1,16 +1,13 @@
 #!/bin/sh
-##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=SLURMJOB
-##SBATCH --account=nn9036k --job-name=SLURMJOBBM
-#SBATCH --time=24:00:00
-#SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
-##SBATCH --mem-per-cpu=16G
+#SBATCH --account=nn9036k --job-name=BMMQSLURMNAME
+#SBATCH --time=160:00:00
+#SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=8G
+#SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=PYSLURMLOG
-WORKDIR=${SLURM_SUBMIT_DIR}
+#SBATCH --output=BMMQSLURMLOG
+WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
 echo " the name of the job is: $SLURM_JOB_NAME"
@@ -20,8 +17,9 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-
-export http_proxy=proxy.saga:3128
-export https_proxy=proxy.saga:3128
-#cp -rf /nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2023/231101_evosep_hela_test/com* .
-$HOME/bin/python3 proteinGroupsCombine.py combined/
+module purge
+module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
+mono --version
+module load dotNET-SDK/3.1.300-linux-x64
+dotnet --version
+dotnet /cluster/projects/nn9036k/MaxQuant_v_2.4.9.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231208_deo2/mqpar.xml
