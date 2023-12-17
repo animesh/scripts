@@ -42,7 +42,6 @@ nextflow  -v
 #nextflow pull nf-core/rnaseq
 #nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 32  --outdir nfch13all --input samples.csv --genome CHM13 -profile singularity -resume
 #nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 30  --outdir CH13lall --input samples.csv --gtf /cluster/projects/nn9036k/scripts/CHM13v2-T2T/GCF_009914755.1_T2T-CHM13v2.0_genomic.gtf --fasta /cluster/projects/nn9036k/scripts/CHM13v2-T2T/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna  --genome null  --igenomes_ignore  -profile singularity -resume
-#https://nf-co.re/differentialabundance/1.4.0/docs/usage
 #nextflow run nf-core/differentialabundance -profile test,singularity --outdir testFiddExpr
 #https://nf-co.re/rnaseq/3.13.2/docs/usage -r <pipeline version eg 1.3.1> for Reproducibility
 #nextflow run nf-core/differentialabundance  --max_memory '80.GB' --max_cpus 20  --input samples.csv --contrasts contrasts.csv --matrix hg38lall/star_salmon/salmon.merged.gene_counts_length_scaled.tsv --gtf /cluster/projects/nn9036k/scripts/hg38v110/Homo_sapiens.GRCh38.110.gtf  -profile test,singularity --outdir testFiddExpr
@@ -58,4 +57,5 @@ nextflow run nf-core/differentialabundance  --max_memory '80.GB' --max_cpus 20  
 #echo "sample,fastq_1,fastq_2,strandedness" > samples.csv
 #paste -d ','  S? >> samples.csv
 #cat samples.csv
-
+#mv diffExprHG38lall diffExprHG38lallBatch
+#ls -ltrh diffExprHG38lall*/tables/diff*
