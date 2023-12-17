@@ -1,2 +1,3 @@
 id,variable,reference,target,blocking
-condition_control_treated,condition,NS,S,
+condition_control_treated,condition,NS,S,batch
+
