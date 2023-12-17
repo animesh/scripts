@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=BMMQSLURMNAME
+#SBATCH --account=nn9036k --job-name=noDnqMQSLURMNAME
 #SBATCH --time=160:00:00
-#SBATCH --partition=bigmem
+##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=BMMQSLURMLOG
+#SBATCH --output=noDnqBMMQSLURMLOG
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -22,4 +22,4 @@ module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
 mono --version
 module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
-dotnet /cluster/projects/nn9036k/MaxQuant_v_2.4.9.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231208_deo2/mqpar.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_v_2.4.9.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/noDnq/mqpar.xml

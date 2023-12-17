@@ -113,7 +113,6 @@
    <restrictMods>
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
-      <string>Deamidation (NQ)</string>
    </restrictMods>
    <matchingTimeWindow>1</matchingTimeWindow>
    <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
@@ -163,19 +162,19 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_HA_HA_IP1_Slot1-29_1_5869.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_HA_HA_IP2_Slot1-30_1_5871.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_HA_HA_IP3_Slot1-31_1_5873.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_HA_IGG_IP_Slot1-28_1_5867.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_R5_HA_IP1_Slot1-37_1_5885.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_R5_HA_IP1_Slot1-37_1_5893.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_R5_HA_IP2_Slot1-38_1_5889.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_R5_HA_IP3_Slot1-39_1_5891.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_R5_IGG_IP_Slot1-36_1_5883.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_R6_HA_IP1_Slot1-33_1_5877.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_R6_HA_IP2_Slot1-34_1_5879.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_R6_HA_IP3_Slot1-35_1_5881.d</string>
-      <string>/cluster/projects/nn9036k/scripts/231208_deo2/231208_Deo_R6_IGG_IP_Slot1-32_1_5875.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_HA_HA_IP1_Slot1-29_1_5869.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_HA_HA_IP2_Slot1-30_1_5871.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_HA_HA_IP3_Slot1-31_1_5873.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_HA_IGG_IP_Slot1-28_1_5867.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_HA_IP1_Slot1-37_1_5885.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_HA_IP1_Slot1-37_1_5893.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_HA_IP2_Slot1-38_1_5889.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_HA_IP3_Slot1-39_1_5891.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_IGG_IP_Slot1-36_1_5883.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R6_HA_IP1_Slot1-33_1_5877.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R6_HA_IP2_Slot1-34_1_5879.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R6_HA_IP3_Slot1-35_1_5881.d</string>
+      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R6_IGG_IP_Slot1-32_1_5875.d</string>
    </filePaths>
    <experiments>
       <string>HA_HA_IP1_Slot1-29_1_5869</string>
@@ -329,7 +328,6 @@
          <variableModifications>
             <string>Oxidation (M)</string>
             <string>Acetyl (Protein N-term)</string>
-            <string>Deamidation (NQ)</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
