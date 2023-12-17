@@ -57,5 +57,5 @@ nextflow run nf-core/differentialabundance  --max_memory '80.GB' --max_cpus 20  
 #echo "sample,fastq_1,fastq_2,strandedness" > samples.csv
 #paste -d ','  S? >> samples.csv
 #cat samples.csv
-#mv diffExprHG38lall diffExprHG38lallBatch
+#mv diffExprHG38lall diffExprHG38lallRep
 #ls -ltrh diffExprHG38lall*/tables/diff*
