@@ -7,7 +7,7 @@ server: shiny
 ```{r data}
 #| context: setup
 #| include: true
-inpF <-"L:/promec/TIMSTOF/LARS/2023/231017_Jana/combined/txt/proteinGroups.txt"
+inpF <-"TIMSTOF/LARS/2023/231123_dia_dda/DDA/combined/txt/proteinGroups.txt"
 data<-read.csv(inpF,header=TRUE,sep="\t")
 #clean
 data = data[!data$Reverse=="+",]
@@ -30,7 +30,7 @@ log2LFQ[log2LFQ==-Inf]=NA
 log2LFQ[log2LFQ==0]=NA
 summary(log2LFQ)
 hist(log2LFQ)
-inpW<-paste0(inpD,hdr,"log2LFQ.xlsx")
+inpW<-paste0(inpF,"log2LFQ.xlsx")
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 rowNameG<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "GN=",fixed=T), "[", 2)), " "), "[", 1))
 #rownames(log2LFQ)<-data$Gene.names
@@ -53,7 +53,7 @@ svgPHC<-pheatmap::pheatmap(dataNAR,clustering_distance_rows = "euclidean",cluste
 #svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,labels_row = paste(label$RawFnum,label$ID_ROLF,label$Tank,label$Diet,label$Fish))
 ggplot2::ggsave(file=paste0(inpF,"log2selectClust.svg"),plot=svgPHC,width = 5, height = 15, dpi = 600)#,  
 
-sliderInput("sample", "Number of samples", min = 1, max = ncol(data), value = 1)
+sliderInput("sample", "Number of samples", min = 1, max = ncol(dataNAR), value = 1)
 plotOutput("distPlot")
 ```
 
@@ -64,4 +64,3 @@ output$distPlot <- renderPlot({
    hist(x, col = 'darkgray', border = 'white',xlab = 'log2LFQ',main = inpF)
 })
 ```
-
