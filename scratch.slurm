@@ -30,10 +30,10 @@ dotnet MQCMD MQPARF
 #cat scratch.slurm
 #dos2unix scratch.slurm
 #bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_2.4.3.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DIA /cluster/projects/nn9036k/FastaDB mqparTTPdia.xml scratch.slurm
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_2.4.3.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DIA /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_2.4.3.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DDA /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
 #bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DIA /cluster/projects/nn9036k/FastaDB mqparTTPdia.xml scratch.slurm
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DIA /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.10.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DDA /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
 #bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.9.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DIA /cluster/projects/nn9036k/FastaDB mqparTTPdia.xml scratch.slurm
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.9.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DIA /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.9.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/231123_dia_dda/DDA /cluster/projects/nn9036k/FastaDB mqparTTPdda.xml scratch.slurm
 #tail -f mqparTTPd?a.xml.*.results/*/*txt
 
