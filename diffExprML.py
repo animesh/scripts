@@ -1,6 +1,6 @@
 #https://auto.gluon.ai/stable/install.html
 #https://youtu.be/fdfGb2jq-_c?t=1991
-from auto_mm_bench import *
+#from auto_mm_bench import *
 from autogluon.tabular import TabularDataset, TabularPredictor
 predictor = TabularPredictor(label='Class').fit(train_data,presets='best_quality',time_limit=60)
 predictions = predictor.predict(test_data)
