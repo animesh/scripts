@@ -1,3 +1,500 @@
+#https://medium.com/@thakermadhav/build-your-own-rag-with-mistral-7b-and-langchain-97d0c92fa146
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.document_loaders import AsyncChromiumLoader
+from langchain.document_transformers import Html2TextTransformer
+from langchain.vectorstores import FAISS
+import nest_asyncio
+
+nest_asyncio.apply()
+
+articles = ["https://www.fantasypros.com/2023/11/rival-fantasy-nfl-week-10/",
+            "https://www.fantasypros.com/2023/11/5-stats-to-know-before-setting-your-fantasy-lineup-week-10/",
+            "https://www.fantasypros.com/2023/11/nfl-week-10-sleeper-picks-player-predictions-2023/",
+            "https://www.fantasypros.com/2023/11/nfl-dfs-week-10-stacking-advice-picks-2023-fantasy-football/",
+            "https://www.fantasypros.com/2023/11/players-to-buy-low-sell-high-trade-advice-2023-fantasy-football/"]
+
+# Scrapes the blogs above
+loader = AsyncChromiumLoader(articles)
+docs = loader.load()
+
+# Converts HTML to plain text 
+html2text = Html2TextTransformer()
+docs_transformed = html2text.transform_documents(docs)
+
+# Chunk text
+text_splitter = CharacterTextSplitter(chunk_size=100, 
+                                      chunk_overlap=0)
+chunked_documents = text_splitter.split_documents(docs_transformed)
+
+# Load chunked documents into the FAISS index
+db = FAISS.from_documents(chunked_documents, 
+                          HuggingFaceEmbeddings(model_name='sentence-transformers/all-mpnet-base-v2'))
+
+
+# Connect query to FAISS index using a retriever
+retriever = db.as_retriever(
+    search_type="similarity",
+    search_kwargs={'k': 4}
+)
+from langchain.llms import HuggingFacePipeline
+from langchain.prompts import PromptTemplate
+from langchain.embeddings.huggingface import HuggingFaceEmbeddings
+
+text_generation_pipeline = transformers.pipeline(
+    model=model,
+    tokenizer=tokenizer,
+    task="text-generation",
+    temperature=0.2,
+    repetition_penalty=1.1,
+    return_full_text=True,
+    max_new_tokens=300,
+)
+
+prompt_template = """
+### [INST] 
+Instruction: Answer the question based on your 
+fantasy football knowledge. Here is context to help:
+
+{context}
+
+### QUESTION:
+{question} 
+
+[/INST]
+ """
+
+mistral_llm = HuggingFacePipeline(pipeline=text_generation_pipeline)
+
+# Create prompt from prompt template 
+prompt = PromptTemplate(
+    input_variables=["context", "question"],
+    template=prompt_template,
+)
+
+# Create llm chain 
+llm_chain = LLMChain(llm=mistral_llm, prompt=prompt)
+llm_chain.invoke({"context":"", 
+                  "question": "Should I pick up Alvin Kamara for my fantasy team?"})
+
+"Whether or not you should pick up Alvin Kamara for your fantasy team 
+depends on a few factors, such as the specific league rules and roster 
+requirements, the current performance of Kamara and other players in your 
+league, and your overall strategy for building your team.
+query = "Should I pick up Alvin Kamara for my fantasy team?" 
+
+retriever = db.as_retriever()
+
+rag_chain = ( 
+ {"context": retriever, "question": RunnablePassthrough()}
+    | llm_chain
+)
+
+rag_chain.invoke(query)
+#https://github.com/madhavthaker1/llm/blob/main/rag/e2e_rag.ipynb
+!pip install -q -U torch datasets transformers tensorflow langchain playwright html2text sentence_transformers faiss-cpu
+!pip install -q accelerate==0.21.0 peft==0.4.0 bitsandbytes==0.40.2 trl==0.4.7
+
+import os
+import torch
+from transformers import (
+  AutoTokenizer, 
+  AutoModelForCausalLM, 
+  BitsAndBytesConfig
+  pipeline
+)
+
+from transformers import BitsAndBytesConfig
+
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.document_transformers import Html2TextTransformer
+from langchain.document_loaders import AsyncChromiumLoader
+
+from langchain.embeddings.huggingface import HuggingFaceEmbeddings
+from langchain.vectorstores import FAISS
+
+from langchain.prompts import PromptTemplate
+from langchain.schema.runnable import RunnablePassthrough
+from langchain.llms import HuggingFacePipeline
+from langchain.chains import LLMChain
+
+import nest_asyncio
+#################################################################
+# Tokenizer
+#################################################################
+
+model_name='mistralai/Mistral-7B-Instruct-v0.1'
+
+model_config = transformers.AutoConfig.from_pretrained(
+    model_name,
+)
+
+tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+tokenizer.pad_token = tokenizer.eos_token
+tokenizer.padding_side = "right"
+
+#################################################################
+# bitsandbytes parameters
+#################################################################
+
+# Activate 4-bit precision base model loading
+use_4bit = True
+
+# Compute dtype for 4-bit base models
+bnb_4bit_compute_dtype = "float16"
+
+# Quantization type (fp4 or nf4)
+bnb_4bit_quant_type = "nf4"
+
+# Activate nested quantization for 4-bit base models (double quantization)
+use_nested_quant = False
+
+#################################################################
+# Set up quantization config
+#################################################################
+compute_dtype = getattr(torch, bnb_4bit_compute_dtype)
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=use_4bit,
+    bnb_4bit_quant_type=bnb_4bit_quant_type,
+    bnb_4bit_compute_dtype=compute_dtype,
+    bnb_4bit_use_double_quant=use_nested_quant,
+)
+
+# Check GPU compatibility with bfloat16
+if compute_dtype == torch.float16 and use_4bit:
+    major, _ = torch.cuda.get_device_capability()
+    if major >= 8:
+        print("=" * 80)
+        print("Your GPU supports bfloat16: accelerate training with bf16=True")
+        print("=" * 80)
+
+#################################################################
+# Load pre-trained config
+#################################################################
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    quantization_config=bnb_config,
+)
+
+
+def print_number_of_trainable_model_parameters(model):
+    trainable_model_params = 0
+    all_model_params = 0
+    for _, param in model.named_parameters():
+        all_model_params += param.numel()
+        if param.requires_grad:
+            trainable_model_params += param.numel()
+    return f"trainable model parameters: {trainable_model_params}\nall model parameters: {all_model_params}\npercentage of trainable model parameters: {100 * trainable_model_params / all_model_params:.2f}%"
+
+print(print_number_of_trainable_model_parameters(model))
+
+text_generation_pipeline = pipeline(
+    model=model,
+    tokenizer=tokenizer,
+    task="text-generation",
+    temperature=0.2,
+    repetition_penalty=1.1,
+    return_full_text=True,
+    max_new_tokens=1000,
+)
+
+mistral_llm = HuggingFacePipeline(pipeline=text_generation_pipeline)
+
+!playwright install 
+!playwright install-deps 
+
+import nest_asyncio
+nest_asyncio.apply()
+
+# Articles to index
+articles = ["https://www.fantasypros.com/2023/11/rival-fantasy-nfl-week-10/",
+            "https://www.fantasypros.com/2023/11/5-stats-to-know-before-setting-your-fantasy-lineup-week-10/",
+            "https://www.fantasypros.com/2023/11/nfl-week-10-sleeper-picks-player-predictions-2023/",
+            "https://www.fantasypros.com/2023/11/nfl-dfs-week-10-stacking-advice-picks-2023-fantasy-football/",
+            "https://www.fantasypros.com/2023/11/players-to-buy-low-sell-high-trade-advice-2023-fantasy-football/"]
+
+# Scrapes the blogs above
+loader = AsyncChromiumLoader(articles)
+docs = loader.load()
+
+# Converts HTML to plain text 
+html2text = Html2TextTransformer()
+docs_transformed = html2text.transform_documents(docs)
+
+# Chunk text
+text_splitter = CharacterTextSplitter(chunk_size=100, 
+                                      chunk_overlap=0)
+chunked_documents = text_splitter.split_documents(docs_transformed)
+
+# Load chunked documents into the FAISS index
+db = FAISS.from_documents(chunked_documents, 
+                          HuggingFaceEmbeddings(model_name='sentence-transformers/all-mpnet-base-v2'))
+
+retriever = db.as_retriever()
+
+# Create prompt template
+prompt_template = """
+### [INST] Instruction: Answer the question based on your fantasy football knowledge. Here is context to help:
+
+{context}
+
+### QUESTION:
+{question} [/INST]
+ """
+
+# Create prompt from prompt template 
+prompt = PromptTemplate(
+    input_variables=["context", "question"],
+    template=prompt_template,
+)
+
+# Create llm chain 
+llm_chain = LLMChain(llm=mistral_llm, prompt=prompt)
+
+rag_chain = ( 
+ {"context": retriever, "question": RunnablePassthrough()}
+    | llm_chain
+)
+
+rag_chain.invoke("Should I start Gibbs next week for fantasy?")
+
+#https://towardsdatascience.com/comparing-outlier-detection-methods-956f4b097061
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+g = sns.JointGrid(data=df, x="OBP", y="SLG", height=5)
+g = g.plot_joint(func=sns.scatterplot, data=df, hue="League",
+                 palette={"AL":"blue","NL":"maroon","NL/AL":"green"},
+                 alpha=0.6
+                )
+g.fig.suptitle("On-base percentage vs. Slugging\n2023 season, min "
+               f"{MIN_PLATE_APPEARANCES} plate appearances"
+              )
+g.figure.subplots_adjust(top=0.9)
+sns.kdeplot(x=df["OBP"], color="orange", ax=g.ax_marg_x, alpha=0.5)
+sns.kdeplot(y=df["SLG"], color="orange", ax=g.ax_marg_y, alpha=0.5)
+sns.kdeplot(data=df, x="OBP", y="SLG",
+            ax=g.ax_joint, color="orange", alpha=0.5
+           )
+df_extremes = df[ df["OBP"].isin([df["OBP"].min(),df["OBP"].max()]) 
+                 | df["OPS"].isin([df["OPS"].min(),df["OPS"].max()])
+                ]
+
+for _,row in df_extremes.iterrows():
+    g.ax_joint.annotate(row["Name"], (row["OBP"], row["SLG"]),size=6,
+                      xycoords='data', xytext=(-3, 0),
+                        textcoords='offset points', ha="right",
+                      alpha=0.7)
+plt.show()
+import numpy as np
+
+X = df[["OBP","SLG"]].to_numpy()
+
+GRID_RESOLUTION = 200
+
+disp_x_range, disp_y_range = ( (.6*X[:,i].min(), 1.2*X[:,i].max()) 
+                               for i in [0,1]
+                             )
+xx, yy = np.meshgrid(np.linspace(*disp_x_range, GRID_RESOLUTION), 
+                     np.linspace(*disp_y_range, GRID_RESOLUTION)
+                    )
+grid_shape = xx.shape
+grid_unstacked = np.c_[xx.ravel(), yy.ravel()]
+from sklearn.covariance import EllipticEnvelope
+
+ell = EllipticEnvelope(random_state=17).fit(X)
+df["outlier_score_ell"] = ell.decision_function(X)
+Z_ell = ell.decision_function(grid_unstacked).reshape(grid_shape)
+K = int(np.sqrt(X.shape[0]))
+
+print(f"Using K={K} nearest neighbors.")
+
+from scipy.spatial.distance import pdist, squareform
+
+# If we didn't have the elliptical envelope already,
+# we could calculate robust covariance:
+#   from sklearn.covariance import MinCovDet
+#   robust_cov = MinCovDet().fit(X).covariance_
+# But we can just re-use it from elliptical envelope:
+robust_cov = ell.covariance_
+
+print(f"Robust covariance matrix:\n{np.round(robust_cov,5)}\n")
+
+inv_robust_cov = np.linalg.inv(robust_cov)
+
+D_mahal = squareform(pdist(X, 'mahalanobis', VI=inv_robust_cov))
+
+print(f"Mahalanobis distance matrix of size {D_mahal.shape}, "
+      f"e.g.:\n{np.round(D_mahal[:5,:5],3)}...\n...\n")
+
+from scipy.spatial.distance import pdist, squareform
+
+# If we didn't have the elliptical envelope already,
+# we could calculate robust covariance:
+#   from sklearn.covariance import MinCovDet
+#   robust_cov = MinCovDet().fit(X).covariance_
+# But we can just re-use it from elliptical envelope:
+robust_cov = ell.covariance_
+
+print(f"Robust covariance matrix:\n{np.round(robust_cov,5)}\n")
+
+inv_robust_cov = np.linalg.inv(robust_cov)
+
+D_mahal = squareform(pdist(X, 'mahalanobis', VI=inv_robust_cov))
+
+print(f"Mahalanobis distance matrix of size {D_mahal.shape}, "
+      f"e.g.:\n{np.round(D_mahal[:5,:5],3)}...\n...\n")
+
+from scipy.spatial.distance import cdist
+
+D_mahal_grid = cdist(XA=grid_unstacked, XB=X, 
+                     metric='mahalanobis', VI=inv_robust_cov
+                    )
+Z_lof = lof.decision_function(D_mahal_grid).reshape(grid_shape)
+
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import RobustScaler
+from sklearn.kernel_approximation import Nystroem
+from sklearn.linear_model import SGDOneClassSVM
+
+suv = make_pipeline(
+            RobustScaler(),
+            Nystroem(random_state=17),
+            SGDOneClassSVM(random_state=17)
+).fit(X)
+
+df["outlier_score_svm"] = suv.decision_function(X)
+
+Z_svm = suv.decision_function(grid_unstacked).reshape(grid_shape)
+
+from adjustText import adjust_text
+from sklearn.preprocessing import QuantileTransformer
+
+N_QUANTILES = 8 # This many color breaks per chart
+N_CALLOUTS=15  # Label this many top outliers per chart
+
+fig, axs = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=True)
+
+fig.suptitle("Comparison of Outlier Identification Algorithms",size=20)
+fig.supxlabel("On-Base Percentage (OBP)")
+fig.supylabel("Slugging (SLG)")
+
+ax_ell = axs[0,0]
+ax_lof = axs[0,1]
+ax_svm = axs[1,0]
+ax_iso = axs[1,1]
+
+model_abbrs = ["ell","iso","lof","svm"]
+
+qt = QuantileTransformer(n_quantiles=N_QUANTILES)
+
+for ax, nm, abbr, zz in zip( [ax_ell,ax_iso,ax_lof,ax_svm], 
+                            ["Elliptic Envelope","Isolation Forest",
+                             "Local Outlier Factor","One-class SVM"], 
+                            model_abbrs,
+                            [Z_ell,Z_iso,Z_lof,Z_svm]
+                           ):
+    ax.title.set_text(nm)
+    outlier_score_var_nm = f"outlier_score_{abbr}"
+    
+    qt.fit(np.sort(zz.reshape(-1,1)))
+    zz_qtl = qt.transform(zz.reshape(-1,1)).reshape(zz.shape)
+
+    cs = ax.contourf(xx, yy, zz_qtl, cmap=plt.cm.OrRd.reversed(), 
+                     levels=np.linspace(0,1,N_QUANTILES)
+                    )
+    ax.scatter(X[:, 0], X[:, 1], s=20, c="b", edgecolor="k", alpha=0.5)
+    
+    df_callouts = df.sort_values(outlier_score_var_nm).head(N_CALLOUTS)
+    texts = [ ax.text(row["OBP"], row["SLG"], row["Name"], c="b",
+                      size=9, alpha=1.0) 
+             for _,row in df_callouts.iterrows()
+            ]
+    adjust_text(texts, 
+                df_callouts["OBP"].values, df_callouts["SLG"].values, 
+                arrowprops=dict(arrowstyle='->', color="b", alpha=0.6), 
+                ax=ax
+               )
+
+plt.tight_layout(pad=2)
+plt.show()
+
+for var in ["OBP","SLG"]:
+    df[f"Pctl_{var}"] = 100*(df[var].rank()/df[var].size).round(3)
+
+model_score_vars = [f"outlier_score_{nm}" for nm in model_abbrs]  
+model_rank_vars = [f"Rank_{nm.upper()}" for nm in model_abbrs]
+
+
+df[model_rank_vars] = df[model_score_vars].rank(axis=0).astype(int)
+    
+# Averaging the ranks is arbitrary; we just need a countdown order
+df["Rank_avg"] = df[model_rank_vars].mean(axis=1)
+
+print("Counting down to the greatest outlier...\n")
+print(
+    df.sort_values("Rank_avg",ascending=False
+                  ).tail(N_CALLOUTS)[["Name","AB","PA","H","2B","3B",
+                                      "HR","BB","HBP","SO","OBP",
+                                      "Pctl_OBP","SLG","Pctl_SLG"
+                                     ] + 
+                             [f"Rank_{nm.upper()}" for nm in model_abbrs]
+                            ].to_string(index=False)
+)
+
+
+#https://youtu.be/E72DWgKP_1Y?t=1023
+Farmer's Problem
+from pulp
+import *
+# problem formulation
+model = LpProblem(sense=LpMaximize)
+X_P = LpVariable(name="potatoes", lowBound=0)
+x_c = LpVariable(name="carrots",
+, lowBound=0)
+model += x_p
+<= 3000
+# potatoes
+model +=
+x_C <= 4000
+# carrots
+model += x_p + x_c <= 5000
+# fertilizer
+model *= X_p * 1.2 + x_C * 1.7
+# solve (without being verbose)
+status = model.solve(PULP
+_CBC_CMD(msg=False))
+print ("potatoes:", x_p. value())
+print("carrots:", x_c.value())
+print("profit:", model.objective.value())
+from
+pulp
+import *
+variables: 1 ≥ b ≥0
+#
+data
+n
+8
+weights
+[4, 2, 8, 3, 7, 5, 9, 6]
+prices = [19,
+17, 30, 13, 25, 29, 23, 10J
+carry_weight = 17
+subject to
+weights • b ≤ carry-weight
+objective function
+max prices • b
+# problem formulation
+model = LpProblem(sense=LpMaximize)
+variables • [LpVariable(name-f"x_{i}", cat-LpBinary) for i in range(n)]
+model += lpDot(weights, variables) <= carry_weight
+model += lpDot(prices, variables)
+# solve (without being verbose)
+status = model. solve( PULP
+_CBC_CMD(msg=False))
+print("price:"
+, model.objective.value())
+print("take:" *[variablesfil value() for i in range(n)])
 #!pip install --upgrade pip
 #!pip install spyder
 #C:\Users\sharm\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.9_qbz5n2kfra8p0\LocalCache\local-packages\Python39\Scripts\spyder.exe

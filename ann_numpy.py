@@ -1,7 +1,7 @@
 #coding https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/ with numpy, checking with iterative version at  https://github.com/animesh/ann/blob/master/ann/Program.cs with following output
 #Iteration = 1   Error = 0.298371108760003       Outputs = 0.751365069552316     0.772928465321463
 #Iteration = 2   Error = 0.291027773693599       Outputs = 0.742088111190782     0.775284968294459  ...
-
+#%%data
 inp=[0.05,0.10]
 inpw=[[0.15,0.20],[0.25,0.3]]
 hidw=[[0.4,0.45],[0.5,0.55]]
