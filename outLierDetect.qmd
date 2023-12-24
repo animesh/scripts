@@ -10,88 +10,97 @@ server: shiny
 #https://www.productive-r-workflow.com/quarto-tricks
 #data####
 import pandas as pd
-df = pd.read_csv("F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.csv")
-df.head()
-df.columns = df.columns.str.strip('230502_hela')
-df.hist()
-df.set_index('ID',inplace=True)
-print(df.shape)
-# %% codon
-cor=df.corr()
+dfI=pd.read_csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txt",low_memory=False,sep='\t')
+print(dfI.columns)
+dfI=dfI.groupby('Sequence',as_index = False).agg({'SeqN_Peptide_Name': ' '.join})
+print(dfI.columns)
+from pathlib import Path
+pathFiles=Path("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/")
+fileName='peptides.txt'
+trainList=list(pathFiles.rglob(fileName))
+print(trainList)
+i=0
+for f in trainList:
+    #f=trainList[i]
+    i=i+1
+    if Path(f).stat().st_size > 0:
+        print(i,f.parts,Path(f).stat().st_size)
+        peptideHits=pd.read_csv(f,low_memory=False,sep='\t')
+        peptideHits=peptideHits.loc[:, peptideHits.columns.str.startswith(('Intensity ','Sequence'))]
+        #= peptideHits.loc[:, peptideHits.columns.str.startswith('Intensity')].apply(lambda x: x.str.replace(',','.'))
+        dfI=pd.merge(dfI, peptideHits, on='Sequence', how='left')
+        print(dfI['Sequence'].isin(peptideHits['Sequence']).sum())
+print(dfI.shape)
+print(dfI.columns)
+#dfI.set_index('Sequence',inplace=True)
+dfI.to_csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensity.csv")
+```
+
+```{python log2}
+dfI=pd.read_csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensity.csv",low_memory=False,sep=',')
+import numpy as np
+dfI[dfI==0]=np.nan
+df=dfI.loc[:, dfI.columns.str.startswith('Intensity')]
+df.index=dfI['Sequence']
+print(df.columns)
+df.columns = df.columns.str.strip('Intensity ')
+df.columns = df.columns.str.split('_Slot').str[0]
+print(df.columns)
+dfLog2=np.log2(df)
+dfLog2.to_csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensitylog2.csv")
+```
+
+```{python cor}
+dfLog2=pd.read_csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensitylog2.csv",low_memory=False,sep=',', index_col=0)
+print(dfLog2.shape)
+dfLog2.hist()
+#%%correlation
+cor=dfLog2.corr()
 #cor=df.T.corr() # proteins
 print(cor)
-
-# %% codon
-#setup####
+cor.to_csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensitylog2.cor.csv")
 import matplotlib.pyplot as plt
 plt.plot(cor)
 plt.show()
-#setup####
-df=df.drop_duplicates(keep="first")
-df.to_csv("F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.uniq.csv")
 ```
 
-# df scatter
 
-```{r}
-x=1:3
-
-#plot(df[,-ncol(df)])
-```
-
-# cor
-
-```{python}
-df.shape
-corr=df.corr()
-#cor=df.T.corr() # proteins
-print(corr)
-plt.plot(corr)
-plt.show()
-print(corr-cor)
-rowlen=len(df.index)
-import numpy as np
-tstat=corr*np.sqrt((rowlen-2)/(1-corr*corr))
+```{python p-value}
+rowlen=len(dfLog2.index)
+tstat=cor*np.sqrt((rowlen-2)/(1-cor*cor))
 import scipy.stats as ss
 #ss.t.cdf(tstat, rowlen-2)[0,1]
 pval=ss.t.cdf(tstat, rowlen-2)
 #corcol.iloc[0,1]
 plt.hist(pval)
 print(pval.shape,pval)
-plt.imshow(corr, cmap='hot', interpolation='nearest')
+plt.imshow(cor, cmap='hot', interpolation='nearest')
 plt.colorbar()
 plt.show()
-print(df.columns)
-plt.savefig('test.png', dpi=300)
-np.savetxt(r'test.txt',pval,delimiter='\t')
+#plt.savefig('test.png', dpi=300)
+#np.savetxt(r'test.txt',pval,delimiter='\t')
 ```
 
-## select
-
-```{r slider, echo=FALSE}
-sliderInput("bins", "Number of bins:", min = 1, max = 100, value = 30)
-selectInput("options","Select an option:",choices = c(1:4),selected = 1)
-#hist(data[,1])
-#selectInput("options","Select an option:",choices = colnames(data),selected = colnames(data)[1])
-#hist(data[,colnames(data)[1]])
-plotOutput("distPlot")
-```
-
-```{r}
-data<-read.csv("F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.uniq.csv",row.names = 1)
+```{r diff}
+data<-read.csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensitylog2.csv",row.names = 1)
 data[is.na(data)] <- 0
-dataDiff<-data[,c(1:4)]-data[,c(5:8)]
-dataDiff<-dataDiff[sort(data$Sum),]
+colnames(data)
+data<-data[,-c(7:8)]
+for(i in 1:(ncol(data)/2)){
+  plot(data[,i],data[,i+(ncol(data)/2)],pch = 19,main=paste(colnames(data)[i],colnames(data)[i+(ncol(data)/2)]))
+}
+dataDiff<-data[,c(1:14)]-data[,c(15:28)]
+dataDiff<-dataDiff[sort(rowSums(abs(dataDiff)),decreasing = T),]
 dataDiff[dataDiff==0]<-NA
 for(i in 1:ncol(dataDiff)){
   plot(dataDiff[,i],type="l",main=colnames(dataDiff)[i])
 }
-write.csv(dataDiff,"F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.uniq.diff.csv")
+write.csv(dataDiff,"L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensitylog2.diff.csv",row.names = T)
 ```
 
-```{r}
+```{r int}
 #| context: server
-dataDiff<-read.csv("F:/OneDrive - NTNU/HeLaDIA/proteinGroups.txtIntensitylog2Combo.uniq.diff.csv",row.names = 1)
+dataDiff<-read.csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensitylog2.diff.csv")
 output$distPlot <- renderPlot({
    x <- dataDiff[, as.integer(input$options)]  
    bins <- seq(min(x,na.rm=T), max(x,na.rm=T), length.out = input$bins + 1)

@@ -28,9 +28,16 @@ table(wikiP)
 fisher.test(wikiP)
 fisher.test(wikiP, alternative="greater")
 fisher.test(wikiP, conf.level = 0.99)$conf.int
+#https://youtu.be/O182Gr97-DI?t=3922
+wikiP <- matrix(c(2,1,5000,5000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+fisher.test(wikiP)
+wikiP <- matrix(c(200,100,5000,5000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+fisher.test(wikiP)
+wikiP <- matrix(c(20,10,5000,5000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+fisher.test(wikiP)
 ```
 ```{r rapaB}
-
+#https://www.uniprot.org/uniprot/?query=taxonomy%3A%22Brassica+rapa+%28field+mustard%29+%5B3711%5D%22&sort=score
 ```
 ```{r ratData}
 fileI<-"L:/promec/Animesh/Atle/Heidelberg/Q25D165-17-27-01-(1)_Proteins.txt"
