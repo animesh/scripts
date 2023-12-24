@@ -2,31 +2,22 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-Mar23.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/UP000005640_9606.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
-         <taxonomyId></taxonomyId>
+         <taxonomyId>9606</taxonomyId>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/UP000000589_10090.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/UP000005640_9606_additional.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
-         <taxonomyId>10090</taxonomyId>
-      </FastaFileInfo>
-      <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/UP000000589_10090_additional.fasta</fastaFilePath>
-         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
-         <descriptionParseRule>>(.*)</descriptionParseRule>
-         <taxonomyParseRule></taxonomyParseRule>
-         <variationParseRule></variationParseRule>
-         <modificationParseRule></modificationParseRule>
-         <taxonomyId>10090</taxonomyId>
+         <taxonomyId>9606</taxonomyId>
       </FastaFileInfo>
    </fastaFiles>
    <fastaFilesProteogenomics>
@@ -113,6 +104,8 @@
    <restrictMods>
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
+      <string>Formylation (K)</string>
+      <string>Methyl (K)</string>
    </restrictMods>
    <matchingTimeWindow>1</matchingTimeWindow>
    <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
@@ -144,15 +137,15 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.4.9.0</maxQuantVersion>
+   <maxQuantVersion>2.4.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>65</numThreads>
+   <numThreads>27</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
    <fixedCombinedFolder></fixedCombinedFolder>
-   <fullMinMz>-1.79769313486232E+308</fullMinMz>
-   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
+   <fullMinMz>-1.79589544172745E+308</fullMinMz>
+   <fullMaxMz>1.79589544172745E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -162,36 +155,78 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_HA_HA_IP1_Slot1-29_1_5869.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_HA_HA_IP2_Slot1-30_1_5871.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_HA_HA_IP3_Slot1-31_1_5873.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_HA_IGG_IP_Slot1-28_1_5867.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_HA_IP1_Slot1-37_1_5885.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_HA_IP1_Slot1-37_1_5893.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_HA_IP2_Slot1-38_1_5889.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_HA_IP3_Slot1-39_1_5891.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R5_IGG_IP_Slot1-36_1_5883.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R6_HA_IP1_Slot1-33_1_5877.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R6_HA_IP2_Slot1-34_1_5879.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R6_HA_IP3_Slot1-35_1_5881.d</string>
-      <string>/cluster/projects/nn9036k/scripts/noDnq/231208_Deo_R6_IGG_IP_Slot1-32_1_5875.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_6457_DIA_Slot2-34_1_5971.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_9657_DIA_Slot2-43_1_5989.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_11087_DIA_Slot2-39_1_5981.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_11356_DIA_Slot2-51_1_6005.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_13187_DIA_Slot2-45_1_5993.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_13447_DIA_Slot2-30_1_5963.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_14775_DIA_Slot2-54_1_6011.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_15972_DIA_Slot2-36_1_5975.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16003_DIA_Slot2-50_1_6003.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16041_DIA_Slot2-33_1_5969.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16767_DIA_Slot2-41_1_5985.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16775_DIA_Slot2-53_1_6009.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16846_DIA_Slot2-31_1_5965.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16906_DIA_Slot2-38_1_5979.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_17492_DIA_Slot2-29_1_5961.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_17593_DIA_Slot2-46_1_5995.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_18076_DIA_Slot2-32_1_5967.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_18936_DIA_Slot2-35_1_5973.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_19693_DIA_Slot2-48_1_5999.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_19913_DIA_Slot2-42_1_5987.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_22298_DIA_Slot2-40_1_5983.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_24112_DIA_Slot2-47_1_5997.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_24975_DIA_Slot2-49_1_6001.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_26244_DIA_Slot2-37_1_5977.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_4916_DIA_Slot2-52_1_6007.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_5751_DIA_Slot2-44_1_5991.d</string>
+      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_11426_DIA_Slot2-28_1_6025.d</string>
    </filePaths>
    <experiments>
-      <string>HA_HA_IP1_Slot1-29_1_5869</string>
-      <string>HA_HA_IP2_Slot1-30_1_5871</string>
-      <string>HA_HA_IP3_Slot1-31_1_5873</string>
-      <string>HA_IGG_IP_Slot1-28_1_5867</string>
-      <string>R5_HA_IP1_Slot1-37_1_5885</string>
-      <string>R5_HA_IP1_Slot1-37_1_5893</string>
-      <string>R5_HA_IP2_Slot1-38_1_5889</string>
-      <string>R5_HA_IP3_Slot1-39_1_5891</string>
-      <string>R5_IGG_IP_Slot1-36_1_5883</string>
-      <string>R6_HA_IP1_Slot1-33_1_5877</string>
-      <string>R6_HA_IP2_Slot1-34_1_5879</string>
-      <string>R6_HA_IP3_Slot1-35_1_5881</string>
-      <string>R6_IGG_IP_Slot1-32_1_5875</string>
+      <string>6457_DIA_Slot2-34_1_5971</string>
+      <string>9657_DIA_Slot2-43_1_5989</string>
+      <string>11087_DIA_Slot2-39_1_5981</string>
+      <string>11356_DIA_Slot2-51_1_6005</string>
+      <string>13187_DIA_Slot2-45_1_5993</string>
+      <string>13447_DIA_Slot2-30_1_5963</string>
+      <string>14775_DIA_Slot2-54_1_6011</string>
+      <string>15972_DIA_Slot2-36_1_5975</string>
+      <string>16003_DIA_Slot2-50_1_6003</string>
+      <string>16041_DIA_Slot2-33_1_5969</string>
+      <string>16767_DIA_Slot2-41_1_5985</string>
+      <string>16775_DIA_Slot2-53_1_6009</string>
+      <string>16846_DIA_Slot2-31_1_5965</string>
+      <string>16906_DIA_Slot2-38_1_5979</string>
+      <string>17492_DIA_Slot2-29_1_5961</string>
+      <string>17593_DIA_Slot2-46_1_5995</string>
+      <string>18076_DIA_Slot2-32_1_5967</string>
+      <string>18936_DIA_Slot2-35_1_5973</string>
+      <string>19693_DIA_Slot2-48_1_5999</string>
+      <string>19913_DIA_Slot2-42_1_5987</string>
+      <string>22298_DIA_Slot2-40_1_5983</string>
+      <string>24112_DIA_Slot2-47_1_5997</string>
+      <string>24975_DIA_Slot2-49_1_6001</string>
+      <string>26244_DIA_Slot2-37_1_5977</string>
+      <string>4916_DIA_Slot2-52_1_6007</string>
+      <string>5751_DIA_Slot2-44_1_5991</string>
+      <string>11426_DIA_Slot2-28_1_6025</string>
    </experiments>
    <fractions>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -220,6 +255,20 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
@@ -235,8 +284,36 @@
       <int>0</int>
       <int>0</int>
       <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
       <string></string>
       <string></string>
       <string></string>
@@ -286,11 +363,11 @@
          <advancedPeakSplitting>True</advancedPeakSplitting>
          <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>30</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>18</intensityThresholdMs2>
+         <intensityThresholdMs2>10</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
-         <lcmsRunType>TIMS-DDA</lcmsRunType>
+         <lcmsRunType>TIMS-MaxDIA</lcmsRunType>
          <reQuantify>False</reQuantify>
          <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
@@ -303,11 +380,11 @@
          <neucodeInSilicoLowRes>False</neucodeInSilicoLowRes>
          <fastLfq>True</fastLfq>
          <lfqRestrictFeatures>False</lfqRestrictFeatures>
-         <lfqMinRatioCount>2</lfqMinRatioCount>
+         <lfqMinRatioCount>1</lfqMinRatioCount>
          <lfqMinRatioCountDia>5</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
          <maxLabeledAa>0</maxLabeledAa>
-         <maxNmods>5</maxNmods>
+         <maxNmods>6</maxNmods>
          <maxMissedCleavages>2</maxMissedCleavages>
          <multiplicity>1</multiplicity>
          <enzymeMode>0</enzymeMode>
@@ -328,6 +405,8 @@
          <variableModifications>
             <string>Oxidation (M)</string>
             <string>Acetyl (Protein N-term)</string>
+            <string>Methyl (K)</string>
+            <string>Formylation (K)</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
@@ -368,7 +447,7 @@
          <timsHalfWidth>10</timsHalfWidth>
          <timsStep>3</timsStep>
          <timsResolution>35000</timsResolution>
-         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
+         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -405,10 +484,13 @@
          <diaLibraryPaths>
          </diaLibraryPaths>
          <diaEvidencePaths>
+            <string>/cluster/projects/nn9036k/FastaDB/evidence.txt</string>
          </diaEvidencePaths>
          <diaMsmsPaths>
+            <string>/cluster/projects/nn9036k/FastaDB/msms.txt</string>
          </diaMsmsPaths>
          <diaLabelIndsForLibraryMatch>
+            <int>0</int>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
          <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
@@ -450,11 +532,8 @@
          <diaBackgroundSubtractionFactor>4</diaBackgroundSubtractionFactor>
          <diaLfqRatioType>0</diaLfqRatioType>
          <diaTransferQvalue>0.3</diaTransferQvalue>
-         <diaTransferQvalueBetweenLabels>0.01</diaTransferQvalueBetweenLabels>
-         <diaTransferQvalueBetweenFractions>0.01</diaTransferQvalueBetweenFractions>
-         <diaTransferQvalueBetweenFaims>0.01</diaTransferQvalueBetweenFaims>
          <diaOnlyIsosForRecal>True</diaOnlyIsosForRecal>
-         <diaMinPeaks>5</diaMinPeaks>
+         <diaMinPeaksForRecal>5</diaMinPeaksForRecal>
          <diaUseFragIntensForMl>False</diaUseFragIntensForMl>
          <diaUseFragMassesForMl>False</diaUseFragMassesForMl>
          <diaMaxTrainInstances>500000</diaMaxTrainInstances>
@@ -477,7 +556,7 @@
          <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
          <diaAltCcsModelPath></diaAltCcsModelPath>
          <diaBatchProcessing>True</diaBatchProcessing>
-         <diaBatchSize>25</diaBatchSize>
+         <diaBatchSize>10</diaBatchSize>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
@@ -497,9 +576,7 @@
          <classicLfqForSingleShots>True</classicLfqForSingleShots>
          <sequenceBasedModifier>False</sequenceBasedModifier>
          <diaRtFromSamplesForExport>True</diaRtFromSamplesForExport>
-         <diaCcsFromSamplesForExport>True</diaCcsFromSamplesForExport>
          <diaLibraryExport>0</diaLibraryExport>
-         <diaUseApexWeightsForPtmLoc>False</diaUseApexWeightsForPtmLoc>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
