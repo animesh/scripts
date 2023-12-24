@@ -4,7 +4,11 @@ import sys
 from pathlib import Path
 pathFiles = Path(sys.argv[1])
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 #pathFiles=Path("L23")
+=======
+#pathFiles=Path("L:/promec/TIMSTOF/LARS/2023/231128_plasma_KF/")
+>>>>>>> Stashed changes
 =======
 #pathFiles=Path("L:/promec/TIMSTOF/LARS/2023/231128_plasma_KF/")
 >>>>>>> Stashed changes
@@ -22,6 +26,9 @@ dfC=pd.DataFrame()
 <<<<<<< Updated upstream
 =======
 dfB=pd.DataFrame()
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 i=0
 for f in trainList:
