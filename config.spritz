@@ -1,8 +1,8 @@
 sra: [] #  paired-end SRAs, comma separated, can leave empty, e.g. SRR629563
-fq: [TK9_1_22GH5GLT3_AGAGAACCTA-GGTTATGCTA_L003] # paired-end fastq prefixes, comma separated, can leave empty, e.g. TestPairedEnd
+fq: [TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003] # paired-end fastq prefixes, comma separated, can leave empty, e.g. TestPairedEnd
 sra_se: [] # single-end SRAs, comma separated, can leave empty, e.g. SRR8070095
 fq_se: [] # single-end fastq prefixes, comma separated, can leave empty, e.g. TestSingleEnd
-analysis_directory: [/cluster/projects/nn9036k/scripts/TK/fastq/TK9/TK9_1_22GH5GLT3_AGAGAACCTA-GGTTATGCTA_L003] # for paths to drive e.g. /mnt/c/AnalysisFolder
+analysis_directory: [/cluster/home/ash022/scripts/TK/fastq/TK9/TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003] # for paths to drive e.g. /mnt/c/AnalysisFolder
 species: "Homo_sapiens" # ensembl species name
 genome: "GRCh38" # ensembl genome version
 release: "100" # ensembl release version
