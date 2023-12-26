@@ -1,8 +1,8 @@
 sra: [] #  paired-end SRAs, comma separated, can leave empty, e.g. SRR629563
-fq: [TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003] # paired-end fastq prefixes, comma separated, can leave empty, e.g. TestPairedEnd
+fq: [TK10_49, TK10_50, TK10_51, TK12_R1, TK12_R2, TK12_R3, TK13_1, TK13_2, TK13_3, TK14_1, TK14_2, TK14_3, TK16_R1, TK16_R2, TK16_R3, TK18_R1, TK18_R2, TK18_R3, TK9_1_22GH5GLT3_AGAGAACCTA-GGTTATGCTA_L002, TK9_1_22GH5GLT3_AGAGAACCTA-GGTTATGCTA_L003, TK9_1L5, TK9_1L6, TK9_2_22GH5GLT3_GATATTGTGT-ACCACACGGT_L003, TK9_2_22GH5GLT3_L2, TK9_2L5, TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003, TK9_3_22GH5GLT3_L2, TK9_3L26, TK9_3L5, TK9_3L6] # paired-end fastq prefixes, comma separated, can leave empty, e.g. TestPairedEnd
 sra_se: [] # single-end SRAs, comma separated, can leave empty, e.g. SRR8070095
 fq_se: [] # single-end fastq prefixes, comma separated, can leave empty, e.g. TestSingleEnd
-analysis_directory: [/cluster/home/ash022/scripts/TK/fastq/TK9/TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003] # for paths to drive e.g. /mnt/c/AnalysisFolder
+analysis_directory: [/cluster/home/ash022/scripts/TK/spritz] # for paths to drive e.g. /mnt/c/AnalysisFolder
 species: "Homo_sapiens" # ensembl species name
 genome: "GRCh38" # ensembl genome version
 release: "100" # ensembl release version

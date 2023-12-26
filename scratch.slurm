@@ -29,12 +29,20 @@ conda activate spritzbase
 snakemake -j 40  --unlock
 #snakemake -j 16 --use-conda --conda-frontend mamba --resources mem_mb=64000
 snakemake -j 64 --use-conda --conda-frontend mamba --resources mem_mb=256000 --rerun-incomplete 
-#mkdir /cluster/home/ash022/scripts/TK/fastq/TK9/TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003
-#ln -s /cluster/home/ash022/scripts/TK/fastq/TK9/TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003_R1.fastq /cluster/home/ash022/scripts/TK/fastq/TK9/TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003/TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003_1.fastq
-#ln -s /cluster/home/ash022/scripts/TK/fastq/TK9/TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003_R2.fastq /cluster/home/ash022/scripts/TK/fastq/TK9/TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003/TK9_3_22GH5GLT3_GGCGCCATTG-ACCGCGCAAT_L003_2.fastq
-#vim config/config.yaml
+#cd $HOME/scripts/TK
+#mkdir spritz
+#ln -s /cluster/home/ash022/scripts/TK/fastq/*_?.fastq $PWD/spritz/
+#ln -s /cluster/home/ash022/scripts/TK/fastq/*/*.fastq $PWD/spritz/
+#ln -s /cluster/home/ash022/scripts/TK/fastq/TK9/*/*.fastq $PWD/spritz/
+#rm spritz/*R?.fastq
+#rm spritz/*trim*.fastq
+#ls spritz/ | wc #60
+#ls | awk -F '.' '{print $1}' | awk -F '_[12]$' '{print $1}' | sort | uniq 
+#cp /cluster/projects/nn9036k/Spritz/Spritz/workflow/scratch.slurm .
+#cp /cluster/projects/nn9036k/Spritz/Spritz/workflow/config/config.yaml .
 #cd /cluster/projects/nn9036k/Spritz/Spritz/workflow
+#vim config/config.yaml
 #cd $HOME/scripts
 #cp /cluster/projects/nn9036k/Spritz/Spritz/workflow/scratch.slurm .
-#cp /cluster/projects/nn9036k/Spritz/Spritz/workflow/config/config.yaml config.spritz
+#cp /cluster/projects/nn9036k/Spritz/Spritz/workflow/config/config.yaml .
 
