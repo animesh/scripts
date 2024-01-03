@@ -101,8 +101,8 @@ plot(res$logFC,-log10(res$adj.P.Val))
 resMerged<-merge(res,v[["E"]],by="row.names")
 resMerged<-resMerged[order(resMerged$P.Value),]
 write.csv(resMerged,file=paste0(inpD,inpF,"sum.voom.csv"),row.names = F)
-#still variance , need to explore VTS https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#collapsing-technical-replicates , https://rnabio.org/module-03-expression/0003/02/01/Expression/ , http://cole-trapnell-lab.github.io/cufflinks/cuffcompare/index.html#cuffcompare-output-files , https://www.nature.com/articles/s41587-022-01440-w Removing unwanted variation from large-scale RNA sequencing data with PRPS? https://github.com/animesh/TCGA_PanCancer_UnwantedVariation
-#ribosom https://string-db.org/cgi/globalenrichment?taskId=b8Wq4Li11Zpx&sessionId=bYMNhNKAgVfp or odorant receptors?
+#still variance , need to explore VTS https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html , https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#collapsing-technical-replicates , https://rnabio.org/module-03-expression/0003/02/01/Expression/ , http://cole-trapnell-lab.github.io/cufflinks/cuffcompare/index.html#cuffcompare-output-files , https://www.nature.com/articles/s41587-022-01440-w Removing unwanted variation from large-scale RNA sequencing data with PRPS? https://github.com/animesh/TCGA_PanCancer_UnwantedVariation
+#ribosom https://string-db.org/cgi/globalenrichment?taskId=b8Wq4Li11Zpx&sessionId=bYMNhNKAgVfp or odorant receptors? also checkout Cancer Transcriptome Analysis Toolkit Using Trinity https://www.youtube.com/watch?v=9ky5NwV45qY https://github.com/trinityrnaseq/trinityrnaseq/wiki#contact_us or try Gene modelling with https://academic.oup.com/dnaresearch/article/30/4/dsad017/7227702?login=true ? also check https://gist.github.com/animesh/1d70401d56eb5b81b9aff4d28d7f1895
 #sampleSmax####
 maxLFQ <- data.frame(matrix(ncol=length(names(table(label$Bio))),nrow=nrow(countTableSel)))
 colnames(maxLFQ) <- names(table(label$Bio))

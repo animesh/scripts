@@ -18,15 +18,17 @@ from pathlib import Path
 pathFiles=Path("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/")
 fileName='peptides.txt'
 trainList=list(pathFiles.rglob(fileName))
+trainList=[f for f in trainList if 'KF' not in str(f)]
 print(trainList)
 i=0
 for f in trainList:
     #f=trainList[i]
     i=i+1
-    if Path(f).stat().st_size > 0:
+    if Path(f).stat().st_size > 3:
         print(i,f.parts,Path(f).stat().st_size)
         peptideHits=pd.read_csv(f,low_memory=False,sep='\t')
         peptideHits=peptideHits.loc[:, peptideHits.columns.str.startswith(('Intensity ','Sequence'))]
+        peptideHits.columns = peptideHits.columns.str.replace('Intensity', 'Intensity '+str(f.parts[7])+str(f.parts[6])+str(i))
         #= peptideHits.loc[:, peptideHits.columns.str.startswith('Intensity')].apply(lambda x: x.str.replace(',','.'))
         dfI=pd.merge(dfI, peptideHits, on='Sequence', how='left')
         print(dfI['Sequence'].isin(peptideHits['Sequence']).sum())

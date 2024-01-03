@@ -1,3 +1,92 @@
+#https://substack.com/redirect/1e5849f8-38a3-4125-b0ef-54a3570db244?j=eyJ1IjoiYTU1cTUifQ.4Akes483sfJ-G3y2ZO1qbBtFQHOZcvSrm-2Sc1yuQVs
+#!pip install joypy
+mport pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import warnings
+
+from datetime import date, timedelta
+from joypy import joyplot
+from pandas.api.types import CategoricalDtype
+
+warnings.filterwarnings("ignore")
+
+"""## Dummy data"""
+
+# Define the month-wise mean temperatures and standard deviations
+max_temps = [20.5, 24.6, 30.4, 36.9, 40.9, 39, 35.8, 34.5, 34.3, 33.1, 28.3, 23]
+min_temps = [7.6, 10.8, 15.7, 21.3, 25.6, 27.6, 27.3, 26.6, 24.9, 19.3, 12.9, 8.3, 19]
+std_devs = [1, 2, 3]
+months = ['January', 'February', 'March', 'April', 'May', 'June',
+     'July', 'August', 'September', 'October', 'November', 'December']
+
+
+# Initialize an empty DataFrame
+df = pd.DataFrame(columns=['Day', 'Month', 'min_temp', 'max_temp'])
+
+# Generate data for each day in the year
+start_date = date(2023, 1, 1)
+end_date = date(2023, 12, 31)
+current_date = start_date
+
+while current_date <= end_date:
+    month = current_date.month - 1  # Adjust to 0-based index for lists
+    max_temp = np.random.normal(max_temps[month], std_devs[np.random.randint(0, 3)])
+    min_temp = np.random.normal(min_temps[month], std_devs[np.random.randint(0, 3)])
+
+    # Append the row to the DataFrame
+    df = df.append({
+        'Day': current_date.day,
+        'Month': months[int(current_date.month)-1],
+        'min_temp': min_temp,
+        'max_temp': max_temp
+    }, ignore_index=True)
+
+    # Move to the next day
+    current_date += timedelta(days=1)
+
+df['Month'] = df['Month'].astype(CategoricalDtype(months))
+
+df.head()
+
+"""## Create Joy Plot"""
+
+plt.figure()
+
+ax, fig = joyplot(
+    data=df[['min_temp', 'max_temp', 'Month']],
+    by='Month',
+    column=['min_temp', 'max_temp'],
+    color=['#2471A3', '#fe7c73'],
+#     legend=True,
+    alpha=0.85,
+    figsize=(12, 8),
+)
+# ax.legend(facecolor="white")
+plt.title('Min Max Temperature Distribution', fontsize=20)
+plt.show()
+#https://gist.github.com/benhoyt/619cf3113866450aa31d8a2c1f8e01dc
+import collections, random, sys, textwrap
+# Build possibles table indexed by pair of prefix words (w1, w2)
+w1 = w2 = ''
+possibles = collections.defaultdict(list)
+for line in sys.stdin:
+    for word in line.split():
+        possibles[w1, w2].append(word)
+        w1, w2 = w2, word
+# Avoid empty possibles lists at end of input
+possibles[w1, w2].append('')
+possibles[w2, ''].append('')
+# Generate randomized output (start with a random capitalized prefix)
+w1, w2 = random.choice([k for k in possibles if k[0][:1].isupper()])
+output = [w1, w2]
+for _ in range(int(sys.argv[1])):
+    word = random.choice(possibles[w1, w2])
+    output.append(word)
+    w1, w2 = w2, word
+# Print output wrapped to 70 columns
+print(textwrap.fill(' '.join(output)))
+
 #https://medium.com/@thakermadhav/build-your-own-rag-with-mistral-7b-and-langchain-97d0c92fa146
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import AsyncChromiumLoader
