@@ -2,22 +2,13 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/UP000005640_9606.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/uniprot-human-iso-apr23.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
-         <taxonomyId>9606</taxonomyId>
-      </FastaFileInfo>
-      <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/UP000005640_9606_additional.fasta</fastaFilePath>
-         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
-         <descriptionParseRule>>(.*)</descriptionParseRule>
-         <taxonomyParseRule></taxonomyParseRule>
-         <variationParseRule></variationParseRule>
-         <modificationParseRule></modificationParseRule>
-         <taxonomyId>9606</taxonomyId>
+         <taxonomyId></taxonomyId>
       </FastaFileInfo>
    </fastaFiles>
    <fastaFilesProteogenomics>
@@ -139,7 +130,7 @@
    <name>session1</name>
    <maxQuantVersion>2.4.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>27</numThreads>
+   <numThreads>50</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -155,66 +146,60 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_6457_DIA_Slot2-34_1_5971.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_9657_DIA_Slot2-43_1_5989.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_11087_DIA_Slot2-39_1_5981.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_11356_DIA_Slot2-51_1_6005.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_13187_DIA_Slot2-45_1_5993.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_13447_DIA_Slot2-30_1_5963.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_14775_DIA_Slot2-54_1_6011.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_15972_DIA_Slot2-36_1_5975.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16003_DIA_Slot2-50_1_6003.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16041_DIA_Slot2-33_1_5969.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16767_DIA_Slot2-41_1_5985.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16775_DIA_Slot2-53_1_6009.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16846_DIA_Slot2-31_1_5965.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_16906_DIA_Slot2-38_1_5979.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_17492_DIA_Slot2-29_1_5961.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_17593_DIA_Slot2-46_1_5995.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_18076_DIA_Slot2-32_1_5967.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_18936_DIA_Slot2-35_1_5973.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_19693_DIA_Slot2-48_1_5999.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_19913_DIA_Slot2-42_1_5987.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_22298_DIA_Slot2-40_1_5983.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_24112_DIA_Slot2-47_1_5997.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_24975_DIA_Slot2-49_1_6001.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_26244_DIA_Slot2-37_1_5977.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_4916_DIA_Slot2-52_1_6007.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_5751_DIA_Slot2-44_1_5991.d</string>
-      <string>/cluster/home/ash022/scripts/231212_lymp_DIA/231212_lymp_11426_DIA_Slot2-28_1_6025.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_1702_Slot1-29_1_6117.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_2066_Slot1-34_1_6127.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_4065_Slot1-38_1_6083.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_4916_Slot1-40_1_6087.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_5751_Slot1-51_1_6109.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_7730_Slot1-48_1_6103.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_7793_Slot1-32_1_6123.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_11356_Slot1-43_1_6093.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_11424_Slot1-44_1_6095.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_13187_Slot1-36_1_6131.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_16003_Slot1-49_1_6105.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_16041_Slot1-47_1_6101.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_16767_Slot1-45_1_6097.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_16775_Slot1-39_1_6085.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_16846_Slot1-28_1_6115.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_17593_Slot1-50_1_6107.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_19693_Slot1-33_1_6125.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_22298_Slot1-31_1_6121.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_23854_Slot1-35_1_6129.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_24112_Slot1-42_1_6091.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_26244_Slot1-30_1_6119.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_27283_Slot1-52_1_6111.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_29284_Slot1-37_1_6133.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_30063_Slot1-41_1_6089.d</string>
+      <string>/cluster/home/ash022/scripts/231222_lympSILAC/231222_lympSILAC_100_Slot1-46_1_6099.d</string>
    </filePaths>
    <experiments>
-      <string>6457_DIA_Slot2-34_1_5971</string>
-      <string>9657_DIA_Slot2-43_1_5989</string>
-      <string>11087_DIA_Slot2-39_1_5981</string>
-      <string>11356_DIA_Slot2-51_1_6005</string>
-      <string>13187_DIA_Slot2-45_1_5993</string>
-      <string>13447_DIA_Slot2-30_1_5963</string>
-      <string>14775_DIA_Slot2-54_1_6011</string>
-      <string>15972_DIA_Slot2-36_1_5975</string>
-      <string>16003_DIA_Slot2-50_1_6003</string>
-      <string>16041_DIA_Slot2-33_1_5969</string>
-      <string>16767_DIA_Slot2-41_1_5985</string>
-      <string>16775_DIA_Slot2-53_1_6009</string>
-      <string>16846_DIA_Slot2-31_1_5965</string>
-      <string>16906_DIA_Slot2-38_1_5979</string>
-      <string>17492_DIA_Slot2-29_1_5961</string>
-      <string>17593_DIA_Slot2-46_1_5995</string>
-      <string>18076_DIA_Slot2-32_1_5967</string>
-      <string>18936_DIA_Slot2-35_1_5973</string>
-      <string>19693_DIA_Slot2-48_1_5999</string>
-      <string>19913_DIA_Slot2-42_1_5987</string>
-      <string>22298_DIA_Slot2-40_1_5983</string>
-      <string>24112_DIA_Slot2-47_1_5997</string>
-      <string>24975_DIA_Slot2-49_1_6001</string>
-      <string>26244_DIA_Slot2-37_1_5977</string>
-      <string>4916_DIA_Slot2-52_1_6007</string>
-      <string>5751_DIA_Slot2-44_1_5991</string>
-      <string>11426_DIA_Slot2-28_1_6025</string>
+      <string>1702_Slot1-29_1_6117</string>
+      <string>2066_Slot1-34_1_6127</string>
+      <string>4065_Slot1-38_1_6083</string>
+      <string>4916_Slot1-40_1_6087</string>
+      <string>5751_Slot1-51_1_6109</string>
+      <string>7730_Slot1-48_1_6103</string>
+      <string>7793_Slot1-32_1_6123</string>
+      <string>11356_Slot1-43_1_6093</string>
+      <string>11424_Slot1-44_1_6095</string>
+      <string>13187_Slot1-36_1_6131</string>
+      <string>16003_Slot1-49_1_6105</string>
+      <string>16041_Slot1-47_1_6101</string>
+      <string>16767_Slot1-45_1_6097</string>
+      <string>16775_Slot1-39_1_6085</string>
+      <string>16846_Slot1-28_1_6115</string>
+      <string>17593_Slot1-50_1_6107</string>
+      <string>19693_Slot1-33_1_6125</string>
+      <string>22298_Slot1-31_1_6121</string>
+      <string>23854_Slot1-35_1_6129</string>
+      <string>24112_Slot1-42_1_6091</string>
+      <string>26244_Slot1-30_1_6119</string>
+      <string>27283_Slot1-52_1_6111</string>
+      <string>29284_Slot1-37_1_6133</string>
+      <string>30063_Slot1-41_1_6089</string>
+      <string>100_Slot1-46_1_6099</string>
    </experiments>
    <fractions>
-      <short>32767</short>
-      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -267,8 +252,6 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
@@ -296,12 +279,8 @@
       <int>0</int>
       <int>0</int>
       <int>0</int>
-      <int>0</int>
-      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
-      <string></string>
-      <string></string>
       <string></string>
       <string></string>
       <string></string>
@@ -366,8 +345,9 @@
          <intensityThresholdMs2>10</intensityThresholdMs2>
          <labelMods>
             <string></string>
+            <string>Arg10;Lys8</string>
          </labelMods>
-         <lcmsRunType>TIMS-MaxDIA</lcmsRunType>
+         <lcmsRunType>TIMS-DDA</lcmsRunType>
          <reQuantify>False</reQuantify>
          <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
@@ -383,10 +363,10 @@
          <lfqMinRatioCount>1</lfqMinRatioCount>
          <lfqMinRatioCountDia>5</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
-         <maxLabeledAa>0</maxLabeledAa>
+         <maxLabeledAa>3</maxLabeledAa>
          <maxNmods>6</maxNmods>
          <maxMissedCleavages>2</maxMissedCleavages>
-         <multiplicity>1</multiplicity>
+         <multiplicity>2</multiplicity>
          <enzymeMode>0</enzymeMode>
          <complementaryReporterType>0</complementaryReporterType>
          <reporterNormalization>0</reporterNormalization>
@@ -447,7 +427,7 @@
          <timsHalfWidth>10</timsHalfWidth>
          <timsStep>3</timsStep>
          <timsResolution>35000</timsResolution>
-         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
+         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -484,13 +464,10 @@
          <diaLibraryPaths>
          </diaLibraryPaths>
          <diaEvidencePaths>
-            <string>/cluster/projects/nn9036k/FastaDB/evidence.txt</string>
          </diaEvidencePaths>
          <diaMsmsPaths>
-            <string>/cluster/projects/nn9036k/FastaDB/msms.txt</string>
          </diaMsmsPaths>
          <diaLabelIndsForLibraryMatch>
-            <int>0</int>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
          <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
