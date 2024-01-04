@@ -1,6 +1,6 @@
-#"F:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" C:\Users\animeshs\OneDrive\Desktop\Scripts\diffExprSeq.r L:\promec\Animesh\TK\hg37all\star_salmon\
-#nextflow run nf-core/differentialabundance  --max_memory '80.GB' --max_cpus 20  --input samples.csv --contrasts contrasts.csv --matrix salmon.merged.gene_counts_length_scaled.tsv.sampleSum.tsv   -profile singularity --outdir diffExprHG37allSum
-#rsync -Parv ash022@login-1.saga.sigma2.no:/cluster/projects/nn9036k/scripts/diffExprHG37allSum/ /cygdrive/f/promec/Animesh/TK/diffExprHG37allSum/
+#"F:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" C:\Users\animeshs\OneDrive\Desktop\Scripts\diffExprSeq.r L:\promec\Animesh\TK\CH13lall\star_salmon\
+#nextflow run nf-core/differentialabundance  --max_memory '80.GB' --max_cpus 20  --input samples.csv --contrasts contrasts.csv --matrix salmon.merged.gene_counts_length_scaled.tsv.sampleSum.tsv   -profile singularity --outdir diffExprCH13lallSum
+#rsync -Parv ash022@login-1.saga.sigma2.no:/cluster/projects/nn9036k/scripts/diffExprCH13lallSum/ /cygdrive/f/promec/Animesh/TK/diffExprCH13lallSum/
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
@@ -13,7 +13,7 @@ library(limma)
 library(edgeR)
 #data####
 inpD <- args[1]
-#inpD<-"L:/promec/Animesh/TK/hg37all/star_salmon/"
+#inpD<-"L:/promec/Animesh/TK/CH13lall/star_salmon/"
 inpF<-"salmon.merged.gene_counts_length_scaled.tsv"
 countTable = read.table(paste0(inpD,inpF),header=TRUE,row.names=1)
 colnames(countTable)
