@@ -1,3 +1,2 @@
 id,variable,reference,target,blocking
-condition_control_treated,condition,NS,S,greplicate
-
+con_NS_S,condition,NS,S,

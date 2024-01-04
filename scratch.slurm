@@ -1,14 +1,15 @@
 #!/bin/sh
-#SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=SLURMJOB
-#SBATCH --time=192:00:00
+#SBATCH --account=nn9036k --job-name=HG38diffExpr
+#SBATCH --time=48:00:00
+##SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=20
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-#SBATCH --ntasks=1 --cpus-per-task=32 --ntasks-per-node=1
-#SBATCH --mem-per-cpu=16G
 #SBATCH --mail-type=ALL
-#SBATCH --output=SLURMJOBlog
-##cd /cluster/home/ash022/scripts/Spritz/Spritz/workflow
-WORKDIR=${SLURM_SUBMIT_DIR}
+#SBATCH --output=HG38diffExpr
+
+#cd /cluster/home/ash022/scripts/TK
+WORKDIR=$PWD
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -23,20 +24,25 @@ echo "Total of $SLURM_NTASKS cores"
 export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module load Miniconda3/22.11.1-1
-#mamba install -y yaml
-conda activate spritzbase
-#conda install -c anaconda pyyaml 
-snakemake -j 40  --unlock
-#snakemake -j 16 --use-conda --conda-frontend mamba --resources mem_mb=64000
-snakemake -j 64 --use-conda --conda-frontend mamba --resources mem_mb=512000 --rerun-incomplete
-
-#mv /cluster/home/ash022/scripts/TK/spritz /cluster/home/ash022/scripts/TK/spritzIso
-#mkdir /cluster/home/ash022/scripts/TK/spritz
-#ln -s /cluster/home/ash022/scripts/TK/spritzIso/*.f*q*gz /cluster/home/ash022/scripts/TK/spritz/.
-   
-#cd /cluster/projects/nn9036k/Spritz/Spritz/workflow
-#vim config/config.yaml
-#cd $HOME/scripts
-#cp /cluster/projects/nn9036k/Spritz/Spritz/workflow/scratch.slurm .
-#cp /cluster/projects/nn9036k/Spritz/Spritz/workflow/config/config.yaml config.spritz
-
+#conda config --prepend channels bioconda
+#conda config --show channels
+#mamba install python=3.11 nf-core nextflow
+#nf-core create
+#cd nf-core-spritz/
+#git checkout dev
+#git remote add origin https://github.com/animesh/spritz_nf.git
+#git push --all origin
+#ln -s /cluster/projects/nn9036k/scripts/TK9/*.gz .
+#vim samples.csv
+conda activate nf-core
+nextflow  -v
+nextflow  self-update
+nextflow  -v
+#nextflow run hello
+#nextflow pull nf-core/rnaseq
+#nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 32  --outdir nfch13all --input samples.csv --genome CHM13 -profile singularity -resume
+#nextflow run nf-core/rnaseq  --max_memory '256.GB' --max_cpus 30  --outdir CH13lall --input samples.csv --gtf /cluster/projects/nn9036k/scripts/CHM13v2-T2T/GCF_009914755.1_T2T-CHM13v2.0_genomic.gtf --fasta /cluster/projects/nn9036k/scripts/CHM13v2-T2T/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna  --genome null  --igenomes_ignore  -profile singularity -resume
+#https://nf-co.re/differentialabundance/1.4.0/docs/usage https://nf-co.re/rnaseq/3.13.2/docs/usage -r <pipeline version eg 1.3.1> for Reproducibility
+#nextflow run nf-core/differentialabundance -profile test,singularity --outdir testFiddExpr
+nextflow run nf-core/differentialabundance  --max_memory '80.GB' --max_cpus 20  --input samples.csv --contrasts contrasts.csv --matrix salmon.merged.gene_counts_length_scaled.tsv.sampleSum.tsv --gtf /cluster/projects/nn9036k/scripts/hg38v110/Homo_sapiens.GRCh38.110.gtf  -profile singularity --outdir diffExprHG38lallSum
+#dos2unix scratch.slurm 
