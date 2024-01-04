@@ -78,9 +78,6 @@ par(mar=c(12,3,1,1))
 boxplot(log2LFQ,las=2)
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpD,"log2LFQ.xlsx"))
-data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Gene.names, ";",fixed=T), "[", 1)), " "), "[", 1))
-data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$Protein.IDs, ";",fixed=T), "[", 1)), "-"), "[", 1))
-data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
 #label####
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
 rownames(label)=sub(selection,"",rownames(label))
@@ -109,6 +106,10 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
   colnames(d2)<-gsub("-",".",rownames(label[label$pair2test==sel2,]))
   dataSellog2grpTtest<-merge(d1, d2, by = 'row.names', all = TRUE)
   rN<-dataSellog2grpTtest[,1]
+  geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rN, ";",fixed=T), "[", 1)), " "), "[", 1))
+  uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rN, ";",fixed=T), "[", 1)), "-"), "[", 1))
+  geneName[is.na(geneName)]=uniprotID[is.na(geneName)]
+  proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(rN, ";",fixed=T), "[", 2)), " "), "[", 1))
   dataSellog2grpTtest[,1]<-NULL
   dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
   dataSellog2grpTtest<-as.matrix(dataSellog2grpTtest)
@@ -174,12 +175,12 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     hist(logFCmedianFC)
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
-    ttest.results = data.frame(Uniprot=rowName,Gene=data$Gene.names,Protein=data$Protein.names,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rN)
+    ttest.results = data.frame(Uniprot=uniprotID,Gene=geneName,Protein=proteinNames,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rN)
     writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.xlsx"))
     write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.csv"),row.names = F)
     ttest.results.return<-ttest.results
     #volcano
-    ttest.results$RowGeneUniProtScorePeps<-data$geneName
+    ttest.results$RowGeneUniProtScorePeps<-geneName
     ttest.results[is.na(ttest.results)]=selThr
     Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
     dsub <- subset(ttest.results,Significance)

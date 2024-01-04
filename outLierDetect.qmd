@@ -40,6 +40,8 @@ dfI.to_csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensit
 
 ```{python log2}
 dfI=pd.read_csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtIntensity.csv",low_memory=False,sep=',')
+print(dfI.shape)
+print(dfI.columns)
 import numpy as np
 dfI[dfI==0]=np.nan
 df=dfI.loc[:, dfI.columns.str.startswith('Intensity')]
@@ -88,8 +90,8 @@ data<-read.csv("L:/promec/TIMSTOF/LARS/2023/231123_dia_dda/peptides.list.txtInte
 data[is.na(data)] <- 0
 colnames(data)
 data<-data[,-c(7:8)]
-for(i in 1:(ncol(data)/2)){
-  plot(data[,i],data[,i+(ncol(data)/2)],pch = 19,main=paste(colnames(data)[i],colnames(data)[i+(ncol(data)/2)]))
+for(i in 1:14){
+  plot(data[,i],data[,i+14],pch = 19,main=paste(colnames(data)[i],colnames(data)[i+14]))
 }
 dataDiff<-data[,c(1:14)]-data[,c(15:28)]
 dataDiff<-dataDiff[sort(rowSums(abs(dataDiff)),decreasing = T),]
