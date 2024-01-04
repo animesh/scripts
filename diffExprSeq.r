@@ -1,6 +1,6 @@
-#"F:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" C:\Users\animeshs\OneDrive\Desktop\Scripts\diffExprSeq.r L:\promec\Animesh\TK\CH13lall\star_salmon\
-#nextflow run nf-core/differentialabundance  --max_memory '80.GB' --max_cpus 20  --input samples.csv --contrasts contrasts.csv --matrix salmon.merged.gene_counts_length_scaled.tsv.sampleSum.tsv   -profile singularity --outdir diffExprCH13lallSum
-#rsync -Parv ash022@login-1.saga.sigma2.no:/cluster/projects/nn9036k/scripts/diffExprCH13lallSum/ /cygdrive/f/promec/Animesh/TK/diffExprCH13lallSum/
+#"F:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" C:\Users\animeshs\OneDrive\Desktop\Scripts\diffExprSeq.r L:\promec\Animesh\TK\SB\subread.1702041591.results\
+#nextflow run nf-core/differentialabundance  --max_memory '80.GB' --max_cpus 20  --input samples.csv --contrasts contrasts.csv --matrix Homo_sapiens.GRCh38.110.30.count.txt.sampleSum.tsv --gtf /cluster/projects/nn9036k/scripts/hg38v110/Homo_sapiens.GRCh38.110.gtf  -profile singularity --outdir diffExprHG38allHISATsum
+#rsync -Parv ash022@login-1.saga.sigma2.no:/cluster/projects/nn9036k/scripts/diffExprHG38allHISATsum/ /cygdrive/f/promec/Animesh/TK/diffExprHG38allHISATsum/
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
@@ -13,8 +13,8 @@ library(limma)
 library(edgeR)
 #data####
 inpD <- args[1]
-#inpD<-"L:/promec/Animesh/TK/CH13lall/star_salmon/"
-inpF<-"salmon.merged.gene_counts_length_scaled.tsv"
+#inpD<-"L:/promec/Animesh/TK/SB/subread.1702041591.results/"
+inpF<-"Homo_sapiens.GRCh38.110.30.count.txt"
 countTable = read.table(paste0(inpD,inpF),header=TRUE,row.names=1)
 colnames(countTable)
 summary(countTable)
@@ -23,19 +23,7 @@ pdf(paste(inpD,inpF,"plots","pdf",sep = "."))
 countTableSel=countTable[,grep("TK",colnames(countTable))]
 summary(countTableSel)
 colnames(countTableSel)
-colnames(countTableSel)=gsub("TK9","TK9_",colnames(countTableSel))
-colnames(countTableSel)
-colnames(countTableSel)=gsub("TK10","TK10_",colnames(countTableSel))
-colnames(countTableSel)
-colnames(countTableSel)=gsub("TK12","TK12_",colnames(countTableSel))
-colnames(countTableSel)
-colnames(countTableSel)=gsub("TK13","TK13_",colnames(countTableSel))
-colnames(countTableSel)
-colnames(countTableSel)=gsub("TK14","TK14_",colnames(countTableSel))
-colnames(countTableSel)
-colnames(countTableSel)=gsub("TK16","TK16_",colnames(countTableSel))
-colnames(countTableSel)
-colnames(countTableSel)=gsub("TK18","TK18_",colnames(countTableSel))
+colnames(countTableSel)=gsub("X.cluster.projects.nn9036k.scripts.TK.SB.","",colnames(countTableSel))
 colnames(countTableSel)
 summary(countTableSel)
 hist(sapply(countTableSel,as.numeric))
