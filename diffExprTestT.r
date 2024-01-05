@@ -38,7 +38,7 @@ data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", com
 #data = data[!data$Reverse=="+",]
 #data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
-row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
+row.names(data)<-paste(row.names(data),data[,grep("Fasta.headers",colnames(data))],data[,grep("Protein.IDs",colnames(data))],data[,grep("Protein.names",colnames(data))],data[,grep("Gene.names",colnames(data))],data[,grep("Score",colnames(data))],data[,grep("Peptide.counts..unique.",colnames(data))],sep=";;")
 summary(data)
 dim(data)
 log2Int<-as.matrix(log2(data[,grep("Intensity",colnames(data))]))
@@ -106,10 +106,10 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
   colnames(d2)<-gsub("-",".",rownames(label[label$pair2test==sel2,]))
   dataSellog2grpTtest<-merge(d1, d2, by = 'row.names', all = TRUE)
   rN<-dataSellog2grpTtest[,1]
-  geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rN, ";",fixed=T), "[", 1)), " "), "[", 1))
-  uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rN, ";",fixed=T), "[", 1)), "-"), "[", 1))
+  geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), "[; ]"), "[", 1))
+  uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "\\|",fixed=F), "[", 2)), "\\|"), "[", 1))
   geneName[is.na(geneName)]=uniprotID[is.na(geneName)]
-  proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(rN, ";",fixed=T), "[", 2)), " "), "[", 1))
+  proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "_",fixed=T), "[", 2)), " OS="), "[", 1))
   dataSellog2grpTtest[,1]<-NULL
   dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
   dataSellog2grpTtest<-as.matrix(dataSellog2grpTtest)
