@@ -1,57 +1,45 @@
-#usage####
-#F:\R-4.3.1\bin\Rscript.exe diffExprTestTmatrix.r "L:\promec\USERS\Alessandro\230130_Alessandro_35_samples\m16\peptides.txt.protgroup_annotated.tsv.maxquant_peptides.protein_intensities.tsv" "tab" "2:17" "2:4" "5:7" "0.5" "0.05"
+#"f:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" diffExprTestTmatrix.r "L:\promec\Qexactive\LARS\2022\juli\toktam\PDv2p5\Beer\220706_toktam1_Proteins.txt.Abundance.Normalized..log2.csv" "L:\promec\Qexactive\LARS\2022\juli\toktam\PDv2p5\Beer\GroupsR1.txt" Sample Class Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#BiocManager::install(c("pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#L:\promec\USERS\Alessandro\230130_Alessandro_35_samples\m16\peptides.txt
-#L:\promec\USERS\Alessandro\230130_Alessandro_35_samples\m16\proteinGroups.txt
-#directLFQ Specify the type of the input table you want to use from the dropdown menu. Applies only if you want to use non-default settings, for example if you want to use summarized precursor intensities instead of fragment ion intensities for DIA data:
-print("USAGE:<path to>Rscript diffExprTestTmatrix.r <complete path to data-file> <separator> <columns to be used for analysis> <columns for first> <and columns for second-group for t-test> <threshold for absolute log2-median-fold-change>  <threshold for Benjamini-Hochberg corrected p-value>")
+#BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
+#install.packages("devtools")
+#devtools::install_github("jdstorey/qvalue")
+print("USAGE:<path to>Rscript diffExprTestTmatrix.r <complete path to directory containing proteinGroups.txt AND Groups.txt files> <name of group column in Groups.txt annotating data/rows to be used for analysis> <name of column in Groups.txt marking data NOT to be considered in analysis>")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args)!=7) {stop("\n\nNeeds 5 arguments as mentiond above for example:
-
-c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestTmatrix.r \"L:\\OneDrive - NTNU\\Aida\\sORF\\mqpar.K8R10.xml.1664621075.results\\peptides.txt.Count.normH2L.csv\" \"tab\" \"2:17\" \"2:4\" \"5:7\" \"0.5\" \"0.05\"
-", call.=FALSE)}
+if (length(args) != 5) {stop("\n\nNeeds at least 4 arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"F:/promec/USERS/Alessandro/230130_Alessandro_35_samples/m16/peptides.txt.protgroup_annotated.tsv.maxquant_peptides.protein_intensities.tsv"
+#inpF <-"L:\\promec\\Qexactive\\LARS\\2022\\juli\\toktam\\PDv2p5\\Beer\\220706_toktam1_Proteins.txt.Abundance.Normalized..log2.csv"
 inpL <- args[2]
-#inpL <-"tab"
+#inpL <-"L:\\promec\\Qexactive\\LARS\\2022\\juli\\toktam\\PDv2p5\\Beer\\GroupsR1.txt"
 selection <- args[3]
-#selection<-"2:17"
+#selection<-"Sample"
 lGroup <- args[4]
-#lGroup<-"2:4"
+#lGroup<-"Class"
 rGroup <- args[5]
-#rGroup<-"5:7"
-selThrFC <- args[6]
-#selThrFC=0.5#log2-MedianDifference
-selThr <- args[7]
-#selThr=0.05#pValue-tTest
+#rGroup<-"Rem"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
+lName<-basename(inpL)
 thr=0.0#count
-cvThr=0.1#threshold for coefficient-of-variation
-hdr<-gsub("[^[:alnum:]]", "",paste0(inpD,selection,lGroup,rGroup))
-outP=paste(inpF,selThr,selThrFC,cvThr,hdr,"VolcanoTestT","pdf",sep = ".")
-print(outP)
+selThr=0.05#pValue-tTest
+selThrFC=1#log2-MedianDifference
+cvThr=0.05#threshold for coefficient-of-variation
+hdr<-gsub("[^[:alnum:]]", "",inpD)
+outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,"VolcanoTestT","pdf",sep = ".")
 pdf(outP)
 #data####
-if(inpL=="tab"){inpL<-"\t"} else{inpL<-","}
-data <- read.csv(inpF,sep=inpL)
+data <- read.csv(inpF,row.names=1)
 summary(data)
 ##clean####
 #data = data[!data$Reverse=="+",]
 #data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
 dim(data)
-if(length(strsplit(selection,":")[[1]])==2){selCols<-c(strsplit(selection,":")[[1]][1]:strsplit(selection,":")[[1]][2])} else if(length(strsplit(selection,",")[[1]])>2){selCols<-as.numeric(strsplit(selection,",")[[1]])}
-log2Int<-as.matrix(log2(data[,selCols]))
+log2Int<-as.matrix(data[,grep(selection,colnames(data))])
 log2Int[log2Int==-Inf]=NA
-#pairPlot####
-#pairs(log2Int)
 hist(log2Int,main=paste("Mean:",mean(log2Int,na.rm=T),"SD:",sd(log2Int,na.rm=T)),breaks=round(max(log2Int,na.rm=T)),xlim=range(min(log2Int,na.rm=T),max(log2Int,na.rm=T)))
-#boxPlot####
 par(mar=c(12,3,1,1))
 boxplot(log2Int,las=2)
 #corHCint####
@@ -69,29 +57,28 @@ log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2Int)
 rownames(log2IntimpCorr)<-colnames(log2Int)
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
-#corPearson####
-log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="pearson")
-colnames(log2IntimpCorr)<-colnames(log2Int)
-rownames(log2IntimpCorr)<-colnames(log2Int)
-svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+#label####
+label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
+label["pair2test"]<-label[lGroup]
+if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
+print(label)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr){
-  #sel1<-lGroup
-  #sel2<-rGroup
-  #log2LFQ<-data#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
+  #sel1<-"S1"
+  #sel2<-"S2"
+  #log2LFQ<-log2LFQsel#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
   #colnames(log2LFQ)
-  if(length(strsplit(sel1,":")[[1]])==2){sel1<-c(strsplit(sel1,":")[[1]][1]:strsplit(sel1,":")[[1]][2])} else if(length(strsplit(sel1,",")[[1]])>2){sel1<-as.numeric(strsplit(sel1,",")[[1]])}
-  if(length(strsplit(sel2,":")[[1]])==2){sel2<-c(strsplit(sel2,":")[[1]][1]:strsplit(sel2,":")[[1]][2])} else if(length(strsplit(sel2,",")[[1]])>2){sel2<-as.numeric(strsplit(sel2,",")[[1]])}
-  selection<-gsub("[^[:alnum:] ]", "", selection)
-  lGroup<-gsub("[^[:alnum:] ]", "", lGroup)
-  rGroup<-gsub("[^[:alnum:] ]", "", rGroup)
-  d1<-data[,sel1]
-  d1<-as.matrix(log2(d1))
-  d1[d1==-Inf]=NA
-  d2<-data[,sel2]
-  d2<-as.matrix(log2(d2))
-  d2[d2==-Inf]=NA
+  d1<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
+  d2<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel2,]))]
   dataSellog2grpTtest<-as.matrix(cbind(d1,d2))
+  log2IntimpCorr<-cor(dataSellog2grpTtest,use="pairwise.complete.obs",method="pearson")
+  colnames(log2IntimpCorr)<-colnames(dataSellog2grpTtest)
+  rownames(log2IntimpCorr)<-colnames(dataSellog2grpTtest)
+  annoR<-data.frame(Group=c(rep(sel1,ncol(d1)),rep(sel2,ncol(d2))))
+  rownames(annoR)<-colnames(dataSellog2grpTtest)
+  print(annoR)
+  svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8,annotation_row = annoR, annotation_col = annoR)
+  ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"Cluster.svg"), svgPHC)
   if(sum(!is.na(d1))>1&sum(!is.na(d2))>1){
     hist(d1,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
     hist(d2,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
@@ -100,6 +87,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
     hist(dataSellog2grpTtest,breaks=round(max(dataSellog2grpTtest,na.rm=T)))
     row.names(dataSellog2grpTtest)<-row.names(data)
+    comp<-paste0(sel1,sel2)
     sCol<-1
     eCol<-ncol(dataSellog2grpTtest)
     mCol<-ncol(d1)#ceiling((eCol-sCol+1)/2)
@@ -142,15 +130,16 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
     hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
     plot(hda)
+    limma::vennDiagram(hda>0)
     logFCmedian = logFCmedianGrp1-logFCmedianGrp2
     logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
     logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
     hist(logFCmedianFC)
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
-    ttest.results = data.frame(Uniprot=row.names(dataSellog2grpTtest),logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,data[,-c(sel1,sel2)])
-    writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,selThr,selThrFC,cvThr,lGroup,rGroup,"tTestBH.xlsx"))
-    write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,selThr,selThrFC,cvThr,lGroup,rGroup,"tTestBH.csv"),row.names = F)
+    ttest.results = data.frame(Uniprot=data$uniprot,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+    writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.xlsx"))
+    write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.csv"),row.names = F)
     ttest.results.return<-ttest.results
     #volcano
     ttest.results$RowGeneUniProtScorePeps<-rownames(dataSellog2grpTtest)
@@ -162,13 +151,30 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=Uniprot),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
     #f=paste(file,proc.time()[3],".jpg")
     #install.packages("svglite")
-    ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,selThr,selThrFC,cvThr,lGroup,rGroup,"VolcanoTest.svg"), p)
+    ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTest.svg"), p)
     print(p)
-    return(Significance)
+    return(ttest.results.return)
   }
 }
 #compare####
-colnames(data)
-ttPair=testT(data,lGroup,rGroup,cvThr)
-print(sum(ttPair))
-print(data[ttPair,])
+head(label)
+rownames(label)<-sub("+",".",rownames(label),fixed=T)
+head(label)
+colnames(log2Int)
+colnames(log2Int)<-sub("X","",colnames(log2Int))
+print(rownames(label))
+print(colnames(log2Int)==rownames(label))
+log2LFQsel=log2Int[,rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',])]
+colnames(log2LFQsel)
+dim(log2LFQsel)
+label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
+table(label$pair2test)
+for(i in rownames(table(label$pair2test))){
+  for(j in rownames(table(label$pair2test))){
+    if(i<j){
+      print(paste(i,j))
+      ttPair=testT(log2LFQsel,i,j,cvThr)
+      #assign(paste0(i,j),ttPair)
+    }
+  }
+}
