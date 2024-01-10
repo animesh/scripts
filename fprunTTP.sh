@@ -7,3 +7,9 @@ for i in $1/*.d ; do echo $i ; d=$(dirname $i) ; echo $d ; j=$(basename $i) ; ec
 #/mnt/promec-ns9036k/raw/240103_KSH_9_Slot2-9_1_6155.d   240103_KSH_9_Slot2-9_1_6155               DDA    
 #cp -rf /mnt/promec-ns9036k/NORSTORE_OSL_DISK/NS9036K/promec/promec/FastaDB/2024-01-08-decoys-contam-UP000087266_8030.fasta.fas  /home/ash022/fragpipe/.
 #$HOME/fragpipe/bin/fragpipe --headless --threads 20 --ram 80 --workflow $HOME/scripts/fp.workflow.txt --manifest man.2.txt  --workdir 240103_KSH_9_Slot2-9_1_6155.d.FPv20
+#head 240103_KSH*.FPv20/ptm-shepherd-output/global.modsummary.tsv | awk '{print $1}' | sort | uniq -c
+#ls -1 240103_KSH*.d.AA_stat_v2p5p6 | awk '{print substr($1,1,5)}' | sort -r | uniq -c
+#tar cvzf 240103_KSH.tgz  240103_KSH*.d.AA_stat_v2p5p6
+#cd /cygdrive/f/promec/TIMSTOF/LARS/2024/Kine_Samset_Hoem/DDA/240103_KineSamsetHoem
+#rsync -Parv ash022@login.nird-lmd.sigma2.no:NS9036K/raw/240103_KSH.tgz .
+#tar xzf 240103_KSH.tgz
