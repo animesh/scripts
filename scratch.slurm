@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=SILAClymBMMQSLURMNAME
+#SBATCH --account=nn9036k --job-name=KSHBMMQSLURMNAME
 #SBATCH --time=290:00:00
 #SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=32
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=SILACBMMQSLURMLOG
+#SBATCH --output=KSHBMMQSLURMLOG
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -22,5 +22,6 @@ module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
 mono --version
 module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
-dotnet /cluster/projects/nn9036k/MaxQuant_2.4.3.0/bin/MaxQuantCmd.exe /cluster/home/ash022/scripts/231222_lympSILAC/mqpar.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_2.4.3.0/bin/MaxQuantCmd.exe /cluster/home/ash022/scripts/KSH/mqpar.xml
+#wget "https://rest.uniprot.org/uniprotkb/stream?format=fasta&query=%28%28proteome%3AUP000087266%29%29" -O uniprot-salmon-iso-jan24.fasta
 
