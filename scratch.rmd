@@ -44,6 +44,112 @@ system.time (B <- crossprod(A))
 plot(B)
 ```
 
+```{r ESLR-CV}
+#"Since the mean of many highly correlated quantities has higher variance than does the mean of many quantities that are not as highly correlated, the test error estimate resulting from LOOCV tends to have higher variance than does the test error estimate resulting from k-fold CV" https://www.statlearning.com/ file:///F:/OneDrive%20-%20NTNU/Desktop/ISLRv2_corrected_June_2023.pdf page 206
+#https://hastie.su.domains/ISLR2/Labs/R_Labs/Ch5-resample-lab.R
+#simulate https://cran.r-project.org/web/packages/faux/vignettes/rnorm_multi.html
+#install.packages("faux")#library(faux)
+dat <- faux::rnorm_multi(n = 1000, mu = c(0, 1, 2,3),sd = c(1),r = c(0.5), varnames = c("A","B","C","D"),empirical = FALSE)
+plot(dat)
+summary(dat)
+meanCor=summary(dat)[4,1:ncol(dat)]
+sd(as.numeric(sapply(strsplit(meanCor, ":"), "[[", 2)))
+dat2 <- faux::rnorm_multi(n = 1000, mu = c(0, 1, 2,3),sd = c(1),r = c(0), varnames = c("A","B","C","D"),empirical = FALSE)
+#dat2 <- faux::rnorm_multi(n = 1000, mu = c(0, 20, 20),sd = c(1, 5, 5),r = c(0, 0, 0), varnames = c("A","B","C"),empirical = FALSE)
+plot(dat2)
+summary(dat2)
+meanCor2=summary(dat2)[4,1:ncol(dat2)]
+sd(as.numeric(sapply(strsplit(meanCor2, ":"), "[[", 2)))
+n=1000
+sdCor=data.frame("cor"=c(1:n),"sdmean"=c(1:n))
+for (i in 1:n){
+  r=1/(i+1)
+  dat <- faux::rnorm_multi(n = n, mu = c(0, 1, 2,3),sd = 1,r = r, varnames = c("A","B","C","D"),empirical = FALSE)
+  meanCor=summary(dat)[4,1:ncol(dat)]
+  sdCor[i,"cor"]=r
+  sdCor[i,"sdmean"]=sd(as.numeric(sapply(strsplit(meanCor, ":"), "[[", 2)))
+}
+hist(sdCor[,2])
+plot(sdCor[,2],sdCor[,1])
+plot(log2(sdCor))
+#https://strimmerlab.github.io/software/whitening/
+#install.packages("whitening")
+#library(whitening)
+# https://strimmerlab.github.io/software/whitening/download/lusc.R https://doi.org/10.1186/s12859-018-2572-9
+data(lusc)
+X = lusc$rnaseq2
+Y = lusc$methyl
+cca.out = scca(X, Y, scale=TRUE)
+cca.out
+# shrinkage intensity
+lambda.cor = cca.out$lambda.cor
+lambda.cor # 0.1852659
+# estimated canonical correlations
+cca.out$lambda
+sum(cca.out$lambda < 0) # 96
+range(cca.out$lambda) # -0.9291533  0.9754134
+hist( cca.out$lambda )
+# whitened data
+CCAX = tcrossprod( scale(X), cca.out$WX )
+CCAY = tcrossprod( scale(Y), cca.out$WY )
+corplot(cca.out, X, Y)
+barplot(cca.out$lambda, xlab = "Dimension",ylab = "Canonical Correlations", names.arg = 1:length(cca.out$lambda))
+loadplot(cca.out, 10)
+colSums(cca.out$PhiX^2) 
+colpacks = rep(1, 130)       # black 90 or less
+colpacks[ lusc$packs > 90] = 2    # red > 90
+colpacks[ is.na(lusc$packs) ] = 3 # unknown
+table(colpacks)
+ppch = rep(21, length(lusc$sex)) # circle 90 or less
+ppch[is.na(lusc$packs)] = 22 # reverse triangle   20
+ppch[lusc$packs > 90] = 25 # square
+#pdf(width=11, height=5,file="lusc-scatter.pdf")
+par(mfrow=c(1,2))
+par(mar=c(4.1, 4.5, 1.9, 2.1))
+plot(CCAX[,1], CCAY[,1], xlim=c(-2.75,2.75), ylim=c(-2.75,2.75), 
+   xlab=expression(paste(tilde(X)[1])), 
+   ylab=expression(paste(tilde(Y)[1])),
+   col=1, pch=21, bg=ifelse(lusc$sex=="male", 1, 0) )
+legend("bottomright", c("male", "female"), pch=c(21,21), 
+   col=c(1,1), pt.bg=c(1,0))
+text(1, 0, "male")
+text(-2, -1, "female")
+
+plot(CCAX[,1], CCAX[,2], xlim=c(-2.75,2.75), ylim=c(-2.75,2.75), 
+xlab=expression(paste(tilde(X)[1])), 
+ylab=expression(paste(tilde(X)[2])),
+col=colpacks, pch=ppch, bg=ifelse(lusc$sex=="male", colpacks, 0)  )
+text(1.8, -0.5, "male")
+text(-2, 1.8, "female")
+pos = legend("bottomleft", c(expression(paste("  ", "">90, " packs")), 
+     expression(paste("  ", ""<=90, " packs")), "  unknown packs"))
+points(x=rep(pos$text$x, times=2) - c(0.25, 0.25, 0.25, 0.05, 0.05, 0.05), 
+    y=rep(pos$text$y, times=2), pch=c(25,21,22,25,21,22), 
+    col=c(2,1,3,2,1,3), bg=c(2,1,3,0,0,0) )
+
+par(mar=c(5.1, 4.1, 4.1, 2.1))
+par(mfrow=c(1,1))
+#dev.off()
+
+##### survival plots #######################################
+
+require("survival")
+s = Surv(lusc$survivalTime, lusc$censoringStatus)
+cox = coxph(s ~ lusc$sex)
+n.class <- 2
+pv <- 1 - pchisq(2 * (cox$loglik[2] - cox$loglik[1]), df = n.class - 1)
+
+#pdf(file="lusc-surv.pdf")
+plot(survfit(s ~ lusc$sex), xlab = "Years", 
+  ylab = "Probability of survival", col = c(1,1), lty=c(2,1), lwd=c(2,2))
+legend("topright", legend = c("male", "female"), col = c(1,1), lty =c(1,2), 
+  lwd=c(2,2), box.lwd=1)
+text(10.3, 0.7, paste("p =", as.character(round(pv, 4))))
+#dev.off()
+
+```
+
+
 ```{r hansWorld}
 #https://github.com/keithmcnulty/hans_rosling_bubble/blob/master/rosling.R
 library(dplyr)
@@ -540,7 +646,7 @@ dc1 <- get_dc(0, 0.5, 0.5, 1, d2)
 dc1
 That gets me these results. The first two columns are the candidate values for the centre of the brown circle. The next three columns are the shortest distance from that candidate center to a set of points on the lines for the red (y=sqrt(x)), purple (unit circle), and vertical black lines. The final column is the smallest of those three values - hence the smallest circle that could be drawn from that candidate point without crossing one of the three lines. The output is ordered so the candidate points with the highest value of smallest come first:
 
-# A tibble: 100 × 6
+# A tibble: 100 ? 6
    can_x can_y distance_1 distance_2 distance_3 smallest
    <dbl> <dbl>      <dbl>      <dbl>      <dbl>    <dbl>
  1 0.212 0.758      0.216      0.213      0.212    0.212
