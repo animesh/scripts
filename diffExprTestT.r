@@ -1,5 +1,5 @@
 #git checkout fe5f9e92f3fe5ca0c75e9d8acfd211feb7358066 diffExprTestT.r
-#"f:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" diffExprTestT.r L:\promec\TIMSTOF\LARS\2023\231223_SIGRID\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2023\231223_SIGRID\combined\txt\Groups.txt Bio Rem
+#"f:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" diffExprTestT.r L:\promec\TIMSTOF\LARS\2023\231212_lymp_DDA\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2023\231212_lymp_DDA\txt\Groups.txt Bio Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -14,9 +14,7 @@ if (length(args) != 4) {stop("\n\nNeeds FOUR arguments, the full path of the dir
 c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTOF/Data/combined/txt/proteinGroups.txt\" \"L:/promec/TIMSTOF/Data/combined/txt/Groups.txt\" Groups Remove
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2023/231223_SIGRID/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2023/231223_SIGRID/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
@@ -47,21 +45,39 @@ hist(log2Int,main=paste("Mean:",mean(log2Int,na.rm=T),"SD:",sd(log2Int,na.rm=T))
 summary(log2(data[,grep("Intensity",colnames(data))]))
 par(mar=c(12,3,1,1))
 boxplot(log2Int,las=2)
+#label####
+label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
+rownames(label)=sub(selection,"",rownames(label))
+label["pair2test"]<-label[lGroup]
+if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
+print(label)
+#anno####
+annoFactor<-label[lGroup]
+names(annoFactor)<-lGroup
+anno<-data.frame(factor(label[,lGroup]))
+row.names(anno)<-paste0("Intensity.",gsub("-",".",rownames(label)))
+names(anno)<-lGroup
+table(anno)
+annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),]))
+row.names(annoR)<-gsub("-",".",rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]))
+names(annoR)<-lGroup
+summary(annoR)
 #corHCint####
 scale=3
 log2Intimp<-matrix(rnorm(dim(log2Int)[1]*dim(log2Int)[2],mean=mean(log2Int,na.rm = T)-scale,sd=sd(log2Int,na.rm = T)/(scale)), dim(log2Int)[1],dim(log2Int)[2])
 log2Intimp[log2Intimp<0]<-0
 par(mar=c(12,3,1,1))
 boxplot(log2Intimp,las=2)
-bk1 <- c(seq(-3,-0.01,by=0.01))
-bk2 <- c(seq(0.01,3,by=0.01))
+bk1 <- c(seq(-1,-0.01,by=0.01))
+bk2 <- c(seq(0.01,1,by=0.01))
 bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
-my_palette <- c(colorRampPalette(colors = c("darkblue", "white"))(n = length(bk1)-1),"gray", "gray",c(colorRampPalette(colors = c("white","darkred"))(n = length(bk2)-1)))
+my_palette <- c(colorRampPalette(colors = c("white", "orange"))(n = length(bk1)-1),"orange", "orange",c(colorRampPalette(colors = c("orange","red"))(n = length(bk2)-1)))
 colnames(log2Intimp)<-colnames(log2Int)
 log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2Int)
 rownames(log2IntimpCorr)<-colnames(log2Int)
-svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+svgPHC<-pheatmap::pheatmap(log2IntimpCorr,color = my_palette,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = anno,annotation_col = anno)
+ggplot2::ggsave(paste0(inpF,"Intensity",lGroup,rGroup,lName,"cluster.svg"), svgPHC)
 #maxLFQ####
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 #protNum<-1:ncol(LFQ)
@@ -78,22 +94,17 @@ par(mar=c(12,3,1,1))
 boxplot(log2LFQ,las=2)
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpD,"log2LFQ.xlsx"))
-#label####
-label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
-rownames(label)=sub(selection,"",rownames(label))
-label["pair2test"]<-label[lGroup]
-if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
-print(label)
 #corHClfq####
 log2LFQimp<-matrix(rnorm(dim(log2LFQ)[1]*dim(log2LFQ)[2],mean=mean(log2LFQ,na.rm = T)-scale,sd=sd(log2LFQ,na.rm = T)/(scale)), dim(log2LFQ)[1],dim(log2LFQ)[2])
 log2LFQimp[log2LFQimp<0]<-0
 par(mar=c(12,3,1,1))
 boxplot(log2LFQimp,las=2)
 colnames(log2LFQimp)<-colnames(log2LFQ)
-log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="spearman")
+log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="pearson")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
-svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = annoR,annotation_col = annoR)
+ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"cluster.svg"), svgPHC)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr){
   #sel1<-"WTTMZ"
@@ -113,6 +124,14 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
   dataSellog2grpTtest[,1]<-NULL
   dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
   dataSellog2grpTtest<-as.matrix(dataSellog2grpTtest)
+  log2IntimpCorr<-cor(dataSellog2grpTtest,use="pairwise.complete.obs",method="pearson")
+  colnames(log2IntimpCorr)<-colnames(dataSellog2grpTtest)
+  rownames(log2IntimpCorr)<-colnames(dataSellog2grpTtest)
+  annoR<-data.frame(Group=c(rep(sel1,ncol(d1)),rep(sel2,ncol(d2))))
+  rownames(annoR)<-colnames(dataSellog2grpTtest)
+  print(annoR)
+  svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8,annotation_row = annoR, annotation_col = annoR)
+  ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,sel1,sel2,"Cluster.svg"), svgPHC)
   #row.names(dataSellog2grpTtest)<-rN
   dim(dataSellog2grpTtest)
   hist(as.numeric(dataSellog2grpTtest),breaks=round(max(dataSellog2grpTtest,na.rm=T)))
@@ -176,6 +195,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     log2FCmedianFC=log2(logFCmedianFC)
     hist(log2FCmedianFC)
     ttest.results = data.frame(Uniprot=uniprotID,Gene=geneName,Protein=proteinNames,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rN)
+    ttest.results=ttest.results[order(ttest.results$CorrectedPValueBH),]
     writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.xlsx"))
     write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"tTestBH.csv"),row.names = F)
     ttest.results.return<-ttest.results
@@ -204,7 +224,7 @@ label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 for(i in rownames(table(label$pair2test))){
   for(j in rownames(table(label$pair2test))){
-    if(i!=j){
+    if(i<j){
       print(paste(i,j))
       ttPair=testT(log2LFQsel,i,j,cvThr)
       print(ttPair)
