@@ -1,5 +1,9 @@
 #git checkout fe5f9e92f3fe5ca0c75e9d8acfd211feb7358066 diffExprTestT.r
-#"f:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" diffExprTestT.r L:\promec\TIMSTOF\LARS\2023\231212_lymp_DDA\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2023\231212_lymp_DDA\txt\Groups.txt Bio Rem
+#"f:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" diffExprTestT.r "F:\OneDrive - NTNU\Desktop\Mathilde\rawdata_from animesh 2.txt" "F:\OneDrive - NTNU\Desktop\Mathilde\Groups.txt" Bio Rem
+#inpF <-"F:/OneDrive - NTNU/Desktop/Mathilde/rawdata_from animesh 2.txt"
+#inpL <-"F:/OneDrive - NTNU/Desktop/Mathilde/Groups.txt"
+#lGroup<-"Bio"
+#rGroup<-"Rem"
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -16,9 +20,7 @@ c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestT.r \"L:/promec/TIMSTO
 inpF <- args[1]
 inpL <- args[2]
 lGroup <- args[3]
-#lGroup<-"Bio"
 rGroup <- args[4]
-#rGroup<-"Rem"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -107,8 +109,8 @@ svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean"
 ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"cluster.svg"), svgPHC)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr){
-  #sel1<-"WTTMZ"
-  #sel2<-"WTDMSO"
+  #sel1<-"AMHC"
+  #sel2<-"STNTC"
   #log2LFQ<-log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
   #colnames(log2LFQ)
   d1<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))])
@@ -123,15 +125,20 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
   proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "_",fixed=T), "[", 2)), " OS="), "[", 1))
   dataSellog2grpTtest[,1]<-NULL
   dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
+  write.table(cbind(gene_id=uniprotID,dataSellog2grpTtest),paste0(inpD,"/",sel1,sel2,"log2LFQ.tsv"),row.names = F,quote = F,sep="\t")
   dataSellog2grpTtest<-as.matrix(dataSellog2grpTtest)
   log2IntimpCorr<-cor(dataSellog2grpTtest,use="pairwise.complete.obs",method="pearson")
   colnames(log2IntimpCorr)<-colnames(dataSellog2grpTtest)
   rownames(log2IntimpCorr)<-colnames(dataSellog2grpTtest)
-  annoR<-data.frame(Group=c(rep(sel1,ncol(d1)),rep(sel2,ncol(d2))))
+  annoR<-data.frame(condition=c(rep(sel1,ncol(d1)),rep(sel2,ncol(d2))))
   rownames(annoR)<-colnames(dataSellog2grpTtest)
   print(annoR)
   svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8,annotation_row = annoR, annotation_col = annoR)
   ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,sel1,sel2,"Cluster.svg"), svgPHC)
+  annoR$sample=rownames(annoR)
+  write.csv(annoR,paste0(inpD,"/",sel1,sel2,"samples.csv"),row.names = F,quote = F)
+  cInfo<-data.frame(id=paste("co",sel1,sel2,sep="_"),variable="condition",reference=sel2,target=sel1,blocking="")#condition_control_treated,condition,NS,S,greplicate
+  write.csv(cInfo,paste0(inpD,"/",sel1,sel2,"contrasts.csv"),row.names = F,quote = F)
   #row.names(dataSellog2grpTtest)<-rN
   dim(dataSellog2grpTtest)
   hist(as.numeric(dataSellog2grpTtest),breaks=round(max(dataSellog2grpTtest,na.rm=T)))
@@ -222,11 +229,11 @@ colnames(log2LFQsel)
 dim(log2LFQsel)
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
-for(i in rownames(table(label$pair2test))){
+for(i in rownames(table(label$pair2test))[nrow(table(label$pair2test))]){
   for(j in rownames(table(label$pair2test))){
-    if(i<j){
+    if(j!=i){
       print(paste(i,j))
-      ttPair=testT(log2LFQsel,i,j,cvThr)
+      ttPair=testT(log2LFQsel,j,i,cvThr)
       print(ttPair)
     }
   }

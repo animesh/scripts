@@ -6,7 +6,7 @@
 import sys
 from pathlib import Path
 pathFiles = Path(sys.argv[1])
-#pathFiles = Path("C:\\Users\\animeshs\\OneDrive\\Desktop\\dynamicrangebenchmark\\")
+#pathFiles = Path("L:\\promec\\TIMSTOF\\LARS\\2024\\Kine_Samset_Hoem\\DDA\\240103_KineSamsetHoem\\txt243lin\\txt\\")
 import pandas as pd
 df=pd.read_csv(pathFiles/"peptides.txt",low_memory=False,sep='\t')
 print(df.columns)
@@ -17,16 +17,26 @@ dfS=df.copy()
 #dfS=df[df['PEP']<0.01]
 #print(dfS['Mod. peptide IDs'].value_counts())
 #plt.plot(dfS['Intensity'])
-dfS.rename({'Leading razor protein':'ID'},inplace=True,axis='columns')
-#dfS.rename({'Proteins':'ID'},inplace=True,axis='columns')
+#dfS.rename({'Leading razor protein':'ID'},inplace=True,axis='columns')
+dfS.rename({'Proteins':'ID'},inplace=True,axis='columns')
 print(dfS[dfS==0].count())
 import numpy as np
-dfS.replace(0, np.nan, inplace=True)
-print(dfS[dfS==0].count())
+#dfS.replace(0, np.nan, inplace=True)
+#print(dfS[dfS==0].count())
 dfS['IDs']=dfS.ID.str.split(';')
 dfSE=dfS.explode('IDs')
 dfSEG=dfSE.groupby(dfSE['IDs']).aggregate('sum')
 dfSEG.to_csv(pathFiles/'peptides.combinedIntensity.csv')#,sep="\")#,rownames=FALSE)
+dfSelProt3=dfSEG[dfSEG.index.isin(['B5X2G1','A0A1S3R3M8','A1ED59'])]
+dfSelProt3.to_csv(pathFiles/'peptidesSel3.sumIntensity.csv')#,sep="\")#,rownames=FALSE)
+dfSelProt3Int=dfSelProt3.filter(regex='Intensity ',axis=1)
+dfSelProt3IntLog2=np.log2(dfSelProt3Int+1)
+dfSelProt3IntLog2.columns=dfSelProt3IntLog2.columns.str.removeprefix('Intensity ')
+dfSelProt3IntLog2.columns=dfSelProt3IntLog2.columns.str.split('_').str[0]
+dfSelProt3IntLog2.T.plot.line().figure.savefig(pathFiles/'peptidesSel3.sumIntensityLog2.png',dpi=100,bbox_inches = "tight")
+import matplotlib.pyplot as plt
+plt.show()
+dfSelProt3IntLog2.to_csv(pathFiles/'peptidesSel3.sumIntensityLog2.csv')#,sep="\")#,rownames=FALSE)
 #dfP=dfS.pivot_table(index='ID', columns='Sequence', values='Intensity', aggfunc='sum')
 #dfP.to_csv(pathFiles.with_suffix('.combinedIntensity.csv'))#,sep="\")#,rownames=FALSE)
 dfProtG=pd.read_csv(pathFiles/"proteinGroups.txt",low_memory=False,sep='\t')
