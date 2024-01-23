@@ -1,3 +1,98 @@
+#https://medium.com/@hammad.ai/variance-inflation-factor-c1d4404f4dd9
+import pandas as pd
+import numpy as np
+
+def calculate_vif(data):
+    """
+    Calculate the Variance Inflation Factor (VIF) for each variable in a given dataset.
+    
+    Parameters:
+        data (pandas.DataFrame): The input dataset containing independent variables.
+        
+    Returns:
+        vif_data (pandas.DataFrame): A DataFrame containing the VIF values for each variable.
+    """
+    vif_data = pd.DataFrame()
+    vif_data["Variable"] = data.columns
+    vif_data["VIF"] = [calculate_vif_for_variable(data, i) for i in range(data.shape[1])]
+    
+    return vif_data
+
+def calculate_vif_for_variable(data, col_idx):
+    """
+    Calculate the VIF for a specific variable in the dataset.
+    
+    Parameters:
+        data (pandas.DataFrame): The input dataset containing independent variables.
+        col_idx (int): The index of the variable for which to calculate VIF.
+        
+    Returns:
+        vif (float): The calculated VIF for the variable.
+    """
+    X = data.drop(data.columns[col_idx], axis=1)  # Remove the target variable
+    y = data.iloc[:, col_idx]  # Select the target variable
+    
+    # Fit a simple linear regression model
+    lr_model = np.polyfit(X, y, 1)
+    r_squared = 1.0 - np.var(y - np.polyval(lr_model, X)) / np.var(y)
+    
+    vif = 1.0 / (1.0 - r_squared)
+    return vif
+You may notice that I used np.polyfit() and np.polyval() up there.
+
+np.polyfit() 👉 It’s used to fit a polynomial of a specified degree to a set of data points, allowing you to find the coefficients of the polynomial that best approximates the data.
+
+np.polyval() 👉 It allows you to compute the values of a polynomial function using a set of coefficients and a list of input values
+
+Here is how you can use this:
+
+# Load your dataset into a pandas DataFrame
+dataset = pd.read_csv("your_dataset.csv")
+
+# Select only the independent variables you want to calculate VIF for
+independent_vars = dataset[["independent_var1", "independent_var2", ...]]
+
+# Calculate VIF for the selected independent variables
+vif_results = calculate_vif(independent_vars)
+print(vif_results)
+Statsmodels Version
+import pandas as pd
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+def calculate_vif(data):
+    """
+    Calculate the Variance Inflation Factor (VIF) for each variable in a given dataset.
+    
+    Parameters:
+        data (pandas.DataFrame): The input dataset containing independent variables.
+        
+    Returns:
+        vif_data (pandas.DataFrame): A DataFrame containing the VIF values for each variable.
+    """
+    vif_data = pd.DataFrame()
+    vif_data["Variable"] = data.columns
+    vif_data["VIF"] = [variance_inflation_factor(data.values, i) for i in range(data.shape[1])]
+    
+    return vif_data
+variance_inflation_factor in statsmodels is found in the outliers_influence module.
+
+The first parameter it accepts is an array-like or matrix-like input data, which here in this case are the values of the dataset you receive in the function call.
+
+The second parameter is the integer value which represents the column number of the variable to calculate the variance of. Since it receives only one integer value per function call, you are more likely to call it from within a loop. In this case, the loop is present as the inline list comprehension method.
+
+Here is how you can use both of the above versions:
+
+# Load your dataset into a pandas DataFrame
+dataset = pd.read_csv("your_dataset.csv")
+
+# Select only the independent variables you want to calculate VIF for
+independent_vars = dataset[["independent_var1", "independent_var2", ...]]
+
+# Calculate VIF for the selected independent variables
+vif_results = calculate_vif(independent_vars)
+print(vif_results)
+
+
 #https://substack.com/redirect/1e5849f8-38a3-4125-b0ef-54a3570db244?j=eyJ1IjoiYTU1cTUifQ.4Akes483sfJ-G3y2ZO1qbBtFQHOZcvSrm-2Sc1yuQVs
 #!pip install joypy
 mport pandas as pd

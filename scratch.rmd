@@ -44,6 +44,8 @@ system.time (B <- crossprod(A))
 plot(B)
 ```
 
+
+
 ```{r ESLR-CV}
 #"Since the mean of many highly correlated quantities has higher variance than does the mean of many quantities that are not as highly correlated, the test error estimate resulting from LOOCV tends to have higher variance than does the test error estimate resulting from k-fold CV" https://www.statlearning.com/ file:///F:/OneDrive%20-%20NTNU/Desktop/ISLRv2_corrected_June_2023.pdf page 206
 #https://hastie.su.domains/ISLR2/Labs/R_Labs/Ch5-resample-lab.R

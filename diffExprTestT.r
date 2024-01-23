@@ -125,7 +125,11 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
   proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "_",fixed=T), "[", 2)), " OS="), "[", 1))
   dataSellog2grpTtest[,1]<-NULL
   dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
-  write.table(cbind(gene_id=uniprotID,dataSellog2grpTtest),paste0(inpD,"/",sel1,sel2,"log2LFQ.tsv"),row.names = F,quote = F,sep="\t")
+  gene_id=sprintf("ENSMUSG%011d",seq(1:nrow(dataSellog2grpTtest)))
+  write.table(cbind(gene_id=gene_id,dataSellog2grpTtest),paste0(inpD,"/",sel1,sel2,"log2LFQ.tsv"),row.names = F,quote = F,sep="\t")
+  dataSellog2grpTtestInt<-2^(dataSellog2grpTtest)
+  write.table(cbind(gene_id=gene_id,dataSellog2grpTtestInt),paste0(inpD,"/",sel1,sel2,"intLFQ.tsv"),row.names = F,quote = F,sep="\t")
+  write.table(cbind(gene_id=gene_id,uniprotID,geneName,proteinNames,rN),paste0(inpD,"/",sel1,sel2,"annotation.tsv"),row.names = F,quote = F,sep="\t")
   dataSellog2grpTtest<-as.matrix(dataSellog2grpTtest)
   log2IntimpCorr<-cor(dataSellog2grpTtest,use="pairwise.complete.obs",method="pearson")
   colnames(log2IntimpCorr)<-colnames(dataSellog2grpTtest)
