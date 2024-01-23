@@ -1,13 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=hg38NFTK
-#SBATCH --time=168:00:00
+#SBATCH --account=nn9036k --job-name=DANFTOWER
+#SBATCH --time=2:00:00
 ##SBATCH --partition=bigmem
-#SBATCH --ntasks=4 --cpus-per-task=16
+#SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=NFSLURMLOG
-
+#SBATCH --output=DANFTOWER
 
 WORKDIR=$PWD
 cd ${WORKDIR}
@@ -32,25 +31,16 @@ module load Miniconda3/22.11.1-1
 #git checkout dev
 #git remote add origin https://github.com/animesh/spritz_nf.git
 #git push --all origin
-#ln -s /cluster/projects/nn9036k/scripts/TK9/*.gz .
-#vim samples.csv
 conda activate nf-core
 #nextflow  self-update
 nextflow  -v
-#nextflow run hello
-#nextflow pull nf-core/rnaseq
-#https://nf-co.re/rnaseq/3.13.2/docs/usage -r <pipeline version eg 1.3.1> for Reproducibility
-#nf-core/rnaseq  --max_memory '256.GB' --max_cpus 30  --outdir hg38lall --input samples.csv --gtf /cluster/projects/nn9036k/scripts/hg38v110/Homo_sapiens.GRCh38.110.gtf --fasta /cluster/projects/nn9036k/scripts/hg38v110/genome.fa --genome null  --igenomes_ignore  -profile singularity -resume
-nextflow run 'https://github.com/nf-core/rnaseq' -name tkall3p14_slurm -params-file nextflow.json -with-tower -r 3.14.0 -profile singularity
-#rsync -Parv  login.nird-lmd.sigma2.no:PD/Animesh/TK/TK9R/*gz .
-#rename "R1.fastq.gz" "_1.fq.gz" *.fastq.gz
-#rename "R2.fastq.gz" "_2.fq.gz" *.fastq.gz
-#ls -1 *2.fq.gz  > S2
-#ls -1 *1.fq.gz  > S1
-#printf 'auto\n%.0s' {1..30} > S3
-#ls -1 *_1.fq.gz | awk -F '_' '{print $1$2$5}' > S0
-#echo "sample,fastq_1,fastq_2,strandedness" > samples.csv
-#paste -d ','  S? >> samples.csv
-#cat samples.csv
-#dos2unix scratch.slurm nextflow.json samples.csv
+#nextflow pull nf-core/differentialabundance ## com for reproducibility
+#set env for -with-tower from https://tower.nf/
+export TOWER_ACCESS_TOKEN=$TOWER_ACCESS_TOKEN
+#uniq -name for each run
+CURRENTEPOCTIME=`date +%s`
+#wget https://ftp.ensembl.org/pub/release-111/gtf/mus_musculus/Mus_musculus.GRCm39.111.gtf.gz
+#gunzip Mus_musculus.GRCm39.111.gtf.gz 
+nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input AMHCSTNTCsamples.csv --contrasts AMHCSTNTCcontrasts.csv --matrix AMHCSTNTClog2LFQ.tsv --gtf /cluster/projects/nn9036k/scripts/Mus_musculus.GRCm39.111.gtf  -profile singularity -name slurm_$CURRENTEPOCTIME -with-tower --outdir DANFTOWER_$CURRENTEPOCTIME
+
 
