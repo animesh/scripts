@@ -11,7 +11,7 @@ print(paste("Thresholds used - ", thr ,"#count-valid-samples," ,selThr,"#pValue-
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2024/Kine_Samset_Hoem/DDA/240103_KineSamsetHoem/txt243lin/txt/proteinGroups.txt"
 selection<-"LFQ.intensity."
-cortype<-"spearman"
+cortype<-"pearson"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 hdr<-gsub("[^[:alnum:]]", "",inpD)
@@ -35,8 +35,8 @@ LFQ<-as.matrix(data[,grep(selection,colnames(data))])
 LFQ0<-LFQ[,1]+1
 summary(LFQ0)
 #colnames(LFQ0)<-colnames(LFQ)[1]
-virLFQ<-LFQ[,c(4,6,8,11,3)]
-ctrLFQ<-LFQ[,c(5,7,9,10,2)]
+ctrLFQ<-LFQ[,c(4,6,8,11,3)]
+virLFQ<-LFQ[,c(5,7,9,10,2)]
 diffLFQ<-virLFQ-ctrLFQ
 diffLFQ0<-diffLFQ/(LFQ0)
 hist(diffLFQ0)
@@ -77,16 +77,16 @@ resCor=apply(d1, 1,function(x)
   }
   else{NA}
 )
-pValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 2)
+pValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 3)
 pValNA<-sapply(pValCor,as.numeric)
 hist(pValNA)
-cValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 3)
+cValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 4)
 cValNA<-sapply(cValCor,as.numeric)
 hist(cValNA)
 tValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 1)
 tValNA<-sapply(tValCor,as.numeric)
 hist(tValNA)
-yValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 4)
+yValCor<-sapply(strsplit(resCor, "--VALS--",fixed=T), "[", 2)
 yValNA<-sapply(yValCor,as.numeric)
 hist(yValNA)
 summary(warnings())
@@ -108,6 +108,7 @@ hist(pValBHna)
 pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
 hist(pValBHnaMinusLog10)
 corTest.results = data.frame(Uniprot=data$rowName,Protein=data$geneName,PValueMinusLog10=pValNAminusLog10,CorrectedPValueBH=pValBHna,CorTestPval=pValNA,Cor=cValNA,d1,Fasta=row.names(data))
+corTest.results = corTest.results[order(corTest.results$CorTestPval),]
 writexl::write_xlsx(corTest.results,paste0(inpF,comp,selThr,selThrCor,selection,cortype,"CorTestBH.xlsx"))
 write.csv(corTest.results,paste0(inpF,comp,selThr,selThrCor,selection,cortype,"CorTestBH.csv"),row.names = F)
 corTest.results.return<-corTest.results
