@@ -1,8 +1,3 @@
-sample,fastq_1,fastq_2,condition
-TK10,TK10_1.fq.gz,TK10_2.fq.gz,NS
-TK12,TK12_1.fq.gz,TK12_2.fq.gz,NS
-TK13,TK13_1.fq.gz,TK13_2.fq.gz,S
-TK14,TK14_1.fq.gz,TK14_2.fq.gz,S
-TK16,TK16_1.fq.gz,TK16_2.fq.gz,S
-TK18,TK18_1.fq.gz,TK18_2.fq.gz,NS
-TK9,TK9_1.fq.gz,TK9_2.fq.gz,NS
+sample,fastq_1,fastq_2,strandedness
+TK1049,/cluster/projects/nn9036k/work/TK/TK10_49_1.fq.gz,/cluster/projects/nn9036k/work/TK/TK10_49_2.fq.gz,auto
+TK1050,/cluster/projects/nn9036k/work/TK/TK10_50_1.fq.gz,/cluster/projects/nn9036k/work/TK/TK10_50_2.fq.gz,auto

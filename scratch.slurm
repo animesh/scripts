@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=DANFTOWER
+#SBATCH --account=nn9036k --job-name=RNASEQNFTOWER
 #SBATCH --time=2:00:00
 ##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=DANFTOWER
+#SBATCH --output=RNASEQNFTOWER
 
 WORKDIR=$PWD
 cd ${WORKDIR}
@@ -34,13 +34,10 @@ module load Miniconda3/22.11.1-1
 conda activate nf-core
 #nextflow  self-update
 nextflow  -v
-#nextflow pull nf-core/differentialabundance ## com for reproducibility
 #set env for -with-tower from https://tower.nf/
 export TOWER_ACCESS_TOKEN=$TOWER_ACCESS_TOKEN
 #uniq -name for each run
 CURRENTEPOCTIME=`date +%s`
-#wget https://ftp.ensembl.org/pub/release-111/gtf/mus_musculus/Mus_musculus.GRCm39.111.gtf.gz
-#gunzip Mus_musculus.GRCm39.111.gtf.gz 
-nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input AMHCSTNTCsamples.csv --contrasts AMHCSTNTCcontrasts.csv --matrix AMHCSTNTClog2LFQ.tsv --gtf /cluster/projects/nn9036k/scripts/Mus_musculus.GRCm39.111.gtf  -profile singularity -name slurm_$CURRENTEPOCTIME -with-tower --outdir DANFTOWER_$CURRENTEPOCTIME
+nextflow run 'https://github.com/nf-core/rnaseq' -r 3.14.0 -profile singularity --input $PWD/TK/samples.csv -with-tower --outdir RNASEQNFTOWER_$CURRENTEPOCTIME --fasta /cluster/projects/nn9036k/scripts/hg38v110/genome.fa --gtf /cluster/projects/nn9036k/scripts/hg38v110/Homo_sapiens.GRCh38.110.gtf
 
 
