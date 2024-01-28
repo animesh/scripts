@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH --account=nn9036k --job-name=RNASEQNFTOWER
-#SBATCH --time=2:00:00
+#SBATCH --time=24:00:00
 ##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=8G
@@ -38,6 +38,7 @@ nextflow  -v
 export TOWER_ACCESS_TOKEN=$TOWER_ACCESS_TOKEN
 #uniq -name for each run
 CURRENTEPOCTIME=`date +%s`
-nextflow run 'https://github.com/nf-core/rnaseq' -r 3.14.0 -profile singularity --input $PWD/TK/samples.csv -with-tower --outdir RNASEQNFTOWER_$CURRENTEPOCTIME --fasta /cluster/projects/nn9036k/scripts/hg38v110/genome.fa --gtf /cluster/projects/nn9036k/scripts/hg38v110/Homo_sapiens.GRCh38.110.gtf
+nextflow run 'https://github.com/nf-core/rnaseq' -r 3.14.0 -profile singularity  -params-file nextflow.json  -with-tower --outdir RNASEQNFTOWER_$CURRENTEPOCTIME -resume
+
 
 

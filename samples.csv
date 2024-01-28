@@ -1,3 +1,3 @@
 sample,fastq_1,fastq_2,strandedness
-TK1049,/cluster/projects/nn9036k/work/TK/TK10_49_1.fq.gz,/cluster/projects/nn9036k/work/TK/TK10_49_2.fq.gz,auto
-TK1050,/cluster/projects/nn9036k/work/TK/TK10_50_1.fq.gz,/cluster/projects/nn9036k/work/TK/TK10_50_2.fq.gz,auto
+TK49,/cluster/projects/nn9036k/scripts/TK/spritzIso/TK10_49.fq.trim_1.fastq.gz,/cluster/projects/nn9036k/scripts/TK/spritzIso/TK10_49.fq.trim_2.fastq.gz,auto
+TK50,/cluster/projects/nn9036k/scripts/TK/spritzIso/TK10_50.fq.trim_1.fastq.gz,/cluster/projects/nn9036k/scripts/TK/spritzIso/TK10_50.fq.trim_2.fastq.gz,auto
