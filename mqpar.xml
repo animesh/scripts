@@ -2,22 +2,31 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/home/ash022/scripts/KSH/uniprot-salmon-iso-jan24.fasta.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/uniprot-human-iso-jan24.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
-         <taxonomyId>8030</taxonomyId>
+         <taxonomyId></taxonomyId>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/home/ash022/scripts/KSH/UP000087266_8030_additional.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/homo_sapiens\UP000005640_9606.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
-         <taxonomyId>8030</taxonomyId>
+         <taxonomyId>9606</taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/homo_sapiens\UP000005640_9606_additional.fasta</fastaFilePath>
+         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId>9606</taxonomyId>
       </FastaFileInfo>
    </fastaFiles>
    <fastaFilesProteogenomics>
@@ -56,7 +65,7 @@
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
    <ibaq>True</ibaq>
-   <top3>True</top3>
+   <top3>False</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
    <splitProteinGroupsByTaxonomy>False</splitProteinGroupsByTaxonomy>
@@ -138,13 +147,13 @@
    <name>session1</name>
    <maxQuantVersion>2.4.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>33</numThreads>
+   <numThreads>24</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
    <fixedCombinedFolder></fixedCombinedFolder>
-   <fullMinMz>-1.79769313486232E+308</fullMinMz>
-   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
+   <fullMinMz>-1.79589544172745E+308</fullMinMz>
+   <fullMaxMz>1.79589544172745E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -154,32 +163,71 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_1_Slot2-1_1_6163.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_2_Slot2-2_1_6141.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_3_Slot2-3_1_6143.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_4_Slot2-4_1_6145.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_5_Slot2-5_1_6147.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_6_Slot2-6_1_6149.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_7_Slot2-7_1_6151.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_8_Slot2-8_1_6153.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_9_Slot2-9_1_6155.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_10_Slot2-10_1_6159.d</string>
-      <string>/cluster/home/ash022/scripts/KSH/240103_KSH_11_Slot2-11_1_6161.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_ATc2_02_Slot1-1_1_6333.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_ATc2_Slot1-1_1_6294.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_MHC6_02_Slot1-2_1_6329.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_MHC6_Slot1-2_1_6296.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_RP2_02_Slot1-3_1_6319.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_RP2_Slot1-3_1_6298.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_RP4_02_Slot1-4_1_6325.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_RP4_Slot1-4_1_6300.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_ATc2_02_Slot1-5_1_6323.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_ATc2_Slot1-5_1_6302.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_MHC6_Slot1-6_1_6304.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP2_02_Slot1-7_1_6331.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP2_02_Slot1-7_1_6335.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP2_Slot1-7_1_6306.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP4_02_Slot1-8_1_6327.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP4_Slot1-8_1_6308.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_ATc2_02_Slot1-9_1_6321.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_ATc2_Slot1-9_1_6310.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_MHC6_02_Slot1-10_1_6341.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_MHC6_Slot1-10_1_6312.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_RP2_02_Slot1-11_1_6339.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_RP2_Slot1-11_1_6314.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_RP4_02_Slot1-12_1_6337.d</string>
+      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_RP4_Slot1-12_1_6316.d</string>
    </filePaths>
    <experiments>
-      <string>1_Slot2-1_1_6163</string>
-      <string>2_Slot2-2_1_6141</string>
-      <string>3_Slot2-3_1_6143</string>
-      <string>4_Slot2-4_1_6145</string>
-      <string>5_Slot2-5_1_6147</string>
-      <string>6_Slot2-6_1_6149</string>
-      <string>7_Slot2-7_1_6151</string>
-      <string>8_Slot2-8_1_6153</string>
-      <string>9_Slot2-9_1_6155</string>
-      <string>10_Slot2-10_1_6159</string>
-      <string>11_Slot2-11_1_6161</string>
+      <string>iPSC_ATc2_02_Slot1-1_1_6333</string>
+      <string>iPSC_ATc2_Slot1-1_1_6294</string>
+      <string>iPSC_MHC6_02_Slot1-2_1_6329</string>
+      <string>iPSC_MHC6_Slot1-2_1_6296</string>
+      <string>iPSC_RP2_02_Slot1-3_1_6319</string>
+      <string>iPSC_RP2_Slot1-3_1_6298</string>
+      <string>iPSC_RP4_02_Slot1-4_1_6325</string>
+      <string>iPSC_RP4_Slot1-4_1_6300</string>
+      <string>RO-day10_ATc2_02_Slot1-5_1_6323</string>
+      <string>RO-day10_ATc2_Slot1-5_1_6302</string>
+      <string>RO-day10_MHC6_Slot1-6_1_6304</string>
+      <string>RO-day10_RP2_02_Slot1-7_1_6331</string>
+      <string>RO-day10_RP2_02_Slot1-7_1_6335</string>
+      <string>RO-day10_RP2_Slot1-7_1_6306</string>
+      <string>RO-day10_RP4_02_Slot1-8_1_6327</string>
+      <string>RO-day10_RP4_Slot1-8_1_6308</string>
+      <string>RO-day27_ATc2_02_Slot1-9_1_6321</string>
+      <string>RO-day27_ATc2_Slot1-9_1_6310</string>
+      <string>RO-day27_MHC6_02_Slot1-10_1_6341</string>
+      <string>RO-day27_MHC6_Slot1-10_1_6312</string>
+      <string>RO-day27_RP2_02_Slot1-11_1_6339</string>
+      <string>RO-day27_RP2_Slot1-11_1_6314</string>
+      <string>RO-day27_RP4_02_Slot1-12_1_6337</string>
+      <string>RO-day27_RP4_Slot1-12_1_6316</string>
    </experiments>
    <fractions>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -204,6 +252,19 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
@@ -217,8 +278,34 @@
       <int>0</int>
       <int>0</int>
       <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
       <string></string>
       <string></string>
       <string></string>
@@ -263,7 +350,7 @@
          <centroidHalfWidthInPpm>True</centroidHalfWidthInPpm>
          <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
-         <advancedPeakSplitting>False</advancedPeakSplitting>
+         <advancedPeakSplitting>True</advancedPeakSplitting>
          <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>30</intensityThresholdMs1Dia>
          <intensityThresholdMs2>10</intensityThresholdMs2>
@@ -271,7 +358,7 @@
             <string></string>
          </labelMods>
          <lcmsRunType>TIMS-DDA</lcmsRunType>
-         <reQuantify>False</reQuantify>
+         <reQuantify>True</reQuantify>
          <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
