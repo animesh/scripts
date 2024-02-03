@@ -42,19 +42,20 @@ nextflow  -v
 #https://nf-co.re/sarek/3.4.0/docs/usage  -r <pipeline version eg 3.4> for Reproducibility
 #nf-core/rnaseq  --max_memory '256.GB' --max_cpus 30  --outdir hg38varall --input samples.csv   -profile singularity -resume
 nextflow run 'https://github.com/nf-core/sarek' -params-file nextflow.json -with-tower -r 3.4.0 -profile singularity
-#nextflow run https://github.com/nf-core/sarek		 -name loving_venter		 		 -params-file https://api.tower.nf/ephemeral/nnbDYb5gHG-o9sMwpD3SYQ.json 				 		 -with-tower 						 		 -r 3.4.0								 		 -profile singularity
+#nextflow run https://github.com/nf-core/sarek -name marvelous_kimura -params-file https://api.tower.nf/ephemeral/gGO6qmeGxQ6OUZJDOXPC1g.json -with-tower -r 3.4.0 -profile singularity
 #cd /cluster/projects/nn9036k/scripts
 #rsync -Parv   login.nird-lmd.sigma2.no:PD/Animesh/TK/*.f*q*.gz TK/.
 #rename "R1.fastq.gz" "_1.fq.gz" *.fastq.gz
 #rename "R2.fastq.gz" "_2.fq.gz" *.fastq.gz
 #ls -ltrh TK/*.fq.gz | wc
-#ls -1 $PWD/TK/*2.fq.gz  > S4
-#ls -1 $PWD/TK/*1.fq.gz  > S3
-#ls -1 TK/*_1.fq.gz | awk -F '_' '{print $1$2$5}' | sed 's/TK\///g' > S1
-#ls -1 TK/*_1.fq.gz | awk -F '_' '{print $1}' | sed 's/TK\///g' > S2
-#echo "patient,sample,fastq_1,fastq_2" > samples.csv
-#paste -d ',' S? >> samples.csv
-#cat samples.csv
+ls -1 TK/*_1.fq.gz | awk -F '_' '{print $1$2$5}' | sed 's/TK\///g' > S1
+ls -1 TK/*_1.fq.gz | awk -F '_' '{print $1}' | sed 's/TK\///g' > S2
+printf 'lane_%s\n' {1..30} > S3
+ls -1 $PWD/TK/*1.fq.gz  > S4
+ls -1 $PWD/TK/*2.fq.gz  > S5
+echo "patient,sample,lane,fastq_1,fastq_2" > samples.csv
+paste -d ',' S? >> samples.csv
+cat samples.csv
 #tail -f nf-1Bpr9p1bhYVOBt.log
 #dos2unix scratch.slurm nextflow.json samples.csv
 
