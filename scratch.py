@@ -1,3 +1,28 @@
+#https://medium.com/ai-genesis/my-personal-collection-of-10-python-decorators-one-liners-that-shaped-my-career-a012332a5e0c
+def timing_decorator(func):
+    import time
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print(f"{func.__name__} took {end - start} seconds")
+        return result
+    return wrapper
+def debug_decorator(func):
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        print(f"{func.__name__} returned {result}")
+        return result
+    return wrapper
+def memoize_decorator(func):
+    memo = {}
+    def wrapper(*args):
+        if args in memo:
+            return memo[args]
+        result = func(*args)
+        memo[args] = result
+        return result
+    return wrapper
 #https://medium.com/@hammad.ai/variance-inflation-factor-c1d4404f4dd9
 import pandas as pd
 import numpy as np

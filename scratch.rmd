@@ -44,6 +44,16 @@ system.time (B <- crossprod(A))
 plot(B)
 ```
 
+```{r}
+#Opening_DSS_Practice_Exercises
+#install.packages("remotes")
+remotes::install_github("rstudio/learnr")
+remotes::install_github("rstudio-education/gradethis")
+remotes::install_github("ellaudet/dsslearnr")
+## open practice exercises for chapter 1 of DSS
+learnr::run_tutorial("01-introduction", package = "dsslearnr")
+## open practice exercises for chapter 2 of DSS...
+```
 
 
 ```{r ESLR-CV}

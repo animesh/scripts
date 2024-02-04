@@ -32,20 +32,35 @@ t.test(c(24.00049729, 23.97020359, 24.91145672), c(24.93876407, 24.84723287, 23.
 #[1] 0.5304824
 ```
 
-```{r dataCluster}
+```{r data}
 #| context: setup
 #| include: true
-inpF<-"L:\\promec\\TIMSTOF\\LARS\\2023\\230222 Katja\\Protein comparison ADN3 vs AD for figure 1.csv"
-data<-read.csv(inpF,header=TRUE,sep=",",row.names=1)
-#data<-scale(data)
-summary(data)
-dataNAR<-data
-dataNAR[is.na(dataNAR)]<-0
-summary(dataNAR)
-svgPHC<-pheatmap::pheatmap(data,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=F,cluster_rows=F,fontsize_col  = 8,na_col = "grey")
-#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",annotation_row = anno, annotation_col = anno,fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
-#pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=T,fontsize_col  = 4,labels_col = label$Sample.Number,labels_row = label$Cell.Type_Sample.Group)
-#svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,labels_row = paste(label$RawFnum,label$ID_ROLF,label$Tank,label$Diet,label$Fish))
+inpF<-"F:/OneDrive - NTNU/Desktop/Tobias/Tables Filtered, Uniprot updated for all DEPs at 1.5, 0.05 Geir.xlsx"
+data<-readxl::read_xlsx(inpF,sheet=1)
+colnames(data)<-data[1,]
+data$`Gene names`<-toupper(data$`Gene names`)
+genes<-readxl::read_xlsx(inpF,sheet=2)
+genesDF<-data.frame(Gene=(unique(genes[,"DNA repair genes...1"])))
+colnames(genesDF)<-"Gene names"
+genesDF$`Gene names`<-toupper(genesDF$`Gene names`)
+genesDF<-merge(genesDF,data,by="Gene names",all.x=T)
+genesDF<-genesDF[!duplicated(genesDF$`Gene names`),]
+genesDF<-genesDF[!is.na(genesDF$`Gene names`),]
+rownames(genesDF)<-genesDF$`Gene names`
+genesDF<-genesDF[,c(5:10)]
+rN<-rownames(genesDF)
+genesDF<-sapply(genesDF,as.numeric)
+#genesDF<-genesDF[!is.na(rowSums(genesDF)),]
+#rownames(genesDF)<-rN
+summary((genesDF))
+```
+
+```{r cluster}
+bk1 <- c(seq(range(genesDF,na.rm=T)[1],range(genesDF,na.rm=T)[1]+(range(genesDF,na.rm=T)[2]-range(genesDF,na.rm=T)[1])/2,by=0.01))
+bk2 <- c(seq(range(genesDF,na.rm=T)[1]+(range(genesDF,na.rm=T)[2]-range(genesDF,na.rm=T)[1])/2,range(genesDF,na.rm=T)[2],by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+palette <- c(colorRampPalette(colors = c("green", "black"))(n = length(bk1)-1),"black", "black",c(colorRampPalette(colors = c("black","red"))(n = length(bk2)-1)))
+svgPHC<-pheatmap::pheatmap(genesDF,color = palette,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=F,fontsize_col  = 8,na_col = "grey")
 ggplot2::ggsave(file=paste0(inpF,"log2selectClust.svg"),plot=svgPHC,width=6, height=10,dpi = 320)#,  
 ```
 

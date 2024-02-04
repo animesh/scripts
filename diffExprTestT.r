@@ -1,9 +1,9 @@
 #git checkout fe5f9e92f3fe5ca0c75e9d8acfd211feb7358066 diffExprTestT.r
 #"f:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" diffExprTestT.r "F:\OneDrive - NTNU\Desktop\Mathilde\rawdata_from animesh 2.txt" "F:\OneDrive - NTNU\Desktop\Mathilde\Groups.txt" Bio Rem
-#inpF <-"F:/OneDrive - NTNU/Desktop/Mathilde/rawdata_from animesh 2.txt"
-#inpL <-"F:/OneDrive - NTNU/Desktop/Mathilde/Groups.txt"
-#lGroup<-"Bio"
-#rGroup<-"Rem"
+inpF <-"F:/OneDrive - NTNU/Desktop/Mathilde/rawdata_from animesh 2.txt"
+inpL <-"F:/OneDrive - NTNU/Desktop/Mathilde/Groups.txt"
+lGroup<-"Bio"
+rGroup<-"Rem"
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -35,8 +35,8 @@ pdf(outP)
 #data####
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
 ##clean####
-#data = data[!data$Reverse=="+",]
-#data = data[!data$Potential.contaminant=="+",]
+data = data[!data$Reverse=="+",]
+data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
 row.names(data)<-paste(row.names(data),data[,grep("Fasta.headers",colnames(data))],data[,grep("Protein.IDs",colnames(data))],data[,grep("Protein.names",colnames(data))],data[,grep("Gene.names",colnames(data))],data[,grep("Score",colnames(data))],data[,grep("Peptide.counts..unique.",colnames(data))],sep=";;")
 summary(data)
@@ -107,6 +107,17 @@ colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = annoR,annotation_col = annoR)
 ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"cluster.svg"), svgPHC)
+#vstLFQ####
+#BiocManager::install("DESeq2")
+vstLFQ<-apply(LFQ,2,function(x) ceiling(x))
+vstLFQ<-DESeq2::vst(vstLFQ)
+boxplot(vstLFQ,las=2)
+#corHClfq####
+log2LFQimpCorr<-cor(vstLFQ,use="pairwise.complete.obs",method="pearson")
+colnames(log2LFQimpCorr)<-colnames(vstLFQ)
+rownames(log2LFQimpCorr)<-colnames(vstLFQ)
+svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = annoR,annotation_col = annoR)
+ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"vst.cluster.svg"), svgPHC)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr){
   #sel1<-"AMHC"
