@@ -40,7 +40,7 @@ nextflow  -v
 #nextflow run hello
 #nextflow pull nf-core/sarek
 #https://nf-co.re/sarek/3.4.0/docs/usage  -r <pipeline version eg 3.4> for Reproducibility
-#nf-core/rnaseq  --max_memory '256.GB' --max_cpus 30  --outdir hg38varall --input samples.csv   -profile singularity -resume
+#nf-core/rnaseq  --max_memory '256.GB' --max_cpus 30  --outdir hg38varall --input samples.csv   -profile singularity  --tools vep -resume
 nextflow run 'https://github.com/nf-core/sarek' -params-file nextflow.json -with-tower -r 3.4.0 -profile singularity
 #nextflow run https://github.com/nf-core/sarek -name marvelous_kimura -params-file https://api.tower.nf/ephemeral/gGO6qmeGxQ6OUZJDOXPC1g.json -with-tower -r 3.4.0 -profile singularity
 #cd /cluster/projects/nn9036k/scripts
