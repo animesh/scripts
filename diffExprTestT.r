@@ -1,3 +1,4 @@
+#setup####
 #git checkout fe5f9e92f3fe5ca0c75e9d8acfd211feb7358066 diffExprTestT.r
 #"f:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" diffExprTestT.r "F:\OneDrive - NTNU\Desktop\Mathilde\rawdata_from animesh 2.txt" "F:\OneDrive - NTNU\Desktop\Mathilde\Groups.txt" Bio Rem
 inpF <-"F:/OneDrive - NTNU/Desktop/Mathilde/rawdata_from animesh 2.txt"
@@ -21,6 +22,7 @@ inpF <- args[1]
 inpL <- args[2]
 lGroup <- args[3]
 rGroup <- args[4]
+#param####
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -73,12 +75,12 @@ boxplot(log2Intimp,las=2)
 bk1 <- c(seq(-1,-0.01,by=0.01))
 bk2 <- c(seq(0.01,1,by=0.01))
 bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
-my_palette <- c(colorRampPalette(colors = c("white", "orange"))(n = length(bk1)-1),"orange", "orange",c(colorRampPalette(colors = c("orange","red"))(n = length(bk2)-1)))
+palette <- c(colorRampPalette(colors = c("white", "orange"))(n = length(bk1)-1),"orange", "orange",c(colorRampPalette(colors = c("orange","red"))(n = length(bk2)-1)))
 colnames(log2Intimp)<-colnames(log2Int)
 log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="spearman")
 colnames(log2IntimpCorr)<-colnames(log2Int)
 rownames(log2IntimpCorr)<-colnames(log2Int)
-svgPHC<-pheatmap::pheatmap(log2IntimpCorr,color = my_palette,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = anno,annotation_col = anno)
+svgPHC<-pheatmap::pheatmap(log2IntimpCorr,color = palette,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = anno,annotation_col = anno)
 ggplot2::ggsave(paste0(inpF,"Intensity",lGroup,rGroup,lName,"cluster.svg"), svgPHC)
 #maxLFQ####
 LFQ<-as.matrix(data[,grep(selection,colnames(data))])
@@ -106,18 +108,28 @@ log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="pearson")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
 rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = annoR,annotation_col = annoR)
-ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"cluster.svg"), svgPHC)
+ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"cluster.svg"), svgPHC,width=10, height=8,dpi = 320)
 #vstLFQ####
 #BiocManager::install("DESeq2")
 vstLFQ<-apply(LFQ,2,function(x) ceiling(x))
+#vstLFQ[vstLFQ==0]=NA
+dim(vstLFQ)
+summary(vstLFQ)
 vstLFQ<-DESeq2::vst(vstLFQ)
-boxplot(vstLFQ,las=2)
+dim(vstLFQ)
+summary(vstLFQ)
+hist(vstLFQ)
+vstLFQ[vstLFQ==min(vstLFQ)]=NA
+dim(vstLFQ)
+summary(vstLFQ)
+hist(vstLFQ)
+#boxplot(vstLFQ,las=2)
 #corHClfq####
 log2LFQimpCorr<-cor(vstLFQ,use="pairwise.complete.obs",method="pearson")
 colnames(log2LFQimpCorr)<-colnames(vstLFQ)
 rownames(log2LFQimpCorr)<-colnames(vstLFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = annoR,annotation_col = annoR)
-ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"vst.cluster.svg"), svgPHC)
+ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"vstNA.cluster.svg"), svgPHC,width=10, height=8,dpi = 320)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr){
   #sel1<-"AMHC"
