@@ -2,31 +2,13 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/uniprot-human-iso-jan24.fasta</fastaFilePath>
+         <fastaFilePath>SequencesFasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
          <taxonomyId></taxonomyId>
-      </FastaFileInfo>
-      <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/UP000005640_9606.fasta</fastaFilePath>
-         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
-         <descriptionParseRule>>(.*)</descriptionParseRule>
-         <taxonomyParseRule></taxonomyParseRule>
-         <variationParseRule></variationParseRule>
-         <modificationParseRule></modificationParseRule>
-         <taxonomyId>9606</taxonomyId>
-      </FastaFileInfo>
-      <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/UP000005640_9606_additional.fasta</fastaFilePath>
-         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
-         <descriptionParseRule>>(.*)</descriptionParseRule>
-         <taxonomyParseRule></taxonomyParseRule>
-         <variationParseRule></variationParseRule>
-         <modificationParseRule></modificationParseRule>
-         <taxonomyId>9606</taxonomyId>
       </FastaFileInfo>
    </fastaFiles>
    <fastaFilesProteogenomics>
@@ -53,19 +35,19 @@
    <minScoreUnmodifiedPeptides>0</minScoreUnmodifiedPeptides>
    <minScoreModifiedPeptides>40</minScoreModifiedPeptides>
    <secondPeptide>True</secondPeptide>
-   <matchBetweenRuns>True</matchBetweenRuns>
+   <matchBetweenRuns>False</matchBetweenRuns>
    <matchUnidentifiedFeatures>False</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
-   <dependentPeptides>False</dependentPeptides>
-   <dependentPeptideFdr>0</dependentPeptideFdr>
-   <dependentPeptideMassBin>0</dependentPeptideMassBin>
+   <dependentPeptides>True</dependentPeptides>
+   <dependentPeptideFdr>0.01</dependentPeptideFdr>
+   <dependentPeptideMassBin>0.0065</dependentPeptideMassBin>
    <dependentPeptidesBetweenRuns>False</dependentPeptidesBetweenRuns>
    <dependentPeptidesWithinExperiment>False</dependentPeptidesWithinExperiment>
    <dependentPeptidesWithinParameterGroup>False</dependentPeptidesWithinParameterGroup>
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
    <ibaq>True</ibaq>
-   <top3>False</top3>
+   <top3>True</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
    <splitProteinGroupsByTaxonomy>False</splitProteinGroupsByTaxonomy>
@@ -115,10 +97,10 @@
       <string>Acetyl (Protein N-term)</string>
       <string>Deamidation (NQ)</string>
    </restrictMods>
-   <matchingTimeWindow>1</matchingTimeWindow>
-   <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
-   <alignmentTimeWindow>20</alignmentTimeWindow>
-   <alignmentIonMobilityWindow>1</alignmentIonMobilityWindow>
+   <matchingTimeWindow>0</matchingTimeWindow>
+   <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
+   <alignmentTimeWindow>0</alignmentTimeWindow>
+   <alignmentIonMobilityWindow>0</alignmentIonMobilityWindow>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
    <quantMode>2</quantMode>
@@ -147,13 +129,13 @@
    <name>session1</name>
    <maxQuantVersion>2.4.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>24</numThreads>
+   <numThreads>5</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
-   <fixedCombinedFolder></fixedCombinedFolder>
-   <fullMinMz>-1.79589544172745E+308</fullMinMz>
-   <fullMaxMz>1.79589544172745E+308</fullMaxMz>
+   <fixedCombinedFolder>LocalCombinedFolder</fixedCombinedFolder>
+   <fullMinMz>-1.79769313486232E+308</fullMinMz>
+   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -163,159 +145,21 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_ATc2_02_Slot1-1_1_6333.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_ATc2_Slot1-1_1_6294.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_MHC6_02_Slot1-2_1_6329.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_MHC6_Slot1-2_1_6296.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_RP2_02_Slot1-3_1_6319.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_RP2_Slot1-3_1_6298.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_RP4_02_Slot1-4_1_6325.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_iPSC_RP4_Slot1-4_1_6300.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_ATc2_02_Slot1-5_1_6323.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_ATc2_Slot1-5_1_6302.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_MHC6_Slot1-6_1_6304.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP2_02_Slot1-7_1_6331.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP2_02_Slot1-7_1_6335.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP2_Slot1-7_1_6306.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP4_02_Slot1-8_1_6327.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day10_RP4_Slot1-8_1_6308.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_ATc2_02_Slot1-9_1_6321.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_ATc2_Slot1-9_1_6310.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_MHC6_02_Slot1-10_1_6341.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_MHC6_Slot1-10_1_6312.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_RP2_02_Slot1-11_1_6339.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_RP2_Slot1-11_1_6314.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_RP4_02_Slot1-12_1_6337.d</string>
-      <string>/cluster/projects/nn9036k/scripts/20240127_PRPF31_DevelopmentalStudy/20240125_RO-day27_RP4_Slot1-12_1_6316.d</string>
+      <string>TestFile.raw</string>
    </filePaths>
    <experiments>
-      <string>iPSC_ATc2_02_Slot1-1_1_6333</string>
-      <string>iPSC_ATc2_Slot1-1_1_6294</string>
-      <string>iPSC_MHC6_02_Slot1-2_1_6329</string>
-      <string>iPSC_MHC6_Slot1-2_1_6296</string>
-      <string>iPSC_RP2_02_Slot1-3_1_6319</string>
-      <string>iPSC_RP2_Slot1-3_1_6298</string>
-      <string>iPSC_RP4_02_Slot1-4_1_6325</string>
-      <string>iPSC_RP4_Slot1-4_1_6300</string>
-      <string>RO-day10_ATc2_02_Slot1-5_1_6323</string>
-      <string>RO-day10_ATc2_Slot1-5_1_6302</string>
-      <string>RO-day10_MHC6_Slot1-6_1_6304</string>
-      <string>RO-day10_RP2_02_Slot1-7_1_6331</string>
-      <string>RO-day10_RP2_02_Slot1-7_1_6335</string>
-      <string>RO-day10_RP2_Slot1-7_1_6306</string>
-      <string>RO-day10_RP4_02_Slot1-8_1_6327</string>
-      <string>RO-day10_RP4_Slot1-8_1_6308</string>
-      <string>RO-day27_ATc2_02_Slot1-9_1_6321</string>
-      <string>RO-day27_ATc2_Slot1-9_1_6310</string>
-      <string>RO-day27_MHC6_02_Slot1-10_1_6341</string>
-      <string>RO-day27_MHC6_Slot1-10_1_6312</string>
-      <string>RO-day27_RP2_02_Slot1-11_1_6339</string>
-      <string>RO-day27_RP2_Slot1-11_1_6314</string>
-      <string>RO-day27_RP4_02_Slot1-12_1_6337</string>
-      <string>RO-day27_RP4_Slot1-12_1_6316</string>
+      <string></string>
    </experiments>
    <fractions>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
       <short>32767</short>
    </fractions>
    <ptms>
       <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
       <string></string>
    </referenceChannel>
    <lfqTopNPeptides>0</lfqTopNPeptides>
@@ -332,8 +176,8 @@
          <andromeda20AltModelPath></andromeda20AltModelPath>
          <andromeda20DefaultModel>False</andromeda20DefaultModel>
          <useAndromeda20>False</useAndromeda20>
-         <msInstrument>4</msInstrument>
-         <maxCharge>4</maxCharge>
+         <msInstrument>0</msInstrument>
+         <maxCharge>7</maxCharge>
          <minPeakLen>2</minPeakLen>
          <diaMinPeakLen>1</diaMinPeakLen>
          <useMs1Centroids>False</useMs1Centroids>
@@ -343,23 +187,23 @@
          <minTime>NaN</minTime>
          <maxTime>NaN</maxTime>
          <matchType>MatchFromAndTo</matchType>
-         <intensityDetermination>1</intensityDetermination>
-         <centroidMatchTol>10</centroidMatchTol>
+         <intensityDetermination>0</intensityDetermination>
+         <centroidMatchTol>8</centroidMatchTol>
          <centroidMatchTolInPpm>True</centroidMatchTolInPpm>
          <centroidHalfWidth>35</centroidHalfWidth>
          <centroidHalfWidthInPpm>True</centroidHalfWidthInPpm>
-         <valleyFactor>1.1</valleyFactor>
+         <valleyFactor>1.4</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
-         <advancedPeakSplitting>True</advancedPeakSplitting>
+         <advancedPeakSplitting>False</advancedPeakSplitting>
          <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>30</intensityThresholdMs1Dia>
          <intensityThresholdMs2>10</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
-         <lcmsRunType>TIMS-DDA</lcmsRunType>
-         <reQuantify>True</reQuantify>
-         <lfqMode>1</lfqMode>
+         <lcmsRunType>Standard</lcmsRunType>
+         <reQuantify>False</reQuantify>
+         <lfqMode>0</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
          <lfqAvEdgesPerNode>6</lfqAvEdgesPerNode>
@@ -371,7 +215,7 @@
          <fastLfq>True</fastLfq>
          <lfqRestrictFeatures>False</lfqRestrictFeatures>
          <lfqMinRatioCount>1</lfqMinRatioCount>
-         <lfqMinRatioCountDia>5</lfqMinRatioCountDia>
+         <lfqMinRatioCountDia>1</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
          <maxLabeledAa>0</maxLabeledAa>
          <maxNmods>5</maxNmods>
@@ -415,14 +259,14 @@
          <firstSearchTol>20</firstSearchTol>
          <mainSearchTol>10</mainSearchTol>
          <searchTolInPpm>True</searchTolInPpm>
-         <isotopeMatchTol>0.005</isotopeMatchTol>
-         <isotopeMatchTolInPpm>False</isotopeMatchTolInPpm>
+         <isotopeMatchTol>2</isotopeMatchTol>
+         <isotopeMatchTolInPpm>True</isotopeMatchTolInPpm>
          <isotopeTimeCorrelation>0.6</isotopeTimeCorrelation>
          <theorIsotopeCorrelation>0.6</theorIsotopeCorrelation>
-         <checkMassDeficit>False</checkMassDeficit>
+         <checkMassDeficit>True</checkMassDeficit>
          <recalibrationInPpm>True</recalibrationInPpm>
-         <intensityDependentCalibration>True</intensityDependentCalibration>
-         <minScoreForCalibration>40</minScoreForCalibration>
+         <intensityDependentCalibration>False</intensityDependentCalibration>
+         <minScoreForCalibration>70</minScoreForCalibration>
          <matchLibraryFile>False</matchLibraryFile>
          <libraryFile></libraryFile>
          <matchLibraryMassTolPpm>0</matchLibraryMassTolPpm>
@@ -433,10 +277,10 @@
          <filterPif>False</filterPif>
          <reporterFraction>NaN</reporterFraction>
          <reporterBasePeakRatio>NaN</reporterBasePeakRatio>
-         <timsHalfWidth>10</timsHalfWidth>
-         <timsStep>3</timsStep>
-         <timsResolution>35000</timsResolution>
-         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
+         <timsHalfWidth>0</timsHalfWidth>
+         <timsStep>0</timsStep>
+         <timsResolution>0</timsResolution>
+         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -479,7 +323,7 @@
          <diaLabelIndsForLibraryMatch>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
-         <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
+         <diaInitialFragMassTolPpm>20</diaInitialFragMassTolPpm>
          <diaCorrThresholdFeatureClustering>0.85</diaCorrThresholdFeatureClustering>
          <diaPrecTolPpmFeatureClustering>2</diaPrecTolPpmFeatureClustering>
          <diaFragTolPpmFeatureClustering>2</diaFragTolPpmFeatureClustering>
@@ -495,7 +339,7 @@
          <diaTopNForQuant>12</diaTopNForQuant>
          <diaTopNCorrelationForQuant>7</diaTopNCorrelationForQuant>
          <diaFragmentCorrelationForQuant>0.78</diaFragmentCorrelationForQuant>
-         <diaMinMsmsIntensityForQuant>30</diaMinMsmsIntensityForQuant>
+         <diaMinMsmsIntensityForQuant>0</diaMinMsmsIntensityForQuant>
          <diaTopMsmsIntensityQuantileForQuant>0.85</diaTopMsmsIntensityQuantileForQuant>
          <diaMinFragmentOverlapScore>0</diaMinFragmentOverlapScore>
          <diaMinPrecursorScore>0</diaMinPrecursorScore>
@@ -529,8 +373,8 @@
          <diaMaxPrecursorMz>0</diaMaxPrecursorMz>
          <diaHardRtFilter>True</diaHardRtFilter>
          <diaConvertLibraryCharge2Fragments>False</diaConvertLibraryCharge2Fragments>
-         <diaChargeNormalizationLibrary>False</diaChargeNormalizationLibrary>
-         <diaChargeNormalizationSample>False</diaChargeNormalizationSample>
+         <diaChargeNormalizationLibrary>True</diaChargeNormalizationLibrary>
+         <diaChargeNormalizationSample>True</diaChargeNormalizationSample>
          <diaDeleteIntermediateResults>True</diaDeleteIntermediateResults>
          <diaScoreWeightScanIndex>-1</diaScoreWeightScanIndex>
          <diaScoreWeightScanValue>1</diaScoreWeightScanValue>

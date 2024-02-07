@@ -1,6 +1,6 @@
 #perl -pi -e's/\015\012/\012/g' slurmMQrun.sh
 #perl -pi -e's/\015\012/\012/g' scratch.slurm
-#perl -pi -e's/\015\012/\012/g' mqpar.K8R10.xml
+#perl -pi -e's/\015\012/\012/g' mqpar.xml
 #bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_v2.1.4.0/bin/MaxQuantCmd.exe $PWD/MM /cluster/projects/nn9036k/FastaDB/sORFidAAleeGaoComb.unstar.fasta mqpar.K8R10.xml scratch.slurm
 #perl -pi -e's/\015\012/\012/g' slurmMQrun.sh
 #make sure mqrun.xml is in the directory where the script is and CHANGE following paths according to the MaxQuant Installation and representative parameter file for that version respectively CANNOT handle path containing spaces! create a symlink in such cases e.g. 
@@ -12,7 +12,7 @@ DATADIR=$2
 FASTAFILE=$3
 PARAMFILE=$4
 MQSLURMFILE=$5
-CPU=40
+CPU=5
 FDR=0.01
 #leave following empty to include ALL files
 PREFIXRAW=
@@ -24,7 +24,7 @@ LDIR=$PWD
 CURRENTEPOCTIME=`date +%s`
 WRITEDIR=$PARAMFILE.$CURRENTEPOCTIME.results
 mkdir $WRITEDIR
-for i in $DATADIR/*raw ; do echo $i ; 	j=$(basename $i) ; 	k=${j%%.*} ; mkdir $WRITEDIR/$k ; cp $i $WRITEDIR/$k ; sed "s|$SEARCHTEXT2|$FASTAFILE|" $LDIR/$PARAMFILE > $WRITEDIR/$k/$PARAMFILE.tmp1 ; 	sed "s|$SEARCHTEXT|$LDIR/$WRITEDIR/$k/$j|"  $WRITEDIR/$k/$PARAMFILE.tmp1 > $WRITEDIR/$k/$PARAMFILE.tmp2 ; sed "s|$SEARCHTEXT4|Fdr>$FDR|"  $WRITEDIR/$k/$PARAMFILE.tmp2 > $WRITEDIR/$k/$PARAMFILE.tmp3 ; sed "s|$SEARCHTEXT3|$LDIR/$WRITEDIR/$k|"  $WRITEDIR/$k/$PARAMFILE.tmp3 > $WRITEDIR/$k/$k.xml ; rm $WRITEDIR/$k/$PARAMFILE.tmp*  ;done
+for i in $DATADIR/*.raw ; do echo $i ; 	j=$(basename $i) ; 	k=${j%%.*} ; mkdir $WRITEDIR/$k ; cp $i $WRITEDIR/$k ; sed "s|$SEARCHTEXT2|$FASTAFILE|" $LDIR/$PARAMFILE > $WRITEDIR/$k/$PARAMFILE.tmp1 ; 	sed "s|$SEARCHTEXT|$LDIR/$WRITEDIR/$k/$j|"  $WRITEDIR/$k/$PARAMFILE.tmp1 > $WRITEDIR/$k/$PARAMFILE.tmp2 ; sed "s|$SEARCHTEXT4|Fdr>$FDR|"  $WRITEDIR/$k/$PARAMFILE.tmp2 > $WRITEDIR/$k/$PARAMFILE.tmp3 ; sed "s|$SEARCHTEXT3|$LDIR/$WRITEDIR/$k|"  $WRITEDIR/$k/$PARAMFILE.tmp3 > $WRITEDIR/$k/$k.xml ; rm $WRITEDIR/$k/$PARAMFILE.tmp*  ;done
 #mono $MAXQUANTCMD $k.xml ; cp -rf ./combined/txt $k.REP ; echo $k ; cd $LDIR 
 #find $WRITEDIR -name "*.xml" | parallel -j $CPU "mono $MAXQUANTCMD {}"
 #perl -pe 's/\r$//' < mqrun.sh  > tmp
@@ -40,13 +40,14 @@ echo $WRITEDIR
 #-n for dryrun, -p <#checkpoint>
 #date -d @1604251727
 #find $WRITEDIR -name "proteinGroups.txt"  | xargs ls -ltrh
+
 for i in $PWD/$WRITEDIR/*/*.xml
 #for i in $PWD/mqparTTP.phoSTY.xml.1663657305.results/*/*.xml 
     do echo $i
     j=$(basename $i)
     k=${j%%.*}
     d=$(dirname $i) 
-    printf "$i\t$j\t$kt\t$d\n" | tee $d/$k.txt
+    printf "$i\t$j\t$k\t$d\n" | tee $d/$k.txt
     cat $d/$k.txt
     #cp MQSLURMFILE $d/$k.slurm 
     cp scratch.slurm $d/$k.slurm 
@@ -61,7 +62,7 @@ done
 tail -n 4 $WRITEDIR/*/*.slurm
 ls $WRITEDIR/*/*.slurm | wc
 #ls -ltrh $WRITEDIR/*/*.txt
-#tail -f $WRITEDIR/*/*.txt
+tail -f $WRITEDIR/*/*.txt
 #for i in mqpar.K8R10.xml.1664621075.results/*/*.txt ; do s=$(stat --format=%s $i) ; if (($s>10000)); then j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; ls -ltrh $d/$k.slurm; rm -rf $d/$k ; rm -rf $d/combined ; rm $d/$k.index ; sbatch $d/$k.slurm ; fi; done
 #for i in mqpar.K8R10.xml.1664621075.results/*/*.slurm ; do echo $i ; sed 's/=36/=128/g' $i > $i.p11.slurm ; done
 #for i in mqpar.K8R10.xml.1664621075.results/*/combined/txt/prot*.txt ; do s=$(stat --format=%s $i) ; if (($s>10000)); then j=$(basename $i) ; k=${j%%.*} 1188* 2022-11-01T18:38:16 
@@ -73,3 +74,4 @@ ls $WRITEDIR/*/*.slurm | wc
 #tail -f mqpar.K8R10.xml.*/*/*.txt 
 #for i in mqpar.K8R10.xml.1669563940.results/*/*.slurm ; do j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; if [[ ! -f $d/combined/txt/proteinGroups.txt ]] ; then ls -ltrh $d/*.txt ; rm -rf $d/combined ; sbatch $i ; fi; done
 
+#bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_2.4.3.0/bin/MaxQuantCmd.exe /cluster/work/users/ash022/ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946 /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000000589_2024_01_18.fasta mqpar.xml scratch.slurm 
