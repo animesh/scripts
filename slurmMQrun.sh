@@ -73,5 +73,8 @@ tail -f $WRITEDIR/*/*.txt
 #bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_v2.1.4.0/bin/MaxQuantCmd.exe $PWD/P36729 /cluster/projects/nn9036k/FastaDB/sORFidAAleeGaoComb.unstar.fasta mqpar.K8R10.xml scratch.slurm
 #tail -f mqpar.K8R10.xml.*/*/*.txt 
 #for i in mqpar.K8R10.xml.1669563940.results/*/*.slurm ; do j=$(basename $i) ; k=${j%%.*} ; d=$(dirname $i) ; if [[ ! -f $d/combined/txt/proteinGroups.txt ]] ; then ls -ltrh $d/*.txt ; rm -rf $d/combined ; sbatch $i ; fi; done
-
+#wget https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946/SampleAnnotation.xlsx
+#Rscript parseXLS2list.r PXD039946/SampleAnnotation.xlsx > list
+#awk '{print  "https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946/"$3}' list  | xargs wget
+#dos2unix mqpar.xml scratch.slurm slurmMQrun.sh
 #bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_2.4.3.0/bin/MaxQuantCmd.exe /cluster/work/users/ash022/ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946 /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000000589_2024_01_18.fasta mqpar.xml scratch.slurm 

@@ -127,15 +127,15 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.4.3.0</maxQuantVersion>
+   <maxQuantVersion>2.4.13.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
    <numThreads>5</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
    <fixedCombinedFolder>LocalCombinedFolder</fixedCombinedFolder>
-   <fullMinMz>-1.79769313486232E+308</fullMinMz>
-   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
+   <fullMinMz>-1.79589544172745E+308</fullMinMz>
+   <fullMaxMz>1.79589544172745E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -362,8 +362,11 @@
          <diaBackgroundSubtractionFactor>4</diaBackgroundSubtractionFactor>
          <diaLfqRatioType>0</diaLfqRatioType>
          <diaTransferQvalue>0.3</diaTransferQvalue>
+         <diaTransferQvalueBetweenLabels>0.01</diaTransferQvalueBetweenLabels>
+         <diaTransferQvalueBetweenFractions>0.01</diaTransferQvalueBetweenFractions>
+         <diaTransferQvalueBetweenFaims>0.01</diaTransferQvalueBetweenFaims>
          <diaOnlyIsosForRecal>True</diaOnlyIsosForRecal>
-         <diaMinPeaksForRecal>5</diaMinPeaksForRecal>
+         <diaMinPeaks>5</diaMinPeaks>
          <diaUseFragIntensForMl>False</diaUseFragIntensForMl>
          <diaUseFragMassesForMl>False</diaUseFragMassesForMl>
          <diaMaxTrainInstances>500000</diaMaxTrainInstances>
@@ -386,7 +389,7 @@
          <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
          <diaAltCcsModelPath></diaAltCcsModelPath>
          <diaBatchProcessing>True</diaBatchProcessing>
-         <diaBatchSize>10</diaBatchSize>
+         <diaBatchSize>25</diaBatchSize>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
@@ -406,7 +409,10 @@
          <classicLfqForSingleShots>True</classicLfqForSingleShots>
          <sequenceBasedModifier>False</sequenceBasedModifier>
          <diaRtFromSamplesForExport>True</diaRtFromSamplesForExport>
+         <diaCcsFromSamplesForExport>True</diaCcsFromSamplesForExport>
          <diaLibraryExport>0</diaLibraryExport>
+         <diaUseApexWeightsForPtmLoc>False</diaUseApexWeightsForPtmLoc>
+         <diaSecondScoreForMultiplex>True</diaSecondScoreForMultiplex>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
