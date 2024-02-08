@@ -39,6 +39,9 @@ inpF<-"F:/OneDrive - NTNU/Desktop/Tobias/Tables Filtered, Uniprot updated for al
 data<-readxl::read_xlsx(inpF,sheet=1)
 colnames(data)<-data[1,]
 data$`Gene names`<-toupper(data$`Gene names`)
+genesDF<-data[,c(5:10)]
+genesDF<-genesDF[-1,]
+genesDF<-sapply(genesDF,as.numeric)
 genes<-readxl::read_xlsx(inpF,sheet=2)
 genesDF<-data.frame(Gene=(unique(genes[,"DNA repair genes...1"])))
 colnames(genesDF)<-"Gene names"
@@ -65,13 +68,13 @@ ggplot2::ggsave(file=paste0(inpF,"log2selectClust.svg"),plot=svgPHC,width=6, hei
 ```
 
 ```{r proteinGroups, echo=FALSE}
-inpF<-paste0(inpD,"proteinGroups.txt")
+inpF<-"F:/OneDrive - NTNU/Desktop/Tobias/proteinGroups.txt"
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
 #clean
-#data = data[!data$Reverse=="+",]
-#data = data[!data$Potential.contaminant=="+",]
+data = data[!data$Reverse=="+",]
+data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
-row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
+#row.names(data)<-paste(row.names(data),data$Fasta.headers,data$Protein.IDs,data$Protein.names,data$Gene.names,data$Score,data$Peptide.counts..unique.,sep=";;")
 summary(data)
 dim(data)
 hist(as.matrix(log2(data[,grep("Intensity",colnames(data))])))
@@ -88,31 +91,49 @@ log2LFQ[log2LFQ==-Inf]=NA
 log2LFQ[log2LFQ==0]=NA
 summary(log2LFQ)
 hist(log2LFQ)
-inpW<-paste0(inpD,hdr,"log2LFQ.xlsx")
+inpW<-paste0(inpF,"log2LFQ.xlsx")
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),inpW)
 ```
 
 ```{r label}
-inpL<-paste0(inpD,"Groups.txt")
-#lGroup<-"Grpup"
-lGroup<-"Gender"
-#lGroup<-"Bio"
-rGroup<-"Rem"
-label<-read.table(inpL,header=T,row.names=1,sep="\t")#, colClasses=c(rep("factor",3)))
-rownames(label)<-gsub("LFQ intensity ","",rownames(label))
-rownames(label)<-gsub("\\-","\\.",rownames(label))
-label
-annoFactor<-label[lGroup]
-names(annoFactor)<-lGroup
-anno<-data.frame(factor(label[,lGroup]))
+label<-data.frame(Bio=sapply(strsplit(colnames(log2LFQ),"_",fixed=T), "[", 1))
+rownames(label)<-colnames(log2LFQ)
+annoFactor<-label["Bio"]
+names(annoFactor)<-"Bio"
+anno<-data.frame(factor(label[,"Bio"]))
 row.names(anno)<-rownames(label)
-names(anno)<-lGroup
+names(anno)<-"Bio"
 table(anno)
-annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',]),]))
-row.names(annoR)<-rownames(label[is.na(label[rGroup])|label[rGroup]==" "|label[rGroup]=='',])
-names(annoR)<-lGroup
+label["rGroup"]<-rep(NA,nrow(label))
+annoR<-data.frame(factor(annoFactor[rownames(label[is.na(label["rGroup"])|label["rGroup"]==" "|label["rGroup"]=='',]),]))
+row.names(annoR)<-rownames(label[is.na(label["rGroup"])|label["rGroup"]==" "|label["rGroup"]=='',])
+names(annoR)<-"Bio"
 summary(annoR)
+```
+
+```{r pgClust}
+bk1 <- c(seq(range(log2LFQ,na.rm=T)[1],range(log2LFQ,na.rm=T)[1]+(range(log2LFQ,na.rm=T)[2]-range(log2LFQ,na.rm=T)[1])/2,by=0.01))
+bk2 <- c(seq(range(log2LFQ,na.rm=T)[1]+(range(log2LFQ,na.rm=T)[2]-range(log2LFQ,na.rm=T)[1])/2,range(log2LFQ,na.rm=T)[2],by=0.01))
+bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
+palette <- c(colorRampPalette(colors = c("green", "black"))(n = length(bk1)-1),"black", "black",c(colorRampPalette(colors = c("black","red"))(n = length(bk2)-1)))
+log2LFQO<-log2LFQ[order(rowSums(log2LFQ,na.rm=T),decreasing = T),]
+svgPHC<-pheatmap::pheatmap(log2LFQO,color = palette,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=1,cluster_cols=T,cluster_rows=F,fontsize_col  = 4,na_col = "grey",annotation_col = annoR)
+ggplot2::ggsave(file=paste0(inpF,"log2Clust.svg"),plot=svgPHC,width=6, height=8,dpi=320)#,  
+svgPHC<-pheatmap::pheatmap(log2LFQO,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=1,cluster_cols=T,cluster_rows=F,fontsize_col  = 4,na_col = "white",annotation_col = annoR)
+ggplot2::ggsave(file=paste0(inpF,"log2ClustRYBW.svg"),plot=svgPHC,width=6, height=8,dpi = 320)#,  
+svgPHC<-pheatmap::pheatmap(log2LFQ,color = palette,clustering_distance_rows = "canberra",clustering_distance_cols = "canberra",fontsize_row=4,cluster_cols=T,cluster_rows=F,fontsize_col  = 4,na_col = "grey",annotation_col = annoR)
+svgPHC<-pheatmap::pheatmap(log2LFQ,color = palette,clustering_distance_rows = "binary",clustering_distance_cols = "binary",fontsize_row=4,cluster_cols=T,cluster_rows=F,fontsize_col  = 4,na_col = "grey",annotation_col = annoR)
+ggplot2::ggsave(file=paste0(inpF,"log2.svg"),plot=svgPHC,width=6, height=10,dpi = 320)#,  
+
+```
+
+```{r pgZmedClust}
+countTableDAuniGORNAddsMed<-apply(log2LFQ,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsSD<-apply(log2LFQ,1,function(x) sd(x,na.rm=T))
+countTableDAuniGORNAdds<-(log2LFQ-countTableDAuniGORNAddsMed)/countTableDAuniGORNAddsSD
+hist(countTableDAuniGORNAdds)
+svgPHC<-pheatmap::pheatmap(countTableDAuniGORNAdds,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=F,fontsize_col  = 4,na_col = "grey",annotation_col = annoR)
 ```
 
 

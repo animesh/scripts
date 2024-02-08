@@ -1,8 +1,25 @@
 ## CRAN
-install.packages("PTXQC")
+download.file("https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946/CellTypes_BrainRegions_Library.txt","F:\\OneDrive - NTNU\\Desktop\\CellTypes_BrainRegions_Library.txt")
+#wget https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946/SampleAnnotation.xlsx
+#Rscript parseXLS2list.r PXD039946/SampleAnnotation.xlsx > list
+#awk '{print  "https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946/"$3}' list  | xargs wget
+data<-read.table("F:/OneDrive - NTNU/Desktop/CellTypes_BrainRegions_Library.txt",header=T,sep="\t",row.names=NULL,quote="")#,skip=1
+summary(data$RelativeIntensity)
+par(mfrow=c(1,2))
+dataC<-data.frame(data[grep("CONT_",data$ProteinGroups),"RelativeIntensity"])
+dataM<-data.frame(data[-grep("CONT_",data$ProteinGroups),"RelativeIntensity"])
+boxplot(dataM)
+boxplot(dataC,col="red",main="contaminants")
+hist(data[-grep("CONT_",data$ProteinGroups),"RelativeIntensity"])
+hist(data[grep("CONT_",data$ProteinGroups),"RelativeIntensity"],main="contaminants",col="red")
+summary(dataM)
+summary(dataC)
+t.test(dataM,dataC)
+#install.packages("PTXQC")
 cat(paste0("\nPTXQC was installed to '", .libPaths()[1], "'.\n\n"))
 library("PTXQC")
-createReport("L:\\promec\\TIMSTOF\\LARS\\2023\\231005_Preeti_Kute\\combined\\txt")
+createReport("F:/OneDrive - NTNU/Desktop/Maike/MQv2p4p3/F9/combined/txtMBR")
+createReport("F:/OneDrive - NTNU/Desktop/Maike/MQv2p4p13/F9/combined/txtMBR")
 #check for peptides -> sequence with git clone https://github.com/pierrepeterlongo/kmer2sequences.git
 #f:\promec\Pythonv3p11\python.exe -m pip install AA_stat
 #f:\promec\Pythonv3p11\Scripts\AA_stat.exe --pepxml 230607_hela_Slot1-54_1_4598.pepXML
