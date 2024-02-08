@@ -77,4 +77,4 @@ tail -f $WRITEDIR/*/*.txt
 #Rscript parseXLS2list.r PXD039946/SampleAnnotation.xlsx > list
 #awk '{print  "https://ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946/"$3}' list  | xargs wget
 #dos2unix mqpar.xml scratch.slurm slurmMQrun.sh
-#bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_2.4.3.0/bin/MaxQuantCmd.exe /cluster/work/users/ash022/ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946 /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000000589_2024_01_18.fasta mqpar.xml scratch.slurm 
+#bash slurmMQrun.sh /cluster/projects/nn9036k/MaxQuant_v_2.4.13.0/bin/MaxQuantCmd.exe /cluster/work/users/ash022/ftp.pride.ebi.ac.uk/pride/data/archive/2023/11/PXD039946 /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000000589_2024_01_18.fasta mqpar.xml scratch.slurm
