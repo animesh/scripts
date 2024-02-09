@@ -3,7 +3,7 @@
    <fastaFiles>
       <FastaFileInfo>
          <fastaFilePath>SequencesFasta</fastaFilePath>
-         <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
+	 <identifierParseRule>>([^ ]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
