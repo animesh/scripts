@@ -95,7 +95,6 @@ hist(as.numeric(countTableDA$TK10))
 #annoENSGRNA<-annoENSG[grepl("^GO:0022626",annoENSG$V1),]
 #http://api.geneontology.org/api/bioentity/function/GO:0022626/genes
 #download.file("https://biit.cs.ut.ee/gprofiler_beta//static/gprofiler_full_hsapiens.ENSG.gmt","L:/promec/Animesh/TK/gprofiler_full_hsapiens.ENSG.gmt")
-
 #download.file("https://ftp.ensembl.org/pub/release-110/tsv/homo_sapiens/Homo_sapiens.GRCh38.110.uniprot.tsv.gz","F:/OneDrive - NTNU/Desktop/Homo_sapiens.GRCh38.110.uniprot.tsv.gz")
 annoENSG = read.table("F:/OneDrive - NTNU/Desktop/Homo_sapiens.GRCh38.110.uniprot.tsv.gz",header=T)#,sep=",")#row.names=1,
 colnames(countTableDA)
@@ -104,6 +103,7 @@ countTableDAuni<-merge(countTableDA,annoENSG,by.x='row.names',by.y='gene_stable_
 annoUniprot = read.table("F:/OneDrive - NTNU/Desktop/HUMAN_9606_idmapping_selected.tab.gz",header=F,sep="\t")#row.names=1,
 countTableDAuniGO<-merge(countTableDAuni,annoUniprot,by.x='xref',by.y='V1',all.x=T)
 write.csv(countTableDAuniGO,"F:/OneDrive - NTNU/Desktop/countTableDAuniGO.csv",row.names = F,quote = F)
+countTableDAuniGO<-read.csv("F:/OneDrive - NTNU/Desktop/TK/countTableDAuniGO.csv")
 countTableDAuniGORNA<-countTableDAuniGO[grep("GO:0022626",countTableDAuniGO$V7),]
 countTableDAuniGORNAdata<-countTableDAuniGORNA[,grep("TK",colnames(countTableDAuniGORNA))]
 countTableDAuniGORNAdata$Uniprot<-countTableDAuniGORNA$xref
@@ -117,4 +117,41 @@ hist(countTableDAuniGORNAdds$TK10)
 write.csv(countTableDAuniGORNAdds,"F:/OneDrive - NTNU/Desktop/countTableDAuniGORNAdds.csv",row.names = T,quote = F)
 svgPHC<-pheatmap::pheatmap(countTableDAuniGORNAdds,cluster_cols = T,cluster_rows = T,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,fontsize_col  = 8)
 ggplot2::ggsave("F:/OneDrive - NTNU/Desktop/countTableDAuniGORNAdds.svg", svgPHC,width=10, height=8,dpi = 320)
+countTableDAuniGORNAddsTK124<-countTableDAuniGORNAdd[,grep("TK12|TK13|TK14",colnames(countTableDAuniGORNAdd))]
+pValNA = apply(
+  countTableDAuniGORNAddsTK124, 1, function(x)
+    if(sum(!is.na(x)<2)){NA}
+    else{
+    t.test(as.numeric(x[c(2,3)]),as.numeric(x[c(1)]),var.equal=T,alternative= "greater")$p.value}
+)
+summary(warnings())
+hist(pValNA)
+summary(pValNA)
+countTableDAuniGORNAddsTK124$Pval<-pValNA
+pValBHna = p.adjust(pValNA,method = "BH")
+hist(pValBHna)
+summary(pValBHna)
+plot(pValBHna,pValNA,main=cor(pValBHna,pValNA,method = "spearman"))
+countTableDAuniGORNAddsTK124$corrPval<-pValBHna
+countTableDAuniGORNAddsTK124$Uniprot<-countTableDAuniGORNA$xref
+write.csv(countTableDAuniGORNAddsTK124,"F:/OneDrive - NTNU/Desktop/TK/countTableDAuniGORNAddsTK124.csv",row.names = T,quote = F)
+dataSel11<-read.csv("F:/OneDrive - NTNU/Desktop/TK/sel11smapL.txt",header=T,sep="\t")
+dataAnno<-read.csv("L:/promec/Animesh/TK/diffExprHG38lallSumOld/tables/annotation/Homo_sapiens.anno.tsv",header=T,sep="\t")
+dataSel11anno<-merge(dataSel11,dataAnno,by.x="Name",by.y="gene_name",all.x=T)
+dataSel11annoENSG<-dataSel11anno[,grep("Name|gene_id",colnames(dataSel11anno))]
+dataSel11annoENSG<-dataSel11annoENSG[!duplicated(dataSel11annoENSG),]
+dataVST<-read.csv("L:/promec/Animesh/TK/diffExprHG38lallSumOld/tables/processed_abundance/all.vst.tsv",header=T,sep="\t")
+dataSel11annoENSGvst<-merge(dataSel11annoENSG,dataVST,by="gene_id",all.x=T)
+write.csv(dataSel11annoENSGvst,"F:/OneDrive - NTNU/Desktop/TK/sel11smapLdata.csv")
+rownames(dataSel11annoENSGvst)<-dataSel11annoENSGvst$Name
+dataSel11annoENSGvst<-dataSel11annoENSGvst[,grep("TK",colnames(dataSel11annoENSGvst))]
+countTableDAuniGORNAddsMed<-apply(dataSel11annoENSGvst,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsSD<-apply(dataSel11annoENSGvst,1,function(x) sd(x,na.rm=T))
+dataSel11annoENSGvst<-(dataSel11annoENSGvst-countTableDAuniGORNAddsMed)/countTableDAuniGORNAddsSD
+hist(dataSel11annoENSGvst$TK10)
+pheatmap::pheatmap(dataSel11annoENSGvst)
+svgPHC<-pheatmap::pheatmap(dataSel11annoENSGvst,cluster_cols = T,cluster_rows = T,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,fontsize_col  = 8)
+ggplot2::ggsave("F:/OneDrive - NTNU/Desktop/TK/sel11smapLdata.svg", svgPHC,width=10, height=8,dpi = 320)
+write.csv(dataSel11annoENSGvst,"F:/OneDrive - NTNU/Desktop/TK/sel11smapLdataZ.csv",row.names = T,quote = F)
+
 
