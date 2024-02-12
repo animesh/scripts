@@ -105,10 +105,12 @@ countTableDAuniGO<-merge(countTableDAuni,annoUniprot,by.x='xref',by.y='V1',all.x
 write.csv(countTableDAuniGO,"F:/OneDrive - NTNU/Desktop/countTableDAuniGO.csv",row.names = F,quote = F)
 countTableDAuniGO<-read.csv("F:/OneDrive - NTNU/Desktop/TK/countTableDAuniGO.csv")
 countTableDAuniGORNA<-countTableDAuniGO[grep("GO:0022626",countTableDAuniGO$V7),]
-countTableDAuniGORNAdata<-countTableDAuniGORNA[,grep("TK",colnames(countTableDAuniGORNA))]
-countTableDAuniGORNAdata$Uniprot<-countTableDAuniGORNA$xref
+dataAnno<-read.csv("L:/promec/Animesh/TK/diffExprHG38lallSumOld/tables/annotation/Homo_sapiens.anno.tsv",header=T,sep="\t")
+dataSelRNAanno<-merge(countTableDAuniGORNA,dataAnno,by.x="Row.names",by.y="gene_id",all.x=T)
+countTableDAuniGORNAdata<-dataSelRNAanno[,grep("TK",colnames(countTableDAuniGORNA))]
+countTableDAuniGORNAdata$Gene<-dataSelRNAanno$gene_name
 countTableDAuniGORNAdd<-countTableDAuniGORNAdata[!duplicated(countTableDAuniGORNAdata), ]
-row.names(countTableDAuniGORNAdd)<-countTableDAuniGORNAdd$Uniprot
+row.names(countTableDAuniGORNAdd)<-countTableDAuniGORNAdd$Gene
 countTableDAuniGORNAdd<-countTableDAuniGORNAdd[,-ncol(countTableDAuniGORNAdd)]
 countTableDAuniGORNAddsMed<-apply(countTableDAuniGORNAdd,1,function(x) median(x,na.rm=T))
 countTableDAuniGORNAddsSD<-apply(countTableDAuniGORNAdd,1,function(x) sd(x,na.rm=T))
@@ -116,7 +118,7 @@ countTableDAuniGORNAdds<-(countTableDAuniGORNAdd-countTableDAuniGORNAddsMed)/cou
 hist(countTableDAuniGORNAdds$TK10)
 write.csv(countTableDAuniGORNAdds,"F:/OneDrive - NTNU/Desktop/countTableDAuniGORNAdds.csv",row.names = T,quote = F)
 svgPHC<-pheatmap::pheatmap(countTableDAuniGORNAdds,cluster_cols = T,cluster_rows = T,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,fontsize_col  = 8)
-ggplot2::ggsave("F:/OneDrive - NTNU/Desktop/countTableDAuniGORNAdds.svg", svgPHC,width=10, height=8,dpi = 320)
+ggplot2::ggsave("F:/OneDrive - NTNU/Desktop/TK/countTableDAuniGORNAdds.svg", svgPHC,width=10, height=8,dpi = 320)
 countTableDAuniGORNAddsTK124<-countTableDAuniGORNAdd[,grep("TK12|TK13|TK14",colnames(countTableDAuniGORNAdd))]
 pValNA = apply(
   countTableDAuniGORNAddsTK124, 1, function(x)
@@ -153,5 +155,17 @@ pheatmap::pheatmap(dataSel11annoENSGvst)
 svgPHC<-pheatmap::pheatmap(dataSel11annoENSGvst,cluster_cols = T,cluster_rows = T,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,fontsize_col  = 8)
 ggplot2::ggsave("F:/OneDrive - NTNU/Desktop/TK/sel11smapLdata.svg", svgPHC,width=10, height=8,dpi = 320)
 write.csv(dataSel11annoENSGvst,"F:/OneDrive - NTNU/Desktop/TK/sel11smapLdataZ.csv",row.names = T,quote = F)
-
+#https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0191629 https://youtu.be/OUxC2kIQOA4?t=1370
+dataVST<-read.csv("L:/promec/Animesh/TK/diffExprHG38lallSumOld/tables/processed_abundance/all.vst.tsv",header=T,sep="\t")
+rN<-dataVST$gene_id
+dataVST<-dataVST[,grep("TK",colnames(dataVST))]
+dataVST<-sapply(dataVST,as.numeric)
+hist(dataVST)
+pheatmap::pheatmap(dataVST)
+countTableDAuniGORNAddsMed<-apply(dataVST,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsSD<-apply(dataVST,1,function(x) sd(x,na.rm=T))
+dataVSTrle<-(dataVST-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
+hist(dataVSTrle)
+boxplot(dataVSTrle)
+pheatmap::pheatmap(dataVSTrle)
 

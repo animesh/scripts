@@ -131,8 +131,15 @@ ggplot2::ggsave(file=paste0(inpF,"log2.svg"),plot=svgPHC,width=6, height=10,dpi 
 ```{r pgZmedClust}
 countTableDAuniGORNAddsMed<-apply(log2LFQ,1,function(x) median(x,na.rm=T))
 countTableDAuniGORNAddsSD<-apply(log2LFQ,1,function(x) sd(x,na.rm=T))
+countTableDAuniGORNAdds<-(log2LFQ-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
+hist(countTableDAuniGORNAdds)
+par(mar=c(12,3,1,1))
+boxplot(countTableDAuniGORNAdds,las=2)
+svgPHC<-pheatmap::pheatmap(countTableDAuniGORNAdds,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=F,fontsize_col  = 4,na_col = "grey",annotation_col = annoR)
 countTableDAuniGORNAdds<-(log2LFQ-countTableDAuniGORNAddsMed)/countTableDAuniGORNAddsSD
 hist(countTableDAuniGORNAdds)
+par(mar=c(12,3,1,1))
+boxplot(countTableDAuniGORNAdds,las=2)
 svgPHC<-pheatmap::pheatmap(countTableDAuniGORNAdds,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=F,fontsize_col  = 4,na_col = "grey",annotation_col = annoR)
 ```
 
