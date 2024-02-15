@@ -29,3 +29,12 @@ bcftools mpileup -Ou -f reference.fa alignments.bam | bcftools call -mv -Ob -o c
 #can be made more sensitive or restrictive by using a different prior. Stricter calls are obtained by using smaller value, more benevolent calls are obtained by using bigger value. The default is bcftools call -P 1.1e-3
 #bcftools view -i '%QUAL>=20' calls.bcf
 https://github.com/animesh/e2b-cookbook/tree/main/guides/ai-github-developer-py
+nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input SISTNTCsamples.csv --contrasts SISTNTCcontrasts.csv --matrix SISTNTCintLFQ.tsv --gtf Mus_musculus.GRCm39.111.gtf -profile singularity --outdir SIup
+nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input SCSTNTCsamples.csv --contrasts SCSTNTCcontrasts.csv --matrix SCSTNTCintLFQ.tsv --gtf Mus_musculus.GRCm39.111.gtf -profile singularity --outdir SCup
+nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input ICSTNTCsamples.csv --contrasts ICSTNTCcontrasts.csv --matrix ICSTNTCintLFQ.tsv --gtf Mus_musculus.GRCm39.111.gtf -profile singularity --outdir ICup
+nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input BotoxSTNTCsamples.csv --contrasts BotoxSTNTCcontrasts.csv --matrix BotoxSTNTCintLFQ.tsv --gtf Mus_musculus.GRCm39.111.gtf -profile singularity --outdir BXup
+nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input BISTNTCsamples.csv --contrasts BISTNTCcontrasts.csv --matrix BISTNTCintLFQ.tsv --gtf Mus_musculus.GRCm39.111.gtf -profile singularity --outdir BIup
+nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input BICWSTNTCsamples.csv --contrasts BICWSTNTCcontrasts.csv --matrix BICWSTNTCintLFQ.tsv --gtf Mus_musculus.GRCm39.111.gtf -profile singularity --outdir BWup
+nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input BCSTNTCsamples.csv --contrasts BCSTNTCcontrasts.csv --matrix BCSTNTCintLFQ.tsv --gtf Mus_musculus.GRCm39.111.gtf -profile singularity --outdir BCup
+nextflow run nf-core/differentialabundance -r 1.4.0 --max_memory '80.GB' --max_cpus 20  --input AMHCSTNTCsamples.csv --contrasts AMHCSTNTCcontrasts.csv --matrix AMHCSTNTCintLFQ.tsv --gtf Mus_musculus.GRCm39.111.gtf -profile singularity --outdir ACup
+ 
