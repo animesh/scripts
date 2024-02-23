@@ -45,6 +45,16 @@ plot(B)
 ```
 
 ```{r}
+#NMDS https://rpubs.com/CPEL/NMDS ana basac fioccano
+data‹-nmds [, 2:7)
+#convert to percentages and compare
+nmds_result<-metaMDS(nmds_data, distance = "bray")
+plot (nmds_result)
+stressplot (nmds_result)
+nnds_result$stress
+```
+
+```{r}
 #Opening_DSS_Practice_Exercises
 #install.packages("remotes")
 remotes::install_github("rstudio/learnr")
