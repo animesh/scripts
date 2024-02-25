@@ -68,7 +68,7 @@ ggplot2::ggsave(file=paste0(inpF,"log2selectClust.svg"),plot=svgPHC,width=6, hei
 ```
 
 ```{r proteinGroups, echo=FALSE}
-inpF<-"F:/OneDrive - NTNU/Desktop/Tobias/proteinGroups.txt"
+inpF<-"L:/promec/Qexactive/Mirta/EYE_PRPF31/20240127_PRPF31_DevelopmentalStudy/combined/txt/proteinGroups.txt"
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
 #clean
 data = data[!data$Reverse=="+",]
@@ -135,12 +135,44 @@ countTableDAuniGORNAdds<-(log2LFQ-countTableDAuniGORNAddsMed)#/countTableDAuniGO
 hist(countTableDAuniGORNAdds)
 par(mar=c(12,3,1,1))
 boxplot(countTableDAuniGORNAdds,las=2)
-svgPHC<-pheatmap::pheatmap(countTableDAuniGORNAdds,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=F,fontsize_col  = 4,na_col = "grey",annotation_col = annoR)
-countTableDAuniGORNAdds<-(log2LFQ-countTableDAuniGORNAddsMed)/countTableDAuniGORNAddsSD
+svgPHC<-pheatmap::pheatmap(countTableDAuniGORNAdds,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=1,cluster_cols=T,cluster_rows=F,fontsize_col  = 8,na_col = "grey")
+countTableDAuniGORNAdds<-(log2LFQ-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
 hist(countTableDAuniGORNAdds)
 par(mar=c(12,3,1,1))
 boxplot(countTableDAuniGORNAdds,las=2)
-svgPHC<-pheatmap::pheatmap(countTableDAuniGORNAdds,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=4,cluster_cols=T,cluster_rows=F,fontsize_col  = 4,na_col = "grey",annotation_col = annoR)
+svgPHC<-pheatmap::pheatmap(countTableDAuniGORNAdds,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=1,cluster_cols=T,cluster_rows=F,fontsize_col  = 8,na_col = "grey")
+```
+```{r pgMedClust}
+log2LFQsel<-log2LFQ
+countTableDAuniGORNAddsMed<-apply(log2LFQsel,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsSD<-apply(log2LFQsel,1,function(x) sd(x,na.rm=T))
+countTableDAuniGORNAdds<-(log2LFQsel-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
+hist(countTableDAuniGORNAdds)
+boxplot(countTableDAuniGORNAdds,las=2)
+log2LFQselMM<-apply(log2LFQsel[,,drop=F]-apply(log2LFQsel[,,drop=F],1,function(x) mean(x,na.rm=T)),2,function(x) median(x,na.rm=T))
+log2LFQselMMat<-matrix(log2LFQselMM,ncol=ncol(log2LFQsel))
+colnames(log2LFQselMMat)<-names(log2LFQselMM)
+log2LFQselMMat<-do.call("rbind", replicate(nrow(log2LFQsel), log2LFQselMMat, simplify = FALSE))
+write.csv(log2LFQselMMat,paste0(inpF,"log2LFQselMMat.csv"),row.names = T,quote = F)
+log2LFQselMMdata<-log2LFQsel-log2LFQselMMat
+vsn::meanSdPlot(log2LFQsel)
+vsn::meanSdPlot(log2LFQselMMdata)
+vsn::meanSdPlot(log2LFQselMMdata,rank=F)
+countTableDAuniGORNAddsMed<-apply(log2LFQselMMdata,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsSD<-apply(log2LFQselMMdata,1,function(x) sd(x,na.rm=T))
+countTableDAuniGORNAdds<-(log2LFQselMMdata-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
+hist(countTableDAuniGORNAdds)
+boxplot(countTableDAuniGORNAdds,las=2)
+write.csv(log2LFQselMMdata,paste0(inpF,"log2LFQselMMdata.csv"),row.names = T,quote = F)
+colnames(log2LFQselMMdata)
+dim(log2LFQselMMdata)
+boxplot(log2LFQselMMdata,las=2)
+write.csv(log2LFQselMMdata,paste0(inpF,"log2LFQselMMdata.csv"),row.names = T,quote = F)
+svgPHC<-pheatmap::pheatmap(log2LFQselMMdata,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=F,fontsize_col  = 8,na_col = "grey")
+ggplot2::ggsave(file=paste0(inpF,"log2LFQselMMdata.svg"),plot=svgPHC,width=6, height=10,dpi = 320)#,  
+corlog2LFQselMMdata<-cor(log2LFQselMMdata,use="complete.obs")
+svgPHC<-pheatmap::pheatmap(corlog2LFQselMMdata,clustering_distance_rows = "correlation",clustering_distance_cols = "correlation",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,na_col = "grey")
+ggplot2::ggsave(file=paste0(inpF,"corlog2LFQselMMdata.svg"),plot=svgPHC,width=6, height=10,dpi = 320)#,  
 ```
 
 

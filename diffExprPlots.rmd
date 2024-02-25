@@ -58,9 +58,15 @@ ggplot2::ggsave(file=paste0(inpW,"clusterPlotAPIM.svg"),plot=svgPHC)#,
 write.csv(cbind(rownames(data_selr_na0),data_selr_na0),paste0(inpW,".data_selr.APIM.csv"),row.names = F)
 #write_xlsx(dataS,inpW)
 ```
+```{r}
+inpD<-"L:/promec/Animesh/TK/"
+inpF<-paste0(inpD,"proteinGroups.txt")
+data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
+```
+
 
 ```{r data-apim-z-score}
-inpD<-"L:/OneDrive - NTNU/TK/"
+inpD<-"F:/OneDrive - NTNU/Desktop/TK/"
 inpF<-paste0(inpD,"proteinGroupsZenrichPearsonGOValuesAPIM.txt")
 data<-read.csv(inpF,header=T,sep="\t")#,row.names = 1)
 data<-data[order(data$C..Cluster,decreasing = T),]
@@ -83,6 +89,39 @@ svgPHC=pheatmap::pheatmap(data_selr_na0,annotation_row = annoR,clustering_distan
 ggplot2::ggsave(file=paste0(inpF,"clusterPlotAPIM.svg"),plot=svgPHC)#,  
 write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,".data_selr.APIM.csv"),row.names = F)
 ```
+
+```{r data-apim-z-score-ribosome}
+dataRibo<-data[grep(";ribosome;",data$C..GOCC.name,fixed = T),]
+data_selr<-dataRibo[,grep("_APIM",names(dataRibo))]
+rn<-strsplit(dataRibo$T..Gene.names, ";",fixed=T)
+rn2<-strsplit(dataRibo$T..Protein.IDs, ";",fixed=T)
+row.names(data_selr)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep=";")#,sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+data_selr_na0<-data_selr
+data_selr_na0=scales::squish(as.matrix(data_selr_na0),c(-3,3))
+hist(data_selr_na0)
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=8,fontsize_row=5)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlotAPIMdataRibo.svg"),plot=svgPHC,dpi=320,width=6,height=10)#,  
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,".data_selr.APIM.dataRibo.csv"),row.names = F)
+```
+
+```{r data-apim-z-score-ATF}
+dataATF<-data[grep("ATF",data$T..Gene.names,fixed = T),]
+data_selr<-dataATF[,grep("_APIM",names(dataATF))]
+rn<-strsplit(dataATF$T..Gene.names, ";",fixed=T)
+rn2<-strsplit(dataATF$T..Protein.IDs, ";",fixed=T)
+row.names(data_selr)<-paste(sapply(rn, "[", 1),sapply(rn2, "[", 1),sep=";")#,sapply(rn, "[", 6))
+cn<-strsplit(colnames(data_selr), "_")
+colnames(data_selr)<-paste(sapply(cn, "[", 1))
+data_selr_na0<-data_selr
+data_selr_na0=scales::squish(as.matrix(data_selr_na0),c(-3,3))
+hist(data_selr_na0)
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=8,fontsize_row=5)
+ggplot2::ggsave(file=paste0(inpF,"clusterPlotAPIMdataATF.svg"),plot=svgPHC)#,  
+write.csv(cbind(rownames(data_selr),data_selr),paste0(inpF,".data_selr.APIM.dataATF.csv"),row.names = F)
+```
+
 
 ```{r data-apim-z-score-ERS}
 dataERS<-data[grep(";response to endoplasmic reticulum stress;",data$C..GOBP.name,fixed = T),]
