@@ -5,7 +5,7 @@ inpF <-"L:/promec/Animesh/Mathilde/rawdata_from animesh 2.txt"
 inpL <-"L:/promec/Animesh/Mathilde/Groups.txt"
 lGroup<-"Bio"
 rGroup<-"Rem"
-#rGroup<-"Remove"
+rGroup<-"Remove"
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #install.packages("devtools")
@@ -177,7 +177,7 @@ pheatmap::pheatmap(dataLFQtdc)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
   #sel1<-"SI"
-  #sel2<-"STNTC"
+  #sel2<-"AMHC"
   #log2LFQ<-log2LFQselMMdata#log2LFQsel#log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
   #colnames(log2LFQ)
   #dfName="log2LFQselMMdata"#"log2LFQsel"
@@ -310,7 +310,7 @@ hist(countTableDAuniGORNAdds)
 boxplot(countTableDAuniGORNAdds,las=2)
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
-for(i in rownames(table(label$pair2test))[nrow(table(label$pair2test))]){
+for(i in rownames(table(label$pair2test))[1]){
   for(j in rownames(table(label$pair2test))){
     if(j!=i){
       print(paste(i,j))
@@ -336,7 +336,7 @@ countTableDAuniGORNAddsSD<-apply(log2LFQselMMdata,1,function(x) sd(x,na.rm=T))
 countTableDAuniGORNAdds<-(log2LFQselMMdata-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
 hist(countTableDAuniGORNAdds)
 boxplot(countTableDAuniGORNAdds,las=2)
-for(i in rownames(table(label$pair2test))[nrow(table(label$pair2test))]){
+for(i in rownames(table(label$pair2test))[1]){
   for(j in rownames(table(label$pair2test))){
     if(j!=i){
       print(paste(i,j))
@@ -357,7 +357,7 @@ countTableDAuniGORNAddsSD<-apply(LFQselVSN,1,function(x) sd(x,na.rm=T))
 countTableDAuniGORNAdds<-(LFQselVSN-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
 hist(countTableDAuniGORNAdds)
 boxplot(countTableDAuniGORNAdds,las=2,main="VSN")
-for(i in rownames(table(label$pair2test))[nrow(table(label$pair2test))]){
+for(i in rownames(table(label$pair2test))[1]){
   for(j in rownames(table(label$pair2test))){
     if(j!=i){
       print(paste(i,j))
