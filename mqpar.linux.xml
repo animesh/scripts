@@ -508,7 +508,7 @@
          <diaProbScoreStep>0.1</diaProbScoreStep>
          <isM2FragTypeOverride>False</isM2FragTypeOverride>
          <ms2FragTypeOverride>0</ms2FragTypeOverride>
-         <classicLfqForSingleShots>True</classicLfqForSingleShots>
+	 <classicLfqForSingleShots>False</classicLfqForSingleShots>
          <sequenceBasedModifier>False</sequenceBasedModifier>
          <diaRtFromSamplesForExport>True</diaRtFromSamplesForExport>
          <diaCcsFromSamplesForExport>True</diaCcsFromSamplesForExport>
