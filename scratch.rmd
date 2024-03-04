@@ -1,3 +1,168 @@
+```{python}
+#https://towardsdatascience.com/unravelling-complexity-a-novel-approach-to-manifold-learning-using-oise-injection-41251565fded
+# Generate and plot the S-curve dataset
+
+
+import matplotlib.pyplot as plt
+from sklearn import manifold, datasets
+import numpy as np
+from scipy.spatial import procrustes
+from sklearn.decomposition import PCA
+
+def compute_procrustes_distances(data, embedding_technique, max_noise, noise_step=0.05):
+    """
+    Compute Procrustes distances for a range of Gaussian noise levels.
+
+    Parameters:
+        data (np.array): The original dataset.
+        embedding_technique (object): An instance of a manifold learning technique.
+        max_noise (float): Maximum level of noise to be added.
+        noise_step (float): Incremental step for noise addition.
+
+    Returns:
+        list: A list of Procrustes distances for each noise level.
+    """
+    base_embedding = embedding_technique.fit_transform(data)
+    noise_levels = np.arange(0, max_noise, noise_step)
+    distances = []
+
+    for noise in noise_levels:
+        noisy_data = data + np.random.normal(-noise, noise, data.shape)
+        noisy_embedding = embedding_technique.fit_transform(noisy_data)
+        _, _, disparity = procrustes(base_embedding, noisy_embedding)
+        distances.append(disparity)
+    
+    return distances
+
+def plot_data(X, colour):
+    """
+    Plot the dataset in 3D.
+
+    Parameters:
+        X (np.array): Data points.
+        colour (np.array): Colour mapping for the data points.
+    """
+    fig = plt.figure(figsize=(30, 10))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=colour, cmap=plt.cm.Spectral)
+    ax.view_init(4, -72)
+    plt.show()
+
+def plot_procrustes_distances(noise_range, distances, labels):
+    """
+    Plot Procrustes distances for different embedding techniques.
+
+    Parameters:
+        noise_range (np.array): Range of noise levels.
+        distances (dict): Dictionary of distances for each embedding technique.
+        labels (list): List of labels for each embedding technique.
+    """
+    plt.figure(figsize=(10, 6))
+    for label in labels:
+        plt.plot(noise_range, distances[label], label=label)
+
+    plt.xlabel('Range of noise')
+    plt.ylabel('Procrustes distance')
+    plt.title('Comparison of Embedding Techniques')
+    plt.legend()
+    plt.show()
+
+# Generate and plot the S-curve dataset
+X, colour = datasets.make_s_curve(1000, random_state=0)
+plot_data(X, colour)
+
+# Compute Procrustes distances for different embedding techniques
+max_noise = 2
+noise_range = np.arange(0, max_noise, 0.05)
+embedding_techniques = {
+    "PCA": PCA(2),
+    "ISOMAP": manifold.Isomap(n_components=2),
+    "LLE": manifold.LocallyLinearEmbedding(n_neighbors=10, n_components=2),
+    "SE": manifold.SpectralEmbedding(n_components=2, n_neighbors=10)
+}
+
+distances = {label: compute_procrustes_distances(X, technique, max_noise) for label, technique in embedding_techniques.items()}
+
+# Plot the computed Procrustes distances
+plot_procrustes_distances(noise_range, distances, embedding_techniques.keys())
+
+X, color = datasets.make_swiss_roll(1000, random_state=0)
+plot_data(X, color)
+
+# Compute Procrustes distances for different embedding techniques
+max_noise = 4
+noise_range = np.arange(0, max_noise, 0.05)
+embedding_techniques = {
+    "PCA": PCA(2),
+    "ISOMAP": manifold.Isomap(n_components=2),
+    "LLE": manifold.LocallyLinearEmbedding(n_neighbors=10, n_components=2),
+    "SE": manifold.SpectralEmbedding(n_components=2, n_neighbors=10)
+}
+
+distances = {label: compute_procrustes_distances(X, technique, max_noise) for label, technique in embedding_techniques.items()}
+
+# Plot the computed Procrustes distances
+plot_procrustes_distances(noise_range, distances, embedding_techniques.keys())
+
+```
+
+
+```{python}
+import numpy as np
+from scipy.spatial import procrustes
+import matplotlib.pyplot as plt
+from sklearn import manifold, datasets
+
+def return_procrustes_distance(data, embedding_technique, max_noise, noise_step=0.05):
+    """
+    Compute the Procrustes distance for different levels of noise.
+
+    Parameters:
+        data (array_like): The original data to be embedded.
+        embedding_technique (object): The embedding technique (e.g., PCA, SpectralEmbedding).
+        max_noise (float): The maximum level of noise to be added.
+        noise_step (float): The increment step for the noise level.
+
+    Returns:
+        list: A list of Procrustes distances for each noise level.
+    """
+    embeddings = []
+    distances = []
+    noise_range = np.arange(0, max_noise, noise_step)
+
+    for noise_level in noise_range:
+        noisy_data = data + np.random.normal(0, noise_level, data.shape)
+        embedded_data = embedding_technique.fit_transform(noisy_data)
+        if not embeddings:  # if embeddings list is empty
+            embeddings.append(embedded_data)
+        _, _, disparity = procrustes(embeddings[0], embedded_data)
+        distances.append(disparity)
+
+    return distances
+
+# Generating the S-curve dataset
+X, _ = datasets.make_swiss_roll(1000, random_state=0)
+
+# Parameters
+max_noise = 2
+k_values = [5, 7, 9]  # Different values of k for ISOMAP
+
+# Computing and plotting Procrustes distances for each k value
+noise_levels = np.arange(0, max_noise, 0.05)
+plt.figure(figsize=(10, 6))
+
+for k in k_values:
+    embedding = manifold.Isomap(n_components=2, n_neighbors=k)
+    procrustes_distances = return_procrustes_distance(X, embedding, max_noise)
+    plt.plot(noise_levels, procrustes_distances, label=f'ISOMAP (k={k})')
+
+plt.xlabel('Noise Level')
+plt.ylabel('Procrustes Distance')
+plt.title('Procrustes Distance by Noise Level for Various k in ISOMAP')
+plt.legend()
+plt.show()
+```
+
 ```{r setup, echo = FALSE}
 #lib
 Sys.getenv()

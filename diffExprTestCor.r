@@ -1,5 +1,5 @@
 #install.packages(c("readxl","writexl","svglite","ggplot2"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#F:\R-4.3.1\bin\Rscript.exe diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Eyed egg and hatching rate_01032024.xlsx" "LFQ.intensity." "Group" "Remove" "eyed.egg.rate"
+#F:\R-4.3.1\bin\Rscript.exe diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Eyed egg and hatching rate_01032024.xlsx" "LFQ.intensity." "Group" "Remove" "Hatching.rate"
 print("USAGE:<path to>Rscript diffExprTestCor.r <complete path to directory containing proteinGroups.txt> AND <SurvivalUpdates.xlsx file>  \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -22,7 +22,7 @@ lGroup <- args[4]
 rGroup <- args[5]
 #rGroup<-"Remove"
 scaleF <- args[6]
-#scaleF<-"eyed.egg.rate"
+#scaleF<-"Hatching.rate"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
