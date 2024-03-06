@@ -129,7 +129,7 @@
    <name>session1</name>
    <maxQuantVersion>2.4.14.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>48</numThreads>
+   <numThreads>20</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -145,77 +145,20 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_1_dda_Slot1-19_1_6612.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_2_dda_Slot1-20_1_6614.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_3_dda_Slot1-21_1_6616.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_4_dda_Slot1-22_1_6618.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_5_dda_Slot1-23_1_6620.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_6_dda_Slot1-24_1_6622.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_7_dda_Slot1-25_1_6638.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_8_dda_Slot1-26_1_6640.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_9_dda_Slot1-27_1_6642.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_10_dda_Slot1-28_1_6715.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_11_dda_Slot1-29_1_6648.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_12_dda_Slot1-30_1_6650.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_13_dda_Slot1-31_1_6652.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_14_dda_Slot1-32_1_6654.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_15_dda_Slot1-33_1_6656.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_16_dda_Slot1-34_1_6717.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_17_dda_Slot1-35_1_6661.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_18_dda_Slot1-36_1_6663.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_19_dda_Slot1-37_1_6665.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_20_dda_Slot1-38_1_6667.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_21_dda_Slot1-39_1_6669.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_22_dda_Slot1-40_1_6671.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_23_dda_Slot1-41_1_6673.d</string>
-      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_Kamilla_Maike/240222_Kamilla_Maike_24_dda_Slot1-42_1_6675.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test1_dda_Slot1-10_1_6589.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test2_dda_Slot1-11_1_6591.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test3_dda_Slot1-12_1_6593.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test4_dda_Slot1-13_1_6595.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test5_dda_Slot1-14_1_6597.d</string>
    </filePaths>
    <experiments>
-      <string>1_dda_Slot1-19_1_6612</string>
-      <string>2_dda_Slot1-20_1_6614</string>
-      <string>3_dda_Slot1-21_1_6616</string>
-      <string>4_dda_Slot1-22_1_6618</string>
-      <string>5_dda_Slot1-23_1_6620</string>
-      <string>6_dda_Slot1-24_1_6622</string>
-      <string>7_dda_Slot1-25_1_6638</string>
-      <string>8_dda_Slot1-26_1_6640</string>
-      <string>9_dda_Slot1-27_1_6642</string>
-      <string>10_dda_Slot1-28_1_6715</string>
-      <string>11_dda_Slot1-29_1_6648</string>
-      <string>12_dda_Slot1-30_1_6650</string>
-      <string>13_dda_Slot1-31_1_6652</string>
-      <string>14_dda_Slot1-32_1_6654</string>
-      <string>15_dda_Slot1-33_1_6656</string>
-      <string>16_dda_Slot1-34_1_6717</string>
-      <string>17_dda_Slot1-35_1_6661</string>
-      <string>18_dda_Slot1-36_1_6663</string>
-      <string>19_dda_Slot1-37_1_6665</string>
-      <string>20_dda_Slot1-38_1_6667</string>
-      <string>21_dda_Slot1-39_1_6669</string>
-      <string>22_dda_Slot1-40_1_6671</string>
-      <string>23_dda_Slot1-41_1_6673</string>
-      <string>24_dda_Slot1-42_1_6675</string>
+      <string>1_dda_Slot1-10_1_6589</string>
+      <string>2_dda_Slot1-11_1_6591</string>
+      <string>3_dda_Slot1-12_1_6593</string>
+      <string>4_dda_Slot1-13_1_6595</string>
+      <string>5_dda_Slot1-14_1_6597</string>
    </experiments>
    <fractions>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -228,25 +171,6 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
@@ -254,46 +178,8 @@
       <int>0</int>
       <int>0</int>
       <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
       <string></string>
       <string></string>
       <string></string>
