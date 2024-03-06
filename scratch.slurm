@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=2024DeoMQSLURMNAME
+#SBATCH --account=nn9036k --job-name=DDA_Kamilla_Maike
 #SBATCH --time=164:00:00
 ##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=2024DeoMQSLURMLOG
+#SBATCH --output=DDA_Kamilla_MaikeLog
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -22,7 +22,10 @@ module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
 mono --version
 module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
-#wget "https://rest.uniprot.org/uniprotkb/stream?format=fasta&includeIsoform=true&query=%28%28proteome%3AUP000005640%29%29" -O /cluster/projects/nn9036k/FastaDB/uniprot-human-iso-jan24.fasta
-dotnet /cluster/projects/nn9036k/MaxQuant_v_2.4.13.0/bin/MaxQuantCmd.exe  -p 19 /cluster/projects/nn9036k/scripts/mqpar.linux.xml
-#cp mqpar.xml 20240127_PRPF31_DevelopmentalStudy/mqpar.lin.xml
+#https://www.uniprot.org/proteomes/UP000000589
+#wget "https://rest.uniprot.org/uniprotkb/stream?format=fasta&includeIsoform=true&query=%28%28proteome%3AUP000000589%29%29" -O /cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-mar24.fasta
+#grep "^>" /cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-mar24.fasta | wc
+#  63191  729185 6766475
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/mqpar.xml
+#cp mqpar.xml 240222_DIA/DDA_Kamilla_Maike/mqpar.linux.xml
 #sbatch scratch.slurm 
