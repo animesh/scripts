@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=DDA_test
+#SBATCH --account=nn9036k --job-name=DIAlib
 #SBATCH --time=164:00:00
 ##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=DDA_testLog
+#SBATCH --output=DIAlibLog
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -27,5 +27,7 @@ dotnet --version
 #grep "^>" /cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-mar24.fasta | wc
 #  63191  729185 6766475
 dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe /cluster/projects/nn9036k/scripts/mqpar.xml
-#cp mqpar.xml 240222_DIA/DDA_Kamilla_Maike/mqpar.linux.xml
+#git diff
+#cp mqpar.xml 240222_DIA/DIA_library/mqpar.linux.xml
 #sbatch scratch.slurm 
+#tail -f DIAlibLog
