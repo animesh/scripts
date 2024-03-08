@@ -150,8 +150,8 @@ dataLFQtdc<-cor(LFQvsn,use="pairwise.complete.obs",method="pearson")
 pheatmap::pheatmap(dataLFQtdc)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
-  #sel1<-"FT"
-  #sel2<-"FV"
+  #sel1<-"FC"
+  #sel2<-"FT"
   #log2LFQ<-log2LFQ#log2LFQsel#log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
   #colnames(log2LFQ)
   #dfName="log2LFQ"#"log2LFQsel"
@@ -162,10 +162,16 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
   dataSellog2grpTtest<-merge(d1, d2, by = 'row.names', all = TRUE)
   summary(dataSellog2grpTtest)
   rN<-dataSellog2grpTtest[,1]
-  geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "name: ",fixed=T), "[", 2)), ";;"), "[", 1))
-  geneName<-paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(rN, "|",fixed=T), "[", 2)), ";;"), "[", 1)), ";"), "[", 1))
   uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(rN, "|",fixed=T), "[", 2)), " "), "[", 1)), ":"), "[", 1))
+  geneName<-paste(sapply(strsplit(rN, ";;"), "[", 3))
+  geneName<-gsub(">ProteinCenter:sp_tr_incl_isoforms"," ",geneName)
+  geneName<-gsub("_HUMAN"," ",geneName)
+  geneName<-gsub("\\|"," ",geneName)
+  geneName<-gsub(">sp"," ",geneName)
+  geneName<-gsub(" submitted name: ","",geneName)
+  for(i in 1:length(geneName)){geneName[i]<-gsub(uniprotID[i],"",geneName[i])}
   geneName[geneName=="NA"]=NA
+  geneName=trimws(geneName)
   proteinFunction<-paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(rN, "|",fixed=T), "[", 2)), ";;"), "[", 2)), ";"), "[", 1))
   proteinFunction[proteinFunction=="NA"]=NA
   proteinProcess<-paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(rN, "|",fixed=T), "[", 2)), ";;"), "[", 3)), ";"), "[", 1))

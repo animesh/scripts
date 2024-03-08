@@ -5,8 +5,8 @@ from pathlib import Path
 if len(sys.argv)!=2: sys.exit("\n\nREQUIRED: pandas, pathlib, tcl==8.6.9; tested with Python 3.7.9 \n\nUSAGE: python proteinGroupsCombineTTP.py <path to folder containing protein.tsv file(s) like \"L:\promec\Animesh\Samah\mqpar.xml.1623227664.results\" >\n\nExample\n\npython proteinGroupsCombineTTP.py L:\promec\Animesh\Samah\mqpar.xml.1623227664.results")
 #python proteinGroupsCombineTTP.py C:/Users/animeshs/Desktop/FP2
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240221_Tom_Kelt")
-fileName='*.tsv'
+#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240202_beads/9947a216a0e94f5c889f6a3a24dbb88b/processing-run")
+fileName='tims-diann.protein.tsv'
 trainList=list(pathFiles.rglob(fileName))
 print(trainList)
 print(len(trainList),"files found in",pathFiles)
@@ -19,22 +19,24 @@ df=pd.DataFrame()
 for f in trainList:
     if Path(f).stat().st_size > 0:
         proteinHits=pd.read_csv(f,low_memory=False,sep='\t')
-        fName=f.parts[-1]
+        fName=proteinHits.groupby('sample_name').size()
         print(fName)
-        proteinHits.rename({'Protein Group Name':'ID'},inplace=True,axis='columns')
-        proteinHits.rename({'Number PSMs':'uniqPSMs'},inplace=True,axis='columns')
-        proteinHits=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.uniqPSMs).stack().reset_index(level=0, name='ID')
-        proteinHits['Name']=fName
+        proteinHits.rename({'protein_group_name':'ID'},inplace=True,axis='columns')
+        proteinHits.rename({'number_precursors':'Ions'},inplace=True,axis='columns')
+        proteinHits=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Ions).stack().reset_index(level=0, name='ID')
+        proteinHits['Name']=fName.index[0]
         df=pd.concat([df,proteinHits],sort=False)
 print(df.columns)
 print(df.head())
-df=df.pivot(index='ID', columns='Name', values='uniqPSMs')
-df['PSMs']=df.sum(axis=1)
-df=df.sort_values("PSMs", ascending=False)  
+df.index=df['ID']
+df.ID=None
+df=df.pivot(index='ID', columns='Name', values='Ions')
+df['Ions']=df.sum(axis=1)
+df=df.sort_values("Ions", ascending=False)  
 #df.filter(like='Reverse', axis=0)
 dfS=df[df.index.str.contains('Reverse')==False]
 #!pip3 install matplotlib
-plotcsv=pathFiles/("uniqPSMs.histogram.svg")
+plotcsv=pathFiles/("Ions.histogram.svg")
 df.plot(kind='hist',alpha=0.5,bins=100).figure.savefig(plotcsv,dpi=100,bbox_inches = "tight")
 print(df.head())
 print(df.columns)
@@ -43,5 +45,5 @@ print(df.columns)
 #print("Histogram of Score in",writeDPpng)
 writeScores=pathFiles/("PSMs.sum.csv")
 df.to_csv(writeScores)#.with_suffix('.combo.csv'))
-print("uniqPSMsin\n",writeScores,"\n",plotcsv)
+print("Ionsin\n",writeScores,"\n",plotcsv)
 #dfID=df.assign(ID=df.ID.str.split(';')).explode('ID')
