@@ -145,35 +145,20 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_1_Slot2-3_1_6571.d</string>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_2_Slot2-4_1_6573.d</string>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_3_Slot2-5_1_6575.d</string>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_4_Slot2-6_1_6577.d</string>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_5_Slot2-7_1_6579.d</string>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_6_Slot2-8_1_6581.d</string>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_7_Slot2-9_1_6583.d</string>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_8_Slot2-10_1_6585.d</string>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_FT_Slot2-1_1_6565.d</string>
-      <string>/cluster/work/users/ash022/DIA_library/240222_Maike_DIAlib_waste_Slot2-2_1_6569.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test1_dda_Slot1-10_1_6589.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test2_dda_Slot1-11_1_6591.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test3_dda_Slot1-12_1_6593.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test4_dda_Slot1-13_1_6595.d</string>
+      <string>/cluster/projects/nn9036k/scripts/240222_DIA/DDA_test/240222_Maike_test5_dda_Slot1-14_1_6597.d</string>
    </filePaths>
    <experiments>
-      <string>1_Slot2-3_1_6571</string>
-      <string>2_Slot2-4_1_6573</string>
-      <string>3_Slot2-5_1_6575</string>
-      <string>4_Slot2-6_1_6577</string>
-      <string>5_Slot2-7_1_6579</string>
-      <string>6_Slot2-8_1_6581</string>
-      <string>7_Slot2-9_1_6583</string>
-      <string>8_Slot2-10_1_6585</string>
-      <string>FT_Slot2-1_1_6565</string>
-      <string>waste_Slot2-2_1_6569</string>
+      <string>1_dda_Slot1-10_1_6589</string>
+      <string>2_dda_Slot1-11_1_6591</string>
+      <string>3_dda_Slot1-12_1_6593</string>
+      <string>4_dda_Slot1-13_1_6595</string>
+      <string>5_dda_Slot1-14_1_6597</string>
    </experiments>
    <fractions>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -186,11 +171,6 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
@@ -198,18 +178,8 @@
       <int>0</int>
       <int>0</int>
       <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
       <string></string>
       <string></string>
       <string></string>
