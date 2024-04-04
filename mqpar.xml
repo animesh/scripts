@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/work/users/ash022/urSTAMI/uniprotkb_proteome_UP000005640_2024_03_30.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/work/users/ash022/240319_Nicola/uniprotkb_proteome_UP000005640_2024_03_30.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -129,7 +129,7 @@
    <name>session1</name>
    <maxQuantVersion>2.4.14.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>60</numThreads>
+   <numThreads>64</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -145,54 +145,42 @@
    <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF6_B_Slot2-32_1_6986.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF7_A_Slot2-25_1_6972.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF7_B_Slot2-33_1_6988.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF8_A_Slot2-26_1_6974.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF8_B_Slot2-34_1_6990.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PFR16_Slot2-38_1_6998.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_1_11_Slot2-35_1_6992.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_2_11_Slot2-36_1_6994.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_3_11_Slot2-37_1_6996.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF1_A_Slot2-19_1_6960.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF1_B_Slot2-27_1_6976.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF2_A_Slot2-20_1_6962.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF2_B_Slot2-28_1_6978.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF3_A_Slot2-21_1_6964.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF3_B_Slot2-29_1_6980.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF4_A_Slot2-22_1_6966.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF4_B_Slot2-30_1_6982.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF5_A_Slot2-23_1_6968.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF5_B_Slot2-31_1_6984.d</string>
-      <string>/cluster/work/users/ash022/urSTAMI/240323_Stami_PF6_A_Slot2-24_1_6970.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_16_Slot2-16_1_6955.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_1_Slot2-1_1_6925.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_2_Slot2-2_1_6927.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_3_Slot2-3_1_6929.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_4_Slot2-4_1_6931.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_5_Slot2-5_1_6933.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_6_Slot2-6_1_6935.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_7_Slot2-7_1_6937.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_8_Slot2-8_1_6939.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_9_Slot2-9_1_6941.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_10_Slot2-10_1_6943.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_11_Slot2-11_1_6945.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_12_Slot2-12_1_6947.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_13_Slot2-13_1_6949.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_14_Slot2-14_1_6951.d</string>
+      <string>/cluster/work/users/ash022/240319_Nicola/240321_NICOLA_15_Slot2-15_1_6953.d</string>
    </filePaths>
    <experiments>
-      <string>PF6_B_Slot2-32_1_6986</string>
-      <string>PF7_A_Slot2-25_1_6972</string>
-      <string>PF7_B_Slot2-33_1_6988</string>
-      <string>PF8_A_Slot2-26_1_6974</string>
-      <string>PF8_B_Slot2-34_1_6990</string>
-      <string>PFR16_Slot2-38_1_6998</string>
-      <string>1_11_Slot2-35_1_6992</string>
-      <string>2_11_Slot2-36_1_6994</string>
-      <string>3_11_Slot2-37_1_6996</string>
-      <string>PF1_A_Slot2-19_1_6960</string>
-      <string>PF1_B_Slot2-27_1_6976</string>
-      <string>PF2_A_Slot2-20_1_6962</string>
-      <string>PF2_B_Slot2-28_1_6978</string>
-      <string>PF3_A_Slot2-21_1_6964</string>
-      <string>PF3_B_Slot2-29_1_6980</string>
-      <string>PF4_A_Slot2-22_1_6966</string>
-      <string>PF4_B_Slot2-30_1_6982</string>
-      <string>PF5_A_Slot2-23_1_6968</string>
-      <string>PF5_B_Slot2-31_1_6984</string>
-      <string>PF6_A_Slot2-24_1_6970</string>
+      <string>16_Slot2-16_1_6955</string>
+      <string>1_Slot2-1_1_6925</string>
+      <string>2_Slot2-2_1_6927</string>
+      <string>3_Slot2-3_1_6929</string>
+      <string>4_Slot2-4_1_6931</string>
+      <string>5_Slot2-5_1_6933</string>
+      <string>6_Slot2-6_1_6935</string>
+      <string>7_Slot2-7_1_6937</string>
+      <string>8_Slot2-8_1_6939</string>
+      <string>9_Slot2-9_1_6941</string>
+      <string>10_Slot2-10_1_6943</string>
+      <string>11_Slot2-11_1_6945</string>
+      <string>12_Slot2-12_1_6947</string>
+      <string>13_Slot2-13_1_6949</string>
+      <string>14_Slot2-14_1_6951</string>
+      <string>15_Slot2-15_1_6953</string>
    </experiments>
    <fractions>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
-      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -227,10 +215,6 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
-      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
@@ -249,16 +233,8 @@
       <int>0</int>
       <int>0</int>
       <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
-      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
-      <string></string>
-      <string></string>
-      <string></string>
-      <string></string>
       <string></string>
       <string></string>
       <string></string>
