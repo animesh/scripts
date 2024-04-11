@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=240319Nico
+#SBATCH --account=nn9036k --job-name=urSTAMI
 #SBATCH --time=292:00:00
 #SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=32
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=240319NicolaLog
+#SBATCH --output=usSTAMILog
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
