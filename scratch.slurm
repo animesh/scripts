@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=synOve
+#SBATCH --account=nn9036k --job-name=nilsHenrik
 #SBATCH --time=294:00:00
 #SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=32
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=synOveLog
+#SBATCH --output=nilsHenrikLog
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -26,7 +26,7 @@ dotnet --version
 #wget "https://rest.uniprot.org/uniprotkb/stream?format=fasta&includeIsoform=true&query=%28%28proteome%3AUP000000589%29%29" -O /cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-mar24.fasta
 #grep "^>" /cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-mar24.fasta | wc
 #  63191  729185 6766475
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe /cluster/work/users/ash022/240411_Synnove/mqpar.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe /cluster/work/users/ash022/240405_Nils_Henrik/mqpar.xml
 #git diff
 #cp mqpar.xml 240222_DIA/DIA_library/mqpar.linux.xml
 #sbatch scratch.slurm 
