@@ -1,7 +1,7 @@
 ```{r setup}
-inpD <-"L:/OneDrive - NTNU/PROMEC01/IDH1/"
-.libPaths(c(paste0(inpD,"/R/")),.libPaths())
-.libPaths()
+inpD <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali/combined/txtNoDN/"
+#.libPaths(c(paste0(inpD,"/R/")),.libPaths())
+#.libPaths()
 #data
 thr<-20
 selThr=0.3
@@ -23,12 +23,14 @@ library(pathview)
 ```
 
 ```{r data}
-inpF1<-paste0(inpD,"proteinGroups.txtLFQ.intensity.16MUT CtrlWT Ctrl0.050.50.05BiotTestBH.csv")
-data1<-read.csv(inpF1,row.names = 18)
-inpF2<-paste0(inpD,"proteinGroups.txtLFQ.intensity.16MUTctrlWTctrl0.050.50.05grouptTestBH.csv")
-data2<-read.csv(inpF2,row.names = 17)
-#dataS<-as.matrix(data1[,c(17)],rownames=T)#as.matrix(data[,c(10:15)],rownames=T)
-dataS<-as.matrix(data1[,c(10:15)],rownames=T)
+inpF<-paste0(inpD,"Protein IDs for KEGG analysis.xlsx")
+data<-readxl::read_excel(inpF, sheet=1)
+dataS<-unlist(strsplit(data$`Atlantic salmon Salmo salar`,","))
+dataS<-unlist(strsplit(dataS,";"))
+dataS<-unlist(strsplit(dataS," "))
+dataS<-unlist(strsplit(dataS, "(?<=.{10})", perl = TRUE))
+dataS<-data.frame(dataS[!is.na(dataS)])
+print(dataS, row.names = FALSE)
 #dataS<-as.matrix(data2[,c(16)],rownames=T)#as.matrix(data[,c(10:15)],rownames=T)
 dataS<-as.matrix(data2[,c(10:15)],rownames=T)
 dataS<-apply(dataS, 2, as.numeric)
