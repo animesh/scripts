@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=matHilde
-#SBATCH --time=294:00:00
-#SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=32
-#SBATCH --mem-per-cpu=8G
+#SBATCH --account=nn9036k --job-name=testMQ
+#SBATCH --time=94:00:00
+##SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=20
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=matHildeLog
+#SBATCH --output=testLog
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -18,16 +18,13 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 module purge
-module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
-mono --version
-module load dotNET-SDK/3.1.300-linux-x64
+module --ignore-cache load MaxQuant/2.5.2.0 
 dotnet --version
-#https://www.uniprot.org/proteomes/UP000000589
-#wget "https://rest.uniprot.org/uniprotkb/stream?format=fasta&includeIsoform=true&query=%28%28proteome%3AUP000000589%29%29" -O /cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-mar24.fasta
-#grep "^>" /cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-mar24.fasta | wc
-#  63191  729185 6766475
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe /cluster/work/users/ash022/240404_Mathilde/mqpar.xml
-#git diff
-#cp mqpar.xml 240222_DIA/DIA_library/mqpar.linux.xml
-#sbatch scratch.slurm 
-#tail -f DIAlibLog
+#maxquantcmd -c mqpar.tmp.xml
+#maxquantcmd -n mqpar.tmp.xml
+#wget https://github.com/animesh/RawRead/raw/master/171010_Ip_Hela_ugi.raw
+#wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=homo_sapiens.zip" -O MQ_DIA.zip
+#unzip MQ_DIA.zip
+#sed "s?example.fasta?$PWD/UP000005640_9606.fasta?" mqpar.tmp.xml  > mqpar.tmp2.xml
+#sed "s?file.example.RAW?$PWD/171010_Ip_Hela_ugi.raw?" mqpar.tmp2.xml  > mqpar.tmp.xml
+maxquantcmd mqpar.tmp.xml
