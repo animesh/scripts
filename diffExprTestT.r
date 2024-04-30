@@ -1,8 +1,8 @@
-#git checkout fe5f9e92f3fe5ca0c75e9d8acfd211feb7358066 diffExprTestT.r
-#Rscript.exe diffExprTestT.r L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\combined\txt\proteinGroups.txt L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\combined\txt\Groups_filledMEclin.txt Bio Rem
+#git checkout master diffExprTestT.r
+#Rscript.exe diffExprTestT.r L:\promec\TIMSTOF\LARS\2024\240207_Deo\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2024\240207_Deo\combined\txt\GroupsG.txt Bio Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
+#BiocManager::install(c("limma","pheatmap"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
 #install.packages("devtools")
 #devtools::install_github("jdstorey/qvalue")
 print("USAGE:<path to Rscript.exe> diffExprTestT.r <complete path to directory containing proteinGroups.txt> <complete path to directory containing Groups.txt files> <name of group column in Groups.txt annotating data/rows to be used for analysis> <name of column in Groups.txt marking data NOT to be considered in analysis>")
@@ -14,9 +14,9 @@ if (length(args) != 4) {stop("\n\nNeeds FOUR arguments, the full path of the dir
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Remove
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/USERS/SINTEF/20211207_SINTEF_30samples/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2024/240207_Deo/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/USERS/SINTEF/20211207_SINTEF_30samples/combined/txt/Groups_filledMEclin.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2024/240207_Deo/combined/txt/GroupsG.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
@@ -88,8 +88,8 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 svgPHC<-pheatmap::pheatmap(log2LFQimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8)
 #test####
 testT <- function(log2LFQselect,sel1,sel2,cvThr){
-  #sel1<-"Clin.5"
-  #sel2<-"Clin"
+  #sel1<-"G25_CDK12"
+  #sel2<-"G25_IgG"
   #log2LFQselect<-log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
   #colnames(log2LFQselect)
   d1<-data.frame(log2LFQselect[,gsub("-",".",rownames(label[label$pair2test==sel1,]))])
@@ -98,8 +98,8 @@ testT <- function(log2LFQselect,sel1,sel2,cvThr){
   colnames(d2)<-gsub("-",".",rownames(label[label$pair2test==sel2,]))
   dataSellog2grpTtest<-merge(d1, d2, by = 'row.names', all = TRUE)
   rN<-dataSellog2grpTtest[,1]
-  geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), "PE="), "[", 1))
-  uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rN, ";;",fixed=T), "[", 3)), "-"), "[", 1))
+  geneName<-paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), "PE="), "[", 1)), ";"), "[", 1))
+  uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(rN, "|",fixed=T), "[", 2)), " "), "[", 1)), "-"), "[", 1))
   dataSellog2grpTtest[,1]<-NULL
   dataSellog2grpTtest[dataSellog2grpTtest==0]=NA
   dataSellog2grpTtest<-as.matrix(dataSellog2grpTtest)
@@ -158,7 +158,6 @@ testT <- function(log2LFQselect,sel1,sel2,cvThr){
       logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
       hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
       plot(hda)
-      limma::vennDiagram(hda>0)
       logFCmedian = logFCmedianGrp1-logFCmedianGrp2
       logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
       logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
@@ -179,7 +178,6 @@ testT <- function(log2LFQselect,sel1,sel2,cvThr){
       p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance))
       p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
       #f=paste(file,proc.time()[3],".jpg")
-      #install.packages("svglite")
       ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTest.svg"), p)
       print(p)
       return(sum(Significance))
@@ -195,7 +193,7 @@ dim(log2LFQsel)
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 for(i in rownames(table(label$pair2test))){
-  for(j in rownames(table(label$pair2test))[1]){
+  for(j in rownames(table(label$pair2test))[4]){
     if(i!=j){
       print(paste(i,j))
       ttPair=testT(log2LFQsel,i,j,cvThr)
