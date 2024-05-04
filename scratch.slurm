@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=KeltMQ
+#SBATCH --account=nn9036k --job-name=KeltOldMQ
 #SBATCH --time=160:00:00
 ##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=KeltLog
+#SBATCH --output=KeltOldMQLog
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -18,16 +18,16 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 module purge
-module --ignore-cache load MaxQuant/2.5.2.0 
+module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
+mono --version
+module load dotNET-SDK/3.1.300-linux-x64
 dotnet --version
-#dusage 
-#cd /cluster/work/users/ash022/Kelt/
-#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000009136/UP000009136_9913_additional.fasta.gz
-#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000009136/UP000009136_9913.fasta.gz
-#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606_additional.fasta.gz
-#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz
-#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000000589/UP000000589_10090_additional.fasta.gz
-#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000000589/UP000000589_10090.fasta.gz
-#gunzip *.gz
-maxquantcmd -n mqpar.xml
-maxquantcmd mqpar.xml
+#https://www.uniprot.org/proteomes/UP000000589
+#wget "https://rest.uniprot.org/uniprotkb/stream?format=fasta&includeIsoform=true&query=%28%28proteome%3AUP000000589%29%29" -O /cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-mar24.fasta
+#grep "^>" /cluster/projects/nn9036k/FastaDB/uniprot-mouse-iso-mar24.fasta | wc
+#  63191  729185 6766475
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe /cluster/work/users/ash022/Kelt/KeltOld/mqpar.xml
+#git diff
+#cp mqpar.xml 240222_DIA/DIA_library/mqpar.linux.xml
+#sbatch scratch.slurm 
+#tail -f DIAlibLog
