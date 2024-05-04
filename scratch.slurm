@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=testMQ
-#SBATCH --time=94:00:00
+#SBATCH --account=nn9036k --job-name=KeltMQ
+#SBATCH --time=160:00:00
 ##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=testLog
+#SBATCH --output=KeltLog
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -20,11 +20,14 @@ echo "Total of $SLURM_NTASKS cores"
 module purge
 module --ignore-cache load MaxQuant/2.5.2.0 
 dotnet --version
-#maxquantcmd -c mqpar.tmp.xml
-#maxquantcmd -n mqpar.tmp.xml
-#wget https://github.com/animesh/RawRead/raw/master/171010_Ip_Hela_ugi.raw
-#wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=homo_sapiens.zip" -O MQ_DIA.zip
-#unzip MQ_DIA.zip
-#sed "s?example.fasta?$PWD/UP000005640_9606.fasta?" mqpar.tmp.xml  > mqpar.tmp2.xml
-#sed "s?file.example.RAW?$PWD/171010_Ip_Hela_ugi.raw?" mqpar.tmp2.xml  > mqpar.tmp.xml
-maxquantcmd mqpar.tmp.xml
+#dusage 
+#cd /cluster/work/users/ash022/Kelt/
+#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000009136/UP000009136_9913_additional.fasta.gz
+#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000009136/UP000009136_9913.fasta.gz
+#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606_additional.fasta.gz
+#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz
+#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000000589/UP000000589_10090_additional.fasta.gz
+#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000000589/UP000000589_10090.fasta.gz
+#gunzip *.gz
+maxquantcmd -n mqpar.xml
+maxquantcmd mqpar.xml
