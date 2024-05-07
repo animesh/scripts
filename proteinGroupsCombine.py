@@ -3,40 +3,21 @@
 import sys
 from pathlib import Path
 pathFiles = Path(sys.argv[1])
-pathFiles=Path("L23")
-fileName='proteinGroups.txt'
-trainList=list(pathFiles.rglob(fileName))
-print(trainList)
+pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240221_Tom_Kelt/combined/txtv252/proteinGroups.txt")
+ID1='Protein IDs'
+ID2='Uniprot'
+print(pathFiles)
 #%%data 
-#trainList=[fN for fN in trainList if "MGUS" in str(fN)]
-#!pip3 install pandas --user
 import pandas as pd
-#df = pd.concat(map(pd.read_table, trainList))
-#df.to_csv(pathFiles.with_suffix('.combinedT.txt'),sep="\t")#,rownames=FALSE)
-dfI=pd.DataFrame()
-dfC=pd.DataFrame()
-i=0
-for f in trainList:
-    #f=trainList[i]
-    i=i+1
-    if Path(f).stat().st_size > 0:
-        print(i,f.parts)
-        proteinHits=pd.read_csv(f,low_memory=False,sep='\t')
-        if 'Protein IDs' in proteinHits:
-            cN=proteinHits.columns
-            proteinHits=proteinHits[proteinHits['Reverse']!="+"]
-            proteinHits=proteinHits[proteinHits['Potential contaminant']!="+"]
-            proteinHits=proteinHits[proteinHits['Only identified by site']!="+"]
-            proteinHits.rename({'Protein IDs':'ID'},inplace=True,axis='columns')
-            proteinHits=proteinHits[~proteinHits['ID'].str.contains("_HUMAN",na=False)]
-            proteinHitsC=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Score).stack().reset_index(level=0, name='ID')
-            proteinHitsI=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Intensity).stack().reset_index(level=0, name='ID')
-            proteinHitsI['Name']=str(f.parts)+str(i)
-            proteinHitsC['Name']=str(f.parts)+str(i)
-            dfI=pd.concat([dfI,proteinHitsI],sort=False)
-            dfC=pd.concat([dfC,proteinHitsC],sort=False)
-print(dfI.columns)
-print(dfC.columns)
+if pathFiles.stat().st_size > 0:
+    print(pathFiles.parts)
+    proteinHits=pd.read_csv(f,low_memory=False,sep='\t')
+    if ID1 in proteinHits:
+        print(proteinHits.columns)
+        proteinHits.rename({ID1:'ID'},inplace=True,axis='columns')
+        proteinHits.ID=proteinHits.ID.str.split(';')
+        proteinHits=proteinHits.explode('ID')
+print(proteinHits.columns)
 #%%intensity
 print("Intensity common")
 dfIp=dfI.pivot(index='ID', columns='Name', values='Intensity')
