@@ -1,8 +1,8 @@
 #git checkout master diffExprTestT.r
-#Rscript.exe diffExprTestT.r L:\promec\TIMSTOF\LARS\2024\240207_Deo\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2024\240207_Deo\combined\txt\GroupsG.txt Bio Rem
+#Rscript.exe diffExprTestT.r L:\promec\TIMSTOF\LARS\2024\240319_Nicola\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2024\240319_Nicola\combined\txt\Groups.txt Bio Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#BiocManager::install(c("limma","pheatmap"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
+#BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
 #install.packages("devtools")
 #devtools::install_github("jdstorey/qvalue")
 print("USAGE:<path to Rscript.exe> diffExprTestT.r <complete path to directory containing proteinGroups.txt> <complete path to directory containing Groups.txt files> <name of group column in Groups.txt annotating data/rows to be used for analysis> <name of column in Groups.txt marking data NOT to be considered in analysis>")
@@ -14,9 +14,9 @@ if (length(args) != 4) {stop("\n\nNeeds FOUR arguments, the full path of the dir
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Remove
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2024/240207_Deo/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2024/240319_Nicola/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2024/240207_Deo/combined/txt/GroupsG.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2024/240319_Nicola/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
@@ -72,6 +72,24 @@ summary(log2LFQ)
 hist(log2LFQ,main=paste("Mean:",mean(log2LFQ,na.rm=T),"SD:",sd(log2LFQ,na.rm=T)),breaks=round(max(log2Int,na.rm=T)),xlim=range(min(log2Int,na.rm=T),max(log2Int,na.rm=T)))
 rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
 writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpD,"log2LFQ.xlsx"))
+
+boxplot(log2LFQ,las=2)
+dataLFQtd<-log2LFQ
+countTableDAuniGORNAddsMed<-apply(dataLFQtd,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsSD<-apply(dataLFQtd,1,function(x) sd(x,na.rm=T))
+countTableDAuniGORNAdds<-(dataLFQtd-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
+hist(countTableDAuniGORNAdds)
+boxplot(countTableDAuniGORNAdds,las=2)
+#vsn####
+LFQvsn<-LFQ
+LFQvsn[LFQvsn==0]=NA
+summary(LFQvsn)
+LFQvsn <- vsn::justvsn(LFQvsn)
+summary(LFQvsn)
+hist(LFQvsn)
+boxplot(LFQvsn,las=2)
+vsn::meanSdPlot(LFQvsn)
+vsn::meanSdPlot(LFQvsn,ranks = FALSE)
 #label####
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
 rownames(label)=sub(selection,"",rownames(label))
