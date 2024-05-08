@@ -1,27 +1,32 @@
-#Rscript combineTxtFilesToXlsx.r /mnt/promec-ns9036k/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2024/240207_Deo/combined/txt ^proteinGroups.txtLFQ.intensity.16 0.110.05BioRemGroupsG.txttTestBH.csv$ 0.1 0
+#Rscript combineTxtFilesToXlsx.r L:\promec\TIMSTOF\LARS\2024\240319_Nicola\combined\txt\ proteinGroups.txtLFQ.intensity.18 0.110.05BioRemGroups.txttTestBH.csv 0.1 1
 #install.packages(c("writexl","eulerr"))
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
 inpD <- args[1]
-#inpD<-"/mnt/promec-ns9036k/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2024/240207_Deo/combined/txt/"
+#inpD<-"L:/promec/TIMSTOF/LARS/2024/240319_Nicola/combined/txt/"
 filePrefix <- args[2]
-#filePrefix<-"^proteinGroups.txtLFQ.intensity.16"
+#filePrefix<-"^proteinGroups.txtLFQ.intensity.18"
+filePrefixS <- paste0("^",filePrefix)
 fileSuffix <- args[3]
-#fileSuffix<-"0.110.05BioRemGroupsG.txttTestBH.csv$"
+#fileSuffix<-"0.110.05BioRemGroups.txttTestBH.csv$"
+fileSuffixS <- paste0(fileSuffix,"$")
 selFDR <- args[4]
 #selFDR<-0.1
 selLog2 <- args[5]
-#selLog2<-0
+#selLog2<-1
 inpFL<-list.files(pattern=filePrefix,path=inpD,full.names=F,recursive=F)
-inpFL<-inpFL[grepl(filePrefix,inpFL)]
-inpFL<-inpFL[grepl(fileSuffix,inpFL)]
+inpFL<-inpFL[grepl(filePrefixS,inpFL)]
+inpFL<-inpFL[grepl(fileSuffixS,inpFL)]
 print(inpFL)
 dfMZ1<-""
 #sheets<-list()
-outPDF<-paste0(inpD,filePrefix,fileSuffix,selFDR,selLog2,"combined.pdf")
-outRep<-paste0(inpD,filePrefix,fileSuffix,selFDR,selLog2,"combined.xlsx")
-outRepSel<-paste0(inpD,filePrefix,fileSuffix,selFDR,selLog2,"combined.select.xlsx")
+outF<-paste0(inpD,filePrefix,fileSuffix,selFDR,selLog2,"combined")
+outPDF<-paste0(outF,".pdf")
+outRep<-paste0(outF,".xlsx")
+outRepSel<-paste0(outF,".select.xlsx")
+outRepCSV<-paste0(outF,".csv")
+outRepSelCSV<-paste0(outF,".select.csv")
 pdf(outPDF)
 for(inpF in inpFL){
     #inpF<-inpFL[1]
@@ -58,15 +63,28 @@ for (obj in inpFL) {
   data<-merge(data,objDataSel,by="RowGeneUniProtScorePeps",all=T)
 }
 writexl::write_xlsx(data,outRep)
+write.csv(data,outRepCSV,row.names = F)
 dataSel<-data[,grep("Log2MedianChange",colnames(data))]
 sum(is.na(data[,"RowGeneUniProtScorePeps"]))
 rownames(dataSel)<-data[,"RowGeneUniProtScorePeps"]
 dataSel<-dataSel[rowSums(abs(dataSel),na.rm=T)>selLog2,]
+plot(dataSel)
 writexl::write_xlsx(cbind(rownames(dataSel),dataSel),outRepSel)
+write.csv(dataSel,outRepSelCSV,row.names = F)
 #names(sheets)<-inpFL[1]
 #names(sheets)<-inpFL
 #write_xlsx(sheets, paste(inpD,paste0(filePrefix,fileSuffix,".combined.xlsx"),sep="\\"))
 #length(sheets)
+combinations<-list()
+for(i in colnames(dataSel)){
+  print(i)
+  print(summary(abs(dataSel[,i])>selLog2))
+  proteinL=rownames(dataSel[!is.na(dataSel[,i])&abs(dataSel[,i])>selLog2,]==TRUE)
+  proteinL=list(t(data.frame(proteinL)))
+  names(proteinL)=paste0(gsub("Log2MedianChange|G25_","",i),"#",summary(proteinL)[1])
+  combinations<-c(combinations,proteinL)
+}
+plot(eulerr::euler(combinations),quantities=TRUE,main=paste0("#Total with absolute-Log2MedianChange > ",selLog2))
 combinations<-list()
 for(i in colnames(dataSel)){
   print(i)
@@ -87,6 +105,5 @@ for(i in colnames(dataSel)){
   combinations<-c(combinations,proteinL)
 }
 plot(eulerr::euler(combinations),quantities=TRUE,main=paste0("#Total with Log2MedianChange < ",selLog2))
-print(outPDF)
-print(outRep)
-print(outRepSel)
+print(paste0(outF,".select/.xlsx,csv,pdf"))
+

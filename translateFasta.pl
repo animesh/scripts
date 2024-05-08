@@ -85,12 +85,16 @@ foreach my $seqs (keys %seqm){
 
 
 __END__
-grep "^>" /mnt/f/IRD_klon.fas | wc
-     88      88    6038
-perl translateFasta.pl /mnt/f/IRD_klon.fas > /mnt/f/IRD_klon.6F.fasta
-grep "^>" /mnt/f/IRD_klon.6F.fasta | wc
-    528     528   58770
-perl transeqUnstar.pl /mnt/f/IRD_klon.6F.fasta > /mnt/f/IRD_klon.6F.unstar.fasta
-grep "^>" /mnt/f/IRD_klon.6F.unstar.fasta  | wc
-   1697    1697  202134
+(casanovo_env) (base) ash022@DMED7596:~/Scripts$ perl translateFasta.pl vilnius.IRD.fasta > vilnius.IRD.aa.fasta
+(casanovo_env) (base) ash022@DMED7596:~/Scripts$ grep "^>" vilnius.IRD.fasta | wc
+     80    1573   12301
+(casanovo_env) (base) ash022@DMED7596:~/Scripts$ perl translateFasta.pl vilnius.IRD.fasta > vilnius.IRD.aa.fasta
+(casanovo_env) (base) ash022@DMED7596:~/Scripts$ grep "\*" vilnius.IRD.aa.fasta | wc
+    341     341   25038
+(casanovo_env) (base) ash022@DMED7596:~/Scripts$ grep "^>" vilnius.IRD.aa.fasta | wc
+    480     480   85296
+(casanovo_env) (base) ash022@DMED7596:~/Scripts$ perl transeqUnstar.pl vilnius.IRD.aa.fasta > vilnius.IRD.aa.us.fasta
+(casanovo_env) (base) ash022@DMED7596:~/Scripts$ grep "^>" vilnius.IRD.aa.us.fasta | wc
+   1608    1608  307348
+(casanovo_env) (base) ash022@DMED7596:~/Scripts$ grep "\*" vilnius.IRD.aa.us.fasta | wc
 
