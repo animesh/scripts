@@ -1,5 +1,5 @@
 #git checkout master diffExprTestT.r
-#Rscript.exe diffExprTestT.r L:\promec\TIMSTOF\LARS\2024\240319_Nicola\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2024\240319_Nicola\combined\txt\Groups.txt Bio Rem
+#Rscript.exe diffExprTestT.r L:\promec\TIMSTOF\LARS\2024\240509_Deo\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2024\240509_Deo\combined\txt\Groups.txt Bio Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -211,7 +211,7 @@ dim(log2LFQsel)
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 for(i in rownames(table(label$pair2test))){
-  for(j in rownames(table(label$pair2test))[4]){
+  for(j in rownames(table(label$pair2test))){
     if(i!=j){
       print(paste(i,j))
       ttPair=testT(log2LFQsel,i,j,cvThr)
