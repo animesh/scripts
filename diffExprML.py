@@ -1,10 +1,7 @@
 #https://auto.gluon.ai/stable/install.html
 #https://youtu.be/fdfGb2jq-_c?t=1991
-<<<<<<< Updated upstream
 #from auto_mm_bench import *
-=======
 from auto_mm_bench import *
->>>>>>> Stashed changes
 from autogluon.tabular import TabularDataset, TabularPredictor
 predictor = TabularPredictor(label='Class').fit(train_data,presets='best_quality',time_limit=60)
 predictions = predictor.predict(test_data)
@@ -16,9 +13,48 @@ mamba install -c rapidsai -c nvidia -c conda-forge cuml
 python -m pip install dvc scikit-learn scikit-image pandas numpy
 ln -s /mnt/f/GD/OneDrive/Dokumenter/GitHub/scripts .
 tail -f scripts/logs.log
+rsync -Parv ash022@login1.nird-lmd.sigma2.no:PD/Animesh/Aida/ML/ .
 # %% mm
 import pandas as pd
-data=pd.read_csv("/home/ash022/1d/Aida/ML/dataTmmS42T.csv")
+data=pd.read_csv("dataTmmS42T.csv")
+data.describe()
+data.info()
+data.cor()
+# %% lazy
+#https://medium.com/omics-diary/how-to-use-the-lazy-predict-library-to-select-the-best-machine-learning-model-65378bf4568e
+#pip install lazypredict
+conda install -c conda-forge xgboost
+conda install -c conda-forge lightgbm
+%matplotlib inline
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
+from IPython.display import display
+from pandas.plotting import scatter_matrix
+attributes = ["LAMP1", "TFRC", "UNG", "MYC"]
+scatter_matrix(df[attributes], figsize = (10,8))
+df_cat_to_array = pd.get_dummies(df)
+df_cat_to_array = df_cat_to_array.drop("species_id", axis=1)
+df_cat_to_array
+import lazypredict
+from sklearn.model_selection import train_test_split
+from lazypredict.Supervised import LazyRegressor
+X = df_cat_to_array .drop(["sepal_width"], axis=1)
+Y = df_cat_to_array ["sepal_width"]
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.2, random_state = 64)
+reg = LazyRegressor(verbose=0, ignore_warnings=False, custom_metric=None)
+models,pred = reg.fit(X_train, X_test, y_train, y_test)
+models
+from lazypredict.Supervised import LazyClassifier
+from sklearn.model_selection import train_test_split
+X =  df_cat_to_array.drop(["species_setosa", "species_versicolor", "species_virginica"], axis=1)
+Y = df_cat_to_array["species_versicolor"]
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state =55)
+clf = LazyClassifier(verbose=0, ignore_warnings=True, custom_metric=None)
+models,predictions = clf.fit(X_train, X_test, y_train, y_test)
+models
+
 dGroup="Class"
 print("Grouping by: ", dGroup)
 print(data.groupby(dGroup).count())#mapping = {'MGUS':1,'MM':2,'Ml':3}

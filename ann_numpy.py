@@ -46,5 +46,3 @@ h1=1/(1+np.exp(-(x.dot(w4.T)+bias[0])))
 y_pred_h1=1/(1+np.exp(-(h1.dot(w3.T)+bias[1])))
 print(0.5*np.square(y_pred_h1 - y).sum())
 #0.291027773693599
-
-# %%

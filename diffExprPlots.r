@@ -1,4 +1,6 @@
-#Rscript diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Protein vs fertilisation.xlsx" 2 "Oocyte vs fert." 1 1 "^U[0-9]" 6 2 10 3
+#Rscript diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteomics_LFQ for heatmaps.xlsx" 3 "Eyed egg" 1 1 "^EP[0-9]" 6 10 10 3
+#Rscript diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteomics_LFQ for heatmaps.xlsx" 2 "Oocyte" 1 1 "^O[0-9]" 6 3 10 3
+#Rscript diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteomics_LFQ for heatmaps.xlsx" 1 "Ovarian fluid" 1 1 "^OF[0-9]" 6 10 10 3
 #setup####
 #install.packages("ggplot2")
 #install.packages("svglite")
@@ -65,36 +67,6 @@ ggplot2::ggsave(file=paste0(inpF,inpS,inpN,"ID",colnames(data)[inpR],inpC,"scale
 write.csv(data_selr_na0,paste0(inpF,inpS,inpN,"ID",colnames(data)[inpR],inpC,"scale",scale,".select.",gsub("\\^|\\[0-9\\]","",selection),".csv"),row.names = T)
 print(paste("processed sheet",inpS,inpN,inpF,"ID",colnames(data)[inpR],inpC,"Font",sizeF,"H",sizeH,"W",sizeW,"scale",scale))
 print(selection)
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Protein vs fertilisation.xlsx" 1 "OO vs fert." 1 1 "^OF[0-9]" 6 10 10 3
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Protein vs fertilisation.xlsx" 2 "Oocyte vs fert." 1 1 "^O[0-9]" 6 1 10 3
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Protein vs fertilisation.xlsx" 3 "Eyed stage vs Fert." 1 1 "^EP[0-9]" 6 8 10 3
-
-
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Proteins vs EP.xlsx" 1 "Eyed egg and eyedegg rate" 1 1 "^EP[0-9]" 6 10 10 3
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Proteins vs EP.xlsx" 2 "OF vs eyed egg rate" 1 1 "^OF[0-9]" 6 10 10 3
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Proteins vs EP.xlsx" 3 "unfertilised egg vs eyedeggrate" 1 1 "^O[0-9]" 6 2 10 3
-
-
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Proteins vs Hatching.xlsx" 1 "EPvsHatching rate" 1 1 "^EP[0-9]" 6 3 10 3
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Proteins vs Hatching.xlsx" 2 "OF vs Hatching rate" 1 1 "^OF[0-9]" 6 10 10 3
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Proteins vs Hatching.xlsx" 3 "Unfert eggs vs Hatching rate" 1 1 "^O[0-9]" 6 1 10 3
-
-
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Proteins vs Spine.stage.xlsx" 1 "EP vs spine rate" 1 1 "^EP[0-9]" 6 10 10 3
-
-#R-4.4.0\bin\Rscript.exe OneDrive\Desktop\Scripts\diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\15052025_correlation_Proteins vs fert outcome\15052025_Increasing correlation_Proteins vs fert outcome\Proteins vs Spine.stage.xlsx" 2 "OF vs Spine" 1 1 "^OF[0-9]" 6 10 10 3
-
-
 
 
 

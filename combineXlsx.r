@@ -36,6 +36,7 @@ length(dfMZ1)
 summary(warnings())
 print(inpFL)
 summary(MZ1)
+#sheets <- list(data,data) #assume sheet1 and sheet2 are data frames
 data<-data.frame(RowGeneUniProtScorePeps=dfMZ1)
 for (obj in inpFL) {
   #obj<-inpFL[1]
