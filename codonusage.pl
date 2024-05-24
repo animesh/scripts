@@ -98,7 +98,9 @@ wget https://groups.google.com/a/soe.ucsc.edu/forum/#!original/genome/yKentEyv2v
 #region: genome
 #output format: sequence
 #FTP
-wget https://ftp.ncbi.nlm.nih.gov/pub/CCDS/current_human/CCDS_nucleotide.20180614.fna.gz
-wget https://ftp.ncbi.nlm.nih.gov/pub/CCDS/current_human/CCDS.20180614.txt
-sed 's/\t/,/g' promec/promec/FastaDB/CCDS.20180614.txt > promec/promec/FastaDB/CCDS.20180614.csv
+wget https://ftp.ncbi.nlm.nih.gov/pub/CCDS/current_human/CCDS_nucleotide.20221027.fna.gz
+wget https://ftp.ncbi.nlm.nih.gov/pub/CCDS/current_human/CCDS.20221027.txt
+sed 's/\t/,/g' CCDS.20221027.txt > CCDS.20221027.csv
+sed 's/\#//' CCDS.20221027.csv. > CCDS.20221027.hdr.csv
+gunzip CCDS_nucleotide.20221027.fna.gz
 #email: sharma.animesh@gmail.com
