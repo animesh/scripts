@@ -1,6 +1,4 @@
-#Rscript diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\23052024_Proteomics_LFQ for heatmaps.xlsx" 3 "Eyed embryos" 1 1 "^EP[0-9]" 6 10 10 3
-#Rscript diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\23052024_Proteomics_LFQ for heatmaps.xlsx" 2 "Oocyte" 1 1 "^O[0-9]" 6 3 10 3
-#Rscript diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\23052024_Proteomics_LFQ for heatmaps.xlsx" 1 "Ovarian fluid" 1 1 "^OF[0-9]" 6 10 10 3
+#Rscript diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\23052024_Proteomics_LFQ for heatmaps_corOF.xlsx" 1 "Ovarian fluid" 1 1 "^O" 6 10 10 3
 #setup####
 #install.packages("ggplot2")
 #install.packages("svglite")
@@ -10,9 +8,9 @@ print(args)
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali/combined/txtNoDN/23052024_Proteomics_LFQ for heatmaps.xlsx"
 inpS <- args[2]
-#inpS <- 3
+#inpS <- 1
 inpN <- args[3]
-#inpN <- "Eyed embryos"
+#inpN <- "Ovarian fluid"
 inpR <- args[4]
 inpR <- as.numeric(inpR)
 #inpR <- 1
@@ -20,7 +18,7 @@ inpC <- args[5]
 inpC <- as.numeric(inpC)
 #inpC <- 1
 selection<-args[6]
-#selection<-"^EP[0-9]"
+#selection<-"^O"
 sizeF<-args[7]
 #sizeF<-6
 sizeH<-args[8]
@@ -40,7 +38,9 @@ if(inpC>1){
 dim(data)
 #data####
 dataS<-data[,grep(selection,colnames(data))]
+dim(dataS)
 dataS<-sapply(dataS,as.numeric)
+dim(dataS)
 if(inpR>0){
   rownames(dataS)<-data[,inpR]
 } else {
