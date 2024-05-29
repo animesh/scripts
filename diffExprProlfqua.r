@@ -1,7 +1,12 @@
 #git checkout fe5f9e92f3fe5ca0c75e9d8acfd211feb7358066 diffExprProlfqua.r
 #Rscript diffExprProlfqua.r
-#remotes::install_github('fgcz/prolfqua', dependencies = TRUE)
+#install.packages("BiocManager")
+#BiocManager::install("SummarizedExperiment")
+#install.packages("devtools")
+#remotes::install_github('fgcz/prolfqua', dependencies = TRUE,force = TRUE)
 #https://fgcz.github.io/prolfqua/articles/Comparing2Groups.html
+#remotes::install_github('wolski/prolfquapp', dependencies = TRUE, force = FALSE)
+#https://github.com/fgcz/prolfqua/issues/77
 #label####
 inputAnnotation <-"L:/promec/Animesh/Mathilde/Groups.xlsx"
 labelD<-basename(inputAnnotation)
