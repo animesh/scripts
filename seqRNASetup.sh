@@ -1,3 +1,7 @@
+#https://nf-co.re/rnaseq/3.14.0/docs/usage#reference-genome-options
+#latest_release=$(curl -s 'http://rest.ensembl.org/info/software?content-type=application/json' | grep -o '"release":[0-9]*' | cut -d: -f2)
+#wget -L ftp://ftp.ensembl.org/pub/release-${latest_release}/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa.gz
+#wget -L ftp://ftp.ensembl.org/pub/release-${latest_release}/gtf/homo_sapiens/Homo_sapiens.GRCh38.${latest_release}.gtf.gz
 #https://daehwankimlab.github.io/hisat2/main/
 sudo apt install hisat2
 mkdir $HOME/seqRNA

@@ -1,5 +1,6 @@
 #setup####
-inpD <-"F:/OneDrive - NTNU/Aida/XPO/"
+inpD <-"L:/promec/USERS/SINTEF/20211207_SINTEF_30samples/combined/txt/"
+#correlate log2median Clinical and WT and their difference between with dose
 .libPaths( c( .libPaths(), inpD) )
 .libPaths()
 par(mfrow=c(1,2))

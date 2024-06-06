@@ -1,5 +1,9 @@
 #install.packages(c("readxl","writexl","svglite","ggplot2"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#F:\R-4.3.1\bin\Rscript.exe diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Eyed egg and hatching rate_01032024.xlsx" "LFQ.intensity." "Group" "Remove" "Hatching.rate"
+#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Eye.min.diameter.mm."
+#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Yolk.area.mm2."
+#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Body.area.mm2."
+#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Yolk.body.ratio"
+#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Eye.to.front.mm2."
 print("USAGE:<path to>Rscript diffExprTestCor.r <complete path to directory containing proteinGroups.txt> AND <SurvivalUpdates.xlsx file>  \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -14,7 +18,7 @@ print(paste("Thresholds used - ", thr ,"#count-valid-samples," ,selThr,"#pValue-
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali//combined/txtNoDN/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali//combined/txtNoDN/Eyed egg and hatching rate_01032024.xlsx"
+#inpL <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali//combined/txtNoDN/Proteins dataset vs Larvel_06062024.xlsx"
 selection<-args[3]
 #selection<-"LFQ.intensity."
 lGroup <- args[4]
@@ -22,7 +26,7 @@ lGroup <- args[4]
 rGroup <- args[5]
 #rGroup<-"Remove"
 scaleF <- args[6]
-#scaleF<-"Hatching.rate"
+#scaleF<-"Eye.min.diameter.mm."
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
