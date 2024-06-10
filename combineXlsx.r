@@ -1,10 +1,13 @@
-#Rscript combineXlsx.r L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\GO\2024-05-05_go_term_enrichment_tables_ttest_v1\2024-05-05_go_term_enrichment_tables_ttest_v1
+#Rscript combineXlsx.r L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\GO\2024-06-07_go_term_enrichment_tables_ttest_v2\ttest_fdr_cutoff=0.01
+#Rscript combineXlsx.r "L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\GO\2024-06-07_go_term_enrichment_tables_ttest_v2\ttest_fdr_cutoff=0.05"
+#Rscript combineXlsx.r "L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\GO\2024-06-07_go_term_enrichment_tables_ttest_v2\ttest_fdr_cutoff=0.1"
+#Rscript combineXlsx.r "L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\GO\2024-06-07_go_term_enrichment_tables_ttest_v2\ttest_fdr_cutoff=0.2"
 #install.packages(c("writexl","readxl"))
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
 inpD <- args[1]
-#inpD<-"L:/promec/USERS/SINTEF/20211207_SINTEF_30samples/GO/2024-05-05_go_term_enrichment_tables_ttest_v1/2024-05-05_go_term_enrichment_tables_ttest_v1"
+#inpD<-"L:/promec/USERS/SINTEF/20211207_SINTEF_30samples/GO/2024-06-07_go_term_enrichment_tables_ttest_v2/ttest_fdr_cutoff=0.01"
 inpFL<-list.files(pattern=".xls*",path=inpD,full.names=F,recursive=F)
 print(inpFL)
 outF<-paste0(inpD,"combined")
@@ -18,7 +21,6 @@ pdf(outPDF)
 ID<-NA
 for(inpF in inpFL){
     #inpF<-inpFL[1]
-    #inpF<-"go_enrichment_ctrl50_ttestfdr=0.01_gofdr=0.05.xlsx"
     data<-readxl::read_xlsx(paste(inpD,inpF,sep="/"))
     print(inpF)
     print(summary(data))
@@ -26,11 +28,13 @@ for(inpF in inpFL){
     if(dim(data)[1]>0){
       #hist(data$`p-val`,main=inpF)
       plot(data$`p-val`,data$Enrichment,main=inpF,xlab="p-value",ylab="Enrichment",pch=7)
-      text(data$`p-val`,data$Enrichment,labels=data$`GO explanation`,cex=0.6,pos=2)
-      text(data$`p-val`,data$Enrichment,labels=data$`GO explanation`,cex=0.6,pos=4)
+      text(data$`p-val`,data$Enrichment,labels=data$`GO explanation`,cex=0.4,pos=2)
+      text(data$`p-val`,data$Enrichment,labels=data$`GO explanation`,cex=0.4,pos=4)
+      text(data$`p-val`,data$Enrichment,labels=data$IDs,cex=0.5,pos=1)
+      text(data$`p-val`,data$Enrichment,labels=data$IDs,cex=0.5,pos=3)
     }
     #sheets<-append(sheets,list(data))
-    tmpID<-data$`GO explanation`
+    tmpID<-paste(data$IDs,data$`GO explanation`,sep=";;")
     ID<-union(ID,tmpID)
     colnames(data)<-paste0(colnames(data),inpF)
     data$combID<-tmpID
@@ -56,11 +60,11 @@ dataSel<-data[,c(grep("combID|Enrichment",colnames(data)))]
 colnames(dataSel)<-gsub("Enrichmentgo_enrichment_|fdr|=|ttest|.xlsx","",colnames(dataSel))
 sort(colnames(dataSel))
 dataSelClin<-dataSel[,c(grep("clin",colnames(dataSel)))]
-dataSelCtr<-dataSel[,c(grep("ctr",colnames(dataSel)))]
-dataSel$CliNA<-rowSums(!is.na(dataSelClin))
-dataSel$CtrNA<-rowSums(!is.na(dataSelCtr))
-dataSel<-dataSel[order(dataSel$CtrNA,decreasing = T),]
-dataSel<-dataSel[order(dataSel$CliNA,decreasing = T),]
+dataSelWild<-dataSel[,c(grep("wild",colnames(dataSel)))]
+dataSel$Clin<-rowSums(!is.na(dataSelClin))
+dataSel$Wild<-rowSums(!is.na(dataSelWild))
+dataSel<-dataSel[order(dataSel$Wild,decreasing = T),]
+dataSel<-dataSel[order(dataSel$Clin,decreasing = T),]
 writexl::write_xlsx(dataSel,outRepSel)
 write.csv(dataSel,outRepSelCSV,row.names = F)
 print(colnames(dataSel))
