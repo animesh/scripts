@@ -1,0 +1,3 @@
+module --ignore_cache load DIA-NN/1.8.1
+dia_Slot1-19_1_6624.d /cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_21_dia_Slot1-39_1_6705.d   --lib /cluster/projects/nn9036k/FastaDB/human-mc2lib.predicted.speclib --threads 16 --verbose 1 --out $PWD/DIANN/240222_Kamilla_Maike.tsv --qvalue 0.01 --matrices  --min-corr 2.0 --corr-diff 1.0 --time-corr-only --extracted-ms1 --out-lib $PWD/DIANN/240222_Kamilla_Maike.report-lib.tsv  --gen-spec-lib --prosit --fasta /cluster/software/DIA-NN/1.8.1/camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --unimod4 --var-mods 4 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --peptidoforms --reanalyse --relaxed-prot-inf --rt-profiling --pg-level 0
+
