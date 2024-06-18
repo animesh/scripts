@@ -40,12 +40,15 @@ dim(dataSelN5ppm)
 write.csv(dataSelN5ppm,paste0(inpFN,selection,"dataSelN5ppm.csv"),row.names = T)
 print(paste("Selected",selection,"Values(s) written to",paste0(inpFN,selection,"dataSelN5ppm.csv")))
 print("Selecting Raw Intensity Values(s) for dataSelN")
+print("Selecting Raw Intensity Values(s) for dataSelN5ppm")
 #samples####
 Bondhu
 _JMI_SAMPLE_(helathy)
 _JMI_LP_SAMPLE(Liver patients)
 _JMI_COVID_SAMPLE (Covid)
 Rest BLANK and POOL might be contro
+#combine####
+check the ref shared by Mohan for combining positive and negative modes and combine the samples, need mapping?
 #close####
 dev.off()
 summary(warnings())
