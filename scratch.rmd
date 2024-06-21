@@ -1,3 +1,11 @@
+```{r}
+#select####
+listCheck<-read.csv("L:/promec/TIMSTOF/LARS/2023/230310 ChunMei/combined/txt/Exosome and ion channel proteins.csv",header = T,sep = ";")
+plot(table(listCheck$Exosome..1276.))
+plot(table(listCheck$Ion.channel..220.))
+
+```
+
 ```{r scratch}
 par(mar=c(12,3,1,1))
 boxplot(intensityLFQ,las=2,main=selection)
