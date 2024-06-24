@@ -1,9 +1,9 @@
-```{r}
-#select####
-listCheck<-read.csv("L:/promec/TIMSTOF/LARS/2023/230310 ChunMei/combined/txt/Exosome and ion channel proteins.csv",header = T,sep = ";")
-plot(table(listCheck$Exosome..1276.))
-plot(table(listCheck$Ion.channel..220.))
-
+```{r AAA-FDRcheck}
+#https://tools.carbocation.com/FDR
+#https://github.com/carbocation/falsediscovery/blob/master/falsediscovery.goc(0.000003,0.004,0.001,0.1,0.05)
+pV<-c(0.000003,0.004,0.001,0.1,0.05)
+pV<-c(0.000719929,0.00139014,0.00162029,0.0146431,0.0147919,0.0263679,0.99,0.999)
+p.adjust(pV,method="BH")
 ```
 
 ```{r scratch}

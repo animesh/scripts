@@ -45,8 +45,9 @@ colnames(dataSelNt)<-dataSelN[,grep(colN,colnames(dataSelN))]
 colnames(dataSelNt)
 colours = c("black","yellow","darkred","cyan","darkgreen","orange","violet","grey")
 for(i in 1:nrow(dataSelNt)){
-  barplot(dataSelNt[i,],las=2,main=paste0(basename(selectN),"\nselect ",colN," Protein-groups ",row.names(dataSelNt)[i]),ylab="Log2 Median Change to AMHC",col=colours[i],ylim=c(min(dataSelNt)*1.3,max(dataSelNt)*1.3),cex.names = 0.5)
+  barplot(dataSelNt[i,order(dataSelNt[i,],decreasing = T)],las=2,main=paste0(basename(selectN),"\nselect ",colN," Protein-groups ",row.names(dataSelNt)[i]),ylab="Log2 Median Change to AMHC",col=colours[i],ylim=c(min(dataSelNt)*1.3,max(dataSelNt)*1.3),cex.names = 0.5)
 }
+dataSelNt<-dataSelNt[,order(colSums(dataSelNt),decreasing = T)]
 barplot(dataSelNt,las=2,main=paste0(basename(selectN),"\nselect ",colN," Protein-groups"),ylab="Log2 Median Change to AMHC",col=colours,beside=TRUE,ylim=c(min(dataSelNt)*1.3,max(dataSelNt)*1.3),cex.names = 0.5)
 box()
 legend('topright',fill=colours,legend=rownames(dataSelNt),cex=0.5)
