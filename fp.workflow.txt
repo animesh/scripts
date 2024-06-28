@@ -3,7 +3,7 @@
 
 # Please edit the following path to point to the correct location.
 # In Windows, please replace single '\' with '\\'
-database.db-path=/home/ash022/fragpipe/2023-12-12-decoys-contam-uniprot-mouse-iso-Mar23.fasta.fas
+database.db-path=/home/ash022/fragpipe/2023-11-11-decoys-reviewed-contam-UP000005640.fas
 
 database.decoy-tag=rev_
 
