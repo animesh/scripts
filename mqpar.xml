@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/work/users/ash022/mDIA/UP000000589_10090_additional.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/work/users/ash022/veronica/UP000000589_10090.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -11,7 +11,7 @@
          <taxonomyId>10090</taxonomyId>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/work/users/ash022/mDIA/UP000000589_10090.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/work/users/ash022/veronica/UP000000589_10090_additional.fasta</fastaFilePath>
          <identifierParseRule>>.*\|(.*)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -44,7 +44,7 @@
    <minScoreUnmodifiedPeptides>0</minScoreUnmodifiedPeptides>
    <minScoreModifiedPeptides>40</minScoreModifiedPeptides>
    <secondPeptide>True</secondPeptide>
-   <matchBetweenRuns>False</matchBetweenRuns>
+   <matchBetweenRuns>True</matchBetweenRuns>
    <matchUnidentifiedFeatures>False</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
    <dependentPeptides>False</dependentPeptides>
@@ -59,7 +59,7 @@
    <top3>False</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
-   <splitProteinGroupsByTaxonomy>True</splitProteinGroupsByTaxonomy>
+   <splitProteinGroupsByTaxonomy>False</splitProteinGroupsByTaxonomy>
    <taxonomyLevel>Species</taxonomyLevel>
    <avalon>False</avalon>
    <nModColumns>3</nModColumns>
@@ -104,11 +104,12 @@
    <restrictMods>
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
+      <string>Deamidation (NQ)</string>
    </restrictMods>
-   <matchingTimeWindow>0</matchingTimeWindow>
-   <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
-   <alignmentTimeWindow>0</alignmentTimeWindow>
-   <alignmentIonMobilityWindow>0</alignmentIonMobilityWindow>
+   <matchingTimeWindow>1</matchingTimeWindow>
+   <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
+   <alignmentTimeWindow>20</alignmentTimeWindow>
+   <alignmentIonMobilityWindow>1</alignmentIonMobilityWindow>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
    <quantMode>2</quantMode>
@@ -120,7 +121,7 @@
    <writePasefMsmsScansTable>True</writePasefMsmsScansTable>
    <writeAccumulatedMsmsScansTable>True</writeAccumulatedMsmsScansTable>
    <writeMs3ScansTable>True</writeMs3ScansTable>
-   <writeAllPeptidesTable>False</writeAllPeptidesTable>
+   <writeAllPeptidesTable>True</writeAllPeptidesTable>
    <writeMzRangeTable>True</writeMzRangeTable>
    <writeDiaFragmentTable>False</writeDiaFragmentTable>
    <writeDiaFragmentQuantTable>False</writeDiaFragmentQuantTable>
@@ -135,74 +136,253 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.5.2.0</maxQuantVersion>
+   <maxQuantVersion>2.4.14.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>72</numThreads>
+   <numThreads>83</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
-   <fullMinMz>-1.7976931348623157E+308</fullMinMz>
-   <fullMaxMz>1.7976931348623157E+308</fullMaxMz>
+   <fixedCombinedFolder></fixedCombinedFolder>
+   <fullMinMz>-1.79769313486232E+308</fullMinMz>
+   <fullMaxMz>1.79769313486232E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
    <calcPeakProperties>False</calcPeakProperties>
    <showCentroidMassDifferences>False</showCentroidMassDifferences>
    <showIsotopeMassDifferences>False</showIsotopeMassDifferences>
+   <useDotNetCore>True</useDotNetCore>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_1_dia_Slot1-19_1_6624.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_2_dia_Slot1-20_1_6626.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_3_dia_Slot1-21_1_6628.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_4_dia_Slot1-22_1_6630.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_5_dia_Slot1-23_1_6632.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_6_dia_Slot1-24_1_6634.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_7_dia_Slot1-25_1_6677.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_8_dia_Slot1-26_1_6679.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_9_dia_Slot1-27_1_6681.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_10_dia_Slot1-28_1_6683.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_11_dia_Slot1-29_1_6685.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_12_dia_Slot1-30_1_6687.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_13_dia_Slot1-31_1_6689.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_14_dia_Slot1-32_1_6691.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_15_dia_Slot1-33_1_6693.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_16_dia_Slot1-34_1_6695.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_17_dia_Slot1-35_1_6697.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_18_dia_Slot1-36_1_6699.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_19_dia_Slot1-37_1_6701.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_20_dia_Slot1-38_1_6703.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_21_dia_Slot1-39_1_6705.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_22_dia_Slot1-40_1_6707.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_23_dia_Slot1-41_1_6709.d</string>
-      <string>/cluster/work/users/ash022/mDIA/240222_Kamilla_Maike_24_dia_Slot1-42_1_6711.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_1_Slot1-1_1_7645.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_2_Slot1-2_1_7647.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_4_Slot1-3_1_7649.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_6_Slot1-4_1_7651.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_7_Slot1-5_1_7653.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_17_Slot1-6_1_7655.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_19_Slot1-7_1_7657.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_22_Slot1-8_1_7659.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_26_Slot1-9_1_7661.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_27_2_Slot1-10_1_7663.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_28_2_Slot1-11_1_7665.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_29_2_Slot1-12_1_7669.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_30_2_Slot1-13_1_7671.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_31_2_Slot1-14_1_7675.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_32_2_Slot1-15_1_7677.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_33_2_Slot1-16_1_7679.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_34_2_Slot1-17_1_7681.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_35_2_Slot1-18_1_7683.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_36_2_Slot1-19_1_7685.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_37_2_Slot1-20_1_7687.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_39_2_Slot1-21_1_7689.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_40_2_Slot1-22_1_7691.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_41_2_Slot1-23_1_7693.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_42_2_Slot1-24_1_7695.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_44_2_Slot1-25_1_7697.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_45_2_Slot1-26_1_7699.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_47_2_Slot1-27_1_7701.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_48_2_Slot1-28_1_7705.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_49_2_Slot1-29_1_7707.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_50_2_Slot1-30_1_7709.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_51_2_Slot1-31_1_7711.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_53_2_Slot1-32_1_7713.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_54_2_Slot1-33_1_7715.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_55_2_Slot1-34_1_7717.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_56_2_Slot1-35_1_7719.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_57_2_Slot1-36_1_7721.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_59_2_Slot1-37_1_7724.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_60_2_Slot1-38_1_7726.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_61_2_Slot1-39_1_7728.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_63_2_Slot1-40_1_7730.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_65_2_Slot2-1_1_7732.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_67_2_Slot2-2_1_7734.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_68_2_Slot2-3_1_7736.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_69_2_Slot2-4_1_7738.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_70_2_Slot2-5_1_7740.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_71_2_Slot2-6_1_7742.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_72_2_Slot2-7_1_7744.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_73_2_Slot2-8_1_7746.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_74_2_Slot2-9_1_7748.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_75_2_Slot2-10_1_7750.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_76_2_Slot2-11_1_7752.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_77_2_Slot2-12_1_7754.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_79_2_Slot2-13_1_7756.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_80_2_Slot2-14_1_7758.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_81_2_Slot2-15_1_7760.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_82_2_Slot2-16_1_7762.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_83_2_Slot2-17_1_7764.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_84_2_Slot2-18_1_7766.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_85_2_Slot2-19_1_7768.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_87_2_Slot2-20_1_7770.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_88_2_Slot2-21_1_7772.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_89_2_Slot2-22_1_7776.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_90_2_Slot2-23_1_7778.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_91_2_Slot2-24_1_7780.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_92_2_Slot2-25_1_7782.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_93_2_Slot2-26_1_7783.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_94_2_Slot2-27_1_7786.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_95_2_Slot2-28_1_7789.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_96_2_Slot2-29_1_7791.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_97_2_Slot2-30_1_7793.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_100_2_Slot2-31_1_7795.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_103_2_Slot2-32_1_7797.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_104_2_Slot2-33_1_7799.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_105_2_Slot2-34_1_7801.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_106_2_Slot2-35_1_7803.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_107_2_Slot2-36_1_7805.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_108_2_Slot2-37_1_7812.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_109_2_Slot2-38_1_7827.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_110_2_Slot2-39_1_7816.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_111_2_Slot2-40_1_7818.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_112_2_Slot2-41_1_7820.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_113_2_Slot2-42_1_7822.d</string>
+      <string>/cluster/work/users/ash022/veronica/240605_Veronica_114_2_Slot2-43_1_7824.d</string>
    </filePaths>
    <experiments>
-      <string>1_dia_Slot1-19_1_6624</string>
-      <string>2_dia_Slot1-20_1_6626</string>
-      <string>3_dia_Slot1-21_1_6628</string>
-      <string>4_dia_Slot1-22_1_6630</string>
-      <string>5_dia_Slot1-23_1_6632</string>
-      <string>6_dia_Slot1-24_1_6634</string>
-      <string>7_dia_Slot1-25_1_6677</string>
-      <string>8_dia_Slot1-26_1_6679</string>
-      <string>9_dia_Slot1-27_1_6681</string>
-      <string>10_dia_Slot1-28_1_6683</string>
-      <string>11_dia_Slot1-29_1_6685</string>
-      <string>12_dia_Slot1-30_1_6687</string>
-      <string>13_dia_Slot1-31_1_6689</string>
-      <string>14_dia_Slot1-32_1_6691</string>
-      <string>15_dia_Slot1-33_1_6693</string>
-      <string>16_dia_Slot1-34_1_6695</string>
-      <string>17_dia_Slot1-35_1_6697</string>
-      <string>18_dia_Slot1-36_1_6699</string>
-      <string>19_dia_Slot1-37_1_6701</string>
-      <string>20_dia_Slot1-38_1_6703</string>
-      <string>21_dia_Slot1-39_1_6705</string>
-      <string>22_dia_Slot1-40_1_6707</string>
-      <string>23_dia_Slot1-41_1_6709</string>
-      <string>24_dia_Slot1-42_1_6711</string>
+      <string>1_Slot1-1_1_7645</string>
+      <string>2_Slot1-2_1_7647</string>
+      <string>4_Slot1-3_1_7649</string>
+      <string>6_Slot1-4_1_7651</string>
+      <string>7_Slot1-5_1_7653</string>
+      <string>17_Slot1-6_1_7655</string>
+      <string>19_Slot1-7_1_7657</string>
+      <string>22_Slot1-8_1_7659</string>
+      <string>26_Slot1-9_1_7661</string>
+      <string>27_2_Slot1-10_1_7663</string>
+      <string>28_2_Slot1-11_1_7665</string>
+      <string>29_2_Slot1-12_1_7669</string>
+      <string>30_2_Slot1-13_1_7671</string>
+      <string>31_2_Slot1-14_1_7675</string>
+      <string>32_2_Slot1-15_1_7677</string>
+      <string>33_2_Slot1-16_1_7679</string>
+      <string>34_2_Slot1-17_1_7681</string>
+      <string>35_2_Slot1-18_1_7683</string>
+      <string>36_2_Slot1-19_1_7685</string>
+      <string>37_2_Slot1-20_1_7687</string>
+      <string>39_2_Slot1-21_1_7689</string>
+      <string>40_2_Slot1-22_1_7691</string>
+      <string>41_2_Slot1-23_1_7693</string>
+      <string>42_2_Slot1-24_1_7695</string>
+      <string>44_2_Slot1-25_1_7697</string>
+      <string>45_2_Slot1-26_1_7699</string>
+      <string>47_2_Slot1-27_1_7701</string>
+      <string>48_2_Slot1-28_1_7705</string>
+      <string>49_2_Slot1-29_1_7707</string>
+      <string>50_2_Slot1-30_1_7709</string>
+      <string>51_2_Slot1-31_1_7711</string>
+      <string>53_2_Slot1-32_1_7713</string>
+      <string>54_2_Slot1-33_1_7715</string>
+      <string>55_2_Slot1-34_1_7717</string>
+      <string>56_2_Slot1-35_1_7719</string>
+      <string>57_2_Slot1-36_1_7721</string>
+      <string>59_2_Slot1-37_1_7724</string>
+      <string>60_2_Slot1-38_1_7726</string>
+      <string>61_2_Slot1-39_1_7728</string>
+      <string>63_2_Slot1-40_1_7730</string>
+      <string>65_2_Slot2-1_1_7732</string>
+      <string>67_2_Slot2-2_1_7734</string>
+      <string>68_2_Slot2-3_1_7736</string>
+      <string>69_2_Slot2-4_1_7738</string>
+      <string>70_2_Slot2-5_1_7740</string>
+      <string>71_2_Slot2-6_1_7742</string>
+      <string>72_2_Slot2-7_1_7744</string>
+      <string>73_2_Slot2-8_1_7746</string>
+      <string>74_2_Slot2-9_1_7748</string>
+      <string>75_2_Slot2-10_1_7750</string>
+      <string>76_2_Slot2-11_1_7752</string>
+      <string>77_2_Slot2-12_1_7754</string>
+      <string>79_2_Slot2-13_1_7756</string>
+      <string>80_2_Slot2-14_1_7758</string>
+      <string>81_2_Slot2-15_1_7760</string>
+      <string>82_2_Slot2-16_1_7762</string>
+      <string>83_2_Slot2-17_1_7764</string>
+      <string>84_2_Slot2-18_1_7766</string>
+      <string>85_2_Slot2-19_1_7768</string>
+      <string>87_2_Slot2-20_1_7770</string>
+      <string>88_2_Slot2-21_1_7772</string>
+      <string>89_2_Slot2-22_1_7776</string>
+      <string>90_2_Slot2-23_1_7778</string>
+      <string>91_2_Slot2-24_1_7780</string>
+      <string>92_2_Slot2-25_1_7782</string>
+      <string>93_2_Slot2-26_1_7783</string>
+      <string>94_2_Slot2-27_1_7786</string>
+      <string>95_2_Slot2-28_1_7789</string>
+      <string>96_2_Slot2-29_1_7791</string>
+      <string>97_2_Slot2-30_1_7793</string>
+      <string>100_2_Slot2-31_1_7795</string>
+      <string>103_2_Slot2-32_1_7797</string>
+      <string>104_2_Slot2-33_1_7799</string>
+      <string>105_2_Slot2-34_1_7801</string>
+      <string>106_2_Slot2-35_1_7803</string>
+      <string>107_2_Slot2-36_1_7805</string>
+      <string>108_2_Slot2-37_1_7812</string>
+      <string>109_2_Slot2-38_1_7827</string>
+      <string>110_2_Slot2-39_1_7816</string>
+      <string>111_2_Slot2-40_1_7818</string>
+      <string>112_2_Slot2-41_1_7820</string>
+      <string>113_2_Slot2-42_1_7822</string>
+      <string>114_2_Slot2-43_1_7824</string>
    </experiments>
    <fractions>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -253,8 +433,126 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
       <int>0</int>
       <int>0</int>
       <int>0</int>
@@ -305,18 +603,75 @@
       <string></string>
       <string></string>
       <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
    </referenceChannel>
    <lfqTopNPeptides>0</lfqTopNPeptides>
    <diaJoinPrecChargesForLfq>False</diaJoinPrecChargesForLfq>
    <diaFragChargesForQuant>1</diaFragChargesForQuant>
    <gridSpacing>0.7</gridSpacing>
    <proteinGroupingFile></proteinGroupingFile>
-   <simplePepCalculation>False</simplePepCalculation>
    <useAndromeda20>False</useAndromeda20>
    <useAndromeda20DefaultModel>False</useAndromeda20DefaultModel>
    <andromeda20AltModelPath></andromeda20AltModelPath>
    <intensityPredictionFolder></intensityPredictionFolder>
-   <encoding>0</encoding>
    <parameterGroups>
       <parameterGroup>
          <andromeda20AltModelPath></andromeda20AltModelPath>
@@ -343,11 +698,11 @@
          <advancedPeakSplitting>True</advancedPeakSplitting>
          <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>30</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>18</intensityThresholdMs2>
+         <intensityThresholdMs2>10</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
-         <lcmsRunType>TIMS-MaxDIA</lcmsRunType>
+         <lcmsRunType>TIMS-DDA</lcmsRunType>
          <reQuantify>False</reQuantify>
          <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
@@ -361,7 +716,7 @@
          <fastLfq>True</fastLfq>
          <lfqRestrictFeatures>False</lfqRestrictFeatures>
          <lfqMinRatioCount>1</lfqMinRatioCount>
-         <lfqMinRatioCountDia>1</lfqMinRatioCountDia>
+         <lfqMinRatioCountDia>5</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
          <maxLabeledAa>0</maxLabeledAa>
          <maxNmods>5</maxNmods>
@@ -385,6 +740,7 @@
          <variableModifications>
             <string>Oxidation (M)</string>
             <string>Acetyl (Protein N-term)</string>
+            <string>Deamidation (NQ)</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
@@ -425,7 +781,7 @@
          <timsHalfWidth>10</timsHalfWidth>
          <timsStep>3</timsStep>
          <timsResolution>35000</timsResolution>
-         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
+         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -455,7 +811,6 @@
          </crosslinkNetworkFiles>
          <crosslinkMode></crosslinkMode>
          <peakRefinement>False</peakRefinement>
-         <peakRefinementCrosslinking>False</peakRefinementCrosslinking>
          <isobaricSumOverWindow>True</isobaricSumOverWindow>
          <isobaricWeightExponent>0.75</isobaricWeightExponent>
          <collapseMsmsOnIsotopePatterns>False</collapseMsmsOnIsotopePatterns>
@@ -463,13 +818,10 @@
          <diaLibraryPaths>
          </diaLibraryPaths>
          <diaEvidencePaths>
-            <string>/cluster/work/users/ash022/mDIA/evidence.txt</string>
          </diaEvidencePaths>
          <diaMsmsPaths>
-            <string>/cluster/work/users/ash022/mDIA/msms.txt</string>
          </diaMsmsPaths>
          <diaLabelIndsForLibraryMatch>
-            <int>0</int>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
          <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
@@ -542,7 +894,7 @@
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
-         <diaMultiplexQuantMethod>1</diaMultiplexQuantMethod>
+         <diaMultiplexQuantMethod>2</diaMultiplexQuantMethod>
          <diaOnlyPostprocess>False</diaOnlyPostprocess>
          <diaRequirePrecursor>False</diaRequirePrecursor>
          <diaFuturePeptides>False</diaFuturePeptides>
@@ -550,8 +902,8 @@
          <diaMaxModifications>0</diaMaxModifications>
          <diaMaxPositionings>0</diaMaxPositionings>
          <diaUseProbScore>False</diaUseProbScore>
-         <diaProbScoreP>0.055</diaProbScoreP>
-         <diaProbScoreG>1.2</diaProbScoreG>
+         <diaProbScoreP>1.2</diaProbScoreP>
+         <diaProbScoreG>1</diaProbScoreG>
          <diaProbScoreStep>0.1</diaProbScoreStep>
          <isM2FragTypeOverride>False</isM2FragTypeOverride>
          <ms2FragTypeOverride>0</ms2FragTypeOverride>
@@ -562,10 +914,6 @@
          <diaLibraryExport>0</diaLibraryExport>
          <diaUseApexWeightsForPtmLoc>False</diaUseApexWeightsForPtmLoc>
          <diaSecondScoreForMultiplex>True</diaSecondScoreForMultiplex>
-         <diaBestPrecursorChargeForQuant>False</diaBestPrecursorChargeForQuant>
-         <diaBestPrecursorMassRangeForQuant>False</diaBestPrecursorMassRangeForQuant>
-         <diaBestPrecursorIntensityForQuant>False</diaBestPrecursorIntensityForQuant>
-         <diaPtmLocMethod>0</diaPtmLocMethod>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
@@ -627,7 +975,7 @@
          <Recalibration>False</Recalibration>
       </msmsParams>
       <msmsParams>
-         <Name>UNKNOWN</Name>
+         <Name>Unknown</Name>
          <MatchTolerance>20</MatchTolerance>
          <MatchToleranceInPpm>True</MatchToleranceInPpm>
          <DeisotopeTolerance>7</DeisotopeTolerance>
