@@ -1,16 +1,21 @@
-#!pip3 install pandas matplotlib pathlib --user
-#python proteinGroupsCompareTTP.py "Protein accession"  L:\promec\TIMSTOF\LARS\2024\240626_Mira\Mira.tsv L:\promec\TIMSTOF\LARS\2024\240626_Mira\Mira2.tsv
+#!pip3 install pandas matplotlib pathlib seaborn --user
+#python proteinGroupsCompareTTP.py "Sequence"  L:\promec\TIMSTOF\LARS\2024\240626_Mira\MiraPep.tsv L:\promec\TIMSTOF\LARS\2024\240626_Mira\MiraPep2.tsv
 # %% setup
 import sys
 from pathlib import Path
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+import seaborn as sns
+pdfOut = PdfPages("output.pdf")
+fig = plt.figure()
 # %% read
-#cID=sys.argv[1]
-cID="Protein accession"
-#pathFile1 = Path(sys.argv[2])  
-pathFile1 = Path("L:/promec/TIMSTOF/LARS/2024/240626_Mira/Mira.tsv")  
-#pathFile2 = Path(sys.argv[3])  
-pathFile2 = Path("L:/promec/TIMSTOF/LARS/2024/240626_Mira/Mira2.tsv")  
+cID=sys.argv[1]
+#cID="Protein accession"
+pathFile1 = Path(sys.argv[2])  
+#pathFile1 = Path("L:/promec/TIMSTOF/LARS/2024/240626_Mira/MiraPep.tsv")  
+pathFile2 = Path(sys.argv[3])  
+#pathFile2 = Path("L:/promec/TIMSTOF/LARS/2024/240626_Mira/MiraPep2.tsv")  
 #compare
 pdHits1=pd.read_csv(pathFile1,low_memory=False,sep='\t')
 print(pdHits1.columns)
@@ -32,6 +37,8 @@ for c in pdHits.columns:
             c0=c.replace('_pathFile1','')
             print(c0,c,c2)
             if pdHits[c].dtype == 'float64':
+                sns.pairplot(pdHits[[c,c2]])
+                #plt.show()
                 pdHitsDiff[c0]=pdHits[c]-pdHits[c2]
                 print(pdHitsDiff[c0].describe())
 print(pdHitsDiff.columns)
@@ -51,5 +58,10 @@ pdHitsDiff.to_csv(pathFile1.with_name(pathFile1.stem+".diff."+pathFile2.stem+".c
 pdHitsDiff=pdHitsDiff[pdHitsDiff.columns[~pdHitsDiff.columns.str.endswith(' avg')]]
 plotcsv=pathFile1.with_name(pathFile1.stem+".diff."+pathFile2.stem+".histogram.svg")
 pdHitsDiff.plot(kind='hist',alpha=0.5,bins=100,legend=False).figure.savefig(plotcsv,dpi=320,bbox_inches = "tight")
+#plt.show()
+#sns.pairplot(pdHitsDiff)
+#plt.show()
+pdfOut.savefig(fig)
+pdfOut.close()
 print(plotcsv)
 # %%
