@@ -1,5 +1,7 @@
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240626_Mira\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240626_Mira\combined\txt\GroupsRem.txt" Bio Rem LFQ.intensity. DMSO 0.1 1 0.05
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240626_Mira\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240626_Mira\combined\txt\Groups.txt" Bio Rem LFQ.intensity. DMSO 0.1 1 0.05
+#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_2080_4h" "WB_2080_4h" 0.1 1 0.05
+#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_4060_4h" "WB_4060_4h" 0.1 1 0.05
+#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_AP_4h" "WB_AP_4h" 0.1 1 0.05
+#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_UP_4h" "WB_UP_4h" 0.1 1 0.05
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -8,36 +10,38 @@
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 9) {stop("\n\nNeeds NINE arguments, the full path of proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file and Intensity columns to include and control-group and thresholds like FDR-threshold, log2Median-FC-threshold, coefficient-of-variation-threshold; for example:
+if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file and Intensity columns to include and control-group and thresholds like FDR-threshold, log2Median-FC-threshold, coefficient-of-variation-threshold; for example:
 
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2024/240626_Mira/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/USERS/Alessandro/230119_66samples-redo/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2024/240626_Mira/combined/txt/Groups.txt"
+#inpL <-"L:/promec/USERS/Alessandro/230119_66samples-redo/combined/txt/GroupsInt.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
 #rGroup<-"Rem"
 selection <- args[5]
 #selection<-"LFQ.intensity."
-control <- args[6]
-#control<-"DMSO"
-selThr <- args[7]
+sample <- args[6]
+#sample<-"PL_2080_4h"
+control <- args[7]
+#control<-"WB_2080_4h"
+selThr <- args[8]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
-selThrFC <- args[8]
+selThrFC <- args[9]
 selThrFC <- as.numeric(selThrFC)
 #selThrFC=1#log2-MedianDifference
-cvThr <- args[9]
+cvThr <- args[10]
 cvThr <- as.numeric(cvThr)
 #cvThr=0.05#threshold for coefficient-of-variation
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
 hdr<-gsub("[^[:alnum:]]", "",inpD)
-outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,control,"VolcanoTestT","pdf",sep = ".")
+outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,sample,control,"VolcanoTestT","pdf",sep = ".")
 pdf(outP)
 #data####
 data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
@@ -112,8 +116,8 @@ ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"cluster.svg"), svgPHC
 write.csv(log2Int,paste0(inpF,selection,"log2.csv"))
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
-  #sel1<-"SI"
-  #sel2<-"AMHC"
+  #sel1<-"PL_UP_4h"
+  #sel2<-"WB_UP_4h"
   #log2LFQ<-log2LFQselMMdata#log2LFQsel#log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
   #colnames(log2LFQ)
   #dfName="log2LFQselMMdata"#"log2LFQsel"
@@ -247,47 +251,10 @@ boxplot(countTableDAuniGORNAdds,las=2)
 label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 inpFL<-c()
-for(sample in rownames(table(label$pair2test))){
-  if(sample!=control){
+if(sample!=control){
     print(paste(sample,control))
     inpFL<-c(inpFL,paste0(sample,control))
     ttPair=testT(log2LFQsel,sample,control,cvThr,selection)
     assign(paste0(sample,control),ttPair)
-  }
 }
-#removeControl####
-log2LFQselNC<-log2LFQsel[,c(gsub("-",".",rownames(label[label$pair2test!=control,])))]
-rownames(log2LFQselNC)<-rownames(log2LFQsel)
-for(sample1 in rownames(table(label$pair2test))){
-  for(sample2 in rownames(table(label$pair2test))){
-    if(sample1!=sample2 && sample1!=control && sample2!=control){
-    print(paste(sample1,sample2))
-    inpFL<-c(inpFL,paste0(sample1,sample2))
-    ttPair=testT(log2LFQselNC,sample1,sample2,cvThr,selection)
-    assign(paste0(sample1,sample2),ttPair)
-    }
-  }
-}
-#combine####
-cnt=0
-dataMerge<-data.frame(RowGeneUniProtScorePeps=row.names(log2LFQsel))
-for (obj in inpFL) {
-  cnt=cnt+1
-  #obj<-inpFL[1]
-  print(paste(cnt,obj))
-  objData<-get(obj)
-  print(colnames(objData))
-  colnames(objData)<-paste0(obj,colnames(objData))
-  dataMerge<-merge(dataMerge,objData,by.x="RowGeneUniProtScorePeps",by.y=paste0(obj,"RowGeneUniProtScorePeps"),all=T)
-}
-print(sum(rowSums(is.na(dataMerge))==ncol(dataMerge)))
-colnames(dataMerge)
-rN<-dataMerge[,"RowGeneUniProtScorePeps"]
-geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), "[; ]"), "[", 1))
-uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "\\|",fixed=F), "[", 2)), "\\|"), "[", 1))
-uniprotIDremIsoform<-paste(sapply(strsplit(uniprotID, "-",fixed=F), "[", 1))
-proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "_",fixed=T), "[", 2)), " OS="), "[", 1))
-dataMergeW<-data.frame(Uniprot=uniprotID,Gene=geneName,Protein=proteinNames,dataMerge,UniprotNoIsoform=uniprotIDremIsoform)
-writexl::write_xlsx(dataMergeW,paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,rGroup,lName,control,"tTestBH.combined.xlsx"))
-write.csv(dataMergeW,paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,rGroup,lName,control,"tTestBH.combined.csv"),row.names = F)
 print(paste("results saved in:",paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,rGroup,lName,control),"csv, xlsx, and svg files"))
