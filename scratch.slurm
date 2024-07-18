@@ -1,8 +1,8 @@
 #!/bin/sh
 #SBATCH --account=nn9036k --job-name=veronica
 #SBATCH --time=162:00:00
-##SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=5
+#SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=16
 #SBATCH --mem-per-cpu=32G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
@@ -30,6 +30,7 @@ dotnet --version
 #wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=mus_musculus.zip"
 #unzip download\?path\=%2FDiscoveryLibraries\&files\=mus_musculus.zip 
 #mv mus_musculus/* .
-maxquantcmd -n mqpar.xml
-maxquantcmd  -p 26 mqpar.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe -n mqpar.xml
+dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe  mqpar.xml
+#dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe -p mqpar.xml
 
