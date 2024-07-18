@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=veronica
-#SBATCH --time=162:00:00
-#SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=16
-#SBATCH --mem-per-cpu=32G
+#SBATCH --account=nn9036k --job-name=timsConvert
+#SBATCH --time=24:00:00
+##SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=20
+#SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=veronicaLog
+#SBATCH --output=timsConvertLog
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -18,19 +18,10 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 module purge
-module --ignore-cache load MaxQuant/2.4.0.0-GCCcore-11.2.0
-mono --version
-module load dotNET-SDK/3.1.300-linux-x64
-dotnet --version
-#dusage 
-#cd /cluster/work/users/ash022/veronica
-#rsync -Parv ash022@login1.nird-lmd.sigma2.no:TIMSTOF/LARS/2024/240605_Veronica/*.d .
-#rsync -Parv ash022@login1.nird-lmd.sigma2.no:TIMSTOF/LARS/2024/240605_Veronica/mqpar.xml .
-#rsync -Parv ash022@login1.nird-lmd.sigma2.no:PD/FastaDB/UP000000589_10090*fasta .
-#wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=mus_musculus.zip"
-#unzip download\?path\=%2FDiscoveryLibraries\&files\=mus_musculus.zip 
-#mv mus_musculus/* .
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe -n mqpar.xml
-dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe  mqpar.xml
-#dotnet /cluster/projects/nn9036k/MaxQuant_v2.4.14.0/bin/MaxQuantCmd.exe -p mqpar.xml
+#https://gtluu.github.io/timsconvert/local.html#basic-example
+#conda create -n timsconvert python=3.11
+conda activate timsconvert
+#pip install -r https://raw.githubusercontent.com/gtluu/timsconvert/main/requirements.txt
+#pip install git+https://github.com/gtluu/timsconvert
+for i in /cluster/work/users/ash022/veronica/*He*.d ; do echo $i ; timsconvert --chunk_size 10000000 --verbose --input $i ;  done
 
