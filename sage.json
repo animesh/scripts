@@ -5,10 +5,11 @@
             "missed_cleavages": 2,
             "min_len": 7,
             "max_len": 50,
-            "cleave_at": "KR"
+            "cleave_at": "KR",
+            "restrict": "P"
         },
         "fragment_min_mz": 150.0,
-        "fragment_max_mz": 1500.0,
+        "fragment_max_mz": 2000.0,
         "peptide_min_mass": 500.0,
         "peptide_max_mass": 5000.0,
         "ion_kinds": [
@@ -16,38 +17,69 @@
             "y"
         ],
         "min_ion_index": 2,
-        "max_variable_mods": 2,
+        "max_variable_mods": 3,
         "static_mods": {
-            "C": 57.0214
+            "C": 57.0215
         },
         "variable_mods": {
-            "M": 15.9949
+            "M": 15.994
         },
         "decoy_tag": "rev_",
         "generate_decoys": true,
-        "fasta": "/cluster/projects/nn9036k/FastaDB/2022-04-21-decoys-isoforms-contam-UP000005640.fas"
+        "fasta": "PXD003881.fasta"
+    },
+    "quant": {
+        "lfq": true,
+        "lfq_settings": {
+            "peak_scoring": "Hybrid",
+            "integration": "Sum",
+            "spectral_angle": 0.6,
+            "ppm_tolerance": 5.0
+        }
     },
     "precursor_tol": {
-        "da": [
-            -500,
-            100
+        "ppm": [
+            -20.0,
+            20.0
         ]
     },
     "fragment_tol": {
         "ppm": [
-            -10,
-            10
+            -20.0,
+            20.0
         ]
     },
+    "isotope_errors": [
+        0,
+        2
+    ],
     "deisotope": true,
-    "chimera": true,
     "min_peaks": 15,
-    "max_peaks": 250,
-    "min_matched_peaks": 4,
+    "max_peaks": 150,
     "max_fragment_charge": 1,
-    "report_psms": 2,
+    "min_matched_peaks": 4,
     "predict_rt": true,
     "mzml_paths": [
-        "IRD/231006_IRD_7_D22_T1_ddaPD.mzML"
+        "PXD003881/B03_02_150304_human_ecoli_B_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_03_150304_human_ecoli_C_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_04_150304_human_ecoli_D_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_05_150304_human_ecoli_E_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_06_150304_human_ecoli_E_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_07_150304_human_ecoli_D_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_08_150304_human_ecoli_C_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_09_150304_human_ecoli_B_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_10_150304_human_ecoli_A_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_11_150304_human_ecoli_A_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_12_150304_human_ecoli_B_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_13_150304_human_ecoli_C_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_14_150304_human_ecoli_D_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_15_150304_human_ecoli_E_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_16_150304_human_ecoli_E_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_17_150304_human_ecoli_D_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_18_150304_human_ecoli_C_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_19_150304_human_ecoli_B_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_20_150304_human_ecoli_A_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz",
+        "PXD003881/B03_21_150304_human_ecoli_A_3ul_3um_column_95_HCD_OT_2hrs_30B_9B.mzML.gz"
     ]
 }
+
