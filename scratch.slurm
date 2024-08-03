@@ -18,6 +18,12 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 module purge
+#module load Anaconda3/2022.10
+#conda create -n dotnet
+#conda install conda-forge::dotnet
+#conda activate dotnet
+export LMOD_DISABLE_SAME_NAME_AUTOSWAP=no
+module load Boost/1.83.0-GCC-13.2.0
 #mkdir /cluster/projects/nn9036k/dotnet80303
 #cd /cluster/projects/nn9036k/dotnet80303
 #wget https://download.visualstudio.microsoft.com/download/pr/60218cc4-13eb-41d5-aa0b-5fd5a3fb03b8/6c42bee7c3651b1317b709a27a741362/dotnet-sdk-8.0.303-linux-x64.tar.gz
