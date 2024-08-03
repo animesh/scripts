@@ -1,9 +1,9 @@
 #!/bin/sh
 #SBATCH --account=nn9036k --job-name=brenn
-#SBATCH --time=292:00:00
-#SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=16
-#SBATCH --mem-per-cpu=16G
+#SBATCH --time=160:00:00
+##SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=7
+#SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
 #SBATCH --output=brennLog
