@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=brenn
+#SBATCH --account=nn9036k --job-name=denovotranscript
 #SBATCH --time=160:00:00
 ##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=7
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=brennLog
+#SBATCH --output=denovotranscriptLog
 WORKDIR=$PWD
 cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -18,21 +18,21 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 module purge
-#module load Anaconda3/2022.10
-#conda create -n dotnet
-#conda install conda-forge::dotnet
-#conda activate dotnet
-export LMOD_DISABLE_SAME_NAME_AUTOSWAP=no
-module load Boost/1.83.0-GCC-13.2.0
-#mkdir /cluster/projects/nn9036k/dotnet80303
-#cd /cluster/projects/nn9036k/dotnet80303
-#wget https://download.visualstudio.microsoft.com/download/pr/60218cc4-13eb-41d5-aa0b-5fd5a3fb03b8/6c42bee7c3651b1317b709a27a741362/dotnet-sdk-8.0.303-linux-x64.tar.gz
-#tar xvzf dotnet-sdk-8.0.303-linux-x64.tar.gz
-/cluster/projects/nn9036k/dotnet80303/dotnet --version
-#mkdir /cluster/projects/nn9036k/Brent
-#cd /cluster/projects/nn9036k/Brent
-#rsync -Parv   ash022@login.nird-lmd.sigma2.no:PD/Animesh/Brent/*.d .
-#rsync -Parv   ash022@login.nird-lmd.sigma2.no:PD/Animesh/Brent/*.xml .
-#rsync -Parv   ash022@login.nird-lmd.sigma2.no:PD/Animesh/Brent/*.fasta .
-/cluster/projects/nn9036k/dotnet80303/dotnet /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll -n /cluster/projects/nn9036k/Brent/mqpar.linux.xml
-/cluster/projects/nn9036k/dotnet80303/dotnet /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll  /cluster/projects/nn9036k/Brent/mqpar.linux.xml
+#https://github.com/nf-core/denovotranscript
+#curl -fsSL get.nextflow.io | bash
+#nextflow  -v
+#./nextflow self-update
+nextflow  -v
+#mkdir /cluster/projects/nn9036k/TK
+cd /cluster/projects/nn9036k/TK
+#rsync -Parv   ash022@login.nird-lmd.sigma2.no:PD/Animesh/TK/*16*g*z .
+#echo "sample,fastq_1,fastq_2" > samples.csv
+#ls -1 *1.fq.gz | awk -F '_' '{print $1$2}' > S1
+#ls -1 $PWD/*1.fq.gz > S1
+#ls -1 $PWD/*2.fq.gz > S2
+#ls -1 *1.fq.gz | awk -F '_' '{print $1$2}' > S0
+#paste -d ','  S? >> samples.csv
+cat samples.csv
+./nextflow run nf-core/denovotranscript --max_memory '56.GB' --max_cpus 7  -profile singularity --input samples.csv --outdir DNT  -resume
+#https://nf-co.re/denovotranscript/dev/docs/output/
+
