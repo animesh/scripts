@@ -1,3 +1,15 @@
+#check https://github.com/sinaptik-ai/pandas-ai
+#https://towardsdatascience.com/automl-with-autogluon-transform-your-ml-workflow-with-just-four-lines-of-code-1d4b593be129
+from autogluon.tabular
+import TabularDataset,
+ TabularPredictor
+train_data =
+ TabularDataset('train.csv')
+predictor =
+ TabularPredictor(label='Target').fit(train_data,
+ presets='best_quality')
+predictions
+ = predictor.predict(train_data)
 #https://auto.gluon.ai/stable/install.html
 #https://youtu.be/fdfGb2jq-_c?t=1991
 #from auto_mm_bench import *

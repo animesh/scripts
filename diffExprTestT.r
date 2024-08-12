@@ -146,6 +146,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
   annoR<-data.frame(condition=c(rep(sel1,ncol(d1)),rep(sel2,ncol(d2))))
   rownames(annoR)<-colnames(dataSellog2grpTtest)
   print(annoR)
+  boxplot(log2IntimpCorr,las=2)
   svgPHC<-pheatmap::pheatmap(log2IntimpCorr,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=8,cluster_cols=T,cluster_rows=T,fontsize_col  = 8,annotation_row = annoR, annotation_col = annoR)
   ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,dfName,sel1,sel2,dfName,"Cluster.svg"), svgPHC)
   annoR$sample=rownames(annoR)

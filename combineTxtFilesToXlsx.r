@@ -1,96 +1,61 @@
-#Rscript combineTxtFilesToXlsx.r L:\promec\TIMSTOF\LARS\2024\240207_Deo\combined\txt\ proteinGroups.txtLFQ.intensity.16 0.110.05BioRemGroupsG.txttTestBH.csv MSH2 MLH1 PMS1 PMS2
+#Rscript combineTxtFilesToXlsx.r L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txtLFQ.intensity.18PL_2080_4hWB_2080_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txtLFQ.intensity.18PL_4060_4hWB_4060_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txtLFQ.intensity.18PL_AP_4hWB_AP_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txtLFQ.intensity.18PL_UP_4hWB_UP_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv
+#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_2080_4h" "WB_2080_4h" 0.1 1 0.05
+#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_4060_4h" "WB_4060_4h" 0.1 1 0.05
+#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_AP_4h" "WB_AP_4h" 0.1 1 0.05
+#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_UP_4h" "WB_UP_4h" 0.1 1 0.05
 #install.packages(c("gglot2","svgite"))
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
+#args<-c("L:/promec/USERS/Alessandro/230119_66samples-redo/combined/txt/proteinGroups.txtLFQ.intensity.18PL_2080_4hWB_2080_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv","L:/promec/USERS/Alessandro/230119_66samples-redo/combined/txt/proteinGroups.txtLFQ.intensity.18PL_4060_4hWB_4060_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv","L:/promec/USERS/Alessandro/230119_66samples-redo/combined/txt/proteinGroups.txtLFQ.intensity.18PL_AP_4hWB_AP_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv","L:/promec/USERS/Alessandro/230119_66samples-redo/combined/txt/proteinGroups.txtLFQ.intensity.18PL_UP_4hWB_UP_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv")
 print(args)
-inpD <- args[1]
-#inpD<-"L:/promec/TIMSTOF/LARS/2024/240207_Deo/combined/txt/"
-filePrefix <- args[2]
-#filePrefix<-"proteinGroups.txtLFQ.intensity.16"
-filePrefixS <- paste0("^",filePrefix)
-fileSuffix <- args[3]
-#fileSuffix<-"0.110.05BioRemGroupsG.txttTestBH.csv"
-fileSuffixS <- paste0(fileSuffix,"$")
-listID <- args[4:length(args)]
-#listID<-c("MSH2","MLH1","PMS1","PMS2")
-inpFL<-list.files(pattern=filePrefix,path=inpD,full.names=F,recursive=F)
-inpFL<-inpFL[grepl(filePrefixS,inpFL)]
-inpFL<-inpFL[grepl(fileSuffixS,inpFL)]
+inpFL<-args
 print(inpFL)
-dfMZ1<-NA
+inpD<-dirname(inpFL)
+inpD<-unique(inpD)[1]
+print(inpD)
+inpFs<-basename(inpFL)
+inpFs<-strsplit(inpFs,"\\.")
+inpFs<-unique(unlist(inpFs))
+inpFs<-paste(unlist(inpFs),collapse=".")
 #sheets<-list()
-outF<-paste0(inpD,filePrefix,fileSuffix,paste(unlist(listID),collapse=""),"combined")
-outPDF<-paste0(outF,".pdf")
-outRep<-paste0(outF,".xlsx")
-outRepSel<-paste0(outF,".select.xlsx")
-outRepCSV<-paste0(outF,".csv")
-outRepSelCSV<-paste0(outF,".select.csv")
+outF<-paste(inpD,inpFs,sep = "/")
+outPDF<-paste0(outF,"combo.pdf")
+outRep<-paste0(outF,"combo.xlsx")
+outRepCSV<-paste0(outF,"combo.csv")
 pdf(outPDF)
+dfMZ1<-NA
 for(inpF in inpFL){
-    #inpF<-inpFL[3]
-    data<-read.csv(paste(inpD,inpF,sep="/"))
-    inpF<-gsub(fileSuffix,"",inpF)
-    inpF<-gsub(filePrefix,"",inpF)
+    #inpF<-inpFL[1]
+    data<-read.csv(inpF)
     print(inpF)
     hist(as.numeric(data[,"Log2MedianChange"]),main=inpF,breaks=100)
     plot(as.numeric(data[,"Log2MedianChange"]),as.numeric(data[,"PValueMinusLog10"]),main=inpF)
-    data[is.na(data$PValueMinusLog10),"PValueMinusLog10"]<-0
-    selectID<-toupper(gsub(" ","",data$Gene)) %in% toupper(listID)
-    summary(sum(selectID))
-    p <- ggplot2::ggplot(data,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=selectID),size=1,alpha = 0.6) + ggplot2::scale_color_manual(values = c("grey", "black"))
-    #dsub <- data[toupper(gsub(" ","",data$Gene)) %in% toupper(listID) ,]
-    dsub <- subset(data,selectID)
-    print(dim(dsub))
-    p<-p + ggplot2::theme_bw(base_size=10) + ggplot2::geom_point(data=dsub,size=1.2,alpha=1) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=Gene),hjust=1, vjust=0,size=1.5,alpha =0.9 ,position=ggplot2::position_jitter(width=0.1,height=0.1)) + ggplot2::scale_fill_gradient(low="grey", high="black") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
-    ggplot2::ggsave(paste0(inpD,inpF,paste(unlist(listID),collapse=""),"VolcanoTest.svg"), width=10,height=8,p)
-    print(p)
-    #sheets<-append(sheets,list(data))
-    MZ1<-dsub$RowGeneUniProtScorePeps
+    MZ1<-data$RowGeneUniProtScorePeps
     dfMZ1<-union(dfMZ1,MZ1)
-    colnames(dsub)<-paste0(colnames(dsub),inpF)
-    dsub$RowGeneUniProtScorePeps<-MZ1
-    assign(inpF,dsub)
+    colnames(data)<-paste0(colnames(data),inpF)
+    data$RowGeneUniProtScorePeps<-MZ1
+    assign(inpF,data)
 }
 length(dfMZ1)
 summary(warnings())
-inpFL<-gsub(fileSuffix,"",inpFL)
-inpFL<-gsub(filePrefix,"",inpFL)
-print(inpFL)
 summary(MZ1)
 #sheets <- list(data,data) #assume sheet1 and sheet2 are data frames
 data<-data.frame(RowGeneUniProtScorePeps=dfMZ1)
 for (obj in inpFL) {
+  #obj<-inpFL[1]
   print(obj)
   objData<-get(obj)
   colnames(objData)
-  selectID<-paste0("Gene",obj)
-  objDataSel<-objData[toupper(gsub(" ","",objData[,selectID])) %in% toupper(listID),]
-  data<-merge(data,objDataSel,by="RowGeneUniProtScorePeps",all=T)
+  data<-merge(data,objData,by="RowGeneUniProtScorePeps",all=T)
 }
 print(sum(rowSums(is.na(data))==ncol(data)))
 data=data[rowSums(is.na(data))!=ncol(data),]
-writexl::write_xlsx(data,outRep)
-write.csv(data,outRepCSV,row.names = F)
-dataSel<-data[,grep("Log2MedianChange",colnames(data))]
-print(sum(is.na(data[,"RowGeneUniProtScorePeps"])))
-rownames(dataSel)<-data[,"RowGeneUniProtScorePeps"]
-plot(dataSel)
-writexl::write_xlsx(cbind(rownames(dataSel),dataSel),outRepSel)
-write.csv(dataSel,outRepSelCSV,row.names=T)
-#names(sheets)<-inpFL[1]
-#names(sheets)<-inpFL
-#write_xlsx(sheets, paste(inpD,paste0(filePrefix,fileSuffix,".combined.xlsx"),sep="\\"))
-#length(sheets)
-combinations<-list()
-for(i in colnames(dataSel)){
-  print(i)
-  proteinL=rownames(dataSel)
-  proteinL=list(t(data.frame(proteinL)))
-  names(proteinL)=paste0(gsub("Log2MedianChange|G25_","",i),"#",summary(proteinL)[1])
-  combinations<-c(combinations,proteinL)
-}
-dataSetCommon<-Reduce(intersect, combinations)
-dataSetDiff<-Reduce(setdiff, combinations)
-plot(eulerr::euler(combinations),quantities=TRUE,main=paste0("#Total with absolute-Log2MedianChange > "))
-print(paste0(outF,".select/.xlsx,csv,pdf"))
+geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$RowGeneUniProtScorePeps, "GN=",fixed=T), "[", 2)), "[; ]"), "[", 1))
+uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$RowGeneUniProtScorePeps, "\\|",fixed=F), "[", 2)), "\\|"), "[", 1))
+geneName[is.na(geneName)]=uniprotID[is.na(geneName)]
+proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(data$RowGeneUniProtScorePeps, "_",fixed=T), "[", 2)), " OS="), "[", 1))
+write.csv(cbind(Uniprot=uniprotID,Gene=geneName,Protein=proteinNames,data),outRepCSV,row.names = F)
+print(outRepCSV)
+writexl::write_xlsx(cbind(Uniprot=uniprotID,Gene=geneName,Protein=proteinNames,data),outRep)
+print(outRep)
 
