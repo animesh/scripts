@@ -1,6 +1,7 @@
-#git checkout 92ca83be3bc60f118b7b5ab7072aa5dd542fc11c mqparTTPdda.xml scratch.slurm slurmMQrunTTP.sh
+#git checkout e3e91f773bdcd23d761b0efe1562662b6550b4ce mqparTTPdia.xml scratch.slurm slurmMQrunTTP.sh
+#mv /cluster/work/users/ash022/veronica/*He*d /cluster/projects/nn9036k/HeLa/.
 #dos2unix mqparTTPdda.xml scratch.slurm slurmMQrunTTP.sh
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/Brent /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_07_22.fasta mqparTTPdia.xml scratch.slurm
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/HeLa /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_07_22.fasta mqparTTPdda.xml scratch.slurm
 #grep "multiplicity" *.xml
 #grep "Atg10;Lys8" mqparTTPdia.xml
 #wget "https://maxquant.org/p/maxquant/MaxQuant_v_2.4.10.0.zip?md5=bwPYOvsI5oXolBP_wXUyzg&expires=1700127616" -O MQv24100.zip
