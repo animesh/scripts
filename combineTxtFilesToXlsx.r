@@ -1,8 +1,9 @@
-#Rscript selectIDfromXlsx.r L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txtLFQ.intensity.18PL_2080_4hWB_2080_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txtLFQ.intensity.18PL_4060_4hWB_4060_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txtLFQ.intensity.18PL_AP_4hWB_AP_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txtLFQ.intensity.18PL_UP_4hWB_UP_4h0.110.05BioRemGroupsInt.txtLFQ.intensity.tTestBH.csv
-#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_2080_4h" "WB_2080_4h" 0.1 1 0.05
-#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_4060_4h" "WB_4060_4h" 0.1 1 0.05
-#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_AP_4h" "WB_AP_4h" 0.1 1 0.05
-#Rscript.exe diffExprTestT.r "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\proteinGroups.txt" "L:\promec\USERS\Alessandro\230119_66samples-redo\combined\txt\GroupsInt.txt" "Bio" "Rem" "LFQ.intensity." "PL_UP_4h" "WB_UP_4h" 0.1 1 0.05
+#Rscript combineTxtFilesToXlsx.r L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txtLFQ.intensity.15exposednon_exposed0.10.50.1ExposureRemGroupsDuringFemaleBefore.txtLFQ.intensity.LFQvsntTestBH.csv L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txtLFQ.intensity.15exposednon_exposed0.10.50.1ExposureRemGroupsDuringFemaleAfter.txtLFQ.intensity.LFQvsntTestBH.csv L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txtLFQ.intensity.16exposednon_exposed0.10.50.1ExposureRemGroupsDuringMaleAfter.txtLFQ.intensity.LFQvsntTestBH.csv L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txtLFQ.intensity.16exposednon_exposed0.10.50.1ExposureRemGroupsDuringMaleBefore.txtLFQ.intensity.LFQvsntTestBH.csv
+#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\GroupsDuringMaleBefore.txt" "Exposure" "Rem" "LFQ.intensity." "exposed" "non_exposed" 0.1 0.5 0.1
+#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\GroupsDuringMaleAfter.txt" "Exposure" "Rem" "LFQ.intensity." "exposed" "non_exposed" 0.1 0.5 0.1
+#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\GroupsDuringFemaleAfter.txt" "Exposure" "Rem" "LFQ.intensity." "exposed" "non_exposed" 0.1 0.5 0.1
+#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\GroupsDuringFemaleBefore.txt" "Exposure" "Rem" "LFQ.intensity." "exposed" "non_exposed" 0.1 0.5 0.1
+
 #install.packages(c("gglot2","svgite"))
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -18,7 +19,10 @@ inpFs<-strsplit(inpFs,"\\.")
 inpFs<-unique(unlist(inpFs))
 inpFs<-paste(unlist(inpFs),collapse=".")
 #sheets<-list()
-outF<-paste(inpD,inpFs,sep = "/")
+sfx<-".txtLFQ.intensity.LFQvsntTestBH.csv"
+pfx<-"proteinGroups.txtLFQ.intensity.1"
+mfx<-"exposednon_exposed0.10.50.1ExposureRemGroupsDuring"
+outF<-paste(inpD,paste0(mfx,sfx),sep = "/")
 outPDF<-paste0(outF,"combo.pdf")
 outRep<-paste0(outF,"combo.xlsx")
 outRepCSV<-paste0(outF,"combo.csv")
@@ -32,7 +36,11 @@ for(inpF in inpFL){
     plot(as.numeric(data[,"Log2MedianChange"]),as.numeric(data[,"PValueMinusLog10"]),main=inpF)
     MZ1<-data$RowGeneUniProtScorePeps
     dfMZ1<-union(dfMZ1,MZ1)
-    colnames(data)<-paste0(colnames(data),inpF)
+    colName<-basename(inpF)
+    colName<-gsub(pfx,"",colName,fixed=T)
+    colName<-gsub(mfx,"",colName,fixed=T)
+    colName<-gsub(sfx,"",colName,fixed=T)
+    colnames(data)<-paste0(colnames(data),colName)
     data$RowGeneUniProtScorePeps<-MZ1
     assign(inpF,data)
 }
