@@ -1,72 +1,68 @@
-#Rscript combineXlsx.r L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\GO\2024-06-07_go_term_enrichment_tables_ttest_v2\ttest_fdr_cutoff=0.01
-#Rscript combineXlsx.r "L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\GO\2024-06-07_go_term_enrichment_tables_ttest_v2\ttest_fdr_cutoff=0.05"
-#Rscript combineXlsx.r "L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\GO\2024-06-07_go_term_enrichment_tables_ttest_v2\ttest_fdr_cutoff=0.1"
-#Rscript combineXlsx.r "L:\promec\USERS\SINTEF\20211207_SINTEF_30samples\GO\2024-06-07_go_term_enrichment_tables_ttest_v2\ttest_fdr_cutoff=0.2"
-#install.packages(c("writexl","readxl"))
+#Rscript combineXlsx.r L:\promec\TIMSTOF\LARS\2024\240626_Mira\combined\txt\reports "proteinGroups.txtLFQ.intensity.11" "0.110.05BioRemGroups" ".txtLFQ.intensity.tTestBH.xlsx"
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
 inpD <- args[1]
-#inpD<-"L:/promec/USERS/SINTEF/20211207_SINTEF_30samples/GO/2024-06-07_go_term_enrichment_tables_ttest_v2/ttest_fdr_cutoff=0.01"
-inpFL<-list.files(pattern=".xls*",path=inpD,full.names=F,recursive=F)
+#inpD<-"L:/promec/TIMSTOF/LARS/2024/240626_Mira/combined/txt/reports"
+print(inpD)
+pfx <- args[2]
+#pfx<-"proteinGroups.txtLFQ.intensity.11"
+mfx <- args[3]
+#mfx<-"0.110.05BioRemGroups"
+sfx <- args[4]
+#sfx<-".txtLFQ.intensity.tTestBH.xlsx"
+print(paste(pfx,mfx,sfx))
+inpFL<-list.files(pattern=sfx,path=inpD,full.names=F,recursive=F)
 print(inpFL)
-outF<-paste0(inpD,"combined")
-outPDF<-paste0(outF,".pdf")
-outRep<-paste0(outF,".xlsx")
-outRepSel<-paste0(outF,".select.xlsx")
-outRepCSV<-paste0(outF,".csv")
-outRepSelCSV<-paste0(outF,".select.csv")
-pdf(outPDF)
+inpFs<-basename(inpFL)
+inpFs<-strsplit(inpFs,"\\.")
+inpFs<-unique(unlist(inpFs))
+inpFs<-paste(unlist(inpFs),collapse=".")
 #sheets<-list()
-ID<-NA
+outF<-paste(inpD,inpFs,sep = "/")
+outPDF<-paste0(outF,"combo.pdf")
+outRep<-paste0(outF,"combo.xlsx")
+outRepCSV<-paste0(outF,"combo.csv")
+pdf(outPDF)
+dfMZ1<-NA
 for(inpF in inpFL){
     #inpF<-inpFL[1]
-    data<-readxl::read_xlsx(paste(inpD,inpF,sep="/"))
+    #inpF<-inpFL[2]
+    data<-readxl::read_excel(path=paste0(inpD,"/",inpF),sheet=1)
     print(inpF)
-    print(summary(data))
-    print(dim(data))
-    if(dim(data)[1]>0){
-      #hist(data$`p-val`,main=inpF)
-      plot(data$`p-val`,data$Enrichment,main=inpF,xlab="p-value",ylab="Enrichment",pch=7)
-      text(data$`p-val`,data$Enrichment,labels=data$`GO explanation`,cex=0.4,pos=2)
-      text(data$`p-val`,data$Enrichment,labels=data$`GO explanation`,cex=0.4,pos=4)
-      text(data$`p-val`,data$Enrichment,labels=data$IDs,cex=0.5,pos=1)
-      text(data$`p-val`,data$Enrichment,labels=data$IDs,cex=0.5,pos=3)
-    }
-    #sheets<-append(sheets,list(data))
-    tmpID<-paste(data$IDs,data$`GO explanation`,sep=";;")
-    ID<-union(ID,tmpID)
-    colnames(data)<-paste0(colnames(data),inpF)
-    data$combID<-tmpID
+    hist(as.numeric(unlist(data[,"Log2MedianChange"])),main=inpF,breaks=100)
+    plot(as.numeric(unlist(data[,"Log2MedianChange"])),as.numeric(unlist(data[,"PValueMinusLog10"])),main=inpF)
+    #MZ1<-paste(sapply(strsplit(data$RowGeneUniProtScorePeps,";;"), "[", 2))
+    MZ1<-data$RowGeneUniProtScorePeps
+    dfMZ1<-union(dfMZ1,MZ1)
+    colName<-basename(inpF)
+    colName<-gsub(pfx,"",colName,fixed=T)
+    colName<-gsub(mfx,"",colName,fixed=T)
+    colName<-gsub(sfx,"",colName,fixed=T)
+    colnames(data)<-paste0(colnames(data),colName)
+    data$RowGeneUniProtScorePeps<-MZ1
     assign(inpF,data)
 }
-length(ID)
+length(dfMZ1)
 summary(warnings())
-print(inpFL)
-summary(tmpID)
+summary(MZ1)
 #sheets <- list(data,data) #assume sheet1 and sheet2 are data frames
-data<-data.frame(combID=ID)
+data<-data.frame(RowGeneUniProtScorePeps=dfMZ1)
 for (obj in inpFL) {
   #obj<-inpFL[1]
   print(obj)
   objData<-get(obj)
   colnames(objData)
-  data<-merge(data,objData,by="combID",all=T)
+  data<-merge(data,objData,by="RowGeneUniProtScorePeps",all=T)
 }
 print(sum(rowSums(is.na(data))==ncol(data)))
-writexl::write_xlsx(data,outRep)
-write.csv(data,outRepCSV,row.names = F)
-dataSel<-data[,c(grep("combID|Enrichment",colnames(data)))]
-colnames(dataSel)<-gsub("Enrichmentgo_enrichment_|fdr|=|ttest|.xlsx","",colnames(dataSel))
-sort(colnames(dataSel))
-dataSelClin<-dataSel[,c(grep("clin",colnames(dataSel)))]
-dataSelWild<-dataSel[,c(grep("wild",colnames(dataSel)))]
-dataSel$Clin<-rowSums(!is.na(dataSelClin))
-dataSel$Wild<-rowSums(!is.na(dataSelWild))
-dataSel<-dataSel[order(dataSel$Wild,decreasing = T),]
-dataSel<-dataSel[order(dataSel$Clin,decreasing = T),]
-writexl::write_xlsx(dataSel,outRepSel)
-write.csv(dataSel,outRepSelCSV,row.names = F)
-print(colnames(dataSel))
-print(inpD)
-print(outF)
+data=data[rowSums(is.na(data))!=ncol(data),]
+geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$RowGeneUniProtScorePeps, "GN=",fixed=T), "[", 2)), "[; ]"), "[", 1))
+uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$RowGeneUniProtScorePeps, "\\|",fixed=F), "[", 2)), "\\|"), "[", 1))
+geneName[is.na(geneName)]=uniprotID[is.na(geneName)]
+proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(data$RowGeneUniProtScorePeps, "_",fixed=T), "[", 2)), " OS="), "[", 1))
+write.csv(cbind(Uniprot=uniprotID,Gene=geneName,Protein=proteinNames,data),outRepCSV,row.names = F)
+print(outRepCSV)
+writexl::write_xlsx(cbind(Uniprot=uniprotID,Gene=geneName,Protein=proteinNames,data),outRep)
+print(outRep)
+
