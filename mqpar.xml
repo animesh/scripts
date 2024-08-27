@@ -2,7 +2,34 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/Brent/uniprotkb_proteome_UP000005640_2024_07_22.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/whale/Balaenoptera acutorostrata_uniprot-2023.04.11.fasta</fastaFilePath>
+         <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/whale/Collagen_alpha-2(I)_RightWhale-BowheadWhale.fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/whale/uniprotkb_Collagen_AND_Balaenoptera_acu+BalaenidaeCoallgenI_2024_08_22.fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/whale/uniprotkb_proteome_UP000261681_2024_08_22.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
@@ -35,7 +62,7 @@
    <minScoreUnmodifiedPeptides>0</minScoreUnmodifiedPeptides>
    <minScoreModifiedPeptides>40</minScoreModifiedPeptides>
    <secondPeptide>True</secondPeptide>
-   <matchBetweenRuns>False</matchBetweenRuns>
+   <matchBetweenRuns>True</matchBetweenRuns>
    <matchUnidentifiedFeatures>False</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
    <dependentPeptides>False</dependentPeptides>
@@ -47,7 +74,7 @@
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
    <ibaq>True</ibaq>
-   <top3>True</top3>
+   <top3>False</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
    <splitProteinGroupsByTaxonomy>True</splitProteinGroupsByTaxonomy>
@@ -95,11 +122,12 @@
    <restrictMods>
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
+      <string>Deamidation (NQ)</string>
    </restrictMods>
-   <matchingTimeWindow>0</matchingTimeWindow>
-   <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
-   <alignmentTimeWindow>0</alignmentTimeWindow>
-   <alignmentIonMobilityWindow>0</alignmentIonMobilityWindow>
+   <matchingTimeWindow>1</matchingTimeWindow>
+   <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
+   <alignmentTimeWindow>20</alignmentTimeWindow>
+   <alignmentIonMobilityWindow>1</alignmentIonMobilityWindow>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
    <quantMode>2</quantMode>
@@ -128,7 +156,7 @@
    <name>session1</name>
    <maxQuantVersion>2.6.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>7</numThreads>
+   <numThreads>21</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -142,24 +170,66 @@
    <showIsotopeMassDifferences>False</showIsotopeMassDifferences>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/projects/nn9036k/Brent/26june24_hel200_100spd_OT_1ulirt_S2-H2_1_6370.d</string>
-      <string>/cluster/projects/nn9036k/Brent/26june24_hel200_100spd_OT_1ulirt_S2-G2_1_6369.d</string>
-      <string>/cluster/projects/nn9036k/Brent/26june24_hel200_100spd_OT_1ulirt_S2-F2_1_6368.d</string>
-      <string>/cluster/projects/nn9036k/Brent/26june24_hel50_100spd_OT_1ulirt_S2-C2_1_6365.d</string>
-      <string>/cluster/projects/nn9036k/Brent/26june24_hel50_100spd_OT_1ulirt_S2-B2_1_6364.d</string>
-      <string>/cluster/projects/nn9036k/Brent/26june24_hel50_100spd_OT_1ulirt_S2-A2_1_6363.d</string>
-      <string>/cluster/projects/nn9036k/Brent/26june24_he200_100spd_OT_1ulirt_S2-E2_1_6367.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC3429_1_Slot2-14_1_8050.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC3489_Slot2-16_1_8054.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC3800_Slot2-3_1_8028.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC3802_1_Slot2-18_1_8058.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC3803_Slot2-9_1_8040.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC3804_Slot2-11_1_8044.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC3820_Slot2-13_1_8048.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC3896_Slot2-17_1_8056.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4050_1_Slot2-10_1_8042.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4051_1_Slot2-2_1_8026.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4195_1_Slot2-7_1_8036.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4212_1_Slot2-6_1_8034.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4232_1_Slot2-19_1_8060.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4271_1_Slot2-12_1_8046.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4273_1_Slot2-1_1_8024.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4274_1_Slot2-8_1_8038.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4275_1_Slot2-5_1_8032.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4277_1_Slot2-15_1_8052.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4282_1_Slot2-4_1_8030.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4319_1_Slot2-21_1_8064.d</string>
+      <string>/cluster/projects/nn9036k/whale/240819_Mitra_FOC4326_1_Slot2-20_1_8062.d</string>
    </filePaths>
    <experiments>
-      <string>l200_100spd_OT_1ulirt_S2-H2_1_6370</string>
-      <string>l200_100spd_OT_1ulirt_S2-G2_1_6369</string>
-      <string>l200_100spd_OT_1ulirt_S2-F2_1_6368</string>
-      <string>l50_100spd_OT_1ulirt_S2-C2_1_6365</string>
-      <string>l50_100spd_OT_1ulirt_S2-B2_1_6364</string>
-      <string>l50_100spd_OT_1ulirt_S2-A2_1_6363</string>
-      <string>200_100spd_OT_1ulirt_S2-E2_1_6367</string>
+      <string>3429_1_Slot2-14_1_8050</string>
+      <string>3489_Slot2-16_1_8054</string>
+      <string>3800_Slot2-3_1_8028</string>
+      <string>3802_1_Slot2-18_1_8058</string>
+      <string>3803_Slot2-9_1_8040</string>
+      <string>3804_Slot2-11_1_8044</string>
+      <string>3820_Slot2-13_1_8048</string>
+      <string>3896_Slot2-17_1_8056</string>
+      <string>4050_1_Slot2-10_1_8042</string>
+      <string>4051_1_Slot2-2_1_8026</string>
+      <string>4195_1_Slot2-7_1_8036</string>
+      <string>4212_1_Slot2-6_1_8034</string>
+      <string>4232_1_Slot2-19_1_8060</string>
+      <string>4271_1_Slot2-12_1_8046</string>
+      <string>4273_1_Slot2-1_1_8024</string>
+      <string>4274_1_Slot2-8_1_8038</string>
+      <string>4275_1_Slot2-5_1_8032</string>
+      <string>4277_1_Slot2-15_1_8052</string>
+      <string>4282_1_Slot2-4_1_8030</string>
+      <string>4319_1_Slot2-21_1_8064</string>
+      <string>4326_1_Slot2-20_1_8062</string>
    </experiments>
    <fractions>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -176,6 +246,20 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
@@ -185,8 +269,36 @@
       <int>0</int>
       <int>0</int>
       <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
       <string></string>
       <string></string>
       <string></string>
@@ -230,13 +342,13 @@
          <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>0</intensityThresholdMs1Dda>
-         <intensityThresholdMs1Dia>35</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>17</intensityThresholdMs2>
+         <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dia>30</intensityThresholdMs1Dia>
+         <intensityThresholdMs2>10</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
-         <lcmsRunType>TIMS-MaxDIA</lcmsRunType>
+         <lcmsRunType>TIMS-DDA</lcmsRunType>
          <reQuantify>False</reQuantify>
          <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
@@ -275,6 +387,7 @@
          <variableModifications>
             <string>Oxidation (M)</string>
             <string>Acetyl (Protein N-term)</string>
+            <string>Deamidation (NQ)</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
@@ -315,7 +428,7 @@
          <timsHalfWidth>10</timsHalfWidth>
          <timsStep>3</timsStep>
          <timsResolution>35000</timsResolution>
-         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
+         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -349,7 +462,7 @@
          <isobaricSumOverWindow>True</isobaricSumOverWindow>
          <isobaricWeightExponent>0.75</isobaricWeightExponent>
          <collapseMsmsOnIsotopePatterns>False</collapseMsmsOnIsotopePatterns>
-         <diaLibraryType>2</diaLibraryType>
+         <diaLibraryType>0</diaLibraryType>
          <diaLibraryPaths>
          </diaLibraryPaths>
          <diaEvidencePaths>
@@ -357,7 +470,6 @@
          <diaMsmsPaths>
          </diaMsmsPaths>
          <diaLabelIndsForLibraryMatch>
-            <int>0</int>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
          <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
@@ -438,9 +550,9 @@
          <diaRequirePrecursor>False</diaRequirePrecursor>
          <diaFuturePeptides>False</diaFuturePeptides>
          <diaOverrideRtWithPrediction>False</diaOverrideRtWithPrediction>
-         <diaMaxModifications>2</diaMaxModifications>
-         <diaMaxPositionings>20</diaMaxPositionings>
-         <diaPredictCharges>True</diaPredictCharges>
+         <diaMaxModifications>0</diaMaxModifications>
+         <diaMaxPositionings>0</diaMaxPositionings>
+         <diaPredictCharges>False</diaPredictCharges>
          <diaUseProbScore>False</diaUseProbScore>
          <diaProbScoreP>0.055</diaProbScoreP>
          <diaProbScoreG>1.2</diaProbScoreG>

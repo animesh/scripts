@@ -1,15 +1,14 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=DNT
-#SBATCH --time=160:00:00
-#SBATCH --ntasks=1 --cpus-per-task=10
-#SBATCH --mem-per-cpu=4G
+#SBATCH --account=nn9036k --job-name=mitra
+#SBATCH --time=292:00:00
+#SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=16
+#SBATCH --mem-per-cpu=32G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=DNTSLURMLOG
-
-WORKDIR=/cluster/work/users/ash022/work
+#SBATCH --output=mitraLog
+WORKDIR=$PWD
 cd ${WORKDIR}
-export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
 echo " the name of the job is: $SLURM_JOB_NAME"
 echo "Th job ID is $SLURM_JOB_ID"
@@ -18,7 +17,14 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-# compute slurm_40_www
-nextflow run 'https://github.com/nf-core/denovotranscript' -name fervent_lavoisier -params-file 'https://api.cloud.seqera.io/ephemeral/ZfYCAN5Dr0uazMVFVsg8vA.json' -with-tower -r 558ff4b639039ac8ec9bece3490841aa17eec971 -profile singularity
-# id 1hyljd0K8cTkUZ 2024-08-19 11:38:44 558ff4b639039ac8ec9bece3490841aa17eec971 (1.0.0) d62c33e7-9fac-4b9d-a2b8-910d1b40cd55
-# 23.10.1 build 5891
+export LMOD_DISABLE_SAME_NAME_AUTOSWAP=no
+module load Boost/1.83.0-GCC-13.2.0
+/cluster/projects/nn9036k/dotnet80303/dotnet --version
+#dusage
+#cd /cluster/projects/nn9036k/whale
+#rsync -Parv ash022@login1.nird-lmd.sigma2.no:TIMSTOF/LARS/2024/240819_Mitra/*M*.d .
+#rsync -Parv ash022@login1.nird-lmd.sigma2.no:TIMSTOF/LARS/2024/240819_Mitra/*.fasta .
+#rsync -Parv ash022@login1.nird-lmd.sigma2.no:TIMSTOF/LARS/2024/240819_Mitra/*.xml .
+/cluster/projects/nn9036k/dotnet80303/dotnet -n /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll -n mqpar.xml
+/cluster/projects/nn9036k/dotnet80303/dotnet /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll mqpar.xml
+#/cluster/projects/nn9036k/dotnet80303/dotnet /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll -p mqpar.xml
