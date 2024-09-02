@@ -1,20 +1,18 @@
-#git checkout e3e91f773bdcd23d761b0efe1562662b6550b4ce mqparTTPdia.xml scratch.slurm slurmMQrunTTP.sh
-#mv /cluster/work/users/ash022/veronica/*He*d /cluster/projects/nn9036k/HeLa/.
+#git checkout 1b88b4332b7afe044820ee5eff575b13006fa04c mqparTTPdda.xml mqparTTPdia.xml scratch.slurm slurmMQrunTTP.sh
 #dos2unix mqparTTPdda.xml scratch.slurm slurmMQrunTTP.sh
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/HeLa /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_07_22.fasta mqparTTPdda.xml scratch.slurm
-#grep "multiplicity" *.xml
-#grep "Atg10;Lys8" mqparTTPdia.xml
-#wget "https://maxquant.org/p/maxquant/MaxQuant_v_2.4.10.0.zip?md5=bwPYOvsI5oXolBP_wXUyzg&expires=1700127616" -O MQv24100.zip
-#unzip MQv24100.zip
+#rsync -Parv login.nird-lmd.sigma2.no:TIMSTOF/LARS/2024/240827_Bead_test .
+#mkdir 240827_Bead_test/dia
+#mv 240827_Bead_test/*DIA*d 240827_Bead_test/dia/
+#mkdir 240827_Bead_test/dda
+#mv 240827_Bead_test/*d 240827_Bead_test/dda/
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/scripts/240827_Bead_test/dda /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_07_22.fasta mqparTTPdda.xml scratch.slurm
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/scripts/240827_Bead_test/dia /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_07_22.fasta mqparTTPdia.xml scratch.slurm
+#squeue -u ash022   | grep "240827_B" | wc
+#18     144    1324	
 #wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=homo_sapiens.zip" -O HS.DIA.zip
 #unzip HS.DIA.zip
 #mv *.fasta FastaDB/.
 #mv *.txt FastaDB/.
-#mv MaxQuant_v_1.4.10.0 MaxQuant_v_2.4.10.0
-#cd scripts/
-#mkdir plasma
-#rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2023/231030_hela_peptides/DIA/*.d plasma/
-#cat scratch.slurm
 MAXQUANTCMD=$1
 DATADIR=$2
 FASTADIR=$3
