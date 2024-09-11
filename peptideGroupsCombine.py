@@ -1,11 +1,11 @@
+# python peptideGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240827_Bead_test/batchCombine
 # wget https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe
-# python peptideGroupsCombine.py L:/promec/Animesh/dilutionMS
 # %% data
-# tar cvzf 240822_MaikePeptides.tgz mqpar*/240822_Maike_*/combined/txt/peptides.txt
-# ls -d mqpar*/240822_Maike_*/ | wc #     22      22    1737
-# mkdir L:\promec\Animesh\dilutionMS\
-# scp ash022@login-1.saga.sigma2.no:scripts/240822_MaikePeptides.tgz L:\promec\Animesh\dilutionMS\
-# tar xvzf L:\promec\Animesh\dilutionMS\240822_MaikePeptides.tgz -C L:\promec\Animesh\dilutionMS\  
+# ls -d mqpar*/240827_B*/ | wc #  18      18    1260
+# tar cvzf 240827_BeadsPeptides.tgz mqpar*/240827_B*/combined/txt/peptides.txt
+# mkdir L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\batchCombine\
+# scp ash022@login-1.saga.sigma2.no:scripts/240827_BeadsPeptides.tgz L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\batchCombine\
+# tar xvzf L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\batchCombine\240827_BeadsPeptides.tgz -C L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\batchCombine\
 # %% setup
 #python -m pip install pandas seaborn pathlib
 import pandas as pd
@@ -14,7 +14,7 @@ from pathlib import Path
 # %% read
 if len(sys.argv) != 2: sys.exit("\n\nREQUIRED: pandas, seaborn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing peptides.txt file(s)>")
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/Animesh/dilutionMS/")
+#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240827_Bead_test/batchCombine/")
 fileName = 'peptides.txt'
 trainList = list(pathFiles.rglob(fileName))
 print("Reading data from"+str(pathFiles.absolute)+"values in column"+"files to consider"+str(fileName)+str(trainList)+str(len(trainList)))

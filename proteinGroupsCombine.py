@@ -1,13 +1,14 @@
-# python proteinGroupsCombine.py L:/promec/Animesh/dilutionMS
-#[ash022@login-1.SAGA ~/scripts]$ tar cvzf 240822_MaikePG.tgz mqpar*/240822_Maike_*/combined/txt/proteinGroups.txt
-# scp ash022@login-1.saga.sigma2.no:scripts/240822_MaikePG.tgz L:\promec\Animesh\dilutionMS\
-# tar xvzf L:\promec\Animesh\dilutionMS\240822_MaikePG.tgz -C L:\promec\Animesh\dilutionMS\
+# python proteinGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240827_Bead_test/batchCombine
+#[ash022@login-1.SAGA ~/scripts]$# tar cvzf 240827_BeadsPG.tgz mqpar*/240827_B*/combined/txt/proteinGroups.txt
+#[PROMEC] mkdir L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\batchCombine\
+# scp ash022@login-1.saga.sigma2.no:scripts/240827_BeadsPG.tgz L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\batchCombine\
+# tar xvzf L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\batchCombine\240827_BeadsPG.tgz -C L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\batchCombine\
 # %%setup
 import sys
 from pathlib import Path
 if len(sys.argv) != 2: sys.exit("\n\nREQUIRED: pandas, seaborn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing peptides.txt file(s)>")
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/Animesh/dilutionMS/")
+#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240827_Bead_test/batchCombine/")
 fileName='proteinGroups.txt'
 trainList=list(pathFiles.rglob(fileName))
 print(trainList)
