@@ -1,4 +1,4 @@
-#"f:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" diffExprTestTmatrix.r "L:\promec\Qexactive\LARS\2022\juli\toktam\PDv2p5\Beer\220706_toktam1_Proteins.txt.Abundance.Normalized..log2.csv" "L:\promec\Qexactive\LARS\2022\juli\toktam\PDv2p5\Beer\GroupsR1.txt" Sample Class Rem
+#C:\users\animeshs\R-4.4.0\bin\Rscript.exe diffExprTestTmatrix.r "L:\promec\Qexactive\LARS\2022\juli\toktam\PDv2p5\Beer\220706_toktam1_Proteins.txt.Abundance.Normalized..log2.csv" "L:\promec\Qexactive\LARS\2022\juli\toktam\PDv2p5\Beer\GroupsR1.txt" Sample Class Rem
 #setup
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -24,7 +24,7 @@ fName<-basename(inpF)
 lName<-basename(inpL)
 thr=0.0#count
 selThr=0.05#pValue-tTest
-selThrFC=1#log2-MedianDifference
+selThrFC=0.5#log2-MedianDifference
 cvThr=0.05#threshold for coefficient-of-variation
 hdr<-gsub("[^[:alnum:]]", "",inpD)
 outP=paste(inpF,selection,selThr,selThrFC,cvThr,hdr,lGroup,rGroup,lName,"VolcanoTestT","pdf",sep = ".")
@@ -171,7 +171,7 @@ label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 table(label$pair2test)
 for(i in rownames(table(label$pair2test))){
   for(j in rownames(table(label$pair2test))){
-    if(i<j){
+    if(i>j){
       print(paste(i,j))
       ttPair=testT(log2LFQsel,i,j,cvThr)
       #assign(paste0(i,j),ttPair)
