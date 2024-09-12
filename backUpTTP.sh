@@ -8,11 +8,11 @@ DIRNAME=$(basename $DATAPATH)
 FILENAME=$DIRNAME.$CURRENTEPOCTIME.tar
 ls $DATAPATH/*.d 
 ls $DATAPATH/combined/txt/*.txt
-tar cvf $WRITEDIR/$FILENAME $DATAPATH/*.d $DATAPATH/combined/txt/*.txt
+tar cvf $WRITEDIR/$FILENAME $DATAPATH
 echo data- $DATAPATH to- $WRITEDIR dir- $DIRNAME file- $FILENAME 
 md5sum $WRITEDIR/$FILENAME > $WRITEDIR/$FILENAME.MD5 
 cat $WRITEDIR/$FILENAME.MD5
 module load Python/3.11.5-GCCcore-13.2.0
 python3 scripts/shareLink.py $KEYMINIO Data $FILENAME
-# bash scripts/backUpTTP.sh 220613_Kristine
+# bash scripts/backUpTTP.sh TIMSTOF/Raw/MIRTA
 

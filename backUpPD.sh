@@ -6,13 +6,12 @@ DATAPATH=$1
 WRITEDIR=$HOME/Data
 DIRNAME=$(basename $DATAPATH) 
 FILENAME=$DIRNAME.$CURRENTEPOCTIME.tar
-ls $DATAPATH/*.raw 
-ls $DATAPATH/combined/txt/*.txt
-tar cvf $WRITEDIR/$FILENAME $DATAPATH/*.raw $DATAPATH/combined/txt/*.txt
+ls $DATAPATH 
+find $DATAPATH -iname "*.raw"  | tar -cvf  $WRITEDIR/$FILENAME -T -
 echo data- $DATAPATH to- $WRITEDIR dir- $DIRNAME file- $FILENAME 
 md5sum $WRITEDIR/$FILENAME > $WRITEDIR/$FILENAME.MD5 
 cat $WRITEDIR/$FILENAME.MD5
 module load Python/3.11.5-GCCcore-13.2.0
 python3 scripts/shareLink.py $KEYMINIO Data $FILENAME
-# bash scripts/backUpPD.sh 190820_Camilla_wolo
+# bash scripts/backUpPD.sh Qexactive/Mirta
 
