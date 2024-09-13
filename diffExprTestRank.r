@@ -1,4 +1,4 @@
-#C:\users\animeshs\R-4.4.0\bin\Rscript.exe diffExprTestRank.r "L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\combined\txtDDA\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\combined\txtDDA\Groups.txt" "Bio" "Rem"
+#C:\users\animeshs\R-4.4.0\bin\Rscript.exe diffExprTestRank.r "L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240827_Bead_test\combined\txt\Groups.txt" "Bio" "Norem"
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap"),repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -11,13 +11,13 @@ print(args)
 if (length(args) != 4) {stop("\n\nNeeds 4 arguments, the full path of the directory containing BOTH proteinGroups.txt AND Groups.txt files followed by the name column to use for Intensity, GROUP-to-compare, column to correct for, and data-to-REMOVE columns in Groups.txt file, for example: c:/Users/animeshs/R-4.2.1-win/bin/Rscript.exe diffExprTestRank.r L:/promec/TIMSTOF/LARS/2023/Data/combined/txtMC3MS3010/proteinGroups.txt L:/promec/TIMSTOF/LARS/2023/Data/combined/txtMC0/Groups.txt Group Rem", call.=FALSE)}
 #args####
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2024/240827_Bead_test/combined/txtDDA/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2024/240827_Bead_test/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2024/240827_Bead_test/combined/txtDDA/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2024/240827_Bead_test/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
-#rGroup<-"Rem"
+#rGroup<-"Norem"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -76,10 +76,10 @@ minmaxScale <- function(log2LFQsel) {
 }
 #test####
 testWilcox <- function(log2LFQmm,sel1,sel2,fName){
-  #log2LFQmm<-log2LFQselMM
-  #sel1<-"aptes"
+  #log2LFQmm<-log2LFQ
+  #sel1<-"B9DIA"
   #sel2<-setdiff(names(table(label[,lGroup])),sel1)
-  #fName<-"minMaxLog2LFQ"
+  #fName<-"testLog2LFQ"
   d1<-data.frame(log2LFQmm[,rownames(label[label[,lGroup]==sel1,])])
   rNd1<-rownames(d1)
   d1<-sapply(d1, as.numeric)
@@ -226,46 +226,6 @@ colnames(log2LFQselScaleimpCorr)<-colnames(log2LFQselMM)
 rownames(log2LFQselScaleimpCorr)<-colnames(log2LFQselMM)
 svgPHC<-pheatmap::pheatmap(log2LFQselScaleimpCorr,annotation_row = annoR,annotation_col = annoR,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col=6)
 ggplot2::ggsave(paste0(inpF,lName,lGroup,selection,scale,"heatmap.minMax.pearson.svg"), svgPHC)
-#compare####
-colnames(log2LFQ)
-log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
-colnames(log2LFQsel)
-dim(log2LFQsel)
-label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
-table(label$pair2test)
-for(i in (names(table(label[,lGroup])))){
-  print(i)
-  print(label[label[,lGroup]==i,])
-  assign(i,testWilcox(log2LFQsel,i,setdiff(names(table(label[,lGroup])),i),"log2Int"))
-}
-#merge####
-dataFC<-data.frame(rowSums(log2LFQsel,na.rm=T))
-colnames(dataFC)<-"sum"
-dataFC["RowGeneUniProtScorePeps"]<-row.names(data)
-dim(dataFC)
-summary(dataFC)
-for (obj in (names(table(label[,lGroup])))) {
-  print(obj)
-  dataT<-get(obj)
-  dataC<-data.frame(cbind(dataT$RowGeneUniProtScorePeps,dataT$logFCmedianGrp1))
-  colnames(dataC)<-c("RowGeneUniProtScorePeps",paste0(obj,"log2MedInt"))
-  dataFC<-merge(dataFC,dataC,by='RowGeneUniProtScorePeps',all=T)
-}
-dataFC<-dataFC[order(dataFC$sum,decreasing=T),]
-rN<-dataFC[,"RowGeneUniProtScorePeps"]
-geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), "[; ]"), "[", 1))
-uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "\\|",fixed=F), "[", 2)), "\\|"), "[", 1))
-geneName[is.na(geneName)]=uniprotID[is.na(geneName)]
-proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "_",fixed=T), "[", 2)), " OS="), "[", 1))
-writexl::write_xlsx(cbind(uniprotID,geneName,proteinNames,dataFC),paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2Intmerge.xlsx"))
-write.csv(cbind(uniprotID,geneName,proteinNames,dataFC),paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2Intmerge.csv"),row.names = F)
-#completeCases####
-dataFCnar<-dataFC
-dataFCnar[is.na(dataFCnar)]<-0
-writexl::write_xlsx(dataFCnar,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2IntcompleteCase.xlsx"))
-write.csv(dataFCnar,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2IntcompleteCase.csv"),row.names = F)
-write.table(dataFCnar,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2IntcompleteCase.txt"),row.names = F,sep="\t",quote=F)
-limma::vennDiagram(dataFCnar[,3:length(dataFCnar)]>0)
 #comparelog2LFQselMM####
 colnames(log2LFQselMM)
 log2LFQsel=log2LFQselMM[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
@@ -304,4 +264,44 @@ dataFCnar<-dataFC
 dataFCnar[is.na(dataFCnar)]<-0
 writexl::write_xlsx(dataFCnar,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2LFQselMMcompleteCase.xlsx"))
 write.table(dataFCnar,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2LFQselMMcompleteCase.txt"),row.names = F,sep="\t",quote=F)
+limma::vennDiagram(dataFCnar[,3:length(dataFCnar)]>0)
+#compare####
+colnames(log2LFQ)
+log2LFQsel=log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+colnames(log2LFQsel)
+dim(log2LFQsel)
+label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
+table(label$pair2test)
+for(i in (names(table(label[,lGroup])))){
+  print(i)
+  print(label[label[,lGroup]==i,])
+  assign(i,testWilcox(log2LFQsel,i,setdiff(names(table(label[,lGroup])),i),"log2Int"))
+}
+#merge####
+dataFC<-data.frame(rowSums(log2LFQsel,na.rm=T))
+colnames(dataFC)<-"sum"
+dataFC["RowGeneUniProtScorePeps"]<-row.names(data)
+dim(dataFC)
+summary(dataFC)
+for (obj in (names(table(label[,lGroup])))) {
+  print(obj)
+  dataT<-get(obj)
+  dataC<-data.frame(cbind(dataT$RowGeneUniProtScorePeps,dataT$logFCmedianGrp1))
+  colnames(dataC)<-c("RowGeneUniProtScorePeps",paste0(obj,"log2Med"))
+  dataFC<-merge(dataFC,dataC,by='RowGeneUniProtScorePeps',all=T)
+}
+dataFC<-dataFC[order(dataFC$sum,decreasing=T),]
+rN<-dataFC[,"RowGeneUniProtScorePeps"]
+geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), "[; ]"), "[", 1))
+uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "\\|",fixed=F), "[", 2)), "\\|"), "[", 1))
+geneName[is.na(geneName)]=uniprotID[is.na(geneName)]
+proteinNames<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "_",fixed=T), "[", 2)), " OS="), "[", 1))
+writexl::write_xlsx(cbind(uniprotID,geneName,proteinNames,dataFC),paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2Intmerge.xlsx"))
+write.csv(cbind(uniprotID,geneName,proteinNames,dataFC),paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2Intmerge.csv"),row.names = F)
+#completeCases####
+dataFCnar<-dataFC
+dataFCnar[is.na(dataFCnar)]<-0
+writexl::write_xlsx(dataFCnar,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2IntcompleteCase.xlsx"))
+write.csv(dataFCnar,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2IntcompleteCase.csv"),row.names = F)
+write.table(dataFCnar,paste0(inpF,fName,selection,selThr,selThrFC,cvThr,rGroup,lName,"log2IntcompleteCase.txt"),row.names = F,sep="\t",quote=F)
 limma::vennDiagram(dataFCnar[,3:length(dataFCnar)]>0)
