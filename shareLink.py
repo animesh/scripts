@@ -1,4 +1,5 @@
 #ln -s /mnt/promec-ns9036k/NORSTORE_OSL_DISK/NS9036K/promec/Data /mnt/promec-ns9036k/Data  #server
+#module load git/2.42.0-GCCcore-13.2.0
 #module load Python/3.11.5-GCCcore-13.2.0
 #python3 -m pip install minio
 #ln -s /nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/Data $HOME/.
