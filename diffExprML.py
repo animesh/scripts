@@ -1,3 +1,1913 @@
+# %% matrix-inverse
+#https://pub.towardsai.net/data-structures-in-machine-learning-a-comprehensive-guide-to-efficiency-and-scalability-f7429919c9c5
+import numpy as np
+
+# Example dataset
+X = np.array([[1, 1], [1, 2], [2, 2], [2, 3]])  # Feature matrix
+y = np.dot(X, np.array([1, 2])) + 3  # Target vector
+
+# Add a column of ones to X to account for the intercept term
+X = np.hstack([np.ones((X.shape[0], 1)), X])
+
+# Calculate beta using the normal equation
+beta = np.linalg.inv(X.T @ X) @ X.T @ y
+
+print("Estimated coefficients:", beta)
+Estimated coefficients: [3. 1. 2.]
+Hosted on Jovian
+View File
+
+# %% a*
+import heapq
+
+# Example graph (as an adjacency list)
+graph = {
+    'A': [('B', 1), ('C', 4)],
+    'B': [('A', 1), ('C', 2), ('D', 5)],
+    'C': [('A', 4), ('B', 2), ('D', 1)],
+    'D': [('B', 5), ('C', 1)]
+}
+
+# A* search function
+def a_star(graph, start, goal, h):
+    # Priority queue, initialized with the start node
+    pq = [(0 + h(start), 0, start, [])]  # (f = g + h, g, node, path)
+    heapq.heapify(pq)
+    
+    while pq:
+        (f, g, current, path) = heapq.heappop(pq)
+        
+        # Path to the current node
+        path = path + [current]
+        
+        if current == goal:
+            return path, f  # Return the found path and its total cost
+        
+        for (neighbor, cost) in graph[current]:
+            heapq.heappush(pq, (g + cost + h(neighbor), g + cost, neighbor, path))
+    
+    return None  # If no path is found
+
+# Heuristic function (for simplicity, using zero heuristic as an example)
+def h(node):
+    return 0
+
+# Find path from A to D
+path, cost = a_star(graph, 'A', 'D', h)
+print("Path:", path, "Cost:", cost)
+Path: ['A', 'B', 'C', 'D'] Cost: 4
+Hosted on Jovian
+View File
+
+# %% k-NN 
+import numpy as np
+
+def initialize_centroids(X, k):
+    centroids = []
+    centroids.append(X[np.random.randint(X.shape[0])])
+    
+    for _ in range(1, k):
+        distances = np.array([min([np.linalg.norm(x - c) for c in centroids]) for x in X])
+        heap = [(dist, i) for i, dist in enumerate(distances)]
+        heapq.heapify(heap)
+        
+        # Weighted random selection of the next centroid
+        total_dist = sum(distances)
+        r = np.random.uniform(0, total_dist)
+        cumulative_dist = 0
+        
+        for dist, i in heap:
+            cumulative_dist += dist
+            if cumulative_dist >= r:
+                centroids.append(X[i])
+                break
+    
+    return np.array(centroids)
+
+# Example dataset
+X = np.array([[1, 2], [1, 4], [3, 2], [5, 6], [7, 8], [9, 10]])
+centroids = initialize_centroids(X, 2)
+print("Initial centroids:\n", centroids)
+Initial centroids:
+ [[ 9 10]
+ [ 5  6]]
+Hosted on Jovian
+View File
+
+# %% p-NN
+import numpy as np
+from sklearn.neighbors import NearestNeighbors
+from sklearn.random_projection import SparseRandomProjection
+
+# Example dataset: 2D points
+points = np.random.rand(1000, 2)
+
+# Using random projections to approximate nearest neighbors
+lsh = SparseRandomProjection(n_components=2)
+projected_points = lsh.fit_transform(points)
+
+# Using NearestNeighbors for finding approximate neighbors
+nbrs = NearestNeighbors(n_neighbors=3, algorithm='ball_tree').fit(projected_points)
+distances, indices = nbrs.kneighbors(projected_points)
+
+# Example: Finding nearest neighbors of a point
+point_index = 0
+print(f"Nearest neighbors of point {point_index}: {indices[point_index]}")
+Nearest neighbors of point 0: [  0 129 312]
+Hosted on Jovian
+View File
+
+# %% DT
+from sklearn.datasets import load_iris
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import tree
+import matplotlib.pyplot as plt
+
+# Load example dataset
+iris = load_iris()
+X, y = iris.data, iris.target
+
+# Train a decision tree classifier
+clf = DecisionTreeClassifier(criterion='gini', max_depth=3)
+clf.fit(X, y)
+
+# Visualize the decision tree
+plt.figure(figsize=(12,8))
+tree.plot_tree(clf, filled=True, feature_names=iris.feature_names, class_names=iris.target_names)
+plt.show()
+Notebook Image
+Hosted on Jovian
+View File
+
+# %% KDT
+from sklearn.neighbors import KDTree
+import numpy as np
+
+# Create a dataset of 2D points
+points = np.array([
+    [2, 3],
+    [5, 4],
+    [9, 6],
+    [4, 7],
+    [8, 1],
+    [7, 2]
+])
+
+# Build a kd-tree
+kd_tree = KDTree(points, leaf_size=2)
+
+# Query the kd-tree for the nearest neighbor of a given point
+query_point = np.array([[9, 2]])
+dist, ind = kd_tree.query(query_point, k=1)
+
+print(f"Nearest neighbor of {query_point} is {points[ind]} with distance {dist}")
+Nearest neighbor of [[9 2]] is [[[8 1]]] with distance [[1.41421356]]
+Hosted on Jovian
+View File
+
+# %% graph
+import networkx as nx
+import matplotlib.pyplot as plt
+from networkx.algorithms.community import greedy_modularity_communities
+
+# Create an example social network graph
+G = nx.karate_club_graph()
+
+# Detect communities using the Girvan-Newman method
+communities = greedy_modularity_communities(G)
+
+# Plot the graph with community coloring
+pos = nx.spring_layout(G)
+plt.figure(figsize=(10, 7))
+
+# Color nodes by community
+for i, community in enumerate(communities):
+    nx.draw_networkx_nodes(G, pos, nodelist=list(community), node_color=f'C{i}', label=f'Community {i+1}')
+
+nx.draw_networkx_edges(G, pos)
+nx.draw_networkx_labels(G, pos)
+plt.legend()
+plt.show()
+Notebook Image
+Hosted on Jovian
+View File
+# Depth-First Search (DFS) using recursion
+def dfs(graph, node, visited):
+    if node not in visited:
+        print(node, end=" ")
+        visited.add(node)
+        for neighbor in graph[node]:
+            dfs(graph, neighbor, visited)
+
+# Breadth-First Search (BFS) using a queue
+from collections import deque
+
+def bfs(graph, start):
+    visited = set()
+    queue = deque([start])
+    
+    while queue:
+        node = queue.popleft()
+        if node not in visited:
+            print(node, end=" ")
+            visited.add(node)
+            queue.extend(graph[node])
+
+# Example graph
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F'],
+    'D': [],
+    'E': ['F'],
+    'F': []
+}
+
+print("DFS traversal:")
+dfs(graph, 'A', set())
+
+print("\nBFS traversal:")
+bfs(graph, 'A')
+DFS traversal:
+A B D E F C 
+BFS traversal:
+A B C D E F 
+Hosted on Jovian
+View File
+Example: Implementing DFS and BFS.
+2. Memory Management for Large 
+import sys
+import numpy as np
+from scipy.sparse import csr_matrix
+
+# Example graph represented as an adjacency matrix (dense)
+adj_matrix = np.array([
+    [0, 1, 1, 0],
+    [1, 0, 1, 1],
+    [1, 1, 0, 1],
+    [0, 1, 1, 0]
+])
+
+# Convert dense matrix to sparse representation
+sparse_matrix = csr_matrix(adj_matrix)
+print(f"\nDense matrix representation:\n{adj_matrix}\nSize: {sys.getsizeof(adj_matrix)}")
+print(f"\nSparse matrix representation:\n{sparse_matrix}\nSize: {sys.getsizeof(sparse_matrix)}")
+
+Dense matrix representation:
+[[0 1 1 0]
+ [1 0 1 1]
+ [1 1 0 1]
+ [0 1 1 0]]
+Size: 256
+
+Sparse matrix representation:
+  (0, 1)	1
+  (0, 2)	1
+  (1, 0)	1
+  (1, 2)	1
+  (1, 3)	1
+  (2, 0)	1
+  (2, 1)	1
+  (2, 3)	1
+  (3, 1)	1
+  (3, 2)	1
+Size: 56
+Hosted on Jovian
+View File
+
+# %% distfit1hotcode
+#https://towardsdatascience.com/all-you-need-is-statistics-to-analyze-tabular-datasets-3a1717f92749
+from distfit import distfit
+import numpy as np
+
+# Variable X
+X = np.random.normal(163, 10, 10000)
+
+# Fit distribution for most known distributions.
+dfit = distfit(distr='popular', bound='both', alpha=0.05)
+results = dfit.fit_transform(X)
+
+# Get threshold for the confidence intervals
+th_low = results['model']['CII_min_alpha']
+th_high = results['model']['CII_max_alpha']
+
+# Apply the function to variable X
+df = pd.DataFrame(X, columns=['Value'])
+df['Category'] = df['Value'].apply(discretize_X, args=(th_low, th_high))
+
+# One-hot encoding
+one_hot_encoded_df = pd.get_dummies(df, columns=['Category'])
+
+# Function to categorize based on confidence interval
+def discretize_X(X, th_low, th_high):
+    if X < th_low:
+        return 'Low'
+    elif X > th_high:
+        return 'High'
+    else:
+        return 'Medium'
+# Load datazets library
+import datazets as dz
+# Get the data science salary dataset
+df = dz.get('ds_salaries.zip')
+
+# The features are as following
+df.columns
+
+# 'work_year'          > The year the salary was paid.
+# 'experience_level'   > The experience level in the job during the year.
+# 'employment_type'    > Type of employment: Part-time, full time, contract or freelance.
+# 'job_title'          > Name of the role.
+# 'salary'             > Total gross salary amount paid.
+# 'salary_currency'    > Currency of the salary paid (ISO 4217 code).
+# 'salary_in_usd'      > Converted salary in USD.
+# 'employee_residence' > Primary country of residence.
+# 'remote_ratio'       > Remote work: less than 20%, partially, more than 80%
+# 'company_location'   > Country of the employer's main office.
+# 'company_size'       > Average number of people that worked for the company during the year.
+
+# Make the catagorical variables better to understand.
+df['experience_level'] = df['experience_level'].replace({'EN':'Entry-level', 'MI':'Junior Mid-level', 'SE':'Intermediate Senior-level', 'EX':'Expert Executive-level / Director'}, regex=True)
+df['employment_type'] = df['employment_type'].replace({'PT':'Part-time', 'FT':'Full-time', 'CT':'Contract', 'FL':'Freelance'}, regex=True)
+df['company_size'] = df['company_size'].replace({'S':'Small (less than 50)', 'M':'Medium (50 to 250)', 'L':'Large (>250)'}, regex=True)
+df['remote_ratio'] = df['remote_ratio'].replace({0:'No remote', 50:'Partially remote', 100:'>80% remote'}, regex=True)
+df['work_year'] = df['work_year'].astype(str)
+
+df.shape
+# (4134, 8)
+# Import scipy library
+from scipy.stats import hypergeom
+
+# Collect the counts
+N = df.shape[0] # Total number of samples
+K = sum(df['company_location']=='US') # Number of successes in the population
+n = sum(df['salary_currency']=='USD')
+x = sum((df['company_location']=='US') & (df['salary_currency']=='USD'))
+
+# Compute association using the hypergeometric test
+P = hypergeom.sf(x-1, N, n, K)
+
+print(P)
+0.0
+# Import libraries
+from hnet import hnet
+import datazets as dz
+
+# Get the data science salary dataset
+df = dz.get('ds_salaries.zip')
+
+# Initialize
+hn = hnet(alpha=0.05,
+          y_min=10,
+          multtest='holm',
+          dtypes=['cat', 'cat', 'cat', 'cat', 'num', 'cat', 'num', 'cat', 'cat', 'cat', 'cat'])
+
+# Perform the analysis
+results = hn.association_learning(df, verbose=4)
+
+# [df2onehot] >Set dtypes in dataframe..
+# [df2onehot] >Total onehot features: 84
+# [hnet] >Association learning across [84] categories.
+# 100%   > 84/84 [00:14<00:00,  5.73it/s]
+# [hnet] >Multiple test correction using holm
+# [hnet] >Dropping salary
+# [hnet] >Dropping salary_in_usd
+# -----------------------------------------------------
+# [hnet] >Total number of associatons computed: [23256]
+# -----------------------------------------------------
+# [hnet] >Computing category association using fishers method..
+# 100%   > 11/11 [00:00<00:00, 175.45it/s][hnet] >Fin.
+
+# Make static plot
+hn.plot(summarize=False, figsize=(50, 40))
+
+# Make interactive network plot
+hn.d3graph(summarize=False)
+
+# Create interactive heatmap
+hn.d3heatmap(summarize=False, fontsize=8)
+# Import libraries
+from df2onehot import df2onehot
+from pca import pca
+
+# Load dataset
+df = dz.get('ds_salaries.zip')
+
+# Store salary in separate target variable.
+y = df['salary_in_usd']
+
+# Remove redundant variables
+df.drop(labels=['salary_currency', 'salary', 'salary_in_usd'], inplace=True, axis=1)
+
+# Make the catagorical variables better to understand.
+df['experience_level'] = df['experience_level'].replace({'EN':'Entry-level', 'MI':'Junior Mid-level', 'SE':'Intermediate Senior-level', 'EX':'Expert Executive-level / Director'}, regex=True)
+df['employment_type'] = df['employment_type'].replace({'PT':'Part-time', 'FT':'Full-time', 'CT':'Contract', 'FL':'Freelance'}, regex=True)
+df['company_size'] = df['company_size'].replace({'S':'Small (less than 50)', 'M':'Medium (50 to 250)', 'L':'Large (>250)'}, regex=True)
+df['remote_ratio'] = df['remote_ratio'].replace({0:'No remote', 50:'Partially remote', 100:'>80% remote'}, regex=True)
+df['work_year'] = df['work_year'].astype(str)
+
+
+# One hot encoding and removing any multicollinearity to prevent the dummy trap.
+dfhot = df2onehot(df,
+                  remove_multicollinearity=True,
+                  y_min=5,
+                  verbose=4)['onehot']
+
+# Initialize
+model = pca(normalize=False)
+# Fit model using PCA
+model.fit_transform(dfhot)
+
+# Make biplot
+model.biplot(labels=df['job_title'],
+             s=y/500,
+             marker=df['experience_level'],
+             n_feat=10,
+             density=True,
+             fontsize=0,
+             jitter=0.05,
+             alpha=0.8,
+             color_arrow='#000000',
+             arrowdict={'color_text': '#000000', 'fontsize': 32},
+             figsize=(40, 30),
+             verbose=4,
+             )
+
+# %% regresionBias
+#https://towardsdatascience.com/how-biased-is-your-regression-model-4ef6c1495b77
+import math
+import pandas as pd
+import numpy as np
+from patsy import dmatrices
+import statsmodels.api as sm
+import scipy.stats
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+from matplotlib.ticker import StrMethodFormatter
+import seaborn as sns
+
+
+############################################
+####### Load the M & M weights data ########
+############################################
+df_mm = pd.read_csv(filepath_or_buffer='m_and_m_sample_weights.csv', header=0)
+
+df_mm['Mean_Sample_Weight'] = df_mm['Weight_In_GMS']/15 
+
+plt.figure(figsize=(8, 6))
+
+############################################
+######### Plot the 60 sample means #########
+############################################
+sns.scatterplot(x=['Mean Sample Weight']*60, y=df_mm['Mean_Sample_Weight'], color='cornflowerblue', label='Mean Sample Weight')
+
+# Plot the mean of the 'population' of 453 M&Ms
+sns.scatterplot(x=['Mean Sample Weight'], y=2.29792, color='orange', label=f'Population mean', s=100)
+
+plt.title('Mean Weights of 60 Random Samples')
+plt.xlabel('Samples')
+plt.ylabel('Weight in Grams')
+plt.legend()
+plt.grid(True)
+
+plt.show()
+
+############################################
+#### Load the Taipei house prices data #####
+############################################
+df_hp = pd.read_csv(filepath_or_buffer='taipei_real_estate_prices.csv', header=0)
+
+##########################################################
+# Plot House price versus number of convenenience stores #
+##########################################################
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='number_of_convenience_stores', y='house_price_of_unit_area', data=df_hp, color='cornflowerblue')
+
+plt.xlabel('Number of Nearby Convenience Stores')
+plt.ylabel('House Price per Unit Area')
+plt.title('House Price per Unit Area vs. Number of Nearby Convenience Stores')
+plt.legend()
+
+# Show the plot
+plt.show()
+
+############################################
+########## Fit the linear model  ###########
+############################################
+reg_expr = 'house_price_of_unit_area ~ number_of_convenience_stores'
+y, X = dmatrices(reg_expr, data=df_hp, return_type='dataframe')
+olsr_model_results = sm.OLS(y, X).fit()
+olsr_model_results.params
+
+############################################
+########## Plot the fitted model ###########
+############################################
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='number_of_convenience_stores', y='house_price_of_unit_area', data=df_hp, color='cornflowerblue')
+
+# Get the predicted y values
+predicted_y = olsr_model_results.predict(X)
+
+sns.lineplot(x=np.array(X['number_of_convenience_stores']), y=np.array(predicted_y), color='orange', marker='o', label='OLS Predicted')
+
+plt.xlabel('Number of Nearby Convenience Stores')
+plt.ylabel('House Price per Unit Area')
+plt.title('House Price per Unit Area vs. Number of Nearby Convenience Stores')
+plt.legend()
+
+plt.show()
+
+################################################
+# Plot 50 fitted models on bootstrapped samples 
+################################################
+
+num_c_stores_unique = df_hp['number_of_convenience_stores'].unique()
+num_c_stores_unique.sort()
+
+columns = [f'num_c_stores_{int(val)}' for val in num_c_stores_unique]
+predicted_means_df = pd.DataFrame(columns=columns)
+predicted_means_df['beta_0'] = np.nan
+predicted_means_df['beta_1'] = np.nan
+
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='number_of_convenience_stores', y='house_price_of_unit_area', data=df_hp, color='cornflowerblue')
+
+# Run the simulation 50 times
+for i in range(50):
+    # Pull out a random sample of 50 rows
+    sample_df = df_hp.sample(n=50, random_state=i)
+
+    y, X = dmatrices('house_price_of_unit_area ~ number_of_convenience_stores', data=sample_df, return_type='dataframe')
+
+    model = sm.OLS(y, X).fit()
+
+    predicted_y = model.predict(X)
+
+    means = []
+    for val in num_c_stores_unique:
+        mean_val = predicted_y[sample_df['number_of_convenience_stores'] == val].mean()
+        means.append(mean_val)
+    
+    predicted_means_df.loc[i, columns] = means
+
+    predicted_means_df.loc[i, 'beta_0'] = model.params['Intercept']
+    predicted_means_df.loc[i, 'beta_1'] = model.params['number_of_convenience_stores']
+
+    x_vals = np.array([df_hp['number_of_convenience_stores'].min(), df_hp['number_of_convenience_stores'].max()])
+    y_vals = model.params['Intercept'] + model.params['number_of_convenience_stores'] * x_vals
+    sns.lineplot(x=x_vals, y=y_vals, color='orange', linestyle='--', alpha=0.3)
+
+plt.title('OLS Regression Lines Fitted on 50 Random Samples with the Full Dataset in the Background')
+plt.xlabel('Number of Nearby Convenience Stores')
+plt.ylabel('House Price per Unit Area')
+plt.show()
+
+
+#######################################################
+# Plot beta_0 and beta_1 from the bootstrapped models #
+#######################################################
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
+
+ax1.set_title("Estimated β_0 and population β_0", fontsize=14)
+ax1.set_ylabel("β_0", color='black', fontsize=14)
+
+ax1.scatter(x=['beta_0']*50, y=predicted_means_df['beta_0'], marker='o', label="Sample β_0", color='cornflowerblue')
+ax1.scatter(x=['beta_0'], y=olsr_model_results.params['Intercept'], marker='o', s=100, label="Population β_0", color='orange')
+ax1.tick_params(axis='both', which='major', labelsize=14)
+
+ax2.set_title("Estimated β_1 and population β_1", fontsize=14)
+ax2.scatter(x=['beta_1']*50, y=predicted_means_df['beta_1'], marker='o', label="β_1", color='cornflowerblue')
+ax2.scatter(x=['beta_1'], y=olsr_model_results.params['number_of_convenience_stores'], marker='o', s=100, label="Population β_1", color='orange')
+ax2.set_ylabel("β_1", color='black', fontsize=14)
+
+ax2.tick_params(axis='both', which='major', labelsize=14)
+
+plt.show()
+
+###################################################################################
+# Fit a linear model on a sample that leaves out the top 5% most expensive houses #
+###################################################################################
+
+#The original model
+reg_expr = 'house_price_of_unit_area ~ number_of_convenience_stores'
+
+y, X = dmatrices(reg_expr, data=df_hp, return_type='dataframe')
+
+olsr_model_results = sm.OLS(y, X).fit()
+
+print(olsr_model_results.params)
+
+#Biased sample
+df_hp_95p = df_hp[df_hp['house_price_of_unit_area'] < 59.525]
+
+#The biased model
+reg_expr = 'house_price_of_unit_area ~ number_of_convenience_stores'
+
+y_95p, X_95p = dmatrices(reg_expr, data=df_hp_95p, return_type='dataframe')
+
+olsr_model_results_95p = sm.OLS(y_95p, X_95p).fit()
+
+print(olsr_model_results_95p.params)
+
+################################################
+#  Display the original and the biased models  #
+################################################
+# Create a scatter plot
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='number_of_convenience_stores', y='house_price_of_unit_area', data=df_hp, color='cornflowerblue')
+
+predicted_y = olsr_model_results.predict(X)
+
+sns.lineplot(x=np.array(X['number_of_convenience_stores']), y=np.array(predicted_y), color='orange', marker='o', label='OLS Predicted')
+
+predicted_y_95p = olsr_model_results_95p.predict(X)
+
+sns.lineplot(x=np.array(X['number_of_convenience_stores']), y=np.array(predicted_y_95p), color='red', marker='o', label='OLS Predicted (Biased Coeffs)')
+
+plt.xlabel('Number of Nearby Convenience Stores')
+plt.ylabel('House Price per Unit Area')
+plt.title('House Price per Unit Area vs. Number of Nearby Convenience Stores')
+plt.legend()
+
+# Show the plot
+plt.show()
+
+
+################################################
+# Plot House Price versus distance to MRT stop #
+################################################
+
+plt.figure(figsize=(10, 6))
+
+sns.scatterplot(x='distance_to_the_nearest_mrt_station', y='house_price_of_unit_area', data=df_hp, color='cornflowerblue')
+
+plt.title('House Price per Unit Area vs Distance to Nearest MRT Station')
+plt.xlabel('Distance to the Nearest MRT Station')
+plt.ylabel('House Price per Unit Area')
+plt.grid(True)
+
+# Show plot
+plt.show()
+
+####################################################
+####### Fit a log-linear model on this data ########
+####################################################
+
+# Compute the log of house_price_of_unit_area
+df_hp['log_house_price_of_unit_area'] = np.log(df_hp['house_price_of_unit_area'])
+
+reg_expr = 'log_house_price_of_unit_area ~ distance_to_the_nearest_mrt_station'
+
+y, X = dmatrices(reg_expr, data=df_hp, return_type='dataframe')
+
+log_linear_olsr_model_results = sm.OLS(y, X).fit()
+
+log_linear_olsr_model_results.params
+
+################################################
+########## Plot the log-linear model ###########
+################################################
+
+plt.figure(figsize=(10, 6))
+
+sns.scatterplot(x='distance_to_the_nearest_mrt_station', y='log_house_price_of_unit_area', data=df_hp, color='cornflowerblue')
+
+predicted_y = log_linear_olsr_model_results.predict(X)
+
+sns.lineplot(x=np.array(X['distance_to_the_nearest_mrt_station']), y=np.array(predicted_y), color='orange', marker='o', label='OLS Predicted')
+
+plt.title('Natural Log of House Price per Unit Area vs Distance to Nearest MRT Station')
+plt.xlabel('Distance to the Nearest MRT Station')
+plt.ylabel('Natural Log of House Price per Unit Area')
+plt.grid(True)
+
+plt.show()
+
+
+################################################
+# Fit linear models on 50 bootstrapped samples #
+################################################
+estimated_params_log_linear_ols_mrt_model_df = pd.DataFrame(columns=['gamma_0', 'gamma_1'])
+
+regression_expr = 'house_price_of_unit_area ~ distance_to_the_nearest_mrt_station'
+
+for i in range(50):
+    sample_df = df_hp.sample(n=50, random_state=np.random.randint(0, 10000))
+
+    y, X = dmatrices(regression_expr, data=sample_df, return_type='dataframe')
+
+    sample_model_results = sm.OLS(y, X).fit()
+
+    gamma_0 = sample_model_results.params['Intercept']
+    gamma_1 = sample_model_results.params['distance_to_the_nearest_mrt_station']
+    
+    estimated_params_log_linear_ols_mrt_model_df.at[i, 'gamma_0'] = gamma_0
+    estimated_params_log_linear_ols_mrt_model_df.at[i, 'gamma_1'] = gamma_1
+
+
+############################################################################
+# Plot the Beta_0 and Beta_1 params from the 50 bootstrapped linear models #
+############ and the 'population' mean from the log-linear model ###########
+############################################################################
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
+
+ax1.set_title("Estimated γ_0 from the linear model and\nthe population e^γ_0 from the log-linear model", fontsize='14')
+ax1.set_ylabel("γ_0", color='black', fontsize=14)
+ax1.tick_params(axis='both', which='major', labelsize=14)
+
+ax1.scatter(x=['gamma_0']*50, y=estimated_params_log_linear_ols_mrt_model_df['gamma_0'], marker='o', label="Sample γ_0", color='cornflowerblue')
+ax1.scatter(x=['gamma_0'], y=np.exp(log_linear_olsr_model_results.params['Intercept']), marker='o', s=100, label="Population γ_0", color='orange')
+
+ax2.set_title("Estimated γ_1 from the linear model and\nthe population γ_1 from the log-linear model", fontsize='14')
+ax2.set_ylabel("γ_1", color='black', fontsize=14)
+ax2.tick_params(axis='both', which='major', labelsize=14)
+
+ax2.scatter(x=['gamma_1']*50, y=estimated_params_log_linear_ols_mrt_model_df['gamma_1'], marker='o', label="γ_1", color='cornflowerblue')
+ax2.scatter(x=['gamma_1'], y=log_linear_olsr_model_results.params['distance_to_the_nearest_mrt_station'], marker='o', s=100, label="Population γ_1", color='orange')
+
+plt.show()
+#data M&M https://gist.githubusercontent.com/sachinsdate/a6554f4736299e9ddaf35d795b8b874e/raw/ad736257c3eaa9727f01f9870dbaaa43add3e5e6/m_and_m_sample_weights.csv
+#data house https://gist.githubusercontent.com/sachinsdate/a6554f4736299e9ddaf35d795b8b874e/raw/ad736257c3eaa9727f01f9870dbaaa43add3e5e6/taipei_real_estate_prices.csv
+#https://gist.githubusercontent.com/sachinsdate/19965de966bb064bae8c7d4c7988a593/raw/72e4ae1cfdb3f0402d66634ceb1567241bb1abb3/taipei_real_estate_prices.csv
+
+# %% removeDuplicate
+#https://blog.devops.dev/unlocking-model-performance-essential-feature-selection-techniques-for-data-scientists-26b4c84a6144
+import pandas as pd
+df = pd.DataFrame({
+    "Gender": ["M", "F", "M", "F", "M", "M", "F", "F", "M", "F"],
+    "Experience": [2, 3, 5, 6, 7, 8, 9, 5, 4, 3],
+    "gender": ["M", "F", "M", "F", "M", "M", "F", "F", "M", "F"],  # Duplicate of "Gender"
+    "exp": [2, 3, 5, 6, 7, 8, 9, 5, 4, 3],  # Duplicate of "Experience"
+    "Salary": [25000, 30000, 40000, 45000, 50000, 65000, 80000, 40000, 35000, 30000]
+})
+print("Original DataFrame:")
+print(df)
+print("*"*60)
+
+# Identify duplicate columns
+duplicate_columns = df.columns[df.T.duplicated()]
+print(duplicate_columns)
+print("*"*60)
+
+# Drop the duplicate columns
+columns=df.T[df.T.duplicated()].T
+df.drop(columns,axis=1,inplace=True)
+
+# Display the DataFrame after removing duplicate columns
+print("\nDataFrame after removing duplicate columns:")
+print(df)
+
+# %% remLowVar
+from sklearn.datasets import load_breast_cancer
+from sklearn.feature_selection import VarianceThreshold
+import pandas as pd
+
+# Load the Breast Cancer dataset
+X, y = load_breast_cancer(return_X_y=True, as_frame=True)
+
+# Display the shape of the original feature set
+print("Original Shape: ", X.shape)
+print("*" * 60)
+
+# Initialize VarianceThreshold with a threshold of 0.03
+# This will filter out features with variance below 0.03
+vth = VarianceThreshold(threshold=0.03)
+
+# Fit the VarianceThreshold and transform the data
+# This removes features with low variance
+X_filtered = vth.fit_transform(X)
+
+# Display the shape of the filtered feature set
+print("Filtered Shape: ", X_filtered.shape)
+
+# Display feature names after filtering
+# Note: VarianceThreshold does not have get_feature_names_out() method
+# The following line may not work and could be omitted or replaced with manual feature names
+print(vth.get_feature_names_out())
+print("*" * 60)
+
+# Create a DataFrame with the filtered features
+# Feature names might not be available, so using generic names instead
+X_filtered_df = pd.DataFrame(X_filtered, columns=vth.get_feature_names_out())
+
+# Display the filtered DataFrame
+print(X_filtered_df)
+
+# %% chi2
+import pandas as pd
+from scipy.stats import chi2_contingency
+
+# Sample dataset
+data = {
+    'Gender': ['Male', 'Female', 'Female', 'Male', 'Female', 'Male', 'Male', 'Female', 'Female', 'Male'],
+    'Marital_Status': ['Married', 'Single', 'Married', 'Single', 'Married', 'Single', 'Married', 'Single', 'Single', 'Married'],
+    'Purchased': ['No', 'Yes', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No', 'Yes', 'No']
+}
+
+df = pd.DataFrame(data)
+print("Sample Data:")
+print(df)
+
+# Create crosstab between Gender and Purchased
+crosstab = pd.crosstab(df['Gender'], df['Purchased'])
+print("\nCrosstab (Contingency Table):")
+print(crosstab)
+
+# Perform Chi-Square test
+chi2, p, dof, expected = chi2_contingency(crosstab)
+
+print("\nChi-Square Test Results:")
+print(f"Chi-Square Statistic: {chi2}")
+print(f"P-value: {p}")
+print(f"Degrees of Freedom: {dof}")
+print("Expected Frequencies:")
+print(expected)
+
+# Interpretation
+if p < 0.05:
+    print("\nConclusion: There is a significant relationship between Gender and Purchased.")
+else:
+    print("\nConclusion: There is no significant relationship between Gender and Purchased.")
+
+# %% ANOVA
+import pandas as pd
+from scipy.stats import f_oneway
+
+# Sample dataset
+data = {
+    'Education_Level': ['High School', 'Bachelor', 'Master', 'High School', 'Bachelor', 'Master', 'Bachelor', 'Master', 'High School'],
+    'Income': [40000, 55000, 70000, 42000, 58000, 72000, 60000, 75000, 41000]
+}
+
+df = pd.DataFrame(data)
+print("Sample Data:")
+print(df)
+
+# Group the data by 'Education_Level'
+groups = df.groupby('Education_Level')['Income'].apply(list)
+
+# Perform ANOVA
+f_statistic, p_value = f_oneway(*groups)
+
+print("\nANOVA Test Results:")
+print(f"F-Statistic: {f_statistic}")
+print(f"P-value: {p_value}")
+
+# Interpretation
+if p_value < 0.05:
+    print("\nConclusion: There is a significant difference in Income between different Education Levels.")
+else:
+    print("\nConclusion: There is no significant difference in Income between different Education Levels.")
+Output :
+
+# %% corrHeatMap
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Sample data
+data = {'Hours_Studied': [1, 2, 3, 4, 5],
+        'Exam_Score': [50, 55, 60, 70, 75]}
+df = pd.DataFrame(data)
+fig, axes = plt.subplots(1, 2, figsize=(12,5))
+plt.subplots_adjust(hspace=0.3, wspace=0.3)
+
+# Pearson Correlation
+correlation = df.corr(method="pearson")
+sns.heatmap(correlation,annot=True,ax=axes[0])
+sns.lineplot(x=df["Hours_Studied"],y=df["Exam_Score"],ax=axes[1])
+O
+
+# %% MI
+
+import pandas as pd
+from sklearn.feature_selection import mutual_info_classif
+from sklearn.preprocessing import OneHotEncoder
+
+# Sample dataset
+data = {
+    'Gender': ['Male', 'Female', 'Female', 'Male', 'Female', 'Male', 'Male', 'Female', 'Female', 'Male'],
+    'Education_Level': ['High School', 'Bachelor', 'Master', 'PhD', 'High School', 'Bachelor', 'Master', 'PhD', 'Bachelor', 'Master'],
+    'Income': ['Low', 'Medium', 'High', 'High', 'Low', 'Medium', 'High', 'High', 'Medium', 'High'],
+    'Target': [0, 1, 1, 0, 0, 1, 1, 1, 1, 0]
+}
+
+df = pd.DataFrame(data)
+print("Sample Data:")
+print(df)
+
+# OneHotEncode categorical features
+encoder = OneHotEncoder(sparse_output=False)
+encoded_features = encoder.fit_transform(df[['Gender', 'Education_Level', 'Income']])
+
+# Convert the encoded features into a DataFrame
+encoded_df = pd.DataFrame(encoded_features, columns=encoder.get_feature_names_out())
+
+# Calculate mutual information
+mi_scores = mutual_info_classif(encoded_df, df['Target'], discrete_features=True)
+
+# Create a DataFrame to display the MI scores
+mi_df = pd.DataFrame({'Feature': encoded_df.columns, 'Mutual Information': mi_scores})
+mi_df = mi_df.sort_values(by='Mutual Information', ascending=False)
+print("\nMutual Information Scores:")
+sns.barplot(x=mi_df["Feature"],y=mi_df["Mutual Information"],hue=mi_df["Feature"])
+plt.xticks(rotation=90)
+print(mi_df)
+Output :
+  
+# %% select
+
+f_classif: ANOVA F-value between label/feature for classification tasks.
+chi2: Chi-square test for independence.
+mutual_info_classif: Mutual information for classification.
+2. Select the Best Features: Based on the scoring function, it ranks all features and selects the top k features.
+import pandas as pd
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+# 1. Load Data
+data = load_iris()
+X = data.data
+y = data.target
+
+# Convert to DataFrame for better visualization
+df = pd.DataFrame(X, columns=data.feature_names)
+df['target'] = y
+
+
+# 2. SelectKBest
+# We use the ANOVA F-value as the scoring function for classification tasks.
+selector = SelectKBest(score_func=f_classif, k=3)  # Select the top 3features
+X_new = selector.fit_transform(X, y)
+
+# Display the scores and selected features
+scores = selector.scores_
+selected_features = np.array(data.feature_names)[selector.get_support()]
+print("\nFeature Scores:\n", scores)
+print("\nSelected Features:\n", selected_features)
+
+# 3. Train-Test Split
+X_train, X_test, y_train, y_test = train_test_split(X_new, y, test_size=0.2, random_state=42)
+
+# 4. Train a Model
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+
+# 5. Evaluate the Model
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print("\nModel Accuracy with Selected Features:", accuracy)
+
+# %% sbest
+
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from mlxtend.feature_selection import ExhaustiveFeatureSelector
+from sklearn.metrics import accuracy_score
+
+# Load the iris dataset
+data = load_iris()
+X = pd.DataFrame(data.data, columns=data.feature_names)
+y = pd.Series(data.target)
+
+# Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Initialize the model
+model = LogisticRegression(max_iter=200)
+
+# Initialize the Exhaustive Feature Selector
+efs = ExhaustiveFeatureSelector(
+    estimator=model,
+    min_features=1,
+    max_features=3,
+    scoring='accuracy',
+    cv=5,
+    n_jobs=-1
+)
+
+# Perform the feature selection
+efs = efs.fit(X_train, y_train)
+
+# Get the best feature subset and its score
+best_features = efs.best_feature_names_
+best_score = efs.best_score_
+
+print("Best Feature Subset:", best_features)
+print("Best Accuracy Score:", best_score)
+
+# %% fwd
+
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import SequentialFeatureSelector
+from sklearn.metrics import mean_squared_error
+
+# Sample data
+data = pd.DataFrame({
+    'X1': [1, 2, 3, 4, 5],
+    'X2': [2, 3, 4, 5, 6],
+    'X3': [5, 6, 7, 8, 9],
+    'Y': [1, 2, 1, 2, 1]
+})
+
+# Splitting the data
+X = data[['X1', 'X2', 'X3']]
+y = data['Y']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# Forward Selection
+forward_selector = SequentialFeatureSelector(
+    estimator=LinearRegression(),
+    n_features_to_select='auto',  # Can specify number of features or use 'auto'
+    direction='forward',
+    scoring='neg_mean_squared_error',
+    cv=4  # Cross-validation
+)
+
+# Fit the model
+forward_selector.fit(X_train, y_train)
+print("Forward Selection - Selected features:", X_train.columns[forward_selector.get_support()].tolist())
+
+# Backward Elimination
+backward_selector = SequentialFeatureSelector(
+    estimator=LinearRegression(),
+    n_features_to_select='auto',  # Can specify number of features or use 'auto'
+    direction='backward',
+    scoring='neg_mean_squared_error',
+    cv=4  # Cross-validation
+)
+
+# Fit the model
+backward_selector.fit(X_train, y_train)
+print("Backward Elimination - Selected features:", X_train.columns[backward_selector.get_support()].tolist())
+
+# %% RFE
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import load_iris
+import pandas as pd
+
+# Load data
+X, y = load_iris(return_X_y=True)
+
+# Apply Random Forest
+rf = RandomForestClassifier()
+rf.fit(X, y)
+
+# Get feature importances
+feature_importances = rf.feature_importances_
+feature_names = load_iris().feature_names
+importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': feature_importances})
+print(importance_df.sort_values(by='Importance', ascending=False))
+
+# %% utlier
+import numpy as np
+import pandas as pd
+from scipy import stats
+from sklearn.datasets import load_iris
+import matplotlib.pyplot as plt
+
+# Load the iris dataset
+iris = load_iris()
+data = pd.DataFrame(iris.data, columns=iris.feature_names)
+# Calculate Z-scores
+z_scores = np.abs(stats.zscore(data))
+threshold = 3
+outliers = np.where(z_scores > threshold)
+
+# Remove outliers
+data_zs = data[(z_scores < threshold).all(axis=1)]
+
+print("Data shape before outlier removal:", data.shape)
+print("Data shape after outlier removal (Z-Score):", data_zs.shape)
+# Visualization
+plt.figure(figsize=(12, 6))
+plt.scatter(data.iloc[:, 0], data.iloc[:, 1], color='blue', label='Original Data')
+plt.scatter(data_zs.iloc[:, 0], data_zs.iloc[:, 1], color='red', label='Data without Outliers (Z-Score)')
+plt.xlabel(iris.feature_names[0])
+plt.ylabel(iris.feature_names[1])
+plt.title('Z-Score Method for Outlier Detection')
+plt.legend()
+plt.show()
+# Calculate Q1 (25th percentile) and Q3 (75th percentile)
+Q1 = data.quantile(0.25)
+Q3 = data.quantile(0.75)
+IQR = Q3 - Q1
+
+# Identify outliers
+outliers = ((data < (Q1 - 1.5 * IQR)) | (data > (Q3 + 1.5 * IQR))).any(axis=1)
+
+# Remove outliers
+data_iqr = data[~outliers]
+
+print("Data shape before outlier removal:", data.shape)
+print("Data shape after outlier removal (IQR):", data_iqr.shape)
+
+
+# Visualization
+plt.figure(figsize=(12, 6))
+plt.scatter(data.iloc[:, 0], data.iloc[:, 1], color='blue', label='Original Data')
+plt.scatter(data_iqr.iloc[:, 0], data_iqr.iloc[:, 1], color='red', label='Data without Outliers (IQR)')
+plt.xlabel(iris.feature_names[0])
+plt.ylabel(iris.feature_names[1])
+plt.title('IQR Method for Outlier Detection')
+plt.legend()
+plt.show()
+from sklearn.ensemble import IsolationForest
+
+# Initialize the model
+iso_forest = IsolationForest(contamination=0.1)
+
+# Fit the model
+outliers = iso_forest.fit_predict(data)
+
+# Remove outliers
+data_if = data[outliers == 1]
+
+print("Data shape before outlier removal:", data.shape)
+print("Data shape after outlier removal (Isolation Forest):", data_if.shape)
+
+# Visualization
+plt.figure(figsize=(12, 6))
+plt.scatter(data.iloc[:, 0], data.iloc[:, 1], color='blue', label='Original Data')
+plt.scatter(data_if.iloc[:, 0], data_if.iloc[:, 1], color='red', label='Data without Outliers (Isolation Forest)')
+plt.xlabel(iris.feature_names[0])
+plt.ylabel(iris.feature_names[1])
+plt.title('Isolation Forest for Outlier Detection')
+plt.legend()
+plt.show()
+from sklearn.cluster import DBSCAN
+
+# Initialize the model
+dbscan = DBSCAN(eps=0.5, min_samples=5)
+
+# Fit the model
+clusters = dbscan.fit_predict(data)
+
+# Identify outliers (points labeled as -1 are outliers)
+outliers = clusters == -1
+
+# Remove outliers
+data_dbscan = data[~outliers]
+
+print("Data shape before outlier removal:", data.shape)
+print("Data shape after outlier removal (DBSCAN):", data_dbscan.shape)
+
+
+# Visualization
+plt.figure(figsize=(12, 6))
+plt.scatter(data.iloc[:, 0], data.iloc[:, 1], color='blue', label='Original Data')
+plt.scatter(data_dbscan.iloc[:, 0], data_dbscan.iloc[:, 1], color='red', label='Data without Outliers (DBSCAN)')
+plt.xlabel(iris.feature_names[0])
+plt.ylabel(iris.feature_names[1])
+plt.title('DBSCAN for Outlier Detection')
+plt.legend()
+plt.show()
+
+# %% timeSeriesOutliers
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate a date range (e.g., daily data for one year)
+date_range = pd.date_range(start='2023-01-01', periods=365, freq='D')
+
+# Generate synthetic data (e.g., daily temperatures with some noise)
+np.random.seed(42)  # For reproducibility
+data = 20 + 10 * np.sin(2 * np.pi * date_range.dayofyear / 365) + np.random.normal(0, 2, len(date_range))
+# Create a DataFrame
+df = pd.DataFrame({'Date': date_range, 'Value': data})
+df.set_index('Date', inplace=True)  # Set the date range as the index
+# Plot the time series
+plt.figure(figsize=(15, 5))
+plt.plot(df.index, df['Value'], label='Synthetic Time Series')
+plt.title('Synthetic Time Series Data')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
+# Ensure data is a NumPy array
+data = np.array(data)
+# Add outliers
+outlier_indices = np.random.choice(len(data), size=5, replace=False)  # Randomly select 5 indices
+
+# Modify the NumPy array directly
+data_with_outliers = data.copy()  # Create a copy of data to avoid modifying in place
+
+# Add outliers by adding large anomalies to the selected indices
+data_with_outliers[outlier_indices] = data_with_outliers[outlier_indices] + np.random.normal(15, 5, size=outlier_indices.shape[0])
+
+# Create DataFrame
+df = pd.DataFrame({'Date': date_range, 'Value': data_with_outliers})
+df.set_index('Date', inplace=True)
+
+# Visualize the original time series
+plt.figure(figsize=(15,5))
+plt.plot(df.index, df['Value'], label='Time Series Data')
+plt.title('Synthetic Time Series Data with Outliers')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
+# Calculate rolling statistics
+window_size = 15
+rolling_mean = df['Value'].rolling(window=window_size).mean()
+rolling_std = df['Value'].rolling(window=window_size).std()
+
+# Define threshold (e.g., 3 standard deviations)
+threshold = 3
+
+# Identify outliers
+outliers = df[np.abs(df['Value'] - rolling_mean) > threshold * rolling_std]
+
+# Visualize the results
+plt.figure(figsize=(15,5))
+plt.plot(df.index, df['Value'], label='Original Data')
+plt.plot(df.index, rolling_mean, color='orange', label='Rolling Mean')
+plt.scatter(outliers.index, outliers['Value'], color='red', label='Detected Outliers')
+plt.title('Outlier Detection using Rolling Statistics')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
+from statsmodels.tsa.seasonal import seasonal_decompose
+
+# Apply seasonal decomposition
+decomposition = seasonal_decompose(df['Value'], model='additive', period=30)
+
+# Plot decomposed components
+fig = decomposition.plot()
+fig.set_size_inches(15, 8)
+plt.show()
+
+# Extract residuals and identify outliers using Z-score
+residual = decomposition.resid.dropna()
+z_scores = np.abs((residual - residual.mean()) / residual.std())
+outliers_decomp = residual[z_scores > 3]
+
+# Visualize the results
+plt.figure(figsize=(15,5))
+plt.plot(df.index, df['Value'], label='Original Data')
+plt.scatter(outliers_decomp.index, df.loc[outliers_decomp.index]['Value'], color='red', label='Detected Outliers')
+plt.title('Outlier Detection using Seasonal Decomposition')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
+from prophet import Prophet
+
+# Prepare the data for Prophet
+df_prophet = df.reset_index().rename(columns={'Date': 'ds', 'Value': 'y'})
+
+# Fit the Prophet model
+model = Prophet()
+model.fit(df_prophet)
+
+# Create a dataframe with future dates for prediction (not necessary here)
+future = model.make_future_dataframe(periods=0)
+forecast = model.predict(future)
+
+# Calculate residuals
+df_prophet['yhat'] = forecast['yhat']
+df_prophet['residual'] = df_prophet['y'] - df_prophet['yhat']
+
+# Identify anomalies (3 standard deviations away from the mean)
+std_residual = np.std(df_prophet['residual'])
+threshold = 3 * std_residual
+df_prophet['anomaly'] = df_prophet['residual'].apply(lambda x: 1 if np.abs(x) > threshold else 0)
+
+# Extract anomalies
+anomalies_prophet = df_prophet[df_prophet['anomaly'] == 1]
+
+# Visualize the results
+plt.figure(figsize=(15,5))
+plt.plot(df_prophet['ds'], df_prophet['y'], label='Actual')
+plt.plot(df_prophet['ds'], df_prophet['yhat'], label='Predicted')
+plt.scatter(anomalies_prophet['ds'], anomalies_prophet['y'], color='red', label='Anomalies')
+plt.title('Anomaly Detection using Prophet')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.ensemble import IsolationForest
+
+
+# Reshape the data to 2D array (required by IsolationForest)
+X = df['Value'].values.reshape(-1, 1)
+
+# Apply Isolation Forest
+iso_forest = IsolationForest(contamination=0.01, random_state=42)
+df['Anomaly'] = iso_forest.fit_predict(X)
+
+# Anomalies are labeled as -1, normal points as 1
+outliers = df[df['Anomaly'] == -1]
+normal_data = df[df['Anomaly'] == 1]
+
+# Remove the outliers
+df_cleaned = df[df['Anomaly'] == 1]
+
+# Plot the original time series with detected outliers
+plt.figure(figsize=(15, 5))
+plt.plot(df.index, df['Value'], label='Original Data with Outliers')
+plt.scatter(outliers.index, outliers['Value'], color='red', label='Detected Outliers')
+plt.title('Outlier Detection with Isolation Forest')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
+
+# Plot the cleaned time series after removing outliers
+plt.figure(figsize=(15, 5))
+plt.plot(df_cleaned.index, df_cleaned['Value'], label='Cleaned Data (Outliers Removed)')
+plt.title('Time Series Data after Outlier Removal using Isolation Forest')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.tsa.arima.model import ARIMA
+from scipy import stats
+
+# Fit an ARIMA model
+model = ARIMA(df['Value'], order=(5, 1, 0))  # Here (5, 1, 0) are the ARIMA parameters, adjust as needed
+model_fit = model.fit()
+
+# Get the residuals from the model
+df['Residuals'] = model_fit.resid
+
+# Plot residuals
+plt.figure(figsize=(15, 5))
+plt.plot(df.index, df['Residuals'], label='Residuals')
+plt.axhline(y=0, color='red', linestyle='--')
+plt.title('Residuals from ARIMA Model')
+plt.xlabel('Date')
+plt.ylabel('Residuals')
+plt.legend()
+plt.show()
+
+# Detect outliers using Z-score
+z_scores = np.abs(stats.zscore(df['Residuals']))
+df['Outlier'] = z_scores > 3  # Mark as outlier if Z-score is greater than 3
+
+# Remove the outliers
+df_cleaned = df[df['Outlier'] == False]
+
+# Plot the original time series with detected outliers
+plt.figure(figsize=(15, 5))
+plt.plot(df.index, df['Value'], label='Original Data with Outliers')
+plt.scatter(df[df['Outlier']].index, df[df['Outlier']]['Value'], color='red', label='Detected Outliers')
+plt.title('Outlier Detection with ARIMA Residual Analysis')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
+
+# Plot the cleaned time series after removing outliers
+plt.figure(figsize=(15, 5))
+plt.plot(df_cleaned.index, df_cleaned['Value'], label='Cleaned Data (Outliers Removed)')
+plt.title('Time Series Data after Outlier Removal using ARIMA Residuals')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
+
+# %% PCA
+#https://towardsdatascience.com/principal-component-analysis-hands-on-tutorial-3a451ff3d5db
+#pip install numpy pandas scikit-learn scikit-image matplotlib gensim -q
+# import libraries
+import numpy as np
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+%matplotlib inline
+# load the dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# standardize the data
+scaler = StandardScaler()
+X_std = scaler.fit_transform(X)
+
+# apply pca
+pca = PCA(n_components=2)
+principal_components = pca.fit_transform(X_std)
+# dataframe of principal components
+principal_df = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+final_df = pd.concat([principal_df, pd.DataFrame(y, columns=['target'])], axis=1)
+
+# visualization
+plt.figure(figsize=(8,6))
+targets = [0, 1, 2]
+colors = ['r', 'g', 'b']
+for target, color in zip(targets, colors):
+    indices = final_df['target'] == target
+    plt.scatter(final_df.loc[indices, 'PC1'],
+                final_df.loc[indices, 'PC2'],
+                c=color,
+                s=50)
+plt.legend(iris.target_names)
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.title('PCA of Iris Dataset')
+plt.show()
+# load the dataset
+iris = load_iris()
+X = iris.data
+
+# standardize the data
+scaler = StandardScaler()
+X_std = scaler.fit_transform(X)
+
+# apply pca (keep all 4 features to see the original variance)
+pca = PCA(n_components=4)
+pca.fit(X_std)
+
+# calculate explained variance ratio for each principal component
+explained_variance = pca.explained_variance_ratio_
+
+# calculate cumulative explained variance
+cumulative_variance = np.cumsum(explained_variance)
+
+# visualize
+plt.figure(figsize=(6,4))
+plt.plot(range(1, len(cumulative_variance)+1), cumulative_variance, marker='o', linestyle='--', color='b')
+plt.title('Cumulative Explained Variance')
+plt.xlabel('Number of Principal Components')
+plt.ylabel('Cumulative Explained Variance')
+plt.grid()
+plt.show()
+
+#text
+# import libraries
+import gensim.downloader as api
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+# load pre-trained word embedding
+model = api.load('glove-wiki-gigaword-50')  # 50-dimensional embeddings
+model['medium']
+# select 10 random words
+words = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown', 'black', 'white']
+word_vectors = [model[word] for word in words]
+
+# apply pca
+pca = PCA(n_components=2)
+components = pca.fit_transform(word_vectors)
+
+# visualize 2-dimensional embeddings
+plt.figure(figsize=(8,6))
+for i, word in enumerate(words):
+    plt.scatter(components[i,0], components[i,1])
+    plt.annotate(word, (components[i,0], components[i,1]))
+plt.title('PCA of Word Embeddings')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.show()
+# reduce to 10 dimensions
+pca_10d = PCA(n_components=10)
+word_vectors_10d = pca_10d.fit_transform(word_vectors)
+
+# explained variance ratio
+explained_variance_ratio_10d = pca_10d.explained_variance_ratio_
+
+# cumulative variance
+cumulative_variance_10d = np.cumsum(explained_variance_ratio_10d)
+
+# plot
+plt.figure(figsize=(8, 6))
+plt.plot(range(1, 11), cumulative_variance_10d, marker='o', linestyle='--', color='b')
+plt.title('Cumulative Explained Variance for 10 Principal Components')
+plt.xlabel('Number of Principal Components')
+plt.ylabel('Cumulative Explained Variance')
+plt.xticks(range(1, 11))
+plt.grid()
+plt.show()
+
+#image
+# import libraries
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from skimage import io, color
+
+# load the image
+image = io.imread('icecream.jpg')
+
+# convert to gray scale
+gray_image = color.rgb2gray(image)
+
+# get the original size and shape of the image before any further changes
+original_size = gray_image.size
+original_shape = gray_image.shape
+print(f"Original Image Size (number of pixels): {original_size}")
+print(f"Original Image Shape: {original_shape}")
+
+# standardize and flatten the image, since pca requires a matrix (each row is a pixel and each column is a feature after flatenning)
+h, w = gray_image.shape
+flat_image = gray_image - np.mean(gray_image, axis=0)
+
+# pca down to 50 dimensions
+pca = PCA(n_components=50)
+image_pca = pca.fit_transform(flat_image)
+
+# get the size and shape of the dimensionality-reduced/transformed image
+reduced_size = image_pca.size + pca.components_.size
+reduced_shape = image_pca.shape
+print(f"Reduced Image Size (number of pixels, after PCA): {reduced_size}")
+print(f"Reduced Image Shape (after PCA): {reduced_shape}")
+# reconstruct the transformed image so that we can view it later
+reconstructed_image = pca.inverse_transform(image_pca)
+
+# plot images side by side
+plt.figure(figsize=(12, 6))
+
+# original image
+plt.subplot(1, 2, 1)
+plt.imshow(gray_image, cmap='gray')
+plt.title("Original Image")
+plt.axis('off')
+
+# transformed image
+plt.subplot(1, 2, 2)
+plt.imshow(reconstructed_image, cmap='gray')
+plt.title("Reconstructed Image (PCA)")
+plt.axis('off')
+plt.show()
+# explained information/variance
+explained_variance = pca.explained_variance_ratio_
+cumulative_variance = np.cumsum(explained_variance)
+
+# plot
+plt.figure(figsize=(8, 6))
+plt.plot(range(1, len(cumulative_variance) + 1), cumulative_variance, marker='o', linestyle='--', color='b')
+plt.title('Cumulative Explained Variance for PCA Components')
+plt.xlabel('Number of Principal Components')
+plt.ylabel('Cumulative Explained Variance')
+plt.grid()
+plt.show()
+
+# %% optimize-classificaton
+#https://towardsdatascience.com/calibrating-classification-probabilities-the-right-way-da935caee18d
+from sklearn.datasets import make_classification
+2	from sklearn.model_selection import train_test_split
+3	from sklearn.naive_bayes import GaussianNB
+4	from venn_abers import VennAbersCalibrator
+5	
+6	X, y = make_classification(n_samples=1000, n_classes=2, n_informative=10, test_size=0.2)
+7	X_train, X_test, y_train, y_test = train_test_split(X, y)
+8	
+9	# Define Venn-ABERS predictor
+10	va = VennAbersCalibrator(estimator=GaussianNB(), inductive=True, cal_size=0.2, random_state=42)
+11	
+12	# Fit on the training set
+13	va.fit(X_train, y_train)
+14	
+15	# Generate probabilities and class predictions on the test set
+16	p_prime = va.predict_proba(X_test)
+17	y_pred = va.predict(X_test)
+# Create calibration set
+2	X_train, X_cal, y_train, y_cal = train_test_split(X_train, y_train, test_size=0.2)
+3	
+4	# Fit classifier on training set
+5	clf = GaussianNB()
+6	clf.fit(X_train, y_train)
+7	
+8	# Define Venn-ABERS predictor
+9	VAC = VennAbersCalibrator()
+10	
+11	# Generate uncalibrated probabilities on the calibration and test set
+12	p_cal = clf.predict_proba(X_cal)
+13	p_test = clf.predict_proba(X_test)
+14	
+15	# Calibrate probabilities on the calibration set and generate calibrated probabilities on the test set
+16	p_prime, p0_p1 = VAC.predict_proba(p_cal=p_cal, y_cal=y_cal, p_test=p_test, p0_p1_output=True)
+
+# %% PCApretty
+X = data.drop("quality", axis=1)
+y = data["quality"]
+
+X_scaled = StandardScaler().fit_transform(X)
+
+pca = PCA().fit(X_scaled)
+pca_res = pca.transform(X_scaled)
+
+pca_res_df = pd.DataFrame(pca_res, columns=[f"PC{i}" for i in range(1, pca_res.shape[1] + 1)])
+pca_res_df.head()
+#https://archive.ph/o/EeKE8/https://fonts.google.com/specimen/Roboto+Condensed
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as font_manager
+
+import matplotlib_inline
+matplotlib_inline.backend_inline.set_matplotlib_formats("svg")
+
+font_dir = ["Roboto_Condensed"]
+for font in font_manager.findSystemFonts(font_dir):
+    font_manager.fontManager.addfont(font)
+
+plt.rcParams["figure.figsize"] = 10, 6
+plt.rcParams["axes.spines.top"] = False
+plt.rcParams["axes.spines.right"] = False
+plt.rcParams["font.size"] = 14
+plt.rcParams["figure.titlesize"] = "xx-large"
+plt.rcParams["xtick.labelsize"] = "medium"
+plt.rcParams["ytick.labelsize"] = "medium"
+plt.rcParams["axes.axisbelow"] = True
+plt.rcParams["font.family"] = "Roboto Condensed"
+plot_y = [val * 100 for val in pca.explained_variance_ratio_]
+plot_x = range(1, len(plot_y) + 1)
+
+bars = plt.bar(plot_x, plot_y, align="center", color="#1C3041", edgecolor="#000000", linewidth=1.2)
+for bar in bars:
+    yval = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width() / 2, yval + 0.001, f"{yval:.1f}%", ha="center", va="bottom")
+
+plt.xlabel("Principal Component")
+plt.ylabel("Percentage of Explained Variance")
+plt.title("Variance Explained per Principal Component", loc="left", fontdict={"weight": "bold"}, y=1.06)
+plt.grid(axis="y")
+plt.xticks(plot_x)
+
+plt.show()
+exp_var = [val * 100 for val in pca.explained_variance_ratio_]
+plot_y = [sum(exp_var[:i+1]) for i in range(len(exp_var))]
+plot_x = range(1, len(plot_y) + 1)
+
+plt.plot(plot_x, plot_y, marker="o", color="#9B1D20")
+for x, y in zip(plot_x, plot_y):
+    plt.text(x, y + 1.5, f"{y:.1f}%", ha="center", va="bottom")
+
+plt.xlabel("Principal Component")
+plt.ylabel("Cumulative Percentage of Explained Variance")
+plt.title("Cumulative Variance Explained per Principal Component", loc="left", fontdict={"weight": "bold"}, y=1.06)
+
+plt.yticks(range(0, 101, 5))
+plt.grid(axis="y")
+plt.xticks(plot_x)
+
+plt.show()
+total_explained_variance = sum(pca.explained_variance_ratio_[:2]) * 100
+colors = ["#1C3041", "#9B1D20", "#0B6E4F", "#895884", "#F07605", "#F5E400"]
+
+pca_2d_df = pd.DataFrame(pca_res[:, :2], columns=["PC1", "PC2"])
+pca_2d_df["y"] = data["quality"]
+
+fig, ax = plt.subplots()
+for i, target in enumerate(sorted(pca_2d_df["y"].unique())):
+    subset = pca_2d_df[pca_2d_df["y"] == target]
+    ax.scatter(x=subset["PC1"], y=subset["PC2"], s=70, alpha=0.7, c=colors[i], edgecolors="#000000", label=target)
+
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.title(f"Wine Quality Dataset PCA ({total_explained_variance:.2f}% Explained Variance)", loc="left", fontdict={"weight": "bold"}, y=1.06)
+
+ax.legend(title="Wine quality")
+plt.show()
+total_explained_variance = sum(pca.explained_variance_ratio_[:3]) * 100
+colors = ["#1C3041", "#9B1D20", "#0B6E4F", "#895884", "#F07605", "#F5E400"]
+
+pca_3d_df = pd.DataFrame(pca_res[:, :3], columns=["PC1", "PC2", "PC3"])
+pca_3d_df["y"] = data["quality"]
+
+fig = plt.figure(figsize=(10, 10))
+ax = fig.add_subplot(projection="3d")
+
+for i, target in enumerate(sorted(pca_3d_df["y"].unique())):
+    subset = pca_3d_df[pca_3d_df["y"] == target]
+    ax.scatter(xs=subset["PC1"], ys=subset["PC2"], zs=subset["PC3"], s=70, alpha=0.7, c=colors[i], edgecolors="#000000", label=target)
+
+ax.set_xlabel("Principal Component 1")
+ax.set_ylabel("Principal Component 2")
+ax.set_zlabel("Principal Component 3")
+ax.set_title(f"Wine Quality Dataset PCA ({total_explained_variance:.2f}% Explained Variance)", loc="left", fontdict={"weight": "bold"})
+
+ax.legend(title="Wine quality", loc="lower left")
+plt.show()
+ax.view_init(elev=<value>, azim=<value>)
+#biplot
+labels = X.columns
+n = len(labels)
+coeff = np.transpose(pca.components_)
+pc1 = pca.components_[:, 0]
+pc2 = pca.components_[:, 1]
+
+plt.figure(figsize=(8, 8))
+
+for i in range(n):
+    plt.arrow(x=0, y=0, dx=coeff[i, 0], dy=coeff[i, 1], color="#000000", width=0.003, head_width=0.03)
+    plt.text(x=coeff[i, 0] * 1.15, y=coeff[i, 1] * 1.15, s=labels[i], size=13, color="#000000", ha="center", va="center")
+
+plt.axis("square")
+plt.title(f"Wine Quality Dataset PCA Biplot", loc="left", fontdict={"weight": "bold"}, y=1.06)
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+
+plt.xlim(-1, 1)
+plt.ylim(-1, 1)
+plt.xticks(np.arange(-1, 1.1, 0.2))
+plt.yticks(np.arange(-1, 1.1, 0.2))
+
+plt.axhline(y=0, color="black", linestyle="--")
+plt.axvline(x=0, color="black", linestyle="--")
+circle = plt.Circle((0, 0), 0.99, color="gray", fill=False)
+plt.gca().add_artist(circle)
+
+plt.grid()
+plt.show()
+loadings = pd.DataFrame(
+    data=pca.components_.T * np.sqrt(pca.explained_variance_), 
+    columns=[f"PC{i}" for i in range(1, len(X.columns) + 1)],
+    index=X.columns
+)
+
+fig, axs = plt.subplots(2, 2, figsize=(14, 10), sharex=True, sharey=True)
+colors = ["#1C3041", "#9B1D20", "#0B6E4F", "#895884"]
+
+for i, ax in enumerate(axs.flatten()):
+    explained_variance = pca.explained_variance_ratio_[i] * 100
+    pc = f"PC{i+1}"
+    bars = ax.bar(loadings.index, loadings[pc], color=colors[i], edgecolor="#000000", linewidth=1.2)
+    ax.set_title(f"{pc} Loading Scores ({explained_variance:.2f}% Explained Variance)", loc="left", fontdict={"weight": "bold"}, y=1.06)
+    ax.set_xlabel("Feature")
+    ax.set_ylabel("Loading Score")
+    ax.grid(axis="y")
+    ax.tick_params(axis="x", rotation=90)
+    ax.set_ylim(-1, 1)
+    
+    for bar in bars:
+        yval = bar.get_height()
+        offset = yval + 0.02 if yval > 0 else yval - 0.15
+        ax.text(bar.get_x() + bar.get_width() / 2, offset, f"{yval:.2f}", ha="center", va="bottom")
+
+plt.tight_layout()
+plt.show()
+
+# %% power-transform 
+#https://pub.towardsai.net/mathematical-transformations-in-feature-engineering-log-reciprocal-and-power-transforms-5d7a3b7146ac
+from sklearn.preprocessing import PowerTransformer
+# Apply Power Transform (Box-Cox)
+pt = PowerTransformer(method='box-cox', standardize=False)
+df['Power_Transform'] = pt.fit_transform(df[['Skewed_Value']])
+# QQPlot after Power Transformation
+sm.qqplot(df['Power_Transform'], line='45')
+plt.title('QQPlot After Power Transformation')
+plt.show()
+# distplot after Power Transformation
+sns.distplot(df['Power_Transform'], kde=True)
+plt.title('Distribution After Power Transformation')
+plt.show()
+
+# %% boost 
+#https://medium.com/internet-of-technology/gps-vs-linear-regression-vs-xgboost-886fac83d5a3
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+# Load data.
+data = pd.read_csv("stats/response_stats.csv")
+
+# Separate features and target.
+X = data[["Likes", "Comments", "Read Time"]]
+y = data["Earnings"]
+X["Title"] = data["Title"]
+
+# (Optional) I will be working with earnings, earnings cannot be negative,
+# therefore I have converted the y-values to logarithmic scale.
+y += 1
+y = np.log(y)
+
+# Split data into training and test sets.
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10, random_state=42)
+
+# (Optional) Save titles.
+test_titles = X_test["Title"]
+X_train = X_train.drop(columns="Title")
+X_test = X_test.drop(columns="Title")
+
+from xgboost import XGBRegressor
+
+# Initialize and train the XGBoost model.
+model = XGBRegressor(objective='reg:squarederror', n_estimators=100)
+model.fit(X_train, y_train)
+
+# Predict on the test set.
+y_pred = model.predict(X_test)
+y_pred = np.exp(y_pred) - 1
+
+# Evaluate the model
+mse = mean_squared_error(np.exp(y_test) - 1, y_pred)
+r2 = r2_score(np.exp(y_test) - 1, y_pred)  # (Optional) Omit if you don't use logarithmic scaling.
+
+print(f"MSE: {mse:.2f}")
+print(f"R2 Score: {r2:.2f}")
+
+# (Optional) Print the title, actual earnings, and predicted earnings.
+for title, actual, predicted in zip(test_titles, np.exp(y_test) - 1, y_pred):
+    print(f"Title: {title}, Actual Earnings: ${actual:.2f}, Predicted Earnings: ${predicted:.2f}")
+
+
+# %% LM
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Scale features.
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Initialize and train the linear regression model.
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+
+# Predict on the test set.
+y_pred = model.predict(X_test_scaled)
+y_pred = np.exp(y_pred) - 1  # (Optional) Omit if you don't use logarithmic scaling.
+
+# Evaluate the model.
+mse = mean_squared_error(np.exp(y_test) - 1, y_pred)
+r2 = r2_score(np.exp(y_test) - 1, y_pred)
+
+print(f"MSE: {mse:.2f}")
+print(f"R2 Score: {r2:.2f}")
+
+# (Optional) Print the title, actual earnings, and predicted earnings.
+for title, actual, predicted in zip(test_titles, np.exp(y_test) - 1, y_pred):
+    print(f"Title: {title}, Actual Earnings: ${actual:.2f}, Predicted Earnings: ${predicted:.2f}")
+
+# %% GP
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ConstantKernel as C, WhiteKernel
+from sklearn.gaussian_process.kernels import RationalQuadratic
+
+# Load data.
+data = pd.read_csv("stats/response_stats.csv")
+
+# Separate features and target.
+X = data[["Likes", "Comments", "Read Time"]]
+y = data["Earnings"]
+X["Title"] = data["Title"]
+
+# Split data into training and test sets.
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10, random_state=42)
+
+# (Optional) Save titles from the test set.
+test_titles = X_test["Title"]
+X_train = X_train.drop(columns="Title")
+X_test = X_test.drop(columns="Title")
+
+# Scale features.
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# (Optional) Convert targets to logarithmic scale.
+y_train_log = np.log(y_train + 1)
+y_test_log = np.log(y_test + 1)
+
+# Define the kernel and train the Gaussian Process.
+# The hyperparameters are tuned and kernel is chosen for this problem.
+kernel = C(1.0, (1e-2, 1e2)) * RationalQuadratic(length_scale=39.28455176212197, alpha=8.362426847738403) + WhiteKernel(noise_level=0.33739616048352883)
+gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=15, normalize_y=True)
+gp.fit(X_train_scaled, y_train_log)
+
+# Predict on the test set.
+y_pred, std = gp.predict(X_test_scaled, return_std=True)
+y_pred = np.exp(y_pred) - 1  # (Optional) Omit if you don't use logarithmic scaling.
+
+# Evaluation
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print(f"MSE: {mse:.3f}")
+print(f"R2 Score: {r2:.3f}")
+
+# (Optional) Print the title, actual earnings, predicted earnings, and standard deviation, and confidence intervals
+for i in range(len(X_test)):
+    title = test_titles.iloc[i]
+    lower_bound = y_pred[i] - 1.96 * std[i]
+    upper_bound = y_pred[i] + 1.96 * std[i]
+    lower_bound = max(0, lower_bound)
+    upper_bound = max(0, upper_bound)
+    print(f"Title: {title}, Predicted: {y_pred[i]:.3f}, Actual: {y_test.iloc[i]:.3f}, STD: {std[i]:.3f}, 95% CI: [{lower_bound:.3f}, {upper_bound:.3f}]")
+
 # %% auto
 #check https://github.com/sinaptik-ai/pandas-ai
 #https://towardsdatascience.com/automl-with-autogluon-transform-your-ml-workflow-with-just-four-lines-of-code-1d4b593be129
