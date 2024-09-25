@@ -162,7 +162,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     dsig0<-dsub0[,colnames(dsub0) %in% rownames(annoR)]
     dsig0[dsig0==selThr]=NA
     dsig0<-dsig0[order(rowSums(dsig0,na.rm=T),decreasing = T),]
-    svgPHC<-pheatmap::pheatmap(dsig0,cluster_rows = F,cluster_cols = F,fontsize_row=6,fontsize_col  = 6,annotation_col = annoR)
+    svgPHC<-pheatmap::pheatmap(dsig0,cluster_rows = T,cluster_cols = T,clustering_method = "complete",clustering_distance_cols = "euclidean",clustering_distance_rows = "euclidean",fontsize_row=6,fontsize_col  = 6,annotation_col = annoR)
     ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"ClusterLFQ.svg"), svgPHC)
     return(ttest.results.return)
   }
