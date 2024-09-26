@@ -8,7 +8,7 @@ import pandas as pd
 import sys
 from pathlib import Path
 # %% read
-if len(sys.argv) != 2: sys.exit("\n\nREQUIRED: pandas, seaborn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing peptides.txt file(s)>")
+if len(sys.argv) != 2: sys.exit("\n\nREQUIRED: pandas, seaborn, supervenn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing peptides.txt file(s)>")
 pathFiles = Path(sys.argv[1])
 #pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/bruker10/mqparTTPdda.xml.1727257840.results")
 fileName = 'peptides.txt'
