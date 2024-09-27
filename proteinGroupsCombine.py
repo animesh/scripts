@@ -1,6 +1,9 @@
-# python proteinGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/bruker10/mqparTTPdda.xml.1727257840.results
+# python proteinGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/pepsep25/
 # data
-# rsync -Pirm --include='proteinGroups.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdda.xml.1727257840.results  /mnt/l/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/bruker10/
+# [ash022@login-1.SAGA ~/scripts]$ mkdir sepC
+# rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/240924_hela5ng_evosep/p*/*d sepC/
+# bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/scripts/sepC /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_04_18.fasta mqparTTPdda.xml scratch.slurm
+# rsync -Pirm --include='proteinGroups.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdda.xml.1727358959.results  /mnt/l/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/pepsep25/
 # %%setup
 #python -m pip install pandas seaborn pathlib supervenn
 import pandas as pd
