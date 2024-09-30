@@ -64,8 +64,8 @@ if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["rem
 print(label)
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr){
-  #sel1<-"S1"
-  #sel2<-"S2"
+  #sel1<-"S2"
+  #sel2<-"S1"
   #log2LFQ<-log2LFQsel#[,gsub("-",".",rownames(label[label$Remove!="Y",]))]
   #colnames(log2LFQ)
   d1<-log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))]
@@ -151,7 +151,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=Uniprot),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
     #f=paste(file,proc.time()[3],".jpg")
     #install.packages("svglite")
-    ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTest.svg"), p)
+    ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,"VolcanoTest.png"),width=10, height=8,dpi=300, p)
     print(p)
     Significance0=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>=0&abs(ttest.results$Log2MedianChange)>selThrFC
     sum(Significance0)
@@ -162,8 +162,10 @@ testT <- function(log2LFQ,sel1,sel2,cvThr){
     dsig0<-dsub0[,colnames(dsub0) %in% rownames(annoR)]
     dsig0[dsig0==selThr]=NA
     dsig0<-dsig0[order(rowSums(dsig0,na.rm=T),decreasing = T),]
+    svgPHC<-pheatmap::pheatmap(dsig0,cluster_rows = F,cluster_cols = F,fontsize_row=6,fontsize_col  = 6,annotation_col = annoR)
+    ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"heatmapLFQ.png"),width=6, height=8,dpi=300, svgPHC)
     svgPHC<-pheatmap::pheatmap(dsig0,cluster_rows = T,cluster_cols = T,clustering_method = "complete",clustering_distance_cols = "euclidean",clustering_distance_rows = "euclidean",fontsize_row=6,fontsize_col  = 6,annotation_col = annoR)
-    ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"ClusterLFQ.svg"), svgPHC)
+    ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"ClusterLFQ.euclidean.png"),width=6, height=8,dpi=300, svgPHC)
     return(ttest.results.return)
   }
 }
