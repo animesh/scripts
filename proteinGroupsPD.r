@@ -10,7 +10,8 @@ print(args[1])
 fName<-"Exosome_Shotgun_190118_KATHLENN_HCT_R5.xlsx"
 inpD <-"L:/promec/Animesh/Kathleen/PCA/"
 inpF<-paste0(inpD,fName)
-if(length(args)==0){print(paste("No proteinGroups.xlsx file supplied"))} else if (length(args)>0){inpF<-args[1]}
+selection<-"Scaled"
+if(length(args)==0){print(paste("No proteinGroups.xlsx file supplied"))} else if (length(args)>0){inpF<-args[1];selection<-args[2]}
 print(paste("Using proteinGroupsPD.xlsx file",inpF,"with dimension(s)"))
 options(nwarnings = 1000000)
 data <- readxl::read_xlsx(inpF)
@@ -24,7 +25,6 @@ protNum<-1:nrow(data)
 row.names(data)<-paste(protNum,data$Accession,protNum,sep=";")
 print("Converted Accession to rownames")
 #select
-selection<-"Scaled"
 LFQ<-(data[,grep(selection,colnames(data))])
 LFQ<-sapply(LFQ, as.numeric)
 summary(LFQ)
@@ -34,6 +34,7 @@ colnames(LFQ)=sub("Sample","",colnames(LFQ))
 colnames(LFQ)=sub(":","",colnames(LFQ))
 colnames(LFQ)=sub("\\(","",colnames(LFQ))
 colnames(LFQ)=sub("\\)","",colnames(LFQ))
+colnames(LFQ)=sub(","," ",colnames(LFQ))
 dim(LFQ)
 LFQhistone<-LFQ[grep("histone",data$Description,ignore.case = TRUE),]
 #summary(LFQhistone)

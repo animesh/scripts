@@ -1,15 +1,14 @@
-# python proteinGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106/mqparTTPdda.xml.1727445966.results
-# python proteinGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1109/mqparTTPdda.xml.1727429393.results
-# python proteinGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1109/mqparTTPdda.xml.1727429303.results
-# python proteinGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/bruker10/mqparTTPdia.xml.1727263522.results
+# python proteinGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106_extended/mqparTTPdda.xml.1727683282.results
 # data
 # mkdir helaDIAzoom
 # rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/240924_hela5ng_evosep/bruker10/*dia*d helaDIAzoom/
 # bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/scripts/helaDIAzoom /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_04_18.fasta mqparTTPdia.xml scratch.slurm
-# rsync -Pirm --include='proteinGroups.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdia.xml.1727263522.results  /mnt/l/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/bruker10/
-# mkdir c1106
-# rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106/*d c1106/
-# bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/scripts/c1106 /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_04_18.fasta mqparTTPdda.xml scratch.slurm
+# rsync -Pirm --include='proteinGroups.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdda.xml.1727683282.results  /mnt/l/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106_extended/
+# mkdir c1106x
+# rsync -Parv rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106_extended/*.d c1106x/
+# bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/scripts/c1106x /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_04_18.fasta mqparTTPdda.xml scratch.slurm
+#rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106_extended/hela5ng_evoExtended_1dda_1106_S1-A11_1_8435.d/ mqparTTPdda.xml.1727683282.results/hela5ng_evoExtended_1dda_1106_S1-A11_1_8435/hela5ng_evoExtended_1dda_1106_S1-A11_1_8435.d/
+#sbatch mqparTTPdda.xml.1727683282.results/hela5ng_evoExtended_1dda_1106_S1-A11_1_8435/hela5ng_evoExtended_1dda_1106_S1-A11_1_8435.slurm
 # rsync -Pirm --include='proteinGroups.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdda.xml.1727445966.results  /mnt/l/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106/
 # mkdir c1109
 # rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1109/*d c1109/
@@ -22,7 +21,7 @@ from pathlib import Path
 # %% read
 if len(sys.argv) != 2: sys.exit("\n\nREQUIRED: pandas, seaborn, supervenn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing peptides.txt file(s)>")
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106/mqparTTPdda.xml.1727445966.results")
+#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106_extended/mqparTTPdda.xml.1727683282.results")
 fileName='proteinGroups.txt'
 trainList=list(pathFiles.rglob(fileName))
 print(trainList)
@@ -50,8 +49,8 @@ for f in trainList:
             #proteinHits=proteinHits[~proteinHits['ID'].str.contains("_HUMAN",na=False)]
             proteinHitsC=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Score).stack().reset_index(level=0, name='ID')
             proteinHitsI=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Intensity).stack().reset_index(level=0, name='ID')
-            proteinHitsI['Name']=str(f.parts[-4])[15:29]
-            proteinHitsC['Name']=str(f.parts[-4])[15:29]
+            proteinHitsI['Name']=str(f.parts[-4])[15:36]
+            proteinHitsC['Name']=str(f.parts[-4])[15:36]
             dfI=pd.concat([dfI,proteinHitsI],sort=False)
             dfC=pd.concat([dfC,proteinHitsC],sort=False)
 print(dfI.columns)
