@@ -1,13 +1,13 @@
 #!/bin/sh
-#SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=DNTBM
-#SBATCH --time=144:00:00
-#SBATCH --mem=512G
+#SBATCH --account=nn9036k --job-name=MQSLURMNAME
+#SBATCH --time=160:00:00
+#SBATCH --ntasks=1 --cpus-per-task=10
+#SBATCH --mem-per-cpu=4G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-#SBATCH --ntasks=1 --cpus-per-task=16 
 #SBATCH --mail-type=ALL
-#SBATCH --output=/cluster/projects/nn9036k/scripts/outDNTBM.slurm
-WORKDIR=${SLURM_SUBMIT_DIR}
+#SBATCH --output=MQSLURMLOG
+
+WORKDIR=MQWD
 cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -18,9 +18,18 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-export http_proxy=proxy.saga:3128
-export https_proxy=proxy.saga:3128
-conda activate nf-core
-nextflow run 'https://github.com/nf-core/denovotranscript' -r 558ff4b639039ac8ec9bece3490841aa17eec971 -profile singularity --input samples.csv --outdir DNTK --max_memory '512.GB' --max_cpus 32 -resume
-
+export LMOD_DISABLE_SAME_NAME_AUTOSWAP=no
+module load Boost/1.83.0-GCC-13.2.0
+/cluster/projects/nn9036k/dotnet80303/dotnet --version
+/cluster/projects/nn9036k/dotnet80303/dotnet MQCMD MQPARF
+#rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/241002_zrimac/mqpar.xml mqparTTP.phoSTY.xml
+#mkdir phoSTY
+#mkdir phoSTY/dda
+#rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/241002_zrimac/*dda*d phoSTY/dda/
+#vim mqparTTPdda.xml
+#vim mqparTTPdia.xml
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll phoSTY/dda /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_04_18.fasta mqparTTPdda.xml scratch.slurm
+#mkdir phoSTY/dia
+#rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/241002_zrimac/*dia*d phoSTY/dia/
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll phoSTY/dia /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_04_18.fasta mqparTTPdia.xml scratch.slurm
 
