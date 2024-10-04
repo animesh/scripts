@@ -1,17 +1,17 @@
-# python peptideGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/bruker10/mqparTTPdda.xml.1727257840.results
+# python peptideGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/241002_zrimac/mqparTTPdda.xml.1727950782.results
 # wget https://www.python.org/ftp/python/3.12.0/python-3.12.0-amd64.exe
 # %% data
-# rsync -Pirm --include='peptides.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdda.xml.1727257840.results  /mnt/l/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/bruker10/
+# rsync -Pirm --include='Phospho (STY)Sites.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdda.xml.1727950782.results /mnt/l/promec/TIMSTOF/LARS/2024/241002_zrimac/
 # %% setup
 #python -m pip install pandas seaborn pathlib supervenn
 import pandas as pd
 import sys
 from pathlib import Path
 # %% read
-if len(sys.argv) != 2: sys.exit("\n\nREQUIRED: pandas, seaborn, supervenn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing peptides.txt file(s)>")
-pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/bruker10/mqparTTPdda.xml.1727257840.results")
-fileName = 'peptides.txt'
+#if len(sys.argv) != 2: sys.exit("\n\nREQUIRED: pandas, seaborn, supervenn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing peptides.txt file(s)>")
+#pathFiles = Path(sys.argv[1])
+pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/241002_zrimac/mqparTTPdda.xml.1727950782.results")
+fileName = 'Phospho (STY)Sites.txt'
 trainList = list(pathFiles.rglob(fileName))
 print("Reading data from"+str(pathFiles.absolute)+"values in column"+"files to consider"+str(fileName)+str(trainList)+str(len(trainList)))
 #trainList=[fN for fN in trainList if "Maike" in str(fN)]
@@ -26,9 +26,10 @@ for f in trainList:
         print(f.parts)
         peptideHits=peptideHits[peptideHits['Potential contaminant']!="+"]
         peptideHits=peptideHits[peptideHits['Reverse']!="+"]
-        peptideHits=peptideHits.assign(IDs=peptideHits['Leading razor protein'].str.split(';')).explode('IDs')
-        peptideHits['pepID'] = peptideHits['Sequence']+';'+peptideHits['IDs']
-        peptideHits['Name']=str(f.parts[-4])[15:25]
+        peptideHits=peptideHits.assign(IDs=peptideHits['Protein'].str.split(';')).explode('IDs')
+        peptideHits['phosty']=peptideHits['Phospho (STY) Probabilities'].str.replace('[^A-Z]+', '', regex=True)
+        peptideHits['pepID'] = peptideHits['phosty']+';'+peptideHits['IDs']
+        peptideHits['Name']=str(f.parts[-4])[6:13]
         df = pd.concat([df, peptideHits], sort=False)
 print(df.columns)
 print(df.head())

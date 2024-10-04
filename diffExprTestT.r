@@ -15,19 +15,19 @@ if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of protei
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2024/240608_stami_urine/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/USERS/Dongjie/20240917_Dongjie_PseudoU/QEHF/txt2p6p5/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2024/240608_stami_urine/combined/txt/GroupsDuringMaleBefore.txt"
+#inpL <-"L:/promec/USERS/Dongjie/20240917_Dongjie_PseudoU/QEHF/txt2p4p14/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Exposure"
+#lGroup<-"Bio"
 rGroup <- args[4]
 #rGroup<-"Rem"
 selection <- args[5]
 #selection<-"LFQ.intensity."
 sample <- args[6]
-#sample<-"exposed"
+#sample<-"P2"
 control <- args[7]
-#control<-"non_exposed"
+#control<-"U2"
 selThr <- args[8]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
@@ -347,3 +347,4 @@ if(sample!=control){
   assign(paste0(sample,control,"countTableDAuniGORNAddsMedVSN"),ttPair)
 }
 print(paste("results saved in:",paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,rGroup,lName,control,"countTableDAuniGORNAddsMedVSN"),"csv, xlsx, and svg files"))
+
