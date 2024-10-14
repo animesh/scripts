@@ -1,3 +1,293 @@
+# %% optimization
+#https://blog.dailydoseofds.com/p/introduction-to-quantile-regression?utm_source=post-email-title&publication_id=1119889&post_id=148343716&utm_campaign=email-post-title&isFreemail=true&r=a55q5&triedRedirect=true&utm_medium=email
+def find_loss(initial_weights, w):
+# current prediction
+prediction = initial_weights[0]*X + initial_weights[1]
+# error
+error = Y - prediction
+# reweigh error term
+weighted_error = np.where (error > 0,
+wwnp. abs (error), # if true
+(1-w) * np. abs (error)) # if true
+# total loss
+return weighted_error.sum()
+from scipy.optimize import minimize
+initial_weights = np. array ([0,1])
+def get_quantile_model (w):
+model_weights = minimize(find_loss, initial_weights, args=(w)).x
+return model_weights
+
+
+# %% hyperopt
+#https://github.com/nextflow-io/hyperopt/blob/master/modules/fetch_dataset/resources/usr/bin/fetch-dataset.py
+import argparse
+import json
+from sklearn.datasets import fetch_openml
+
+
+def is_categorical(y):
+    return y.dtype.kind in 'OSUV'
+
+
+def get_categories(df):
+    result = {}
+    for c in df.columns:
+        if is_categorical(df[c]):
+            values = df[c].unique().tolist()
+
+            # fix bug with numerical categories
+            if sum(v.isdigit() for v in values) == len(values):
+                values = [int(v) for v in values]
+
+            result[c] = values
+
+    return result
+
+
+if __name__ == '__main__':
+    # parse command-line arguments
+    parser = argparse.ArgumentParser(description='Download an OpenML dataset')
+    parser.add_argument('--name', help='dataset name', required=True)
+    parser.add_argument('--data', help='data file', default='data.txt')
+    parser.add_argument('--meta', help='metadata file', default='meta.json')
+
+    args = parser.parse_args()
+
+    # download dataset from openml
+    dataset = fetch_openml(args.name, as_frame=True)
+
+    # save data
+    dataset.frame.to_csv(args.data, sep='\t')
+
+    # save metadata
+    meta = {
+        'name': args.name,
+        'feature_names': dataset.feature_names,
+        'target_names': dataset.target_names,
+        'categories': get_categories(dataset.frame) 
+    }
+
+    with open(args.meta, 'w') as f:
+        json.dump(meta, f)
+
+# %% mlops
+#https://github.com/animesh/mlops-project
+1. Clone the Repository
+Clone the project repository from GitHub:
+
+git clone https://github.com/prsdm/ml-project.git
+cd ml-project
+2. Set Up the Environment
+Ensure you have Python 3.8+ installed. Create a virtual environment and install the necessary dependencies:
+
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+Alternatively, you can use the Makefile command:
+
+make setup
+3. Data Preparation
+Pull the data from DVC. If this command doesn't work, the train and test data are already present in the data folder:
+
+dvc pull
+4. Train the Model
+To train the model, run the following command:
+
+python main.py 
+Or use the Makefile command:
+
+make run
+This script will load the data, preprocess it, train the model, and save the trained model to the models/ directory.
+
+5. FastAPI
+Start the FastAPI application by running:
+
+uvicorn app:app --reload
+6. Docker
+To build the Docker image and run the container:
+
+docker build -t my_fastapi .
+docker run -p 80:80 my_fastapi
+Once your Docker image is built, you can push it to Docker Hub, making it accessible for deployment on any cloud platform.
+
+7. Monitor the Model
+Integrate Evidently AI to monitor the model for data drift and performance degradation:
+
+run monitor.ipynb file
+
+
+# %% timeseries
+#https://pub.towardsai.net/optimizing-supply-chain-with-time-series-forecasting-a-customer-centric-approach-390541ff83eb
+
+
+import pandas as pd
+import numpy as np
+from lifetimes import BetaGeoFitter, GammaGammaFitter
+from lifetimes.utils import summary_data_from_transaction_data
+from scipy import stats
+from statsmodels.tsa.seasonal import seasonal_decompose
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+import warnings
+
+warnings.filterwarnings('ignore')
+
+# Assuming 'tran_df_bs' is your original DataFrame
+df = tran_df_bs.copy()
+
+# Convert 'trans_date' to datetime
+df['trans_date'] = pd.to_datetime(df['trans_date'])
+
+# Handle missing values and data cleaning
+df.dropna(subset=['Customer ID', 'Quantity'], inplace=True)
+df = df[df['Quantity'] > 0]  # Remove negative quantities
+
+# Remove outliers in 'Quantity' using IQR method
+Q1 = df['Quantity'].quantile(0.25)
+Q3 = df['Quantity'].quantile(0.75)
+IQR = Q3 - Q1
+df = df[(df['Quantity'] >= Q1 - 1.5 * IQR) & (df['Quantity'] <= Q3 + 1.5 * IQR)]
+
+# Split the data into training and validation sets
+cutoff_date = pd.to_datetime('2011-11-30')
+train_df = df[df['trans_date'] < cutoff_date]
+valid_df = df[(df['trans_date'] >= cutoff_date) & (df['trans_date'] < cutoff_date + pd.Timedelta(days=10))]
+
+# Update valid_df to include only customers present in train_df
+train_customers = train_df['Customer ID'].unique()
+valid_df = valid_df[valid_df['Customer ID'].isin(train_customers)]
+# Prepare data using method: summary_data_from_transaction_data
+summary = summary_data_from_transaction_data(
+    train_df,
+    'Customer ID',
+    'trans_date',
+    monetary_value_col='Quantity',
+    observation_period_end=train_df['trans_date'].max()
+)
+
+# Ensure monetary values are positive
+summary = summary[summary['monetary_value'] > 0]
+
+# Fit the BG/NBD model
+bgf = BetaGeoFitter(penalizer_coef=0.05)
+bgf.fit(summary['frequency'], summary['recency'], summary['T'])
+
+# Predict the number of transactions for the next 10 days
+t = 10
+summary['predicted_purchases'] = bgf.conditional_expected_number_of_purchases_up_to_time(
+    t, summary['frequency'], summary['recency'], summary['T']
+)
+summary['predicted_purchases'] = summary['predicted_purchases'].clip(lower=0)
+
+# Fit the Gamma-Gamma model for monetary value
+ggf = GammaGammaFitter(penalizer_coef=0.02)
+ggf.fit(returning_customers_summary['frequency'], returning_customers_summary['monetary_value'])
+summary['expected_avg_sales'] = ggf.conditional_expected_average_profit(
+    summary['frequency'],
+    summary['monetary_value']
+)
+summary['expected_avg_sales'] = summary['expected_avg_sales'].clip(lower=0)
+# Calculate expected sales for each customer
+summary['expected_sales'] = summary['predicted_purchases'] * summary['expected_avg_sales']
+summary['expected_sales'] = summary['expected_sales'].clip(lower=0)
+
+# Merge predictions with customer-product data
+customer_product = train_df.groupby(['Customer ID', 'Description'])['Quantity'].sum().reset_index()
+customer_product = customer_product.merge(
+    summary[['expected_sales', 'frequency', 'recency', 'monetary_value']],
+    left_on='Customer ID', right_index=True, how='left'
+)
+
+# Calculate the proportion of each product purchased by each customer
+total_quantity_per_customer = customer_product.groupby('Customer ID')['Quantity'].transform('sum')
+customer_product['product_proportion'] = customer_product['Quantity'] / total_quantity_per_customer
+customer_product['product_proportion'] = customer_product['product_proportion'].clip(lower=0)
+# Aggregate data to daily sales per product
+daily_sales = train_df.groupby(['trans_date', 'Description'])['Quantity'].sum().reset_index()
+
+# Pivot data to have products as columns
+daily_sales_pivot = daily_sales.pivot(index='trans_date', columns='Description', values='Quantity').fillna(0)
+
+# Decompose each product's time series
+seasonal_indices = {}
+for product in daily_sales_pivot.columns:
+    product_series = daily_sales_pivot[product]
+    has_zeros = (product_series == 0).any()
+    model_type = 'additive' if has_zeros else 'multiplicative'
+    if len(product_series.dropna()) >= 90:
+        try:
+            decomposition = seasonal_decompose(product_series, model=model_type, period=30)
+            seasonal = decomposition.seasonal
+            forecast_dates = pd.date_range(start=cutoff_date, periods=t)
+            forecast_seasonal = seasonal[seasonal.index.isin(forecast_dates)]
+            seasonal_index = forecast_seasonal.mean() if not forecast_seasonal.empty else 0
+            seasonal_indices[product] = {'index': seasonal_index, 'model': model_type}
+        except Exception as e:
+            seasonal_indices[product] = {'index': 0 if model_type == 'additive' else 1, 'model': model_type}
+# Apply seasonal adjustment
+def adjust_sales(row):
+    product = row['Description']
+    expected_sales = row['expected_product_sales']
+    seasonal_info = seasonal_indices.get(product, {'index': 0, 'model': 'additive'})
+    seasonal_index = seasonal_info['index']
+    model_type = seasonal_info['model']
+    return max(expected_sales + seasonal_index if model_type == 'additive' else expected_sales * seasonal_index, 0)
+
+product_sales_forecast['adjusted_expected_sales'] = product_sales_forecast.apply(adjust_sales, axis=1)
+# Validate the forecast
+actual_sales = valid_df.groupby('Description')['Quantity'].sum().reset_index()
+validation_df = final_forecast.merge(actual_sales, on='Description', how='left')
+validation_df['actual_sales'].fillna(0, inplace=True)
+
+# Calculate APE
+validation_df['APE'] = np.where(
+    validation_df['actual_sales'] == 0,
+    np.nan,
+    np.abs((validation_df['actual_sales'] - validation_df['adjusted_expected_sales']) / validation_df['actual_sales'])
+)
+
+# Calculate MAE and RMSE
+mae = mean_absolute_error(validation_df['actual_sales'], validation_df['adjusted_expected_sales'])
+rmse = np.sqrt(mean_squared_error(validation_df['actual_sales'], validation_df['adjusted_expected_sales']))
+
+print(f"Validation MAE: {mae:.2f}")
+print(f"Validation RMSE: {rmse:.2f}")
+# Filter out low sales values
+threshold = 5
+validation_df_filtered = validation_df[validation_df['actual_sales'] >= threshold]
+
+# Calculate MAPE and median APE
+mape = validation_df_filtered['APE'].mean(skipna=True) * 100
+median_ape = validation_df_filtered['APE'].median(skipna=True) * 100
+
+print(f"Filtered Validation MAPE: {mape:.2f}%")
+print(f"Filtered Median APE: {median_ape:.2f}%")
+
+#prophet
+model = Prophet(
+    yearly_seasonality=True,
+    weekly_seasonality=True,
+    daily_seasonality=False,
+    seasonality_mode='multiplicative'
+)
+
+
+model.add_seasonality(name='monthly', period=30.5, fourier_order=5)
+
+model.fit(product_train)
+
+future_dates = model.make_future_dataframe(periods=30, freq='D')
+forecast = model.predict(future_dates)
+forecast_next_30 = forecast[['ds', 'yhat']].tail(30)
+validation = product_valid.merge(forecast_next_30, on='ds', how='left')
+
+validation['APE'] = np.where(
+    validation['y'] == 0,
+    np.nan,
+    np.abs((validation['y'] - validation['yhat']) / validation['y'])
+)
+product_forecasts = forecast_results.groupby('Description')['yhat'].sum().reset_index()
+#https://github.com/animesh/tm_lifetime/blob/main/code/repurchase_prophet_tm.py
+
 # %% matrix-inverse
 #https://pub.towardsai.net/data-structures-in-machine-learning-a-comprehensive-guide-to-efficiency-and-scalability-f7429919c9c5
 import numpy as np
