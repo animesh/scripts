@@ -7,9 +7,37 @@ print(args)
 #install.packages("pheatmap")
 #BiocManager::install("limma")
 #BiocManager::install("edgeR")
+BiocManager::install(c("AnnotationDbi", "org.Hs.eg.db"))
+#BiocManager::install("recount3")
+library(recount3)
+library(purrr)
+library(dplyr)
+library(ggplot2)
+human_projects <- available_projects()
+
+tcga_info = subset(
+    human_projects,
+    file_source == "tcga" & project_type == "data_sources"
+)
+
+head(tcga_info)
+rse_acc<- create_rse(tcga_info[1,])
+
 library(limma)
 library(edgeR)
 #data####
+mat<- rse_acc@assays@data$raw_counts
+ensembl_ids<- esembl_ids %>%
+  stringr::str_replace("\\.[0-9]+$", "")
+
+rownames(mat)<- ensembl_ids
+mat[1:5, 1:5]
+
+gene_symbols <- AnnotationDbi::select(org.Hs.eg.db,
+                       keys = ensembl_ids,
+                       column = "SYMBOL",        # The output you want (gene symbol)
+                       keytype = "ENSEMBL",      # The input key type (ENSEMBL ID)
+                       multiVals = "first")  
 inpD <- args[1]
 #inpD<-"L:/promec/Animesh/TK/hg38lall/star_salmon/"
 inpF<-"salmon.merged.gene_counts_length_scaled.tsv"

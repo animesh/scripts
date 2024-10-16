@@ -1,3 +1,52 @@
+# %% pin-ball-loss
+#https://github.com/erykml/medium_articles/blob/master/Statistics/quantile_loss.ipynb
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the pinball loss function
+def pinball_loss(y_true, y_pred, quantile):
+    return np.where(y_true >= y_pred, quantile * (y_true - y_pred), (quantile - 1) * (y_true - y_pred))
+
+# Generate a range of prediction errors
+errors = np.linspace(-10, 10, 400)  
+y_true = 0  
+
+# Quantiles
+quantiles = [0.1, 0.5, 0.9]
+line_styles = ['-', '--', '-.']  
+
+# Plotting
+plt.figure(figsize=(10, 6))
+for q, ls in zip(quantiles, line_styles):
+    losses = pinball_loss(y_true, errors, q)
+    plt.plot(errors, losses, linestyle=ls, label=f'Quantile {q*100:.0f}')
+    
+plt.axhline(0, color='gray', linestyle='--', linewidth=0.5)
+plt.axvline(0, color='gray', linestyle='--', linewidth=0.5)
+plt.xlabel('Prediction Error (y_true - y_pred)')
+plt.ylabel('Pinball Loss')
+plt.title('Pinball Loss for Different Quantiles')
+plt.legend()
+plt.grid(True)
+plt.show()
+# Generate a range of prediction errors
+errors = np.linspace(90, 110, 400)  
+y_true = 100  
+
+# Quantiles
+QUANTILE = 0.9
+
+plt.figure(figsize=(10, 6))
+losses = pinball_loss(y_true, errors, QUANTILE)
+plt.plot(errors, losses, label=f'Quantile {QUANTILE*100:.0f}')
+    
+plt.xlabel('Prediction Error (y_true - y_pred)')
+plt.ylabel('Pinball Loss')
+plt.title(f'Pinball Loss for $\\alpha$ = {QUANTILE}')
+plt.legend()
+plt.grid(True)
+plt.show()
+
 # %% optimization
 #https://blog.dailydoseofds.com/p/introduction-to-quantile-regression?utm_source=post-email-title&publication_id=1119889&post_id=148343716&utm_campaign=email-post-title&isFreemail=true&r=a55q5&triedRedirect=true&utm_medium=email
 def find_loss(initial_weights, w):
