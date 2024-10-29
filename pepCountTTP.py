@@ -1,16 +1,16 @@
 #source https://www.bruker.com/protected/en/services/software-downloads/mass-spectrometry/raw-data-access-libraries.html
 import sys
 if len(sys.argv)!=2:    sys.exit("USAGE: python pepCountTTP.py <path to MSn containing directory>, \n e.g.,\npython pepCountTTP.py \"F:/promec/LARS/TIMSTOF/Morten/210902 Morten 1 _Slot1-37_1_176.d\"\n")
-#python pepCountTTP.py "C:/Users/animeshs/Desktop/210902 sudhl5 silac/210902_sudhl5_tot_2_Slot1-29_1_180.d"
+#python pepCountTTP.py "C:/Users/animeshs/HeLaReps/230301_hela_Slot1-54_1_3996.d"
 analysis_dir = sys.argv[1]
-analysis_dir = 'Z:/SIGRID/211102_blank_Slot1-53_1_408.d'
+analysis_dir = "C:/Users/animeshs/HeLaReps/230301_hela_Slot1-54_1_3996.d"
 import sqlite3, sys, time
 import numpy as np, matplotlib.pyplot as plt
 import numpy as np
 import sqlite3
 import os, sys
 from ctypes import *
-libname = "timsdata.dll"
+libname = "C:/Users/animeshs/timsdata-2.21.0.4/timsdata/win64/timsdata.dll"
 #libname = "libtimsdata.so"
 dll = cdll.LoadLibrary(libname)
 dll.tims_open.argtypes = [ c_char_p, c_uint32 ]

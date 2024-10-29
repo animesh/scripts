@@ -1,9 +1,5 @@
-# python proteinGroupsCombine.py L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/pepsep25_200ng/mqparTTPdda.xml.1727768198.results
-# data
-# mkdir pep200
-# rsync -Parv login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/240924_hela5ng_evosep/pep*200*/*.d pep200/
-# bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll pep200 /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_04_18.fasta mqparTTPdda.xml scratch.slurm
-# rsync -Pirm --include='proteinGroups.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdda.xml.1727768198.results  /mnt/l/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/pepsep25_200ng/
+# python proteinGroupsCombine.py L:/promec/LARS/TIMSTOF/mqparTTPdda.xml.1730106251.results
+#rsync -Pirm --include='proteinGroups.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdda.xml.1730106251.results /mnt/l/promec/LARS/TIMSTOF/
 # %%setup
 #python -m pip install pandas seaborn pathlib supervenn
 import sys
@@ -11,7 +7,7 @@ from pathlib import Path
 # %% read
 if len(sys.argv) != 2: sys.exit("\n\nREQUIRED: pandas, seaborn, supervenn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing peptides.txt file(s)>")
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240924_hela5ng_evosep/1106_extended/mqparTTPdda.xml.1727683282.results")
+#pathFiles=Path("L:/promec/LARS/TIMSTOF/mqparTTPdda.xml.1730106251.results")
 fileName='proteinGroups.txt'
 trainList=list(pathFiles.rglob(fileName))
 print(trainList)
@@ -55,10 +51,16 @@ print(dfIpDD.count(axis=0))
 import numpy as np
 dfIpDDlog2=np.log2(dfIpDD+1)
 dfIpDDlog2.to_csv(pathFiles/(fileName +'.dfIpDDlog2.csv'))
-print(dfIpDDlog2.corr(method='spearman'))
-#import matplotlib.pyplot as plt
-#dfIpDDlog2.plot()
-#plt.show()
+print(dfIpDDlog2.corr(method='pearson'))
+#%%scatter
+import seaborn as sns
+ppS=sns.PairGrid(dfIpDDlog2)
+coefV=dfIpDDlog2.corr()
+ppS.fig.suptitle(coefV)
+ppS.map_diag(sns.histplot)
+ppS.map_lower(sns.kdeplot)
+ppS.map_upper(sns.regplot)
+ppS.savefig(pathFiles/(fileName+"dfIpDDlog2.scatter.svg"), dpi=100, bbox_inches="tight")
 #%%score
 dfCp=dfC.pivot(index='ID', columns='Name', values='Score')
 dfCp['SumC']=dfCp.astype(str).sum(axis=1)
