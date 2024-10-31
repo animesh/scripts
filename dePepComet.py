@@ -1,33 +1,24 @@
-# comet_version 2022.01 rev. 0 (75d8377)
-# wget https://download.nextprot.org/pub/current_release/peff/nextprot_all.peff.gz
-# gunzip nextprot_all.peff.gz
-# wget https://github.com/animesh/psi-mod-CV/raw/master/PSI-MOD.obo
-# mkdir febSigMGFnp
-# ln -s /home/ash022/data/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2022/februar/Sigrid/*.d/*.mgf febSigMGFnp/.
-# for i in febSigMGFnp/*.mgf; do echo $i; ls -ltrh $i;./comet.linux.exe $i; done
-# wc febSigMGFnp/*txt # 54 or?
-# tar cvzf febSigMGFnp.tgz febSigMGFnp/*txt
-import sys
+# .\comet.win64.exe C:\Users\animeshs\HeLaReps\230301_hela_Slot1-54_1_3894.d\230301_hela_Slot1-54_1_3894_6.0.313.mgf 
+# import sys
 from pathlib import Path
-pathFiles = Path("F:/OneDrive - NTNU/Downloads/nextprotResComet/")
+pathFiles = Path("C:/Users/animeshs/HeLaReps/230301_hela_Slot1-54_1_3996.d")
 fileName='*txt'
 uniprotID='DECOY_'
-xCorThr=1
+xCorThr=0.75
 if len(sys.argv)!=2:    sys.exit("USAGE: python dePepComet.py <path to tab-sep-comet results>, \n e.g.,\npython dePepComet.py L:/promec/Qexactive/Mirta/20220319_IP-UCHL1_MN/comet\n txt P09936")
 pathFiles = Path(sys.argv[1])
 fileName = Path(sys.argv[2])
 uniprotID = Path(sys.argv[3])
 trainList=list(pathFiles.rglob(fileName))
-print(len(trainList))
+print(trainList[0])
 import pandas as pd
 #df=pd.read_csv(pathFiles,low_memory=False,doublequote=True,sep='\t',skiprows=1)
 df=pd.DataFrame()
-#f=trainList[0]
+f=trainList[0]
 for f in trainList:
     print(f)
     peptideHits=pd.read_csv(f,low_memory=False,sep='\t',comment='#', skiprows=1)
-    #peptideHits=peptideHits[peptideHits['xcorr']>xCorThr]
-    #peptideHits=peptideHits[peptideHits['protein'].str.contains(uniprotID) == False]
+    peptideHits=peptideHits[peptideHits['xcorr']>xCorThr]
     peptideHits['Name']=f
     #peptideHits['xcorr'].hist()
     #peptideHits['modified_peptide']
@@ -36,9 +27,15 @@ print(df.head())
 print(df.columns)
 print(df.dtypes)
 df.to_csv(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThr.csv'))
-df['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThr.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
+import matplotlib.pyplot as plt
+#df['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThr.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
+df['massdiff']=df['calc_neutral_mass']-df['exp_neutral_mass']
+dfTargets=df[df['protein'].str.contains(uniprotID) == False]
+plt.figure(figsize=(10, 10))
+dfTargets['massdiff'].hist(bins=100).figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThrMassDiff.png'),dpi=100,bbox_inches ="tight")
 dfDecoy=df[df['protein'].str.contains(uniprotID) == True]
-dfDecoy['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThrD.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
+dfDecoy['massdiff'].hist(bins=100).figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThrMassDiff.png'),dpi=100,bbox_inches ="tight")
+#dfDecoy['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThrD.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
 #df=df[~(df['modifications']=="-")]
 dfxCorr=df.pivot_table(index='protein', columns='Name', values='xcorr',aggfunc= 'sum')
 dfxCorr.to_csv(pathFiles.with_suffix('.comb.pivot'+uniprotID+str(xCorThr)+'xCorrThr.csv'))
