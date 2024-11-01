@@ -1,7 +1,8 @@
 # .\comet.win64.exe C:\Users\animeshs\HeLaReps\230301_hela_Slot1-54_1_3894.d\230301_hela_Slot1-54_1_3894_6.0.313.mgf 
 # import sys
 from pathlib import Path
-pathFiles = Path("C:/Users/animeshs/HeLaReps/230301_hela_Slot1-54_1_3996.d")
+#pathFiles = Path("C:/Users/animeshs/HeLaReps/230301_hela_Slot1-54_1_3894.d")
+pathFiles = Path("C:/Users/animeshs/HeLaReps")
 fileName='*txt'
 uniprotID='DECOY_'
 xCorThr=0.75
@@ -30,8 +31,10 @@ df.to_csv(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThr.
 import matplotlib.pyplot as plt
 #df['xcorr'].hist().figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThr.png'),dpi=100,bbox_inches ="tight")#to_csv(pathFiles.with_suffix('.comb.'+uniprotID+'.csv'))
 df['massdiff']=df['calc_neutral_mass']-df['exp_neutral_mass']
+df=df[np.abs(df['massdiff'])<0.5]
 dfTargets=df[df['protein'].str.contains(uniprotID) == False]
 plt.figure(figsize=(10, 10))
+plt.title(label=f.stem)
 dfTargets['massdiff'].hist(bins=100).figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThrMassDiff.png'),dpi=100,bbox_inches ="tight")
 dfDecoy=df[df['protein'].str.contains(uniprotID) == True]
 dfDecoy['massdiff'].hist(bins=100).figure.savefig(pathFiles.with_suffix('.comb.select'+uniprotID+str(xCorThr)+'xCorrThrMassDiff.png'),dpi=100,bbox_inches ="tight")

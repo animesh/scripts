@@ -26,9 +26,9 @@ minimum_xcorr = -999.0
 #
 peptide_mass_tolerance_upper = 500.0    # upper bound of the precursor mass tolerance
 peptide_mass_tolerance_lower = -500.0   # lower bound of the precursor mass tolerance; USUALLY NEGATIVE TO BE LOWER THAN 0
-peptide_mass_units = 0                 # 0=amu, 1=mmu, 2=ppm
-precursor_tolerance_type = 0           # 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
-isotope_error = 2                      # 0=off, 1=0/1 (C13 error), 2=0/1/2, 3=0/1/2/3, 4=-1/0/1/2/3, 5=-1/0/1
+peptide_mass_units = 2                 # 0=amu, 1=mmu, 2=ppm
+precursor_tolerance_type = 1           # 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
+isotope_error = 3                      # 0=off, 1=0/1 (C13 error), 2=0/1/2, 3=0/1/2/3, 4=-1/0/1/2/3, 5=-1/0/1
 
 #
 # search enzyme
@@ -59,7 +59,7 @@ require_variable_mod = 0
 # ion trap ms/ms:  1.0005 tolerance, 0.4 offset (mono masses), theoretical_fragment_ions = 1
 # high res ms/ms:    0.02 tolerance, 0.0 offset (mono masses), theoretical_fragment_ions = 0, spectrum_batch_size = 15000
 #
-fragment_bin_tol = 0.02                # binning to use on fragment ions
+fragment_bin_tol = 0.5                # binning to use on fragment ions
 fragment_bin_offset = 0.0              # offset position to start the binning (0.0 to 1.0)
 theoretical_fragment_ions = 0          # 0=use flanking peaks, 1=M peak only
 use_A_ions = 0
