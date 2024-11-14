@@ -1,4 +1,4 @@
-#Rscript evidenceQC.r "L:/promec/TIMSTOF/LARS/2023/230414 mathilde/evidence.txt" "230414_Mathilde_1_Slot2-46_1_4326 230414_Mathilde_2_Slot2-47_1_4328"
+#Rscript evidenceQC.r "L:/promec/TIMSTOF/LARS/2023/230414 mathilde/evidence.txt" "230414_Mathilde_3_Slot2-48_1_4330"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -6,7 +6,7 @@ print(args)
 inpF <- args[1]
 #inpF<-"L:/promec/TIMSTOF/LARS/2023/230414 mathilde/evidence.txt"
 selection <- args[2]
-#selection<-"230414_Mathilde_1_Slot2-46_1_4326 230414_Mathilde_2_Slot2-47_1_4328"
+#selection<-"230414_Mathilde_3_Slot2-48_1_4330"
 #data####
 data<-read.table(inpF,header = T,sep = "\t",quote = "")
 data<-data[(data$Raw.file  %in% strsplit(selection," ")[[1]]),]
