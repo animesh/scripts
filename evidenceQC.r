@@ -1,14 +1,15 @@
-#Rscript evidenceQC.r "L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/evidence.txt" "Cell_"
+#Rscript evidenceQC.r "L:/promec/USERS/Mei/2017-08_PancreaticCancer/QE/evidence.txt" "55 56 57 58 59 60"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
 inpF <- args[1]
-#inpF<-"L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/evidence.txt"
+#inpF<-"L:/promec/USERS/Mei/2017-08_PancrseaticCancer/QE/evidence.txt"
 selection <- args[2]
-#selection<-"Cell_"
+#selection<-"55 56 57 58 59 60"
+#data####
 data<-read.table(inpF,header = T,sep = "\t",quote = "")
-data<-data[grep(selection,data$Raw.file),]
+data<-data[(data$Raw.file  %in% paste0("20170901_",strsplit(selection," ")[[1]])),]
 jpeg(paste0(inpF,selection,"Uncalibrated...Calibrated.m.z..ppm.jpg"))
 hist(data$Uncalibrated...Calibrated.m.z..ppm.,breaks=10,density = 200,main = "Uncalibrated...Calibrated.m.z..ppm.",xlab = "PPM",col = "skyblue",)
 #hist(data$Mass.error..ppm.)
