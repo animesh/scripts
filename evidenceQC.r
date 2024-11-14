@@ -1,4 +1,4 @@
-#Rscript evidenceQC.r "L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/evidence.txt" "Tumor_"
+#Rscript evidenceQC.r "L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/evidence.txt" "Cell_"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -6,7 +6,7 @@ print(args)
 inpF <- args[1]
 #inpF<-"L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/evidence.txt"
 selection <- args[2]
-#selection<-"Tumor_"
+#selection<-"Cell_"
 data<-read.table(inpF,header = T,sep = "\t",quote = "")
 data<-data[grep(selection,data$Raw.file),]
 jpeg(paste0(inpF,selection,"Uncalibrated...Calibrated.m.z..ppm.jpg"))
