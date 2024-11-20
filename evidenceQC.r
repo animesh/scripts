@@ -1,10 +1,10 @@
-#Rscript evidenceQC.r "L:/promec/TIMSTOF/LARS/2024/240404_Mathilde/combined/txt/evidence.txt"
+#Rscript evidenceQC.r "L:/promec/TIMSTOF/LARS/2023/230815 mathilde/evidence.txt"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
 inpF <- args[1]
-#inpF<-"L:/promec/TIMSTOF/LARS/2024/240404_Mathilde/combined/txt/evidence.txt"
+#inpF<-"L:/promec/TIMSTOF/LARS/2023/230815 mathilde/evidence.txt"
 data<-read.table(inpF,header = T,sep = "\t",quote = "")
 jpeg(paste0(inpF,"Uncalibrated...Calibrated.m.z..ppm.jpg"))
 hist(data$Uncalibrated...Calibrated.m.z..ppm.,breaks=10,density = 200,main = "Uncalibrated...Calibrated.m.z..ppm.",xlab = "PPM",col = "skyblue",)

@@ -1,12 +1,10 @@
+#python checkIncorporationRate.py L:\promec\TIMSTOF\LARS\2024\241116_SILAC\combined\txt peptides.txt
 print("peptide.txt output file to calculate the incorporation rate. Distinguish between lysine- and argininecontaining peptides. For each of these subsets determine the incorporation rate as 1–1/average ratio, using the non-normalized ratios. The density plot of the density distribution should be narrow, and for both lysine and arginine it should be above 0.95, Reference: Use of stable isotope labeling by amino acids in cell culture as a spike-in standard in quantitative proteomics https://www.nature.com/articles/nprot.2010.192")
 import sys
 from pathlib import Path
 
-print("Windows Example\n\npython checkIncorporationRate.py \"F:/promec/Elite/LARS/2021/mai/sudhl5 silac/New Study 1/\" 210526_K0R0_sudhl5_PeptideGroups.txt\n\n")
-print("Linux example\n\npython checkIncorporationRate.py $PWD/mqpar.xml.1622276751.results/210526_K8R10_sudhl5/ peptides.txt\n\n")
-
 if len(sys.argv) != 3:
-    dirName = Path("L:/promec/Animesh/mqpar.xml.1622276751.results/")
+    dirName = Path("L:/promec/TIMSTOF/LARS/2024/241116_SILAC/combined/txt/")
     #fileName='proteinGroups.txt'
     fileName='peptides.txt'
     print("\n\nUSAGE: python checkIncorporationRate.py <path to folder containing",fileName,"file(s)>\n\nUsing DEFAULT directory\"", dirName, "\"looking for\"", fileName, "\"file(s)\n\n")
@@ -18,22 +16,21 @@ else:
 trainList=list(dirName.rglob(fileName))
 print("Using file(s)\n",trainList)
 
-columnName='^(Ratio H/L)(.*)|^(Abundance Ratio: )(.*)'#'*([0-9])$'
+columnName='^(Ratio H/L) [0-9](.*)'#'*([0-9])$'
 columnNameH='^(Intensity H)(.*)|(.*)(Light)$'#'*([0-9])$'
 columnNameL='^(Intensity L)(.*)|(.*)(Heavy)$'#'*([0-9])$'
-f=trainList[0]
+#f=trainList[0]
 import pandas as pd
 for i, f in enumerate(trainList):
     print("\n\nFile",i+1,f)
     df=pd.read_csv(f,low_memory=False,sep='\t')
     print(df.head())
     print(df.columns)
-    if "Reverse" in df: df=df[df["Reverse"]!='+']
-    if "Confidence" in df: df=df[df["Confidence"]=='High']
-    if "Potential contaminant" in df: df=df[df["Potential contaminant" ]!='+']
-    if "Contaminant" in df: df=df[df["Contaminant"]!='TRUE']
+    df=df[df["Reverse"]!='+']
+    df=df[df["Potential contaminant" ]!='+']
     #df=df[df[]!='+'|df["Contaminant"]!='TRUE']
     dfPG=df.filter(regex=columnName,axis=1)
+    print(dfPG.columns)
     #dfPG=dfPG.rename(columns = lambda x : str(x)[10:])
     writePGCountcsv=f.with_suffix(".count.csv")
     dfPGcnt=dfPG.count()

@@ -1,9 +1,9 @@
-#Rscript proteinGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/240404_Mathilde/combined/txt/proteinGroups.txt" "Intensity."
+#Rscript proteinGroupsQC.r "L:/promec/TIMSTOF/LARS/2023/230815 mathilde/proteinGroups.txt" "Intensity."
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 inpF <- args[1]
-#inpF<-"L:/promec/TIMSTOF/LARS/2024/240404_Mathilde/combined/txt/proteinGroups.txt"
+#inpF<-"L:/promec/TIMSTOF/LARS/2023/230815 mathilde/proteinGroups.txt
 selection <- args[2]
 #selection<-"Intensity."
 print(args)
