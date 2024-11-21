@@ -1,7 +1,4 @@
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\GroupsDuringMaleBefore.txt" "Exposure" "Rem" "LFQ.intensity." "exposed" "non_exposed" 0.1 0.5 0.1
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\GroupsDuringMaleAfter.txt" "Exposure" "Rem" "LFQ.intensity." "exposed" "non_exposed" 0.1 0.5 0.1
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\GroupsDuringFemaleAfter.txt" "Exposure" "Rem" "LFQ.intensity." "exposed" "non_exposed" 0.1 0.5 0.1
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\GroupsDuringFemaleBefore.txt" "Exposure" "Rem" "LFQ.intensity." "exposed" "non_exposed" 0.1 0.5 0.1
+#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\241109_Deo\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\241109_Deo\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "T" "C" 0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -15,9 +12,9 @@ if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of protei
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/USERS/Dongjie/20240917_Dongjie_PseudoU/QEHF/txt2p6p5/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2024/241109_Deo/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/USERS/Dongjie/20240917_Dongjie_PseudoU/QEHF/txt2p4p14/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2024/241109_Deo/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
@@ -25,9 +22,9 @@ rGroup <- args[4]
 selection <- args[5]
 #selection<-"LFQ.intensity."
 sample <- args[6]
-#sample<-"P2"
+#sample<-"T"
 control <- args[7]
-#control<-"U2"
+#control<-"C"
 selThr <- args[8]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
