@@ -1,16 +1,18 @@
-#Rscript proteinGroupsQC.r "L:/promec/TIMSTOF/LARS/2023/230815 mathilde/proteinGroups.txt" "Intensity."
+#Rscript proteinGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/240404_Mathilde/combined/txt/proteinGroups.txt" "240404_Mathilde_TN_PDAC_P1_Slot2-4_1_7011 240404_Mathilde_TN_PDAC_P2_Slot2-5_1_7013 240404_Mathilde_TN_PDAC_P4_Slot2-7_1_7017"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 inpF <- args[1]
-#inpF<-"L:/promec/TIMSTOF/LARS/2023/230815 mathilde/proteinGroups.txt
+#inpF<-"L:/promec/TIMSTOF/LARS/2024/240404_Mathilde/combined/txt/proteinGroups.txt"
 selection <- args[2]
-#selection<-"Intensity."
+#selection<-"240404_Mathilde_TN_PDAC_P1_Slot2-4_1_7011 240404_Mathilde_TN_PDAC_P2_Slot2-5_1_7013 240404_Mathilde_TN_PDAC_P4_Slot2-7_1_7017"
 print(args)
 #data####
 data<-read.table(inpF,header = T,sep = "\t",quote = "")
+dataCovClip50<-data[,match(gsub("-",".",gsub("240404_Mathilde_TN_PD","",paste0("Sequence.coverage.",strsplit(selection," ")[[1]],"...."))),colnames(data))]
+data$Sequence.coverage....<-apply(dataCovClip50,1,function(x) max(x,na.rm=T))
 #https://www.nature.com/articles/s41597-024-03355-4#Sec8
-jpeg(paste0(inpF,"Sequence.coverage.jpg"))
+jpeg(paste0(inpF,selection,"Sequence.coverage.jpg"))
 range(data$Sequence.coverage....)
 #hist(data$Sequence.coverage....)
 dataCovClip50<-scales::squish(data$Sequence.coverage....,c(0,50))
@@ -22,11 +24,11 @@ levels(dataCovClip50Bin6)<-paste(c("0-10","10-20","20-30","30-40","40-50",">50")
 pie(table(dataCovClip50Bin6),main="Sequence coverage")
 dev.off()
 #intensity####
-intdata<-data[,grep(selection,colnames(data))]
+intdata<-data[,match(gsub("-",".",gsub("240404_Mathilde_TN_PD","",paste0("Intensity.",strsplit(selection," ")[[1]]))),colnames(data))]
 log2Int<-as.matrix(log2(intdata))
 dim(log2Int)
 log2Int[log2Int==-Inf]=NA
-colnames(log2Int)<-gsub(selection,"",colnames(log2Int))
+colnames(log2Int)<-gsub("Intensity.","",colnames(log2Int))
 summary(log2Int)
 #corHCint####
 colnames(log2Int)
