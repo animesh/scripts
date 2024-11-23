@@ -43,3 +43,10 @@ palette <- c(colorRampPalette(colors = c("yellow", "orange"))(n = length(bk1)-1)
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr,color=palette,fontsize_row=6,fontsize_col=6,cluster_cols=T,cluster_rows=T)#,clustering_distance_rows= "euclidean",clustering_distance_cols="euclidean")
 ggplot2::ggsave(paste0(inpF,selection,"log2IntimpCorr.heatmap.jpg"),plot=svgPHC,width=10,height=8)
 print(paste0(inpF,selection,"log2IntimpCorr.heatmap.jpg"))
+#CV####
+intdata[intdata==0]=NA
+cvInt<-(apply(intdata,1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T)))*100
+jpeg(paste0(inpF,selection,".CVhist.jpg"))
+hist(cvInt,main = "Protein Group Intensity",xlab = "%CV",ylab="Frequency",breaks=length(cvInt))
+dev.off()
+print(paste0(inpF,selection,".CVhist.jpg"))

@@ -7,6 +7,17 @@ p.adjust(pV,method="BH")
 ```
 
 ```{r}
+#install.packages("proteomicsCV")
+#https://cran.r-project.org/web/packages/proteomicsCV/proteomicsCV.pdf
+not_log_intensity_df<-data.frame(intensity1=c(125000,100000000,983450,475987),
+intensity2=c(147000,230000000,720450,798656),
+intensity3=c(135000,156000000,853566,75036),
+intensity4=c(139000,134000000,250321,257986))
+# base formula with raw intensity (no log transformation)
+raw_cvs<-proteomicsCV::protCV(not_log_intensity_df)
+log_intensity_df<-log2(not_log_intensity_df)
+cvs<-proteomicsCV::protLogCV(log_intensity_df, 2)
+plot(raw_cvs,cvs)
 #https://github.com/cran/proteomicsCV/blob/master/R/proteomicsCV.R
 #' @importFrom stats sd
 #' @export
