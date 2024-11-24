@@ -6,15 +6,22 @@ pV<-c(0.000719929,0.00139014,0.00162029,0.0146431,0.0147919,0.0263679,0.99,0.999
 p.adjust(pV,method="BH")
 ```
 
-```{r}
+```{r CV}
+#CV####
+intdata[intdata==0]=NA
+cvInt<-(apply(intdata,1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T)))*100
+jpeg(paste0(inpF,selection,".CVhist.jpg"))
+hist(cvInt,main = "Protein Group Intensity",xlab = "%CV",ylab="Frequency",breaks=length(cvInt))
+dev.off()
+print(paste0(inpF,selection,".CVhist.jpg"))
 #install.packages("proteomicsCV")
 #https://cran.r-project.org/web/packages/proteomicsCV/proteomicsCV.pdf
-not_log_intensity_df<-data.frame(intensity1=c(125000,100000000,983450,475987),
-intensity2=c(147000,230000000,720450,798656),
-intensity3=c(135000,156000000,853566,75036),
-intensity4=c(139000,134000000,250321,257986))
+not_log_intensity_df<-data.frame(intensity1=c(125000,100000000,983450,475987),intensity2=c(147000,230000000,720450,798656),intensity3=c(135000,156000000,853566,75036),intensity4=c(139000,134000000,250321,257986))
 # base formula with raw intensity (no log transformation)
 raw_cvs<-proteomicsCV::protCV(not_log_intensity_df)
+#https://github.com/cran/proteomicsCV/pull/1
+cvInt<-(apply(not_log_intensity_df,1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T)))*100
+summary(cvInt-raw_cvs)
 log_intensity_df<-log2(not_log_intensity_df)
 cvs<-proteomicsCV::protLogCV(log_intensity_df, 2)
 plot(raw_cvs,cvs)
