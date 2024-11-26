@@ -1,11 +1,11 @@
-#Rscript proteinGroupsQC.r "L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/proteinGroups.txt" "Tumor_"
+#Rscript proteinGroupsQC.r "L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/proteinGroups.txt" "Cell_"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 inpF <- args[1]
 #inpF<-"L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/proteinGroups.txt"
 selection <- args[2]
-#selection<-"Tumor_"
+#selection<-"Cell_"
 print(args)
 #data####
 data<-read.table(inpF,header = T,sep = "\t",quote = "")
@@ -50,4 +50,3 @@ jpeg(paste0(inpF,selection,".CVhist.jpg"))
 hist(cvInt,main = "Protein Group Intensity",xlab = "%CV",ylab="Frequency",breaks=length(cvInt))
 dev.off()
 print(paste0(inpF,selection,".CVhist.jpg"))
-
