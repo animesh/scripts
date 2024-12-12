@@ -44,9 +44,11 @@ while (my $line = <F>) {
 close F;
 
 __END__
-#example search for UNG motif as shown in https://febs.onlinelibrary.wiley.com/doi/full/10.1111/febs.12867
-curl "https://www.uniprot.org/uniprot/?query=UNG&sort=score&format=fasta" -o UNG.fasta # create fasta file with API based search for UNG sequences in uniprot sorted by score https://www.uniprot.org/help/api_queries
-perl motif.pl UNG.fasta "[ILMN]...[QVS]..[RKSE][ILM][QE].[NK][KR]..A[IL].[RLI][RLI]..[KR]" | awk -F '\t' '$2!=""' | less
+#example search for UNG motif as shown in https://www.genome.jp/tools-bin/search_seq_lib for [RK]-[FWY]-[ALVI]-[GALVI]-[RK]
+wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
+gunzip uniprot_sprot.fasta.gz
+perl motif.pl uniprot_sprot.fasta "[RK][FWY][ALVI][GALVI][RK]" > uniprot_sprot.motif.txt
+perl motif.pl uniprot_sprot.fasta "[RK][FWY][ALVI][GALVI][RK]" | awk -F '\t' '$2!=""' > uniprot_sprot.motif.found.txt
 
 #to search for reverse form of the motif (only works for square bracket expression so far...)
 perl motif.pl UNG.fasta "[ILMN]...[QVS]..[RKSE][ILM][QE].[NK][KR]..A[IL].[RLI][RLI]..[KR]" reverse | awk -F '\t' '$2!=""' | less
