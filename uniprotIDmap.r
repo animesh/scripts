@@ -1,5 +1,6 @@
 #C:\Users\animeshs>R-4.4.0\bin\Rscript.exe "drive\My Drive\scripts\uniprotIDmap.r"  L:\promec\Animesh\Motif\uniprot_sprot.motif.found.txt L:\promec\Animesh\Motif\GOeu.tsv
 #setup####
+#https://www.uniprot.org/uniprotkb?query=%28reviewed%3Atrue%29+AND+%28taxonomy_id%3A2759%29
 #download.file("https://rest.uniprot.org/uniprotkb/stream?download=true&fields=accession%2Creviewed%2Cid%2Cprotein_name%2Cgene_names%2Corganism_name%2Clength%2Cgo_p%2Cgo_c%2Cgo_f%2Cxref_ensembl_full&format=tsv&query=%28%28reviewed%3Atrue%29+AND+%28taxonomy_id%3A2759%29%29","L:/promec/Animesh/Motif/GOeu.tsv")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
