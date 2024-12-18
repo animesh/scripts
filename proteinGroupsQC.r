@@ -1,11 +1,11 @@
-#Rscript proteinGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241210_HELA_DDA_DIA/combined/txtDIA/proteinGroups.txt" "evosep_dia_a_S1.A5_1_9246 evosep_dia_b_S1.A6_1_9247 evosep_dia_c_S1.A7_1_9248"
+#Rscript proteinGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241210_HELA_DDA_DIA/combined/txtDDA/proteinGroups.txt" "DDA_A_Slot1.54_1_9233 DDA_B_Slot1.54_1_9234 DDA_C_Slot1.54_1_9235"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 inpF <- args[1]
-#inpF<-"L:/promec/TIMSTOF/LARS/2024/241210_HELA_DDA_DIA/combined/txtDIA/proteinGroups.txt"
+#inpF<-"L:/promec/TIMSTOF/LARS/2024/241210_HELA_DDA_DIA/combined/txtDDA/proteinGroups.txt"
 selection <- args[2]
-#selection<-"DIA_A_Slot1.54_1_9237 DIA_B_Slot1.54_1_9238 DIA_C_Slot1.54_1_9239"
+#selection<-"DDA_A_Slot1.54_1_9233 DDA_B_Slot1.54_1_9234 DDA_C_Slot1.54_1_9235"
 print(args)
 #data####
 data<-read.table(inpF,header = T,sep = "\t",quote = "")
