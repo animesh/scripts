@@ -5,7 +5,7 @@
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 inpF <- args[1]
-#perl motif.pl uniprot_sprot.fasta "[RK][FWY][ALVI][GALVI][RK]" | awk -F '\t' '$2!=""' > uniprot_sprot.motif.found.txt
+#perl motif.pl uniprot_sprot.fasta "[RK][FWY][ALVI][GALVI][RK]" | awk -F '\t' '$3!=""' > uniprot_sprot.motif.found.seq.txt
 #inpF<-"L:/promec/Animesh/Motif/uniprot_sprot.motif.found.txt"
 annotationGO <- args[2]
 #wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
