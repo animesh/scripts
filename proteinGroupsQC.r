@@ -1,4 +1,4 @@
-#Rscript proteinGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241210_HELA_DDA_DIA/combined/txtDIA/proteinGroups.txt" "DIA_A_Slot1.54_1_9237 DIA_B_Slot1.54_1_9238 DIA_C_Slot1.54_1_9239"
+#Rscript proteinGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241210_HELA_DDA_DIA/combined/txtDIA/proteinGroups.txt" "evosep_dia_a_S1.A5_1_9246 evosep_dia_b_S1.A6_1_9247 evosep_dia_c_S1.A7_1_9248"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
