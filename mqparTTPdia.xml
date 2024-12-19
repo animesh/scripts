@@ -50,7 +50,7 @@
    <top3>True</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
-   <splitProteinGroupsByTaxonomy>False</splitProteinGroupsByTaxonomy>
+   <splitProteinGroupsByTaxonomy>True</splitProteinGroupsByTaxonomy>
    <taxonomyLevel>Species</taxonomyLevel>
    <avalon>False</avalon>
    <nModColumns>3</nModColumns>
@@ -126,14 +126,14 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.6.5.0</maxQuantVersion>
+   <maxQuantVersion>2.6.3.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>40</numThreads>
+   <numThreads>10</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
-   <fullMinMz>-1.7976931348623157E+308</fullMinMz>
-   <fullMaxMz>1.7976931348623157E+308</fullMaxMz>
+   <fullMinMz>-1.7958954417274534E+308</fullMinMz>
+   <fullMaxMz>1.7958954417274534E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -195,8 +195,8 @@
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
          <intensityThresholdMs1Dda>0</intensityThresholdMs1Dda>
-         <intensityThresholdMs1Dia>30</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>10</intensityThresholdMs2>
+         <intensityThresholdMs1Dia>35</intensityThresholdMs1Dia>
+         <intensityThresholdMs2>17</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
@@ -216,8 +216,6 @@
          <lfqMinRatioCount>2</lfqMinRatioCount>
          <lfqMinRatioCountDia>2</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
-         <lfqLamdaLimit>0</lfqLamdaLimit>
-         <lfqMaxIter>0</lfqMaxIter>
          <maxLabeledAa>0</maxLabeledAa>
          <maxNmods>5</maxNmods>
          <maxMissedCleavages>2</maxMissedCleavages>
@@ -241,7 +239,6 @@
          <variableModifications>
             <string>Oxidation (M)</string>
             <string>Acetyl (Protein N-term)</string>
-            <string>Phospho (STY)</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
@@ -338,10 +335,10 @@
          <diaXgBoostSubSample>0.9</diaXgBoostSubSample>
          <centroidPosition>0</centroidPosition>
          <diaQuantMethod>7</diaQuantMethod>
-         <diaFeatureQuantMethod>0</diaFeatureQuantMethod>
+         <diaFeatureQuantMethod>2</diaFeatureQuantMethod>
          <lfqNormType>1</lfqNormType>
-         <diaTopNForQuant>6</diaTopNForQuant>
-         <diaTopNCorrelatingFragmentsForQuant>6</diaTopNCorrelatingFragmentsForQuant>
+         <diaTopNForQuant>12</diaTopNForQuant>
+         <diaTopNCorrelatingFragmentsForQuant>7</diaTopNCorrelatingFragmentsForQuant>
          <diaFragmentCorrelationForQuant>0.78</diaFragmentCorrelationForQuant>
          <lfqUsePeptideCorrelation>True</lfqUsePeptideCorrelation>
          <lfqTopNCorrelatingPeptides>3</lfqTopNCorrelatingPeptides>
@@ -368,7 +365,7 @@
          <diaBackgroundSubtractionQuantile>0.5</diaBackgroundSubtractionQuantile>
          <diaBackgroundSubtractionFactor>4</diaBackgroundSubtractionFactor>
          <diaLfqRatioType>0</diaLfqRatioType>
-         <diaTransferQvalue>0.9</diaTransferQvalue>
+         <diaTransferQvalue>0.3</diaTransferQvalue>
          <diaTransferQvalueBetweenLabels>0.01</diaTransferQvalueBetweenLabels>
          <diaTransferQvalueBetweenFractions>0.01</diaTransferQvalueBetweenFractions>
          <diaTransferQvalueBetweenFaims>0.01</diaTransferQvalueBetweenFaims>
@@ -396,7 +393,7 @@
          <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
          <diaAltCcsModelPath></diaAltCcsModelPath>
          <diaBatchProcessing>True</diaBatchProcessing>
-         <diaBatchSize>50</diaBatchSize>
+         <diaBatchSize>25</diaBatchSize>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
@@ -407,7 +404,7 @@
          <diaOverrideRtWithPrediction>False</diaOverrideRtWithPrediction>
          <diaMaxModifications>2</diaMaxModifications>
          <diaMaxPositionings>20</diaMaxPositionings>
-         <diaPredictCharges>False</diaPredictCharges>
+         <diaPredictCharges>True</diaPredictCharges>
          <diaUseProbScore>False</diaUseProbScore>
          <diaProbScoreP>0.055</diaProbScoreP>
          <diaProbScoreG>1.2</diaProbScoreG>
@@ -427,14 +424,9 @@
          <diaPtmLocMethod>1</diaPtmLocMethod>
          <diaIndexedSearch>True</diaIndexedSearch>
          <diaIncreaseSequenceCoverage>True</diaIncreaseSequenceCoverage>
-         <diaSequenceCoverageFdr>0.01</diaSequenceCoverageFdr>
+         <diaSequenceCoverageFdr>0.05</diaSequenceCoverageFdr>
          <diaHasIntensitiesForMl>True</diaHasIntensitiesForMl>
          <diaFdrCvIncludeCharge>True</diaFdrCvIncludeCharge>
-         <diaMinCharge>2</diaMinCharge>
-         <diaMaxCharge>3</diaMaxCharge>
-         <diaDeltaMzLower>0.55</diaDeltaMzLower>
-         <diaDeltaMzUpper>0.05</diaDeltaMzUpper>
-         <diaUseNeutralLossesForQuant>True</diaUseNeutralLossesForQuant>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
@@ -478,25 +470,6 @@
       </msmsParams>
       <msmsParams>
          <Name>TOF</Name>
-         <MatchTolerance>25</MatchTolerance>
-         <MatchToleranceInPpm>True</MatchToleranceInPpm>
-         <DeisotopeTolerance>0.01</DeisotopeTolerance>
-         <DeisotopeToleranceInPpm>False</DeisotopeToleranceInPpm>
-         <DeNovoTolerance>25</DeNovoTolerance>
-         <DeNovoToleranceInPpm>True</DeNovoToleranceInPpm>
-         <Deisotope>True</Deisotope>
-         <Topx>16</Topx>
-         <TopxInterval>100</TopxInterval>
-         <HigherCharges>True</HigherCharges>
-         <IncludeWater>True</IncludeWater>
-         <IncludeAmmonia>True</IncludeAmmonia>
-         <IncludeWaterCross>False</IncludeWaterCross>
-         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
-         <DependentLosses>True</DependentLosses>
-         <Recalibration>False</Recalibration>
-      </msmsParams>
-      <msmsParams>
-         <Name>ASTRAL</Name>
          <MatchTolerance>25</MatchTolerance>
          <MatchToleranceInPpm>True</MatchToleranceInPpm>
          <DeisotopeTolerance>0.01</DeisotopeTolerance>

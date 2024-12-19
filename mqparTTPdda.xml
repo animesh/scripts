@@ -238,8 +238,7 @@
          <useVariableModificationsFirstSearch>False</useVariableModificationsFirstSearch>
          <variableModifications>
             <string>Oxidation (M)</string>
-	    <string>Acetyl (Protein N-term)</string>
-	    <string>Phospho (STY)</string>
+            <string>Acetyl (Protein N-term)</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
