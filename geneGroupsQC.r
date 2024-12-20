@@ -1,5 +1,7 @@
-#Rscript geneGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241210_HELA_DDA_DIA/DIANN1p9p2/report.gg_matrix.tsv" "1" "2 3 4"
-#Rscript geneGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241210_HELA_DDA_DIA/DIANN1p9p2/report.gg_matrix.tsv" "1" "5 6 7"
+#Rscript geneGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/dia/DIANN1p9p2/report.gg_matrix.tsv" "1" "2 3 4"
+#Rscript geneGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/dia/DIANN1p9p2/report.gg_matrix.tsv" "1" "5 6 7"
+#Rscript geneGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/dda/combined/txt/proteinGroups.txt" "2" "51 52 53"
+#Rscript geneGroupsQC.r "L:/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/dda/combined/txt/proteinGroups.txt" "2" "54 55 56"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
