@@ -1,0 +1,15 @@
+//https://github.com/microsoft/pyright/blob/main/docs/configuration.md
+{
+    "reportMissingImports": false,
+    "reportMissingTypeStubs": false,
+    "reportMissingModuleSource": false,
+    "reportMissingTypeStubs": false,
+    "reportIncompatibleMethodOverride": false,
+    "reportGeneralTypeIssues": false,
+    "reportUntypedFunction": false,
+    "reportUntypedClass": false,
+    "reportUntypedModule": false,
+    "exclude": []
+}
+//2024-12-20 20:40:24.621 [info] [Info  - 8:40:24 PM] (2788283) Loading configuration file at /cluster/home/ash022/scripts/pyrightconfig.json
+//2024-12-20 20:40:24.637 [info] [Info  - 8:40:24 PM] (2788283) Auto-excluding **/.*
