@@ -1,6 +1,6 @@
-#mkdir 240827_Bead_test/dia
-#rsync -Parv login.nird-lmd.sigma2.no:TIMSTOF/LARS/2024/240827_Bead_test .
-#bash slurmDIANNrunTTP.sh /cluster/projects/nn9036k/scripts/dia scratch.slurm
+#bash slurmDIANNrunTTP.sh /cluster/projects/nn9036k/scripts/salmon/dia scratch.slurm
+#mkdir -p salmon/dia
+#rsync -Parv ash022@login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/Hela_Salmon/DIA/*.d salmon/dia/.
 DATADIR=$1
 #leave following empty to include ALL files
 CURRENTEPOCTIME=`date +%s`
