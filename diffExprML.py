@@ -1,3 +1,51 @@
+import statsmodels.formula.api as smf
+
+result = smf.mixedlm("Satisfaction ~ Time_spent", data=df, groups=df["Country"], re_formula="Time_spent").fit()
+print(result.fe_params)
+print(result.random_effects)
+
+# %% treatment-effects
+#https://pub.towardsai.net/meta-learners-measuring-treatment-effects-with-causal-machine-learning-53047aed2cfb
+# Setting features and target variable
+X = df[['age', 'gender', 'location', 'treatment']]
+y = df['sales']
+
+# Training the model
+model = xgb.XGBRegressor()
+model.fit(X, y)
+
+# Predicting sales if treated and not treated
+df['sales_pred_treated'] = model.predict(df[['age', 'gender', 'Location', 'treatment']].assign(treatment=1))
+df['sales_pred_control'] = model.predict(df[['age', 'gender', 'Location', 'treatment']].assign(treatment=0))
+
+# Calculating ATE
+df['treatment_effect'] = df['sales_pred_treated'] - df['sales_pred_control']
+ATE = df['treatment_effect'].mean()
+# T(wo)-learner
+# Splitting the data into treated and control groups
+df_treated = df[df['treatment'] == 1]
+df_control = df[df['treatment'] == 0]
+
+# Training the model for the treated group
+model_treated = xgb.XGBRegressor()
+model_treated.fit(df_treated[['age', 'gender', 'location']], df_treated['sales'])
+
+# Training the model for the untreated group
+model_control = xgb.XGBRegressor()
+model_control.fit(df_control[['age', 'gender', 'location']], df_control['sales'])
+
+# Predicting sales
+df['sales_pred_treated'] = model_treated.predict(df[['age', 'gender', 'location']])
+df['sales_pred_control'] = model_control.predict(df[['age', 'gender', 'location']])
+
+# Calculating ATE
+df['treatment_effect'] = df['sales_pred_treated'] - df['sales_pred_control']
+ATE = df['treatment_effect'].mean()
+
+#X-Learner: An advanced extension of the T-learner, particularly effective for imbalanced datasets because it incorporates propensity scores to adjust for selection bias.
+#DR-Learner: Combines a propensity score model and an outcome model, offering robustness against model misspecification; consistent as long as one of the models is correctly specified.
+#Double Machine Learning (DML): Utilizes a two-stage process with machine learning models to handle high-dimensional data; reduces bias and overfitting through orthogonalization techniques.
+
 # %% pin-ball-loss
 #https://github.com/erykml/medium_articles/blob/master/Statistics/quantile_loss.ipynb
 import numpy as np
