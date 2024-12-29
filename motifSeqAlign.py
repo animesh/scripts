@@ -1,4 +1,11 @@
-#python motifSeqAlign.py AF-P26640-F1-model_v4.pdb
+#python motifSeqAlign.py /home/ash022/animeshs/scripts/uniprot_sprot.motif.found.seq.txtValine--tRNA\ ligase.csv /mnt/f/structue/
+#tar cvf structures.tar /mnt/f/structue/*.png
+#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
+#gunzip uniprot_sprot.fasta.gz
+#perl motif.pl uniprot_sprot.fasta "[RK][FWY][ALVI][GALVI][RK]" | awk -F '\t' '$3!=""' > uniprot_sprot.motif.found.seq.txt
+#Rscript motifSeqAlign.r  L:\promec\Animesh\Motif\uniprot_sprot.motif.found.seq.txt "Valine--tRNA ligase"
+#https://alphafold.ebi.ac.uk/download
+#wget https://ftp.ebi.ac.uk/pub/databases/alphafold/latest/swissprot_pdb_v4.tar
 # %%setup
 #git clone https://github.com/schrodinger/pymol-open-source
 #cd pymol-open-source/
@@ -13,40 +20,104 @@
 #pip install pyqt5
 #https://stackoverflow.com/a/52629123
 #wget https://alphafold.ebi.ac.uk/files/AF-P26640-F1-model_v4.pdb
-#for protein in *.pdb; do pymol -cq $protein -d "hide everything;select motif, resi 1-500;show cartoon, motif;zoom center, 20;png $protein.png, width=10cm, dpi=150, ray=1"; done
-#for protein in *.pdb; do pymol -cq $protein -d "select motif, resi 1-50;show surface, motif;png $protein.png, width=10cm, dpi=150, ray=1"; done
-#for protein in *.pdb; do pymol -cq $protein -d "hide everything;show ribbon;select motif, resi 957-962;show cartoon, motif;color red, motif; zoom center, 50;png $protein.png, width=25cm, dpi=150, ray=1"; done
-#for protein in *.pdb; do pymol -cq $protein -d "hide everything;show ribbon;select motif, resi 957-962; show cartoon, motif;color red, motif; zoom center, 50;disable 957-962;label ca, 957-962;png $protein.png, width=25cm, dpi=150, ray=1"; done
-#  angles      cgo         ellipsoids  licorice    nonbonded   sticks     callback    dashes      everything  lines       ribbon      surface   cartoon     dihedrals   extent      mesh        slice       volume     cell        dots        labels      nb_spheres  spheres     wire      
+#for protein in *.pdb; do pymol -cq $protein -d "hide everything;show ribbon;select motif, resi 957-962; show cartoon, motif;color red, motif; zoom center, 50;png $protein.png, width=25cm, dpi=150, ray=1"; done
 #https://pymolwiki.org/index.php/Launching_From_a_Script
 #moddir='/opt/miniconda/lib/python3.11/site-packages'
 #sys.path.insert(0, moddir)
 #os.environ['PYMOL_PATH'] = os.path.join(moddir, 'pymol/pymol_path')
 # pymol launching: quiet (-q), without GUI (-c) and with arguments from command line
-import __main__
-__main__.pymol_argv = [ 'pymol', '-qc']
-import pymol
-pymol.finish_launching()  # not supported on macOSimport sys,os
-# %% load pdb file
-from pymol import cmd
+# %% input
 import sys
-pdbFile = sys.argv[1]
-cmd.load(pdbFile)
-# %% show
-cmd.hide('everything')
-cmd.show('ribbon')
-# %% motif
-cmd.select('motif', 'resi 957-962')
-cmd.show('cartoon', 'motif')
-#https://pymolwiki.org/index.php/Label
-cmd.set('label_color', 'green')
-#https://pymolwiki.org/index.php/Label_position
-#cmd.set('label_position', '1 1 1')
-cmd.set('label_font_id', '10')
-cmd.set('label_size', '8')
-cmd.set('label_color', 'white')
-cmd.label('n. CA and i. 957-962','resn')
-cmd.color('red', 'motif')
-cmd.zoom('center', 50)
-cmd.png(pdbFile+'.pymol.png',1600, 1200, dpi=150, ray=1)
-print(pdbFile+'.pymol.png')
+motifFile = sys.argv[1]
+#motifFile = "/home/ash022/animeshs/scripts/uniprot_sprot.motif.found.seq.txtValine--tRNA ligase.csv"
+pathPDB = sys.argv[2]
+#pathPDB = "/mnt/f/structue/"
+# %% load motifs
+import pandas as pd
+motifList = pd.read_csv(motifFile)
+print(motifList.head(),motifList.columns)
+# %% data
+fileNameList=motifList['Uniprot']
+pdbFileList=pathPDB+"AF-"+motifList['Uniprot']+"-F1-model_v4.pdb.gz"
+pdbFileRes='_'+motifList['Gene']+'_'+motifList['UnID']+motifList['Species']
+# %% load motifs
+for cnt in range(len(pdbFileList)):
+  print(cnt)
+  #if cnt == 0:
+  # %% load pdb file
+  import __main__
+  __main__.pymol_argv = [ 'pymol', '-qc']
+  import pymol
+  pymol.finish_launching()  # not supported on macOSimport sys,os
+  from pymol import cmd
+  pdbFile=pdbFileList[cnt]
+  print(pdbFile)
+  # %% load pymol
+  # %% load pdb file
+  #pdbFile = "AF-P26640-F1-model_v4.pdb"
+  #pdbFile = "/mnt/f/structue/AF-A0L408-F1-model_v4.pdb.gz"
+  cmd.load(pdbFile)
+  # %% show
+  cmd.hide('everything')
+  cmd.show('cartoon')
+  cmd.color('green')
+  # %% motif
+  #https://pymolwiki.org/index.php/Label
+  #https://pymolwiki.org/index.php/Label_position
+  #cmd.set('label_position', '1 1 1')
+  #cmd.pseudoatom('motifStr')
+  #cmd.label('motifStr','\"motifStr\"')
+  #P93736 RFAAR,465-470;KFLGK,604-609;
+  motifs=motifList['X.RK..FWY..ALVI..GALVI..RK..found.as.Sequence.s..Position.s.0.for.1st..'][cnt].split(';')
+  #motif=motifs[0]
+  #from joblib import Parallel, delayed
+  for motif in motifs:
+      if motif == '':
+          continue
+      motifPos = 'resi '+str(int(motif.split(',')[1].split('-')[0])+1)+'-'+motif.split(',')[1].split('-')[1]
+      motifLabel = 'n. CA and i. '+ str(int(motif.split(',')[1].split('-')[0])+1)+'-'+motif.split(',')[1].split('-')[1]
+      motifSeqPos = 'n. CA and i. '+ str(int(motif.split(',')[1].split('-')[1])+1)
+      motifSequence = '\"'+motif.split(',')[0]+'\"'
+      cmd.select('motif', motifPos)
+      cmd.show('cartoon', 'motif')
+      cmd.set('label_font_id', '10')
+      cmd.set('label_size', '7')
+      cmd.set('label_color', 'white')
+      cmd.label(motifLabel,'resi')
+      cmd.label(motifSeqPos,motifSequence)
+      cmd.color('red', 'motif')
+      #motifPos = 'resi '+str(int(motifList['X.RK..FWY..ALVI..GALVI..RK..found.as.Sequence.s..Position.s.0.for.1st..'][cnt].split(';')[0].split(',')[1].split('-')[0])+1)+'-'+str(int(motifList['X.RK..FWY..ALVI..GALVI..RK..found.as.Sequence.s..Position.s.0.for.1st..'][cnt].split(';')[0].split(',')[1].split('-')[1]))
+      #motifLabel = 'n. CA and i. '+ motifList['X.RK..FWY..ALVI..GALVI..RK..found.as.Sequence.s..Position.s.0.for.1st..'][cnt].split(';')[0].split(',')[1]
+      #motifSeqPos = 'n. CA and i. '+ str(int(motifList['X.RK..FWY..ALVI..GALVI..RK..found.as.Sequence.s..Position.s.0.for.1st..'][cnt].split(';')[0].split(',')[1].split('-')[1])+1)
+      #motifSequence = '\"'+motifList['X.RK..FWY..ALVI..GALVI..RK..found.as.Sequence.s..Position.s.0.for.1st..'][cnt].split(';')[0].split(',')[0]+'\"'
+      #cmd.select('motif', motifPos)
+      #cmd.show('cartoon', 'motif')
+      #cmd.set('label_font_id', '10')
+      #cmd.set('label_size', '7')
+      #cmd.set('label_color', 'white')
+      #cmd.label(motifLabel,'resi')
+      #cmd.color('red', 'motif')
+      #cmd.label(motifSeqPos,motifSequence)
+      #motifPos = 'resi 605-609'
+      #motifLabel = 'n. CA and i. 605-609'
+      #motifSeqPos = 'n. CA and i. 609'
+      #motifSequence = '\"KFLGK\"'
+      #cmd.select('motif', motifPos)
+      #cmd.show('cartoon', 'motif')
+      #cmd.set('label_font_id', '10')
+      #cmd.set('label_size', '7')
+      #cmd.set('label_color', 'white')
+      #cmd.label(motifLabel,'resi')
+      #cmd.pseudoatom('motifStr')
+      #cmd.label('motifStr','\"motifStr\"')
+      #cmd.label(motifSeqPos,motifSequence)
+      #cmd.color('red', 'motif')
+  cmd.zoom('center', 50)
+  cmd.png(pdbFile+pdbFileRes[cnt]+'.png',1600, 1200, dpi=150, ray=1)
+  print(pdbFile+pdbFileRes[cnt]+'.png')
+  cmd.remove('all')
+  #cmd.quit()
+  #cmd._quit()
+  #cmd.abort()
+
+  # %%
