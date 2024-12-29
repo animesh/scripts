@@ -1,4 +1,4 @@
-#Rscript motifSeqAlign.r  L:\promec\Animesh\Motif\uniprot_sprot.motif.found.seq.txt "Valine--tRNA ligase"
+#Rscript motifSeqAlign.r  L:\promec\Animesh\Motif\uniprot_sprot.motif.found.seq.txt "enolase"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -6,7 +6,7 @@ inpF <- args[1]
 #perl motif.pl uniprot_sprot.fasta "[RK][FWY][ALVI][GALVI][RK]" | awk -F '\t' '$3!=""' > uniprot_sprot.motif.found.seq.txt
 #inpF<-"L:/promec/Animesh/Motif/uniprot_sprot.motif.found.seq.txt"
 annotationGO <- args[2]
-#annotationGO <- "Valine--tRNA ligase"
+#annotationGO <- "enolase"
 print(args)
 #data####
 data<-read.csv(inpF,sep="\t",header=T)
@@ -19,6 +19,7 @@ print(colnames(dataS))
 print(summary(dataS))
 print(dim(dataS)[1])
 write.csv(dataS,paste0(inpF,basename(annotationGO),".csv"))
+writexl::write_xlsx(cbind(rownames(dataS),dataS),paste0(inpF,basename(annotationGO),".xlsx"))
 cat(do.call(rbind,lapply(1:nrow(dataS),function(x) rbind(paste0(">",dataS[x,"Species"],dataS[x,"X.RK..FWY..ALVI..GALVI..RK..found.as.Sequence.s..Position.s.0.for.1st.."],dataS[x,"UnID"]),dataS[x,"Sequence.Header.in.uniprot_sprot.fasta"]))),sep="\n",file=paste0(inpF,basename(annotationGO),".fasta"))
 print(paste0(inpF,basename(annotationGO),".fasta"))
 #meme uniprot_sprot.motif.found.seq.txtvalS.fasta -protein -oc . -nostatus -time 14400 -mod oops -nmotifs 3 -minw 6 -maxw 50 -objfun classic -markov_order 0

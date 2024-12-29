@@ -1,4 +1,4 @@
-#python motifSeqAlign.py /home/ash022/animeshs/scripts/uniprot_sprot.motif.found.seq.txtValine--tRNA\ ligase.csv /mnt/f/structue/
+#python motifSeqAlign.py /home/ash022/Animesh/Motif/uniprot_sprot.motif.found.seq.txtenolase.csv /mnt/f/structue/
 #tar cvf structures.tar /mnt/f/structue/*.png
 #wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
 #gunzip uniprot_sprot.fasta.gz
@@ -29,12 +29,13 @@
 # %% input
 import sys
 motifFile = sys.argv[1]
-#motifFile = "/home/ash022/animeshs/scripts/uniprot_sprot.motif.found.seq.txtValine--tRNA ligase.csv"
+#motifFile = "/home/ash022/Animesh/Motif/uniprot_sprot.motif.found.seq.txtenolase.csv"
 pathPDB = sys.argv[2]
 #pathPDB = "/mnt/f/structue/"
 # %% load motifs
 import pandas as pd
 motifList = pd.read_csv(motifFile)
+motifList=motifList.fillna("NA")
 print(motifList.head(),motifList.columns)
 # %% data
 fileNameList=motifList['Uniprot']
@@ -113,8 +114,9 @@ for cnt in range(len(pdbFileList)):
       #cmd.label(motifSeqPos,motifSequence)
       #cmd.color('red', 'motif')
   cmd.zoom('center', 50)
-  cmd.png(pdbFile+pdbFileRes[cnt]+'.png',1600, 1200, dpi=150, ray=1)
-  print(pdbFile+pdbFileRes[cnt]+'.png')
+  pngFile=pdbFile+pdbFileRes[cnt]+'_'+str(cnt+1)+'.png'
+  cmd.png(pngFile,1600, 1200, dpi=150, ray=1)
+  print(pngFile)
   cmd.remove('all')
   #cmd.quit()
   #cmd._quit()
