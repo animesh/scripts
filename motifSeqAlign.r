@@ -1,4 +1,4 @@
-#Rscript motifSeqAlign.r  L:\promec\Animesh\Motif\uniprot_sprot.motif.found.seq.txt "enolase"
+#Rscript motifSeqAlign.r  L:\promec\Animesh\Motif\uniprot_sprot.motif.found.seq.txt "Enolase "
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))

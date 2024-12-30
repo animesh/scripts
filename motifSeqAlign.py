@@ -1,4 +1,5 @@
-#python motifSeqAlign.py /home/ash022/Animesh/Motif/uniprot_sprot.motif.found.seq.txtenolase.csv /mnt/f/structue/
+#python motifSeqAlign.py /home/ash022/Animesh/Motif/uniprot_sprot.motif.found.seq.txtEnolase\ .csv /mnt/f/structue/
+#cp -rf /mnt/f/structue/*.png /home/ash022/promec/promec/Animesh/Motif/enolase/Enolase/.
 #tar cvf structures.tar /mnt/f/structue/*.png
 #wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
 #gunzip uniprot_sprot.fasta.gz
@@ -29,7 +30,7 @@
 # %% input
 import sys
 motifFile = sys.argv[1]
-#motifFile = "/home/ash022/Animesh/Motif/uniprot_sprot.motif.found.seq.txtenolase.csv"
+#motifFile = "/home/ash022/Animesh/Motif/uniprot_sprot.motif.found.seq.txtEnolase .csv"
 pathPDB = sys.argv[2]
 #pathPDB = "/mnt/f/structue/"
 # %% load motifs
@@ -42,17 +43,20 @@ fileNameList=motifList['Uniprot']
 pdbFileList=pathPDB+"AF-"+motifList['Uniprot']+"-F1-model_v4.pdb.gz"
 pdbFileRes='_'+motifList['Gene']+'_'+motifList['UnID']+motifList['Species']
 # %% load motifs
+import os
 for cnt in range(len(pdbFileList)):
   print(cnt)
-  #if cnt == 0:
+  pdbFile=pdbFileList[cnt]
+  if not os.path.exists(pdbFile):
+    print(f"File {pdbFile} does not exist.")
+    continue
+  print(pdbFile)
   # %% load pdb file
   import __main__
   __main__.pymol_argv = [ 'pymol', '-qc']
   import pymol
   pymol.finish_launching()  # not supported on macOSimport sys,os
   from pymol import cmd
-  pdbFile=pdbFileList[cnt]
-  print(pdbFile)
   # %% load pymol
   # %% load pdb file
   #pdbFile = "AF-P26640-F1-model_v4.pdb"

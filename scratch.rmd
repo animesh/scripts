@@ -1,3 +1,24 @@
+```{r perm-ANOVA}
+library(vegan)
+library(tidyverse)
+library(readxl)
+set.seed(100)
+data<-readexcel("test.xlsx")
+pANOVAdata<-data[,2:4]
+pANOVAdatasqrt<-sqrt(pANOVAdata)
+brayDistresult<-metaMDS (pANOVAdatasqrt, distance = "bray")
+brayDistscores <-as.data.frame(scores(brayDistresult)$sites)
+groupcentroids <- data.frame(Location = c("Lower", "Upper"),CentroidX = c(mean(brayDistscores$brayDist1[data$Location == "Lower"]),mean(brayDistscores$brayDist1[data$Location == "Upper"])),CentroidY = c(mean(brayDistscores$brayDist2[data$Location == "Lower"]),mean(brayDistscores$brayDist2[data$Location == "Upper"])))
+plotdata<-data.frame(Location = data$Location,brayDist1=brayDistscores$brayDist1,brayDist2=brayDistscores$brayDist2,xend=c(rep( groupcentroids[1,2],10),rep(groupcentroids[2,2],10)),yend=c(rep(groupcentroids[1,3],10),rep( groupcentroids[2,3],10)))
+ggplot(plotdata, aes(brayDist1,brayDist2)) + geompoint(aes(color = Location),size=2)+ statellipse(geom = "polygon", alpha = 0.05, aes(group = Location), color = "black",fill="blue")+ geompoint(data = groupcentroids, aes(x = CentroidX, y = CentroidY), color = "black", size = 2, shape = 7)+ geomsegment(data = plotdata, aes(x =brayDist1, y = brayDist2, xend = xend, yend = yend, color = Location), alpha = 0.5)+ scalecolormanual(name=" Locations",labels= unique(plotdata$Location),values= c("darkgreen", "darkred"))+ themebw()
+pANOVAdist<-vegdist(pANOVAdatasqrt, method='bray')
+dispersion<-betadisper(pANOVAdist, group=data$Location,type = "centroid")
+plot(dispersion)
+anova(dispersion)
+pANOVAaresult<-adonis2( pANOVAdist~as.factor(plotdata$Location), data=pANOVAdist,pANOVAutations=9999)
+print(pANOVAaresult)
+```
+
 ```{r AAA-FDRcheck}
 #https://tools.carbocation.com/FDR
 #https://github.com/carbocation/falsediscovery/blob/master/falsediscovery.goc(0.000003,0.004,0.001,0.1,0.05)
