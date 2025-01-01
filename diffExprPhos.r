@@ -1,4 +1,4 @@
-#Rscript.exe diffExprPhos.r L:/promec/TIMSTOF/LARS/2024/241118_Deo/phos/combined/txt/ Bio
+#C:\Users\animeshs\R-4.4.0\bin\x64\Rscript diffExprPhos.r L:/promec/TIMSTOF/LARS/2024/241118_Deo/phos/combined/txt/ Bio
 #BiocManager::install("PhosR")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -52,7 +52,8 @@ for(i in 1:3){
                                   GeneSymbol = paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "GN=",fixed=T), "[", 2)), " "), "[", 1)), ";",fixed=T), "[", 1)),
                                   UniprotID = paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(data$Proteins, ";",fixed=T), "[", 1)), "-"), "[", 1)), " ",fixed=T), "[", 1)),
                                   Residue = data$Amino.acid,
-                                  Sequence = gsub("[^A-Z]","",data$Phospho..STY..Probabilities))
+                                  Sequence = gsub("[^A-Z]","",data$Phospho..STY..Probabilities),
+                                  Localisation = data$Localization.prob)
 #  dataPhosR<-PhosR::PhosphoExperiment(data)
   print(class(dataPhosR))
 #  PhosR::GeneSymbol(dataPhosR) <- paste(sapply(strsplit(paste(sapply(strsplit(paste(sapply(strsplit(dataPhosR@assays@data@listData[[1]]$Fasta.headers, "GN=",fixed=T), "[", 2)), " "), "[", 1)), ";",fixed=T), "[", 1))
@@ -76,5 +77,30 @@ for(i in 1:3){
   set.seed(42)
   dataPhosRfilteredImputedTmp <- PhosR::scImpute(dataPhosRfiltered, 0.5, label$pair2test)[,colnames(dataPhosRfiltered)]
   print(dim(dataPhosRfilteredImputedTmp))
+  dataPhosRfilteredImputed<-dataPhosRfilteredImputedTmp
+  dataPhosRfilteredImputed[,seq(3)] <- PhosR::ptImpute(dataPhosRfilteredImputed[,seq(10,12)], dataPhosRfilteredImputed[,seq(3)], percent1 = 0.6, percent2 = 0, paired = FALSE)
+  #dataPhosRfilteredImputed[,seq(7,12)] <- PhosR::ptImpute(dataPhosRfilteredImputed[,seq(6,12)], dataPhosRfilteredImputed[,seq(6)], percent1 = 0.6, percent2 = 0, paired = FALSE)
+  #PCA
+  PhosR::plotQC(SummarizedExperiment::assay(dataPhosRfilteredImputed,"imputed"), labels=colnames(dataPhosRfilteredImputed), panel = "pca", grps = label$pair2test)
+  dataPhosRfilteredImputedScaled <- PhosR::medianScaling(dataPhosRfilteredImputed, scale = FALSE, assay = "imputed")
+  print(dim(dataPhosRfilteredImputedScaled))
+  #PCA
+  PhosR::plotQC(SummarizedExperiment::assay(dataPhosRfilteredImputedScaled,"scaled"), labels=colnames(dataPhosRfilteredImputedScaled), panel = "pca", grps = label$pair2test)
+  #bar
+  p1 = PhosR::plotQC(SummarizedExperiment::assay(dataPhosRfilteredImputed,"Quantification"), labels=colnames(dataPhosRfilteredImputed), panel = "quantify", grps = label$pair2test)
+  p2 = PhosR::plotQC(SummarizedExperiment::assay(dataPhosRfilteredImputedScaled,"scaled"), labels=colnames(dataPhosRfilteredImputedScaled), panel = "quantify", grps = label$pair2test)
+  ggpubr::ggarrange(p1, p2, nrow = 1)
+  #dendro
+  p1 = PhosR::plotQC(SummarizedExperiment::assay(dataPhosRfilteredImputed,"Quantification"), labels=colnames(dataPhosRfilteredImputed), panel = "dendrogram", grps = label$pair2test)
+  p2 = PhosR::plotQC(SummarizedExperiment::assay(dataPhosRfilteredImputedScaled,"scaled"), labels=colnames(dataPhosRfilteredImputedScaled), panel = "dendrogram", grps = label$pair2test)
+  ggpubr::ggarrange(p1, p2, nrow = 1)
+  #batch compare
+  X = model.matrix(~ label$pair2test - 1)
+  fit <- limma::lmFit(SummarizedExperiment::assay(dataPhosRfilteredImputedScaled, "scaled"), X)
+  table.AICAR <- limma::topTable(limma::eBayes(fit), number=Inf, coef = 1)
+  table.Ins <- limma::topTable(limma::eBayes(fit), number=Inf, coef = 3)
+  table.AICARIns <- limma::topTable(limma::eBayes(fit), number=Inf, coef = 2)
+  DE1.RUV <- c(sum(table.AICAR[,"adj.P.Val"] < 0.05,na.rm=TRUE), sum(table.Ins[,"adj.P.Val"] < 0.05,na.rm=TRUE), sum(table.AICARIns[,"adj.P.Val"] < 0.05,na.rm=TRUE))
+  print(summary(DE1.RUV))
   dev.off()
 }

@@ -9,6 +9,39 @@ output=[0.01,0.99]
 bias=[0.35,0.6]
 lr=0.5
 #mamba create -n torch -c nvidia -c pytorch -c conda-forge pytorch torchvision torchaudio cudatoolkit=11.6
+#https://pub.towardsai.net/the-fundamental-mathematics-of-machine-learning-39c2418d19c6
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# Define a simple neural network
+class SimpleNN(nn.Module):
+    def __init__(self):
+        super(SimpleNN, self).__init__()
+        self.fc1 = nn.Linear(2, 3)
+        self.fc2 = nn.Linear(3, 1)
+    
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
+        return x
+# Example data
+X = torch.tensor([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
+y = torch.tensor([[0.0], [1.0], [1.0], [0.0]])
+# Initialize model, loss function, and optimizer
+model = SimpleNN()
+criterion = nn.BCELoss()
+optimizer = optim.SGD(model.parameters(), lr=0.1)
+# Training loop
+for epoch in range(10000):
+    optimizer.zero_grad()
+    output = model(X)
+    loss = criterion(output, y)
+    loss.backward()
+    optimizer.step()
+print("Finished Training")
+print(output)
+#OUTPUT: Finished Training tensor([[0.0259],[0.8772],[0.8772],[0.1237]], grad_fn=<SigmoidBackward0>)
 import torch
 print("PyTorch ",torch.__version__)
 from datetime import datetime
