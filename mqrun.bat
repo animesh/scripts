@@ -1,29 +1,28 @@
 ::@echo off
 :: change the following paths according to the MaxQuant Installation, directory containing experiment raw files, fasta file and representative parameter file for that version respectively
-set MAXQUANTCMD=C:\Users\animeshs\MaxQuant_1.6.17.0.zip\MaxQuant\bin\MaxQuantCmd.exe
-set DATADIR=F:\SINTEF
-set FASTAFILE=F:\SINTEF\AP-004_translations.fa
+set MAXQUANTCMD="C:\Program Files\MaxQuant_v2.6.5.0\bin\MaxQuantCmd.exe"
+set DATADIR=F:\promec\TIMSTOF\LARS\2024\241219_Hela_DDA_DIA\dda
+set FASTAFILE=F:\promec\FastaDB\UP000005640_9606_UP000000625_83333_unique_gene.fasta
 set PARAMFILE=mqpar.xml
 :: leave following empty to include ALL files
-set PREFIXRAW=
-DIR /B %DATADIR%\%PREFIXRAW%*.raw > %DATADIR%\tempfile.txt
-set SEARCHTEXT=TestFile
+dir /s /b /o:n /ad  %DATADIR%\241217_2ngHelaQC_DDAc_Slot1-29_1_9281*.d > %DATADIR%\tempfile.txt
+set SEARCHTEXT=TestDir
 set SEARCHTEXT2=SequencesFasta
 
-FOR /F "eol=  tokens=1,2 delims=." %%i in (%DATADIR%\tempfile.txt) do  (
-	if not %%i ==   "" (
-		call :Change %%i
-		if exist proc rmdir /S /Q proc
-		if exist %DATADIR%\combined rmdir /S /Q %DATADIR%\combined
-		if exist %DATADIR%\%%i rmdir /S /Q %DATADIR%\%%i
-		%MAXQUANTCMD% %DATADIR%\%%i.xml
-		if exist %DATADIR%\%%iREP rmdir /S /Q %DATADIR%\%%iREP
-		echo D| xcopy  /E /Y /Q %DATADIR%\combined\txt %DATADIR%\%%iREP
+for /f "tokens=*" %%i in (%DATADIR%\tempfile.txt) do  (
+		if not %%i ==   "" (
+	  call :Change %%i
+		:: if exist proc rmdir /S /Q proc
+		:: if exist %DATADIR%\combined rmdir /S /Q %DATADIR%\combined
+		:: if exist %DATADIR%\%%i rmdir /S /Q %DATADIR%\%%i
+		%MAXQUANTCMD% %%i.xml
+		:: if exist %DATADIR%\%%iREP rmdir /S /Q %DATADIR%\%%iREP
+		:: echo D| xcopy  /E /Y /Q %DATADIR%\combined\txt %DATADIR%\%%iREP
 		:: if exist %DATADIR%\%%iREP copy %DATADIR%\combined\andromeda\*.apl %DATADIR%\%%iREP
-		if exist %DATADIR%\%%i rmdir /S /Q %DATADIR%\%%i
-		if exist proc rmdir /S /Q proc
-		if exist %DATADIR%\combined rmdir /S /Q %DATADIR%\combined
-	)
+		:: if exist %DATADIR%\%%i rmdir /S /Q %DATADIR%\%%i
+		:: if exist proc rmdir /S /Q proc
+		:: if exist %DATADIR%\combined rmdir /S /Q %DATADIR%\combined
+ 	)
 )
 
 GOTO :Source
@@ -34,10 +33,9 @@ GOTO :Source
 
 	set FileN=%~1
 	set INTEXTFILE=%PARAMFILE%
-	set OUTTEXTFILE=%DATADIR%\%FileN%.xml
-	set REPLACETEXT=%DATADIR%\%FileN%
+	set OUTTEXTFILE=%FileN%.xml
+	set REPLACETEXT=%FileN%
 	set REPLACETEXT2=%FASTAFILE%
-	set OUTPUTLINE=
 
 	if exist %OUTTEXTFILE% del %OUTTEXTFILE%
 	for /f "tokens=1,* delims=" %%A in ( '"type %INTEXTFILE%"') do (
@@ -51,7 +49,7 @@ GOTO :Source
 )
 
 :Source
-
+:: https://stackoverflow.com/a/16079895
 :: https://irfanview-forum.de/showthread.php?t=3263
 :: http://stackoverflow.com/questions/5273937/how-to-replace-substrings-in-windows-batch-file
 :: http://www.pcreview.co.uk/forums/delims-t1466398.html
