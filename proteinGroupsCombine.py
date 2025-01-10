@@ -1,24 +1,21 @@
-# python proteinGroupsCombine.py L:\promec\TIMSTOF\LARS\2024\241219_Hela_DDA_DIA\Hela_Salmon\DDA\mqparTTPdda.xml.1734955530.results "_HUMAN"
-#mkdir -p salmon/dda
-#rsync -Parv ash022@login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/Hela_Salmon/DDA/*.d salmon/dda/.
-#git checkout 1b88b4332b7afe044820ee5eff575b13006fa04c scratch.slurm
-#dos2unix scratch.slurm
-#bash slurmDIANNrunTTP.sh /cluster/projects/nn9036k/scripts/salmon/dia scratch.slurm
-#rsync -Pirm --include='proteinGroups.txt' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/mqparTTPdda.xml.1734955530.results /mnt/l/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/Hela_Salmon/dda/
+# mqrun.bat
+# python proteinGroupsCombine.py L:\promec\TIMSTOF\LARS\2025\250107_Hela_Coli\DDA "Homo" "coli"
 # %%setup
 #python -m pip install pandas seaborn pathlib supervenn
 import sys
 from pathlib import Path
 # %% read
-if len(sys.argv) != 3: sys.exit("\n\nREQUIRED: pandas, seaborn, supervenn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing proteinGroups.txt file(s)> <species>")
+if len(sys.argv) != 4: sys.exit("\n\nREQUIRED: pandas, seaborn, supervenn, pathlib\nUSAGE: python peptideGroupsCombine.py <path to folder containing proteinGroups.txt file(s)> <species filter> <species include>")
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/Hela_Salmon/DDA/mqparTTPdda.xml.1734955530.results")
+#pathFiles=Path("L:\\promec\\TIMSTOF\\LARS\\2025\\250107_Hela_Coli\\DDA")
 fileName='proteinGroups.txt'
 trainList=list(pathFiles.rglob(fileName))
 print(trainList)
 print(len(trainList),"files found in",pathFiles)
 species=sys.argv[2]
-#species='_HUMAN'
+#species='Homo'
+speciesInc=sys.argv[3]
+#speciesInc='coli'
 #%%data 
 #trainList=[fN for fN in trainList if "DIA" in str(fN)]
 #!pip3 install pandas --user
@@ -37,6 +34,7 @@ for f in trainList:
         if 'Protein IDs' in proteinHits:
             #print(proteinHits.columns)
             proteinHits.rename({'Fasta headers':'ID'},inplace=True,axis='columns')
+            proteinHits.ID=proteinHits.ID.str.replace('[^a-zA-Z]', '',regex=True)
             proteinHits=proteinHits[proteinHits['Reverse']!="+"]
             proteinHits=proteinHits[proteinHits['Potential contaminant']!="+"]
             #proteinHits=proteinHits[proteinHits['Only identified by site']!="+"]
@@ -44,16 +42,17 @@ for f in trainList:
             proteinHits=proteinHits[~proteinHits['ID'].str.contains(species)]
             proteinHitsC=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Score).stack().reset_index(level=0, name='ID')
             proteinHitsI=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.Intensity).stack().reset_index(level=0, name='ID')
-            proteinHitsI['Name']=str(f.parts[-4])[17:27]
-            proteinHitsC['Name']=str(f.parts[-4])[17:27]
-            proteinHitsI=proteinHitsI[proteinHitsI.ID.str.contains('_')]
-            proteinHitsC=proteinHitsC[proteinHitsC.ID.str.contains('_')]
+            proteinHitsI['Name']=str(f.parts[-2])[12:22]
+            proteinHitsC['Name']=str(f.parts[-2])[12:22]
+            proteinHitsI=proteinHitsI[proteinHitsI.ID.str.contains(speciesInc)]
+            proteinHitsC=proteinHitsC[proteinHitsC.ID.str.contains(speciesInc)]
             dfI=pd.concat([dfI,proteinHitsI],sort=False)
             dfC=pd.concat([dfC,proteinHitsC],sort=False)
 print(dfI.columns)
 print(dfC.columns)
 #%%intensity
 print("Intensity common")
+dfI=dfI[~dfI['ID'].duplicated()]
 dfIp=dfI.pivot(index='ID', columns='Name', values='Intensity')
 dfIp.dropna(axis=1, how='all', inplace=True)
 dfIpDD=dfIp.drop_duplicates()    
@@ -75,6 +74,7 @@ ppS.map_lower(sns.kdeplot)
 ppS.map_upper(sns.regplot)
 ppS.savefig(pathFiles/(fileName+species+"dfIpDDlog2.scatter.svg"), dpi=100, bbox_inches="tight")
 #%%score
+dfC=dfC[~dfC['ID'].duplicated()]
 dfCp=dfC.pivot(index='ID', columns='Name', values='Score')
 dfCp['SumC']=dfCp.astype(str).sum(axis=1)
 dfCp=dfCp[dfCp['SumC']!=0]

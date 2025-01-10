@@ -1,4 +1,5 @@
-#python proteinGroupsCombineDIANN.py L:\promec\TIMSTOF\LARS\2024\241219_Hela_DDA_DIA\Hela_Salmon\DIA\DIANN1p9p2 "*1734955988.pr_matrix.tsv" "_HUMAN"
+#runDIANN.bat
+#python proteinGroupsCombineDIANN.py L:\promec\TIMSTOF\LARS\2025\250107_Hela_Coli\DIA "*d.UP000005640_9606_UP000000625_83333_unique_gene_MC1_L35_C57_vMod3_MZ117.diann.pr_matrix.tsv" "_HUMAN"
 #rsync -Pirm --include='*1734955988.pr_matrix.tsv' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/salmon/dia /mnt/l/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/Hela_Salmon/DIA/DIANN1p9p2/
 #!pip3 install pandas matplotlib seaborn pathlib numpy --user
 #bash slurmDIANNrunTTP.sh /cluster/projects/nn9036k/scripts/salmon/dia scratch.slurm 
@@ -8,12 +9,12 @@ from pathlib import Path
 import pandas as pd
 # %% data
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/Hela_Salmon/DIA/DIANN1p9p2/")
+#pathFiles=Path("L:\\promec\\TIMSTOF\\LARS\\2025\\250107_Hela_Coli\\DIA")
 fileName=sys.argv[2]
-#fileName='*1734955988.pr_matrix.tsv'
+#fileName='*d.UP000005640_9606_UP000000625_83333_unique_gene_MC1_L35_C57_vMod3_MZ117.diann.pr_matrix.tsv'
 print(fileName)
 species=sys.argv[3]
-#species='_SALSA'
+#species='_HUMAN'
 fileNameOut="filter"+str(species)+fileName.replace("*","")
 print(fileNameOut)
 trainList=list(pathFiles.rglob(fileName))
