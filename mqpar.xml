@@ -4,7 +4,7 @@
       <FastaFileInfo>
          <fastaFilePath>SequencesFasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
-         <descriptionParseRule>>* (.*)</descriptionParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
@@ -194,13 +194,13 @@
          <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
-         <intensityThresholdMs1Dia>0</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>0</intensityThresholdMs2>
+         <intensityThresholdMs1Dda>0</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dia>30</intensityThresholdMs1Dia>
+         <intensityThresholdMs2>10</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
-         <lcmsRunType>TIMS-DDA</lcmsRunType>
+         <lcmsRunType>TIMS-MaxDIA</lcmsRunType>
          <reQuantify>False</reQuantify>
          <lfqMode>0</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
@@ -281,7 +281,7 @@
          <timsHalfWidth>10</timsHalfWidth>
          <timsStep>3</timsStep>
          <timsResolution>35000</timsResolution>
-         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
+         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -315,7 +315,7 @@
          <isobaricSumOverWindow>True</isobaricSumOverWindow>
          <isobaricWeightExponent>0.75</isobaricWeightExponent>
          <collapseMsmsOnIsotopePatterns>False</collapseMsmsOnIsotopePatterns>
-         <diaLibraryType>0</diaLibraryType>
+         <diaLibraryType>2</diaLibraryType>
          <diaLibraryPaths>
          </diaLibraryPaths>
          <diaEvidencePaths>
@@ -323,6 +323,7 @@
          <diaMsmsPaths>
          </diaMsmsPaths>
          <diaLabelIndsForLibraryMatch>
+            <int>0</int>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
          <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
@@ -394,7 +395,7 @@
          <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
          <diaAltCcsModelPath></diaAltCcsModelPath>
          <diaBatchProcessing>True</diaBatchProcessing>
-         <diaBatchSize>0</diaBatchSize>
+         <diaBatchSize>50</diaBatchSize>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
@@ -403,8 +404,8 @@
          <diaRequirePrecursor>False</diaRequirePrecursor>
          <diaFuturePeptides>False</diaFuturePeptides>
          <diaOverrideRtWithPrediction>False</diaOverrideRtWithPrediction>
-         <diaMaxModifications>0</diaMaxModifications>
-         <diaMaxPositionings>0</diaMaxPositionings>
+         <diaMaxModifications>2</diaMaxModifications>
+         <diaMaxPositionings>20</diaMaxPositionings>
          <diaPredictCharges>False</diaPredictCharges>
          <diaUseProbScore>False</diaUseProbScore>
          <diaProbScoreP>0.055</diaProbScoreP>
@@ -428,8 +429,8 @@
          <diaSequenceCoverageFdr>0.01</diaSequenceCoverageFdr>
          <diaHasIntensitiesForMl>True</diaHasIntensitiesForMl>
          <diaFdrCvIncludeCharge>True</diaFdrCvIncludeCharge>
-         <diaMinCharge>0</diaMinCharge>
-         <diaMaxCharge>0</diaMaxCharge>
+         <diaMinCharge>2</diaMinCharge>
+         <diaMaxCharge>4</diaMaxCharge>
          <diaDeltaMzLower>0.55</diaDeltaMzLower>
          <diaDeltaMzUpper>0.05</diaDeltaMzUpper>
          <diaUseNeutralLossesForQuant>True</diaUseNeutralLossesForQuant>
