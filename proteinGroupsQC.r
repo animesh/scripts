@@ -1,18 +1,18 @@
-#Rscript proteinGroupsQC.r "L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/proteinGroups.txt" "Tumor_"
+#Rscript proteinGroupsQC.r "L:/promec/USERS/Mei/2017-08_PancreaticCancer/QE/proteinGroups.txt" "55 56 57 58 59 60"
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 inpF <- args[1]
-#inpF<-"L:/promec/USERS/Mei/2016-05_PancreaticCancer/QE/proteinGroups.txt"
+#inpF<-"L:/promec/USERS/Mei/2017-08_PancreaticCancer/QE/proteinGroups.txt"
 selection <- args[2]
-#selection<-"Tumor_"
+#selection<-"55 56 57 58 59 60"
 print(args)
 #data####
 data<-read.table(inpF,header = T,sep = "\t",quote = "")
-dataCovClip50<-data[,grep(paste0("Sequence.coverage.",selection),colnames(data))]
+dataCovClip50<-data[,match(paste0("Sequence.coverage.70901_",strsplit(selection," ")[[1]],"...."),colnames(data))]
 data$Sequence.coverage....<-apply(dataCovClip50,1,function(x) max(x,na.rm=T))
 #https://www.nature.com/articles/s41597-024-03355-4#Sec8
-pdf(paste0(inpF,"Sequence.coverage.Tumor.pdf"),width=40,height=40)
+pdf(paste0(inpF,selection,"Sequence.coverage.pdf"),width=40,height=40)
 range(data$Sequence.coverage....)
 #hist(data$Sequence.coverage....)
 dataCovClip50<-scales::squish(data$Sequence.coverage....,c(0,50))
@@ -24,11 +24,11 @@ levels(dataCovClip50Bin6)<-paste(c("0-10","10-20","20-30","30-40","40-50",">50")
 pie(table(dataCovClip50Bin6),main="Sequence coverage")
 dev.off()
 #intensity####
-intdata<-data[,grep(paste0("Intensity.",selection),colnames(data))]
+intdata<-data[,match(paste0("Intensity.70901_",strsplit(selection," ")[[1]]),colnames(data))]
 log2Int<-as.matrix(log2(intdata))
 dim(log2Int)
 log2Int[log2Int==-Inf]=NA
-colnames(log2Int)<-gsub("Intensity.","",colnames(log2Int))
+colnames(log2Int)<-gsub("Intensity.70901_","",colnames(log2Int))
 summary(log2Int)
 #corHCint####
 colnames(log2Int)
@@ -40,8 +40,8 @@ bk1 <- c(seq(-1,-0.01,by=0.01))
 bk2 <- c(seq(0.01,1,by=0.01))
 bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
 palette <- c(colorRampPalette(colors = c("yellow", "orange"))(n = length(bk1)-1),"orange", "orange",c(colorRampPalette(colors = c("orange","red"))(n = length(bk2)-1)))
-svgPHC<-pheatmap::pheatmap(log2IntimpCorr,color=palette,fontsize_row=6,fontsize_col=6,cluster_cols=T,cluster_rows=T)#,clustering_distance_rows= "euclidean",clustering_distance_cols="euclidean")
-ggplot2::ggsave(paste0(inpF,selection,"log2IntimpCorr.heatmap.pdf"),plot=svgPHC, device="pdf",dpi=300, units = "in",width=40,height=40)
+svgPHC<-pheatmap::pheatmap(log2IntimpCorr,color=palette,fontsize_row=20,fontsize_col=20,cluster_cols=T,cluster_rows=T)#,clustering_distance_rows= "euclidean",clustering_distance_cols="euclidean")
+ggplot2::ggsave(paste0(inpF,selection,"log2IntimpCorr.heatmap.pdf"),plot=svgPHC,device="pdf",dpi=300, units = "in",width=40,height=40)
 print(paste0(inpF,selection,"log2IntimpCorr.heatmap.pdf"))
 #CV####
 intdata[intdata==0]=NA
