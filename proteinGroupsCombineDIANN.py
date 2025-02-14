@@ -1,16 +1,20 @@
-#runDIANN.bat
-#python proteinGroupsCombineDIANN.py L:\promec\TIMSTOF\LARS\2025\250107_Hela_Coli\DIA "*d.UP000005640_9606_UP000000625_83333_unique_gene_MC1_L35_C57_vMod3_MZ117.diann.pr_matrix.tsv"
+#python proteinGroupsCombineDIANN.py L:\promec\TIMSTOF\LARS\2025\250107_Hela_Coli\DIA "*d.UP000005640_9606_UP000000625_83333_unique_gene_MC1_L35_C57_vMod3_MZ117.diann.pr_matrix.tsv" "_ECOLI"
+#rsync -Pirm --include='*1734955988.pr_matrix.tsv' --include='*/' --exclude='*' ash022@login.saga.sigma2.no:scripts/salmon/dia /mnt/l/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/Hela_Salmon/DIA/DIANN1p9p2/
+#!pip3 install pandas matplotlib seaborn pathlib numpy --user
+#bash slurmDIANNrunTTP.sh /cluster/projects/nn9036k/scripts/salmon/dia scratch.slurm 
 # %% setup
 import sys
 from pathlib import Path
 import pandas as pd
 # %% data
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:\\promec\\TIMSTOF\\LARS\\2025\\250107_Hela_Coli\\DIA")
+#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/Hela_Salmon/DIA/DIANN1p9p2/")
 fileName=sys.argv[2]
-#fileName='*UP000005640_9606_UP000000625_83333_unique_gene_MC1_L35_C57_vMod3_MZ117.diann.pr_matrix.tsv'
+#fileName='*1734955988.pr_matrix.tsv'
 print(fileName)
-fileNameOut=fileName.replace("*","")
+species=sys.argv[3]
+#species='_SALSA'
+fileNameOut="filter"+str(species)+fileName.replace("*","")
 print(fileNameOut)
 trainList=list(pathFiles.rglob(fileName))
 print(trainList)
@@ -22,14 +26,15 @@ for f in trainList:
     if Path(f).stat().st_size > 0:
         proteinHits=pd.read_csv(f,sep='\t',low_memory=False)
         fName=f.name.split('.')[0]
-        proteinHits.rename({'Protein.Ids':'ID'},inplace=True,axis='columns')
+        proteinHits.rename({'Protein.Names':'ID'},inplace=True,axis='columns')
         proteinHits.rename({proteinHits.columns[-1]:'intensity'},inplace=True,axis='columns')
-        proteinHits=proteinHits[~proteinHits['ID'].str.contains('cRAP')]
-        print(fName,f,proteinHits.columns)
-        proteinHits=proteinHits.ID.str.split(';', expand=True).set_index(proteinHits.intensity).stack().reset_index(level=0, name='ID')
-        proteinHits=proteinHits.groupby('ID').sum()
-        proteinHits['Name']=fName
-        df=pd.concat([df,proteinHits],sort=False)
+        proteinHitsS=proteinHits[~proteinHits['ID'].str.contains(species)]
+        proteinHitsS=proteinHitsS[~proteinHitsS['ID'].str.contains('cRAP')]
+        print(fName,f,species,proteinHitsS.columns)
+        proteinHitsS=proteinHitsS.ID.str.split(';', expand=True).set_index(proteinHitsS.intensity).stack().reset_index(level=0, name='ID')
+        proteinHitsS=proteinHitsS.groupby('ID').sum()
+        proteinHitsS['Name']=fName
+        df=pd.concat([df,proteinHitsS],sort=False)
 print(df.head())
 print(df.columns)
 # %% pivot

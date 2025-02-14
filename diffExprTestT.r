@@ -1,4 +1,6 @@
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\241109_Deo\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\241109_Deo\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "T" "C" 0.1 0.5 0.1
+#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "C2" "C1" 0.1 0.5 0.15
+#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "C4" "C1" 0.1 0.5 0.15
+#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "C6" "C1" 0.1 0.5 0.15
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -12,9 +14,9 @@ if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of protei
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2024/241109_Deo/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2024/241118_Deo/tot/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2024/241109_Deo/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2024/241118_Deo/tot/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
@@ -22,9 +24,9 @@ rGroup <- args[4]
 selection <- args[5]
 #selection<-"LFQ.intensity."
 sample <- args[6]
-#sample<-"T"
+#sample<-"C6"
 control <- args[7]
-#control<-"C"
+#control<-"C1"
 selThr <- args[8]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
@@ -194,8 +196,8 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
       else if(is.na(sd(x[c((mCol+1):eCol)],na.rm=T))&(sd(x[c(sCol:mCol)],na.rm=T)==0)){0}
       else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
         t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
-      else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1&abs(sd(x[c(sCol:mCol)],na.rm=T)/mean(x[c(sCol:mCol)],na.rm=T))<cvThr){0}
-      else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1&abs(sd(x[c((mCol+1):eCol)],na.rm=T)/mean(x[c((mCol+1):eCol)],na.rm=T))<cvThr){0}
+      else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1&abs(sd(2^x[c(sCol:mCol)],na.rm=T)/mean(2^x[c(sCol:mCol)],na.rm=T))<cvThr){0}
+      else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1&abs(sd(2^x[c((mCol+1):eCol)],na.rm=T)/mean(2^x[c((mCol+1):eCol)],na.rm=T))<cvThr){0}
       else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
         t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
       else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
@@ -219,10 +221,10 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
       pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
       hist(pValBHnaMinusLog10)
       logFCmedianGrp1=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
-      grp1CV=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
+      grp1CV=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(2^dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
       #summary(logFCmedianGrp11-logFCmedianGrp1)
       logFCmedianGrp2=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) median(x,na.rm=T))}
-      grp2CV=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
+      grp2CV=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(2^dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
       logFCmedianGrp1[is.na(logFCmedianGrp1)]=0
       logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
       hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
