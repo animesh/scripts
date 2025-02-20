@@ -218,7 +218,7 @@
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
          <maxLabeledAa>0</maxLabeledAa>
          <maxNmods>5</maxNmods>
-         <maxMissedCleavages>2</maxMissedCleavages>
+         <maxMissedCleavages>1</maxMissedCleavages>
          <maxMissedCleavagesDia>1</maxMissedCleavagesDia>
          <multiplicity>1</multiplicity>
          <enzymeMode>0</enzymeMode>
