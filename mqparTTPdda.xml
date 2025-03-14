@@ -2,8 +2,44 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>SequencesFasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/Balaenoptera acutorostrata_uniprot-2023.04.11.fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/Myoglobin_Obscurin_Myosin.fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/uniprotkb_Collagen_AND_Balaenoptera_acu+BalaenidaeCoallgenI_2024_08_22 (2).fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000261681_2025_01_15.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/Whale_CollagenI-Prothrombin_PeptideMarkersOnlyReduced (1).fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
@@ -35,7 +71,7 @@
    <minScoreUnmodifiedPeptides>0</minScoreUnmodifiedPeptides>
    <minScoreModifiedPeptides>40</minScoreModifiedPeptides>
    <secondPeptide>True</secondPeptide>
-   <matchBetweenRuns>False</matchBetweenRuns>
+   <matchBetweenRuns>True</matchBetweenRuns>
    <matchUnidentifiedFeatures>False</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
    <dependentPeptides>False</dependentPeptides>
@@ -47,10 +83,10 @@
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
    <ibaq>True</ibaq>
-   <top3>True</top3>
+   <top3>False</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
-   <splitProteinGroupsByTaxonomy>True</splitProteinGroupsByTaxonomy>
+   <splitProteinGroupsByTaxonomy>False</splitProteinGroupsByTaxonomy>
    <taxonomyLevel>Species</taxonomyLevel>
    <avalon>False</avalon>
    <nModColumns>3</nModColumns>
@@ -95,11 +131,13 @@
    <restrictMods>
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
+      <string>Deamidation (NQ)</string>
+      <string>Hydroxyproline</string>
    </restrictMods>
-   <matchingTimeWindow>0</matchingTimeWindow>
-   <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
-   <alignmentTimeWindow>0</alignmentTimeWindow>
-   <alignmentIonMobilityWindow>0</alignmentIonMobilityWindow>
+   <matchingTimeWindow>1</matchingTimeWindow>
+   <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
+   <alignmentTimeWindow>20</alignmentTimeWindow>
+   <alignmentIonMobilityWindow>1</alignmentIonMobilityWindow>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
    <quantMode>2</quantMode>
@@ -126,9 +164,9 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.6.3.0</maxQuantVersion>
+   <maxQuantVersion>2.6.5.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>10</numThreads>
+   <numThreads>20</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -196,13 +234,13 @@
          <advancedPeakSplitting>True</advancedPeakSplitting>
          <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>0</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>10</intensityThresholdMs2>
+         <intensityThresholdMs2>0</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
          <lcmsRunType>TIMS-DDA</lcmsRunType>
          <reQuantify>False</reQuantify>
-         <lfqMode>0</lfqMode>
+         <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
          <lfqAvEdgesPerNode>6</lfqAvEdgesPerNode>
@@ -213,15 +251,17 @@
          <neucodeInSilicoLowRes>False</neucodeInSilicoLowRes>
          <fastLfq>True</fastLfq>
          <lfqRestrictFeatures>False</lfqRestrictFeatures>
-         <lfqMinRatioCount>2</lfqMinRatioCount>
-         <lfqMinRatioCountDia>2</lfqMinRatioCountDia>
+         <lfqMinRatioCount>1</lfqMinRatioCount>
+         <lfqMinRatioCountDia>1</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
+         <lfqLamdaLimit>20</lfqLamdaLimit>
+         <lfqMaxIter>10</lfqMaxIter>
          <maxLabeledAa>0</maxLabeledAa>
-         <maxNmods>5</maxNmods>
-         <maxMissedCleavages>1</maxMissedCleavages>
-         <maxMissedCleavagesDia>1</maxMissedCleavagesDia>
+         <maxNmods>6</maxNmods>
+         <maxMissedCleavages>0</maxMissedCleavages>
+         <maxMissedCleavagesDia>0</maxMissedCleavagesDia>
          <multiplicity>1</multiplicity>
-         <enzymeMode>0</enzymeMode>
+         <enzymeMode>3</enzymeMode>
          <complementaryReporterType>0</complementaryReporterType>
          <reporterNormalization>0</reporterNormalization>
          <neucodeIntensityMode>0</neucodeIntensityMode>
@@ -239,6 +279,8 @@
          <variableModifications>
             <string>Oxidation (M)</string>
             <string>Acetyl (Protein N-term)</string>
+            <string>Deamidation (NQ)</string>
+            <string>Hydroxyproline</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
@@ -334,14 +376,14 @@
          <diaXgBoostSubSample>0.9</diaXgBoostSubSample>
          <centroidPosition>0</centroidPosition>
          <diaQuantMethod>7</diaQuantMethod>
-         <diaFeatureQuantMethod>2</diaFeatureQuantMethod>
+         <diaFeatureQuantMethod>0</diaFeatureQuantMethod>
          <lfqNormType>1</lfqNormType>
-         <diaTopNForQuant>12</diaTopNForQuant>
-         <diaTopNCorrelatingFragmentsForQuant>7</diaTopNCorrelatingFragmentsForQuant>
+         <diaTopNForQuant>6</diaTopNForQuant>
+         <diaTopNCorrelatingFragmentsForQuant>6</diaTopNCorrelatingFragmentsForQuant>
          <diaFragmentCorrelationForQuant>0.78</diaFragmentCorrelationForQuant>
          <lfqUsePeptideCorrelation>True</lfqUsePeptideCorrelation>
-         <lfqTopNCorrelatingPeptides>3</lfqTopNCorrelatingPeptides>
-         <lfqPeptideCorrelation>3</lfqPeptideCorrelation>
+         <lfqTopNCorrelatingPeptides>100</lfqTopNCorrelatingPeptides>
+         <lfqPeptideCorrelation>0</lfqPeptideCorrelation>
          <diaMinMsmsIntensityForQuant>30</diaMinMsmsIntensityForQuant>
          <diaTopMsmsIntensityQuantileForQuant>0.85</diaTopMsmsIntensityQuantileForQuant>
          <diaMinFragmentOverlapScore>0</diaMinFragmentOverlapScore>
@@ -364,7 +406,7 @@
          <diaBackgroundSubtractionQuantile>0.5</diaBackgroundSubtractionQuantile>
          <diaBackgroundSubtractionFactor>4</diaBackgroundSubtractionFactor>
          <diaLfqRatioType>0</diaLfqRatioType>
-         <diaTransferQvalue>0.3</diaTransferQvalue>
+         <diaTransferQvalue>0.9</diaTransferQvalue>
          <diaTransferQvalueBetweenLabels>0.01</diaTransferQvalueBetweenLabels>
          <diaTransferQvalueBetweenFractions>0.01</diaTransferQvalueBetweenFractions>
          <diaTransferQvalueBetweenFaims>0.01</diaTransferQvalueBetweenFaims>
@@ -392,7 +434,7 @@
          <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
          <diaAltCcsModelPath></diaAltCcsModelPath>
          <diaBatchProcessing>True</diaBatchProcessing>
-         <diaBatchSize>25</diaBatchSize>
+         <diaBatchSize>0</diaBatchSize>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
@@ -423,9 +465,14 @@
          <diaPtmLocMethod>1</diaPtmLocMethod>
          <diaIndexedSearch>True</diaIndexedSearch>
          <diaIncreaseSequenceCoverage>True</diaIncreaseSequenceCoverage>
-         <diaSequenceCoverageFdr>0.05</diaSequenceCoverageFdr>
+         <diaSequenceCoverageFdr>0.01</diaSequenceCoverageFdr>
          <diaHasIntensitiesForMl>True</diaHasIntensitiesForMl>
          <diaFdrCvIncludeCharge>True</diaFdrCvIncludeCharge>
+         <diaMinCharge>0</diaMinCharge>
+         <diaMaxCharge>0</diaMaxCharge>
+         <diaDeltaMzLower>0.55</diaDeltaMzLower>
+         <diaDeltaMzUpper>0.05</diaDeltaMzUpper>
+         <diaUseNeutralLossesForQuant>True</diaUseNeutralLossesForQuant>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
@@ -469,6 +516,25 @@
       </msmsParams>
       <msmsParams>
          <Name>TOF</Name>
+         <MatchTolerance>25</MatchTolerance>
+         <MatchToleranceInPpm>True</MatchToleranceInPpm>
+         <DeisotopeTolerance>0.01</DeisotopeTolerance>
+         <DeisotopeToleranceInPpm>False</DeisotopeToleranceInPpm>
+         <DeNovoTolerance>25</DeNovoTolerance>
+         <DeNovoToleranceInPpm>True</DeNovoToleranceInPpm>
+         <Deisotope>True</Deisotope>
+         <Topx>16</Topx>
+         <TopxInterval>100</TopxInterval>
+         <HigherCharges>True</HigherCharges>
+         <IncludeWater>True</IncludeWater>
+         <IncludeAmmonia>True</IncludeAmmonia>
+         <IncludeWaterCross>False</IncludeWaterCross>
+         <IncludeAmmoniaCross>False</IncludeAmmoniaCross>
+         <DependentLosses>True</DependentLosses>
+         <Recalibration>False</Recalibration>
+      </msmsParams>
+      <msmsParams>
+         <Name>ASTRAL</Name>
          <MatchTolerance>25</MatchTolerance>
          <MatchToleranceInPpm>True</MatchToleranceInPpm>
          <DeisotopeTolerance>0.01</DeisotopeTolerance>
