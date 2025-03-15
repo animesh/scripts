@@ -2,8 +2,44 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>SequencesFasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/Balaenoptera acutorostrata_uniprot-2023.04.11.fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/Myoglobin_Obscurin_Myosin.fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/uniprotkb_Collagen_AND_Balaenoptera_acu+BalaenidaeCoallgenI_2024_08_22 (2).fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000261681_2025_01_15.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule></taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/FastaDB/Whale_CollagenI-Prothrombin_PeptideMarkersOnlyReduced (1).fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule></taxonomyParseRule>
          <variationParseRule></variationParseRule>
@@ -35,7 +71,7 @@
    <minScoreUnmodifiedPeptides>0</minScoreUnmodifiedPeptides>
    <minScoreModifiedPeptides>40</minScoreModifiedPeptides>
    <secondPeptide>True</secondPeptide>
-   <matchBetweenRuns>False</matchBetweenRuns>
+   <matchBetweenRuns>True</matchBetweenRuns>
    <matchUnidentifiedFeatures>False</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
    <dependentPeptides>False</dependentPeptides>
@@ -95,11 +131,13 @@
    <restrictMods>
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
+      <string>Deamidation (NQ)</string>
+      <string>Hydroxyproline</string>
    </restrictMods>
-   <matchingTimeWindow>0</matchingTimeWindow>
-   <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
-   <alignmentTimeWindow>0</alignmentTimeWindow>
-   <alignmentIonMobilityWindow>0</alignmentIonMobilityWindow>
+   <matchingTimeWindow>1</matchingTimeWindow>
+   <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
+   <alignmentTimeWindow>20</alignmentTimeWindow>
+   <alignmentIonMobilityWindow>1</alignmentIonMobilityWindow>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
    <quantMode>2</quantMode>
@@ -128,12 +166,12 @@
    <name>session1</name>
    <maxQuantVersion>2.6.5.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>32</numThreads>
+   <numThreads>60</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
-   <fullMinMz>-1.7976931348623157E+308</fullMinMz>
-   <fullMaxMz>1.7976931348623157E+308</fullMaxMz>
+   <fullMinMz>-1.7958954417274534E+308</fullMinMz>
+   <fullMaxMz>1.7958954417274534E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -142,21 +180,195 @@
    <showIsotopeMassDifferences>False</showIsotopeMassDifferences>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>TestDir</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_DAG471_Slot2-15_1_9613.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_DAG797_Slot2-16_1_9629.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3366_Slot2-3_1_9606.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3385_Slot2-2_1_9607.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3400_Slot2-1_1_9608.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3402_Slot2-25_1_9609.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3431_1_Slot2-28_1_9610.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3458_Slot2-23_1_9611.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3495_Slot2-22_1_9612.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3505_Slot2-26_1_9614.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3506_Slot2-4_1_9615.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3508_Slot2-18_1_9616.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3510_2_Slot2-12_1_9617.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3512_Slot2-27_1_9621.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3527_Slot2-24_1_9622.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3610_Slot2-17_1_9623.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3616_Slot2-19_1_9627.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC3617_Slot2-20_1_9628.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC4127_1_Slot2-21_1_9630.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC4192_Slot2-5_1_9631.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC4214_1_Slot2-6_1_9632.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC4232_fra240815_Slot2-29_1_9645.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC4238_2_Slot2-7_1_9633.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC4291_1_Slot2-8_1_9634.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC4314_1_Slot2-13_1_9642.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC4323_1_Slot2-14_1_9644.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC4326_fra240815_Slot2-30_1_9646.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC5023_1_Slot2-9_1_9635.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC5026_1_Slot2-10_1_9636.d</string>
+      <string>/cluster/work/users/ash022/mitra/250225_Mitra_FOC5031_1_Slot2-11_1_9637.d</string>
    </filePaths>
    <experiments>
-      <string></string>
+      <string>Mitra_DAG471_Slot2-15_1_9613</string>
+      <string>Mitra_DAG797_Slot2-16_1_9629</string>
+      <string>Mitra_FOC3366_Slot2-3_1_9606</string>
+      <string>Mitra_FOC3385_Slot2-2_1_9607</string>
+      <string>Mitra_FOC3400_Slot2-1_1_9608</string>
+      <string>Mitra_FOC3402_Slot2-25_1_9609</string>
+      <string>Mitra_FOC3431_1_Slot2-28_1_9610</string>
+      <string>Mitra_FOC3458_Slot2-23_1_9611</string>
+      <string>Mitra_FOC3495_Slot2-22_1_9612</string>
+      <string>Mitra_FOC3505_Slot2-26_1_9614</string>
+      <string>Mitra_FOC3506_Slot2-4_1_9615</string>
+      <string>Mitra_FOC3508_Slot2-18_1_9616</string>
+      <string>Mitra_FOC3510_2_Slot2-12_1_9617</string>
+      <string>Mitra_FOC3512_Slot2-27_1_9621</string>
+      <string>Mitra_FOC3527_Slot2-24_1_9622</string>
+      <string>Mitra_FOC3610_Slot2-17_1_9623</string>
+      <string>Mitra_FOC3616_Slot2-19_1_9627</string>
+      <string>Mitra_FOC3617_Slot2-20_1_9628</string>
+      <string>Mitra_FOC4127_1_Slot2-21_1_9630</string>
+      <string>Mitra_FOC4192_Slot2-5_1_9631</string>
+      <string>Mitra_FOC4214_1_Slot2-6_1_9632</string>
+      <string>Mitra_FOC4232_fra240815_Slot2-29_1_9645</string>
+      <string>Mitra_FOC4238_2_Slot2-7_1_9633</string>
+      <string>Mitra_FOC4291_1_Slot2-8_1_9634</string>
+      <string>Mitra_FOC4314_1_Slot2-13_1_9642</string>
+      <string>Mitra_FOC4323_1_Slot2-14_1_9644</string>
+      <string>Mitra_FOC4326_fra240815_Slot2-30_1_9646</string>
+      <string>Mitra_FOC5023_1_Slot2-9_1_9635</string>
+      <string>Mitra_FOC5026_1_Slot2-10_1_9636</string>
+      <string>Mitra_FOC5031_1_Slot2-11_1_9637</string>
    </experiments>
    <fractions>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
       <short>32767</short>
    </fractions>
    <ptms>
       <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
       <string></string>
    </referenceChannel>
    <lfqTopNPeptides>0</lfqTopNPeptides>
@@ -194,15 +406,15 @@
          <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>0</intensityThresholdMs1Dda>
-         <intensityThresholdMs1Dia>30</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>10</intensityThresholdMs2>
+         <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dia>0</intensityThresholdMs1Dia>
+         <intensityThresholdMs2>0</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
-         <lcmsRunType>TIMS-MaxDIA</lcmsRunType>
+         <lcmsRunType>TIMS-DDA</lcmsRunType>
          <reQuantify>False</reQuantify>
-         <lfqMode>0</lfqMode>
+         <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
          <lfqAvEdgesPerNode>6</lfqAvEdgesPerNode>
@@ -213,17 +425,17 @@
          <neucodeInSilicoLowRes>False</neucodeInSilicoLowRes>
          <fastLfq>True</fastLfq>
          <lfqRestrictFeatures>False</lfqRestrictFeatures>
-         <lfqMinRatioCount>2</lfqMinRatioCount>
-         <lfqMinRatioCountDia>2</lfqMinRatioCountDia>
+         <lfqMinRatioCount>1</lfqMinRatioCount>
+         <lfqMinRatioCountDia>1</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
-         <lfqLamdaLimit>0</lfqLamdaLimit>
-         <lfqMaxIter>0</lfqMaxIter>
+         <lfqLamdaLimit>20</lfqLamdaLimit>
+         <lfqMaxIter>10</lfqMaxIter>
          <maxLabeledAa>0</maxLabeledAa>
-         <maxNmods>5</maxNmods>
-         <maxMissedCleavages>1</maxMissedCleavages>
-         <maxMissedCleavagesDia>1</maxMissedCleavagesDia>
+         <maxNmods>6</maxNmods>
+         <maxMissedCleavages>0</maxMissedCleavages>
+         <maxMissedCleavagesDia>0</maxMissedCleavagesDia>
          <multiplicity>1</multiplicity>
-         <enzymeMode>0</enzymeMode>
+         <enzymeMode>3</enzymeMode>
          <complementaryReporterType>0</complementaryReporterType>
          <reporterNormalization>0</reporterNormalization>
          <neucodeIntensityMode>0</neucodeIntensityMode>
@@ -241,6 +453,8 @@
          <variableModifications>
             <string>Oxidation (M)</string>
             <string>Acetyl (Protein N-term)</string>
+            <string>Deamidation (NQ)</string>
+            <string>Hydroxyproline</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
@@ -281,7 +495,7 @@
          <timsHalfWidth>10</timsHalfWidth>
          <timsStep>3</timsStep>
          <timsResolution>35000</timsResolution>
-         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
+         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -315,7 +529,7 @@
          <isobaricSumOverWindow>True</isobaricSumOverWindow>
          <isobaricWeightExponent>0.75</isobaricWeightExponent>
          <collapseMsmsOnIsotopePatterns>False</collapseMsmsOnIsotopePatterns>
-         <diaLibraryType>2</diaLibraryType>
+         <diaLibraryType>0</diaLibraryType>
          <diaLibraryPaths>
          </diaLibraryPaths>
          <diaEvidencePaths>
@@ -323,7 +537,6 @@
          <diaMsmsPaths>
          </diaMsmsPaths>
          <diaLabelIndsForLibraryMatch>
-            <int>0</int>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
          <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
@@ -343,8 +556,8 @@
          <diaTopNCorrelatingFragmentsForQuant>6</diaTopNCorrelatingFragmentsForQuant>
          <diaFragmentCorrelationForQuant>0.78</diaFragmentCorrelationForQuant>
          <lfqUsePeptideCorrelation>True</lfqUsePeptideCorrelation>
-         <lfqTopNCorrelatingPeptides>3</lfqTopNCorrelatingPeptides>
-         <lfqPeptideCorrelation>3</lfqPeptideCorrelation>
+         <lfqTopNCorrelatingPeptides>100</lfqTopNCorrelatingPeptides>
+         <lfqPeptideCorrelation>0</lfqPeptideCorrelation>
          <diaMinMsmsIntensityForQuant>30</diaMinMsmsIntensityForQuant>
          <diaTopMsmsIntensityQuantileForQuant>0.85</diaTopMsmsIntensityQuantileForQuant>
          <diaMinFragmentOverlapScore>0</diaMinFragmentOverlapScore>
@@ -395,7 +608,7 @@
          <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
          <diaAltCcsModelPath></diaAltCcsModelPath>
          <diaBatchProcessing>True</diaBatchProcessing>
-         <diaBatchSize>50</diaBatchSize>
+         <diaBatchSize>0</diaBatchSize>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
@@ -404,8 +617,8 @@
          <diaRequirePrecursor>False</diaRequirePrecursor>
          <diaFuturePeptides>False</diaFuturePeptides>
          <diaOverrideRtWithPrediction>False</diaOverrideRtWithPrediction>
-         <diaMaxModifications>2</diaMaxModifications>
-         <diaMaxPositionings>20</diaMaxPositionings>
+         <diaMaxModifications>0</diaMaxModifications>
+         <diaMaxPositionings>0</diaMaxPositionings>
          <diaPredictCharges>False</diaPredictCharges>
          <diaUseProbScore>False</diaUseProbScore>
          <diaProbScoreP>0.055</diaProbScoreP>
@@ -429,8 +642,8 @@
          <diaSequenceCoverageFdr>0.01</diaSequenceCoverageFdr>
          <diaHasIntensitiesForMl>True</diaHasIntensitiesForMl>
          <diaFdrCvIncludeCharge>True</diaFdrCvIncludeCharge>
-         <diaMinCharge>2</diaMinCharge>
-         <diaMaxCharge>4</diaMaxCharge>
+         <diaMinCharge>0</diaMinCharge>
+         <diaMaxCharge>0</diaMaxCharge>
          <diaDeltaMzLower>0.55</diaDeltaMzLower>
          <diaDeltaMzUpper>0.05</diaDeltaMzUpper>
          <diaUseNeutralLossesForQuant>True</diaUseNeutralLossesForQuant>
