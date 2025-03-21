@@ -1,7 +1,7 @@
-#"F:\OneDrive - NTNU\R-4.3.2\bin\Rscript.exe" C:\Users\animeshs\OneDrive\Desktop\Scripts\proteinGroups.r L:\promec\TIMSTOF\LARS\2023\231130_Anders_S\combined\txt\proteinGroups.txt
+#"C:\Program Files\R\R-4.4.0\bin\Rscript.exe" proteinGroups.r L:\promec\TIMSTOF\LARS\2025\250314_Maria\txtMQv2p6p7\proteinGroups.txt
 print("USAGE:Rscript proteinGroups.r <complete path to proteinGroups.txt file> <LFQ or SILAC if performed else it defaults to raw Intensity columns>")
 #supplying input file for testing
-#inpF<-file.path("L:/promec/TIMSTOF/LARS/2023/231130_Anders_S/combined/txt/proteinGroups.txt")
+#inpF<-file.path("L:/promec/TIMSTOF/LARS/2025/250314_Maria/txtMQv2p6p7/proteinGroups.txt")
 #parse argument(s)0
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
@@ -17,9 +17,16 @@ write.csv(data,paste0(inpF,".csv"),row.names = F)
 dim(data)
 selection="Intensity.";
 print("Selecting Raw Intensity Values(s)")
+outP<-paste(inpF,selection,"pdf",sep = ".")
+pdf(outP)
+par(mar=c(12,3,1,1))
 #summary(data)
 if(sum(grep(selection,colnames(data)))>0){
   intensity<-as.matrix(data[,grep(selection,colnames(data))])
+  intensity[intensity==0]=NA
+  cvInt<-(apply(intensity,1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T)))*100
+  print(summary(cvInt))
+  hist(cvInt,main = "Protein Group Intensity",xlab = "%CV",ylab="Frequency",breaks=length(cvInt))
   intensityLFQ<-log2(intensity)
   intensityLFQ[intensityLFQ==-Inf]=NA
   print("Quantified Total Intensity for protein-groups(s)")
@@ -71,9 +78,6 @@ print(isNA)
 rownames(intensity)<-rownames(data)
 print("Converted Fasta headers to rownames intensity DF")
 write.csv(intensityLFQ,paste(inpF,selection,"csv",sep = "."))
-outP<-paste(inpF,selection,"pdf",sep = ".")
-pdf(outP)
-par(mar=c(12,3,1,1))
 boxplot(intensityLFQ,las=2,main=selection)
 #logBAQ####
 selection="iBAQ."
@@ -85,7 +89,7 @@ if(sum(grep(selection,colnames(data)))>0){
   log2LFQ[log2LFQ==-Inf]=NA
   write.csv(log2LFQ,paste(inpF,selection,"csv",sep = "."))
   boxplot(log2LFQ,las=2,main=selection)
-  }
+}
 #logTop3####
 selection="Top3."
 if(sum(grep(selection,colnames(data)))>0){
@@ -126,19 +130,19 @@ if(sum(grep("LFQ",colnames(data)))>0){
     colnames(LFQ)=paste(protNum,colnames(LFQ),protNum,sep="_")
     print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))
   } else if (sum(grep("Ratio",colnames(data)))>0){
-  selection1="Ratio."
-  LFQ<-as.matrix(data[,grep(selection1,colnames(data))])
-  selection2=".normalized."
-  LFQ<-as.matrix(LFQ[,grep(selection2,colnames(LFQ))])
-  selection<-paste(selection1,selection2)
-  LFQ<-apply(LFQ,2, as.numeric)
-  rownames(LFQ)<-rownames(data)
-  colnames(LFQ)=sub(selection1,"",colnames(LFQ))
-  colnames(LFQ)=sub(selection2,"",colnames(LFQ))
-  protNum<-1:ncol(LFQ)
-  colnames(LFQ)=paste(protNum,colnames(LFQ),protNum,sep="_")
-  print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))
-} else{LFQ=intensity}
+    selection1="Ratio."
+    LFQ<-as.matrix(data[,grep(selection1,colnames(data))])
+    selection2=".normalized."
+    LFQ<-as.matrix(LFQ[,grep(selection2,colnames(LFQ))])
+    selection<-paste(selection1,selection2)
+    LFQ<-apply(LFQ,2, as.numeric)
+    rownames(LFQ)<-rownames(data)
+    colnames(LFQ)=sub(selection1,"",colnames(LFQ))
+    colnames(LFQ)=sub(selection2,"",colnames(LFQ))
+    protNum<-1:ncol(LFQ)
+    colnames(LFQ)=paste(protNum,colnames(LFQ),protNum,sep="_")
+    print(paste("Using proteinGroups.txt file column(s)",selection,"with dimension(s)"))
+  } else{LFQ=intensity}
 summary(LFQ)
 dim(LFQ)
 #select certain marker proteins and calculate their intensity proportion, e.g. using histone as a protein ruler http://www.coxdocs.org/doku.php?id=perseus:user:plugins:proteomicruler
