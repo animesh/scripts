@@ -1,18 +1,12 @@
 #git checkout 1b88b4332b7afe044820ee5eff575b13006fa04c mqparTTPdda.xml mqparTTPdia.xml scratch.slurm slurmMQrunTTP.sh
 #dos2unix mqparTTPdda.xml scratch.slurm slurmMQrunTTP.sh
-#rsync -Parv login.nird-lmd.sigma2.no:TIMSTOF/LARS/2024/240827_Bead_test .
-#mkdir 240827_Bead_test/dia
-#mv 240827_Bead_test/*DIA*d 240827_Bead_test/dia/
-#mkdir 240827_Bead_test/dda
-#mv 240827_Bead_test/*d 240827_Bead_test/dda/
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/scripts/240827_Bead_test/dda /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_07_22.fasta mqparTTPdda.xml scratch.slurm
-#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.3.0/bin/MaxQuantCmd.dll /cluster/projects/nn9036k/scripts/240827_Bead_test/dia /cluster/projects/nn9036k/FastaDB/uniprotkb_proteome_UP000005640_2024_07_22.fasta mqparTTPdia.xml scratch.slurm
-#squeue -u ash022   | grep "240827_B" | wc
-#18     144    1324	
-#wget "https://datashare.biochem.mpg.de/s/qe1IqcKbz2j2Ruf/download?path=%2FDiscoveryLibraries&files=homo_sapiens.zip" -O HS.DIA.zip
-#unzip HS.DIA.zip
-#mv *.fasta FastaDB/.
-#mv *.txt FastaDB/.
+#cp  $HOME/PD/TIMSTOF/LARS/2025/25*Mit*/*opy*xml .
+#mv *Copy*xml mqpar.mitra.xml
+#cp  $HOME/PD/TIMSTOF/LARS/2024/240819_Mitra/*.fas* $HOME/cluster/FastaDB/
+#[ash022@login-3.SAGA ~/scripts]$ vim slurmMQrunTTP.sh :%s/F:\\promec\\TIMSTOF\\LARS\\2024\\240819_Mitra\\/\/cluster\/projects\/nn9036k\/FastaDB\//g
+#bash slurmMQrunTTP.sh /cluster/projects/nn9036k/MaxQuant_v2.6.5.0/bin/MaxQuantCmd.dll /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2025/250225_Mitra /cluster/projects/nn9036k/FastaDB/IDH1mutHUMAN.fasta mqpar.mitra.xml scratch.slurm 
+#cp mqpar.mitra.xml mqparTTPdda.xml
+#tail -f mqpar.mitra.xml.1741954645.results/*/*.txt
 MAXQUANTCMD=$1
 DATADIR=$2
 FASTADIR=$3
