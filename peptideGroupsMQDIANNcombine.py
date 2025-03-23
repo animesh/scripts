@@ -16,15 +16,19 @@ pepHits=pd.merge(dfMQ,dfDIANN,on='ID',how='outer')
 print(pepHits.columns)
 print(pepHits.head())
 import numpy as np
-pepHits['Protein.Ids'] = pepHits['Protein.Ids'].replace({np.nan: ""})
-pepHits['Proteins'] = pepHits['Proteins'].replace({np.nan: ""})
-pepHits['Uniprots']=pepHits['Protein.Ids'].str.upper()+';'+pepHits['Proteins'].str.upper()#.str.split(';',expand=True)
+pepHits['Genes'] = pepHits['Genes'].replace({np.nan: ""})
+pepHits['Gene names'] = pepHits['Gene names'].replace({np.nan: ""})
+pepHits['GeneList']=pepHits['Genes'].str.upper()+';'+pepHits['Gene names'].str.upper()#.str.split(';',expand=True)
+print(pepHits['GeneList'])
 #pepHits['Uniprots'].str.split(';',expand=True)[0]
-pepHits['Uniprots'] = pepHits['Uniprots'].str.split(';')
-pepHits=pepHits.explode('Uniprots')
+pepHits['GeneList'] = pepHits['GeneList'].str.split(';')
+pepHits=pepHits.explode('GeneList')
 pepHits = pepHits.drop_duplicates()
 pepHits = pepHits.reset_index(drop=True)#.str.split(';',expand=True)
-pepHits = pepHits[pepHits["Uniprots"] != ""]
-pepHits = pepHits.replace({np.nan:0})
-proteinHits=pepHits.groupby('Uniprots',as_index=False).agg(lambda x: x.tolist())
-proteinHits.to_csv("proteinHits.csv")
+pepHits = pepHits[pepHits["GeneList"] != ""]
+pepHitsNum = pepHits.select_dtypes(include='number')
+pepHitsNum = pepHitsNum.replace({np.nan:0})
+pepHitsNum['GeneList'] = pepHits['GeneList']
+pepHitsNum=pepHitsNum.groupby('GeneList').agg(lambda x: x.sum())
+print(pepHitsNum.head())
+pepHitsNum.to_csv("geneHits.csv")
