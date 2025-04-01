@@ -2,9 +2,10 @@
 #!pip3 install pandas matplotlib --user
 import sys
 if len(sys.argv)!=3: sys.exit("\n\nREQUIRED: pandas; tested with Python 3.12 \n\nUSAGE: python peptideGroupsMQDIANNcombine.py <path to peptides.txt>  <path to pr_matrix.tsv>\n\n")
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2024/240221_Tom_Kelt/4caaf540a6cc92c6dd28e5f87aa2406f/processing-run")
-fileMQ='L:\\promec\\TIMSTOF\\LARS\\2025\\250319_Alessandro\\combined\\txt\\peptides.txt'
-fileDIANN='L:\\promec\\TIMSTOF\\LARS\\2025\\250319_Alessandro\\DIANNv2\\report.pr_matrix.tsv'
+fileMQ=sys.argv[1]
+fileDIANN=sys.argv[2]
+#fileMQ='L:\\promec\\TIMSTOF\\LARS\\2025\\250319_Alessandro\\combined\\txt\\peptides.txt'
+#fileDIANN='L:\\promec\\TIMSTOF\\LARS\\2025\\250319_Alessandro\\DIANNv2\\report.pr_matrix.tsv'
 print(fileMQ)
 print(fileDIANN)
 import pandas as pd
@@ -27,8 +28,12 @@ pepHits = pepHits.drop_duplicates()
 pepHits = pepHits.reset_index(drop=True)#.str.split(';',expand=True)
 pepHits = pepHits[pepHits["GeneList"] != ""]
 pepHitsNum = pepHits.select_dtypes(include='number')
+print(pepHitsNum.describe())
 pepHitsNum = pepHitsNum.replace({np.nan:0})
 pepHitsNum['GeneList'] = pepHits['GeneList']
 pepHitsNum=pepHitsNum.groupby('GeneList').agg(lambda x: x.sum())
+#pepHistSum=pepHitsNum.sum()
+pepHitsNum=pepHitsNum.drop_duplicates()
 print(pepHitsNum.head())
-pepHitsNum.to_csv("geneHits.csv")
+print(pepHitsNum.describe())
+pepHitsNum.to_csv("geneHitsUniq.csv")
