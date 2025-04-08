@@ -1,3 +1,96 @@
+#https://blog.stackademic.com/pythons-functools-library-the-hidden-gem-for-advanced-programming-23760d8e3de5?gi=9041e4798813
+
+from functools import lru_cache
+@lru_cache(maxsize=128)
+def fibonacci(n):
+    if n < 2:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+print(fibonacci(50))  # Blazing fast after caching!
+
+from functools import partial
+
+# Original function
+def power(base, exponent):
+    return base ** exponent
+
+# Pre-configure exponent to 2
+square = partial(power, exponent=2)
+
+print(square(5))  # Output: 25
+
+from functools import wraps
+
+def debug(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        print(f"Calling {func.__name__} with {args} and {kwargs}")
+        return func(*args, **kwargs)
+    return wrapper
+
+@debug
+def greet(name):
+    return f"Hello, {name}!"
+
+print(greet("Alice"))  # Output includes debug info
+
+from functools import reduce
+
+# Factorial using reduce
+def factorial(n):
+    return reduce(lambda x, y: x * y, range(1, n + 1))
+
+print(factorial(5))  # Output: 120
+
+from functools import cmp_to_key
+
+# Custom comparison
+def compare(x, y):
+    return x - y
+
+numbers = [5, 2, 9, 1]
+sorted_numbers = sorted(numbers, key=cmp_to_key(compare))
+print(sorted_numbers)  # Output: [1, 2, 5, 9]
+
+from functools import total_ordering
+
+@total_ordering
+class Employee:
+    def __init__(self, name, salary):
+        self.name = name
+        self.salary = salary
+
+    def __eq__(self, other):
+        return self.salary == other.salary
+
+    def __lt__(self, other):
+        return self.salary < other.salary
+
+emp1 = Employee("Alice", 50000)
+emp2 = Employee("Bob", 60000)
+
+print(emp1 < emp2)  # Output: True
+
+from functools import singledispatch
+
+@singledispatch
+def process(value):
+    raise NotImplementedError("Unsupported type")
+
+@process.register
+def _(value: int):
+    return f"Processing integer: {value}"
+
+@process.register
+def _(value: str):
+    return f"Processing string: {value}"
+
+print(process(10))  # Output: Processing integer: 10
+print(process("hello"))  # Output: Processing string: hello
+
+
+
 #https://medium.com/ai-genesis/my-personal-collection-of-10-python-decorators-one-liners-that-shaped-my-career-a012332a5e0c
 def timing_decorator(func):
     import time
