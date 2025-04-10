@@ -1,3 +1,44 @@
+```{r Pasientceller}
+library(readxl)
+inpD<-"L:/promec/Animesh/Sigrid/Hierarchical clustering/"
+inpW<-paste0(inpD,"Pasientceller mut vs wt uten beh til publ.xlsx")
+data<-read_xlsx(inpW)
+data<-data.frame(data)
+dataS<-data[,grep("Slot1",colnames(data))]
+dataS<-sapply(dataS,as.numeric)
+hist(dataS)
+rownames(dataS)<-data[,"Gene"]
+data_selr_na0=(dataS-apply(dataS,1,function(x) median(x,na.rm=T)))/apply(dataS,1,function(x) sd(x,na.rm=T))
+#scales::squish(as.matrix(dataS),c(-10,10))
+data_selr_na0[is.na(data_selr_na0)]=0
+hist(data_selr_na0)
+data_selr_na0=data_selr_na0[rowSums(data_selr_na0)!=0,]
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="correlation",clustering_distance_cols = "correlation",cluster_cols=T,cluster_rows=T,fontsize_col=8,fontsize_row=1)
+ggplot2::ggsave(file=paste0(inpW,"clusterPlot.svg"),plot=svgPHC,dpi=320,width=6,height=12)#,  
+write.csv(cbind(rownames(data_selr_na0),data_selr_na0),paste0(inpW,".data_selr.csv"),row.names = F)
+#write_xlsx(dataS,inpW)
+```
+
+```{r U87MG}
+library(readxl)
+inpD<-"L:/promec/Animesh/Sigrid/Hierarchical clustering/"
+inpW<-paste0(inpD,"U87MG mut vs wt uten beh til publ.xlsx")
+data<-read_xlsx(inpW,skip=1)
+dataS<-data[,grep("Slot2",colnames(data))]
+dataS<-sapply(dataS,as.numeric)
+hist(dataS)
+#rownames(dataS)<-data[,"ID"]#data[,"MUTCtrlWTCtrlGene"],data[,"MUTCtrlWTCtrlUniprot"],sep=";")
+data_selr_na0=(dataS-apply(dataS,1,function(x) median(x,na.rm=T)))/apply(dataS,1,function(x) sd(x,na.rm=T))
+#scales::squish(as.matrix(dataS),c(-10,10))
+data_selr_na0[is.na(data_selr_na0)]=0
+hist(data_selr_na0)
+data_selr_na0=data_selr_na0[rowSums(data_selr_na0)!=0,]
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="correlation",clustering_distance_cols = "correlation",cluster_cols=T,cluster_rows=T,fontsize_col=8,fontsize_row=1)
+ggplot2::ggsave(file=paste0(inpW,"clusterPlot.svg"),plot=svgPHC,dpi=320,width=6,height=12)#,  
+write.csv(cbind(rownames(data_selr_na0),data_selr_na0),paste0(inpW,".data_selr.csv"),row.names = F)
+#write_xlsx(dataS,inpW)
+```
+
 ```{r prostomics-cancVrest}
 #utils::install.packages(pkgs = "ggstatsplot")
 #Patil, I. (2021). Visualizations with statistical details: The 'ggstatsplot' approach. Journal of Open Source Software, 6(61), 3167, doi:10.21105/joss.03167
