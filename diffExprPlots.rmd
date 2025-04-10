@@ -7,6 +7,7 @@ data<-data.frame(data)
 dataS<-data[,grep("Slot1",colnames(data))]
 dataS<-sapply(dataS,as.numeric)
 hist(dataS)
+dataPasientceller<-data.frame(cbind(RowGeneUniProtScorePeps=data[,"RowGeneUniProtScorePeps"],dataS))
 rownames(dataS)<-data[,"Gene"]
 data_selr_na0=(dataS-apply(dataS,1,function(x) median(x,na.rm=T)))/apply(dataS,1,function(x) sd(x,na.rm=T))
 #scales::squish(as.matrix(dataS),c(-10,10))
@@ -27,8 +28,38 @@ data<-read_xlsx(inpW,skip=1)
 dataS<-data[,grep("Slot2",colnames(data))]
 dataS<-sapply(dataS,as.numeric)
 hist(dataS)
+dataU87MG<-data.frame(cbind(RowGeneUniProtScorePeps=data[,"ID"],dataS))
 #rownames(dataS)<-data[,"ID"]#data[,"MUTCtrlWTCtrlGene"],data[,"MUTCtrlWTCtrlUniprot"],sep=";")
 data_selr_na0=(dataS-apply(dataS,1,function(x) median(x,na.rm=T)))/apply(dataS,1,function(x) sd(x,na.rm=T))
+#scales::squish(as.matrix(dataS),c(-10,10))
+data_selr_na0[is.na(data_selr_na0)]=0
+hist(data_selr_na0)
+data_selr_na0=data_selr_na0[rowSums(data_selr_na0)!=0,]
+svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="correlation",clustering_distance_cols = "correlation",cluster_cols=T,cluster_rows=T,fontsize_col=8,fontsize_row=1)
+ggplot2::ggsave(file=paste0(inpW,"clusterPlot.svg"),plot=svgPHC,dpi=320,width=6,height=12)#,  
+write.csv(cbind(rownames(data_selr_na0),data_selr_na0),paste0(inpW,".data_selr.csv"),row.names = F)
+#write_xlsx(dataS,inpW)
+```
+
+```{r merge}
+inpD<-"L:/promec/Animesh/Sigrid/Hierarchical clustering/"
+inpW<-paste0(inpD,"mergePasientcellerU87MG.xlsx")
+dataU87MG$Gene=paste(sapply(strsplit(paste(sapply(strsplit(dataU87MG$ID, ";;",fixed=T), "[", 5)), ";"), "[", 1))
+dataPasientceller$Gene=paste(sapply(strsplit(paste(sapply(strsplit(dataPasientceller[,"RowGeneUniProtScorePeps"], ";;",fixed=T), "[", 5)), ";"), "[", 1))
+dataMerge<-merge(dataPasientceller,dataU87MG,by="Gene",all=T)
+#rownames(dataS)<-data[,"ID"]#data[,"MUTCtrlWTCtrlGene"],data[,"MUTCtrlWTCtrlUniprot"],sep=";")
+rN<-paste(dataMerge$Gene,1:nrow(dataMerge),sep=";")
+dataMerge=dataMerge[,grep("Slot",colnames(dataMerge))]
+dataMerge=sapply(dataMerge,as.numeric)
+rownames(dataMerge)=rN
+hist(dataMerge)
+rowSums(dataMerge,na.rm = T)
+dataMerge=dataMerge[complete.cases(dataMerge),]
+#dataS=apply(dataMerge,2,function(x) rank(x))
+dataS=(dataMerge-apply(dataMerge,2,function(x) median(x,na.rm=T)))/apply(dataMerge,2,function(x) sd(x,na.rm=T))
+hist(dataS)
+data_selr_na0=(dataS-apply(dataS,1,function(x) median(x,na.rm=T)))/apply(dataS,1,function(x) sd(x,na.rm=T))
+#rownames(data_selr_na0)=rownames(dataMerge)
 #scales::squish(as.matrix(dataS),c(-10,10))
 data_selr_na0[is.na(data_selr_na0)]=0
 hist(data_selr_na0)
