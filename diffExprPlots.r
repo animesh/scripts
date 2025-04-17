@@ -1,72 +1,80 @@
-#Rscript diffExprPlots.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\23052024_Proteomics_LFQ for heatmaps_corOF.xlsx" 1 "Ovarian fluid" 1 1 "^O" 6 10 10 3
+#Rscript diffExprPlots.r "C:/Users/animeshs/OneDrive - NTNU/Kristine/proteinGroups.txtLFQ.intensity.11224hT2Arg024hC400Arg0.050.50.05tTestBH.xlsx"
+#Rscript diffExprPlots.r "C:/Users/animeshs/OneDrive - NTNU/Kristine/proteinGroups.txtLFQ.intensity.11248hT2Arg048hC400Arg0.050.50.05tTestBH.xlsx"
 #setup####
-#install.packages("ggplot2")
+#install.packages("readxl")
 #install.packages("svglite")
-#install.packages("pheatmap")
+#install.packages("ggplot2")
 args = commandArgs(trailingOnly=TRUE)
-print(args)
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali/combined/txtNoDN/23052024_Proteomics_LFQ for heatmaps.xlsx"
-inpS <- args[2]
-#inpS <- 1
-inpN <- args[3]
-#inpN <- "Ovarian fluid"
-inpR <- args[4]
-inpR <- as.numeric(inpR)
-#inpR <- 1
-inpC <- args[5]
-inpC <- as.numeric(inpC)
-#inpC <- 1
-selection<-args[6]
-#selection<-"^O"
-sizeF<-args[7]
-#sizeF<-6
-sizeH<-args[8]
-#sizeH<-10
-sizeW<-args[9]
-#sizeW<-10
-scale<-args[10]
-scale<-as.numeric(scale)
-#scale<-3
-#data####
-data<-readxl::read_xlsx(inpF,sheet = as.numeric(inpS))
+#inpF<-"C:/Users/animeshs/OneDrive - NTNU/Kristine/proteinGroups.txtLFQ.intensity.11224hT2Arg024hC400Arg0.050.50.05tTestBH.xlsx"
+selection<-"Slot"
+data<-readxl::read_xlsx(inpF,sheet = 1)
 data<-data.frame(data)
-if(inpC>1){
-  colnames(data)<-data[inpC,]
-  data<-data[-inpC,]
-}
 dim(data)
 #data####
 dataS<-data[,grep(selection,colnames(data))]
 dim(dataS)
-dataS<-sapply(dataS,as.numeric)
-dim(dataS)
-if(inpR>0){
-  rownames(dataS)<-data[,inpR]
-} else {
-  rownames(dataS)<-paste0("row",seq(1,nrow(dataS)))
-}
-range(dataS,na.rm=T)
-#heatmap####
-svgPHC=pheatmap::pheatmap(dataS,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=as.numeric(sizeF),fontsize_row=as.numeric(sizeF),main=paste("File",basename(inpF),"Sheet",inpN))
-ggplot2::ggsave(file=paste0(inpF,inpS,inpN,"ID",colnames(data)[inpR],inpC,".heatmap.",gsub("\\^|\\[0-9\\]","",selection),"Font",sizeF,"H",sizeH,"W",sizeW,".svg"),plot=svgPHC,width=as.numeric(sizeW),height=as.numeric(sizeH))
-ggplot2::ggsave(file=paste0(inpF,inpS,inpN,"ID",colnames(data)[inpR],inpC,".heatmap.",gsub("\\^|\\[0-9\\]","",selection),"Font",sizeF,"H",sizeH,"W",sizeW,".jpg"),plot=svgPHC,width=as.numeric(sizeW),height=as.numeric(sizeH))
-write.csv(dataS,paste0(inpF,inpS,inpN,"ID",colnames(data)[inpR],inpC,".select.",gsub("\\^|\\[0-9\\]","",selection),".csv"),row.names = T)
-#https://promova.com/english-vocabulary/list-of-colors
-bk1 <- c(seq((-1)*(scale),-0.01,by=0.01))
-bk2 <- c(seq(0.01,scale,by=0.01))
-bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
-palette <- c(colorRampPalette(colors = c("skyblue", "white"))(n = length(bk1)-1),"white", "white",c(colorRampPalette(colors = c("white","orange"))(n = length(bk2)-1)))
-data_selr_na0<-(dataS-apply(dataS,1,median,na.rm=T))/(apply(dataS,1,sd,na.rm=T))
-data_selr_na0=scales::squish(as.matrix(data_selr_na0),c((-1)*(scale),scale))
-summary(data_selr_na0)
-dim(data_selr_na0)
-svgPHC=pheatmap::pheatmap(data_selr_na0,clustering_distance_rows="euclidean",clustering_distance_cols = "euclidean",cluster_cols=F,cluster_rows=F,fontsize_col=as.numeric(sizeF),fontsize_row=as.numeric(sizeF),main=paste("File",basename(inpF),"Sheet",inpN),color = palette)
-ggplot2::ggsave(file=paste0(inpF,inpS,inpN,"ID",colnames(data)[inpR],inpC,"scale",scale,".heatmap.",gsub("\\^|\\[0-9\\]","",selection),"Font",sizeF,"H",sizeH,"W",sizeW,".svg"),plot=svgPHC,width=as.numeric(sizeW),height=as.numeric(sizeH))
-ggplot2::ggsave(file=paste0(inpF,inpS,inpN,"ID",colnames(data)[inpR],inpC,"scale",scale,".heatmap.",gsub("\\^|\\[0-9\\]","",selection),"Font",sizeF,"H",sizeH,"W",sizeW,".jpg"),plot=svgPHC,width=as.numeric(sizeW),height=as.numeric(sizeH))
-write.csv(data_selr_na0,paste0(inpF,inpS,inpN,"ID",colnames(data)[inpR],inpC,"scale",scale,".select.",gsub("\\^|\\[0-9\\]","",selection),".csv"),row.names = T)
-print(paste("processed sheet",inpS,inpN,inpF,"ID",colnames(data)[inpR],inpC,"Font",sizeF,"H",sizeH,"W",sizeW,"scale",scale))
-print(selection)
-
+log2LFQrem<-sapply(dataS,as.numeric)
+summary(log2LFQrem)
+dim(log2LFQrem)
+range(log2LFQrem,na.rm=T)
+log2LFQrem<-log2LFQrem[rowSums(is.na(log2LFQrem)) != ncol(log2LFQrem),]
+summary(log2LFQrem)
+dim(log2LFQrem)
+range(log2LFQrem,na.rm=T)
+#PCA####
+log2LFQt<-t(log2LFQrem[complete.cases(log2LFQrem),])
+row.names(log2LFQt)<-colnames(log2LFQrem)
+plot(prcomp(log2LFQt))
+log2LFQtPCA<-prcomp(log2LFQt)
+write.csv(x = data.frame(log2LFQtPCA$x),file = paste0(inpF,"log2LFQtPCA.csv"))
+dflog2LFQtPCA<-data.frame(log2LFQtPCA$x)
+rownames(dflog2LFQtPCA)<-gsub("\\.","-",rownames(dflog2LFQtPCA))
+rownames(dflog2LFQtPCA)
+#label####
+label<-data.frame(paste(sapply(strsplit(rownames(dflog2LFQtPCA),"_"), "[", 1)))
+rownames(label)<-rownames(dflog2LFQtPCA)
+dflog2LFQtPCAlab<-merge(x = dflog2LFQtPCA,y = label,by = 'row.names', all = F)
+write.csv(x = dflog2LFQtPCAlab,file = paste0(inpF,"dflog2LFQtPCAlab.csv"))
+log2LFQtPCAsumm<-summary(log2LFQtPCA)
+write.csv(x = (log2LFQtPCAsumm$importance),file = paste0(inpF,"log2LFQtPCAsummimportance.csv"))
+svglite::svglite(paste0(inpF,"log2LFQtPCA12.svg"),width = 12, height = 10)
+op <- par(cex = 0.9)
+plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1 and 2 with complete-case","\nTotal protein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+legend("topleft", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
+dev.off()
+#PCAimp####
+scale=2
+set.seed(scale)
+boxplot(log2LFQrem)
+colnames(log2LFQrem)
+log2LFQimp<-matrix(rnorm(dim(log2LFQrem)[1]*dim(log2LFQrem)[2],mean=mean(log2LFQrem,na.rm = T)-scale,sd=sd(log2LFQrem,na.rm = T)/(scale)), dim(log2LFQrem)[1],dim(log2LFQrem)[2])
+hist(log2LFQrem)
+hist(log2LFQimp)
+boxplot(log2LFQimp)
+log2LFQimp[log2LFQimp<0]<-0
+summary(log2LFQimp)
+dataHighNormLog2<-log2LFQimp
+dataHighNormLog2[!is.na(log2LFQrem)]<-log2LFQrem[!is.na(log2LFQrem)]
+summary(dataHighNormLog2)
+hist(dataHighNormLog2)
+boxplot(dataHighNormLog2)
+log2LFQt<-t(dataHighNormLog2)
+row.names(log2LFQt)<-colnames(log2LFQrem)
+plot(prcomp(log2LFQt))
+log2LFQtPCA<-prcomp(log2LFQt)
+write.csv(x = data.frame(log2LFQtPCA$x),file = paste0(inpF,"log2LFQtPCAimp.csv"))
+dflog2LFQtPCA<-data.frame(log2LFQtPCA$x)
+rownames(dflog2LFQtPCA)<-gsub("\\.","-",rownames(dflog2LFQtPCA))
+rownames(dflog2LFQtPCA)
+dflog2LFQtPCAlab<-merge(x = dflog2LFQtPCA,y = label,by = 'row.names', all = F)
+write.csv(x = dflog2LFQtPCAlab,file = paste0(inpF,"dflog2LFQtPCAimplab.csv"))
+log2LFQtPCAsumm<-summary(log2LFQtPCA)
+write.csv(x = (log2LFQtPCAsumm$importance),file = paste0(inpF,"log2LFQtPCAimpsummimportance.csv"))
+svglite::svglite(paste0(inpF,"log2LFQtPCA12imp.svg"),width = 12, height = 10)
+op <- par(cex = 0.8)
+plot(log2LFQtPCA$x[,1], log2LFQtPCA$x[,2], pch = 16, col = factor(rownames(log2LFQt)),xlab = paste0("PC1 (", round(100*log2LFQtPCAsumm$importance[2,1],1), "%)"), ylab = paste0("PC2 (", round(100*log2LFQtPCAsumm$importance[2,2],1), "%)"),main=paste("PCA 1/2 with 0 containing proteinGroups imputed scale",scale,"\nProtein groups", dim(log2LFQt)[2],"across samples",dim(log2LFQt)[1]))
+legend("topleft", col = factor(rownames(log2LFQt)), legend = factor(rownames(log2LFQt)), pch = 16)
+dev.off()
 
 
