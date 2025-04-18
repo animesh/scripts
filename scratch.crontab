@@ -1,12 +1,2 @@
-55 00 * * * ssh -n -f  ash022@login.nird-lmd.sigma2.no "rclone-v1.67.0-linux-amd64/rclone sync  -Pv DL/orbitrap/ remote:orbitrap/ 0>driveorbi.0.log 1>driveorbi.1.log 2>driveorbi.2.log > driveorbi.log"
-55 11 * * *  ssh -n -f  ash022@login.nird-lmd.sigma2.no  "killall rclone"
-55 12 * * * ssh -n -f  ash022@login.nird-lmd.sigma2.no "rclone-v1.67.0-linux-amd64/rclone sync  -Pv DL/Raw/ remote:TIMSTOF/ 0>driveTIMSTOF.0.log 1>driveTIMSTOF.1.log 2>driveTIMSTOF.2.log > driveTIMSTOF.log"
-55 23 * * *  ssh -n -f  ash022@login.nird-lmd.sigma2.no  "killall rclone"
-00 * * * * flock -w 0 $HOME/cron.lock rsync -Parv --min-size=1  --exclude=.gd --exclude=.tmp.driveupload  /home/animeshs/promec/ ash022@login.nird-lmd.sigma2.no:promec/NORSTORE_OSL_DISK/NS9036K/promec/  2>cronsync.2.log 1>cronsync.1.log > cronsync.log
-#30 * * * *  ssh -n -f  ash022@login-trd.nird.sigma2.no "nohup bash ./scripts/dataRaw.sh  >> nohupDataRaw.out &"
-00 15 * * *  ssh -n -f  ash022@login.nird-lmd.sigma2.no "find /projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec -mtime 0 -type f -print0 | tar -czvf /projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/backup.$(date +"\%m_\%d_\%Y").tar.gz --null -T - > /projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/backup.$(date +"\%m_\%d_\%Y").log 2>/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/backup.2.$(date +"\%m_\%d_\%Y").log 1>/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/backup.1.$(date +"\%m_\%d_\%Y").log"
-#find /nird/home/ash022/promec/NORSTORE_OSL_DISK/NS9036K/promec/promec/Qexactive/Raw/ -iname "*.raw" -exec cp "{}" DL/orbitrap/ \;
-#10 * * * * flock -w 0 $HOME/cron.lock  /home/animeshs/gopath/bin/drive push --no-prompt /home/animeshs/Documents 2>>cronsync.2.log 1>>cronsync.1.log >> cronsync.log
-30 * * * *  ssh -n -f  ash022@login.nird-lmd.sigma2.no "rsync -Parv /nird/datapeak/NS9036K/promec/promec/TIMSTOF/Raw/ /nird/datalake/NS9036K/Raw/"
-45 * * * *  ssh -n -f  ash022@login.nird-lmd.sigma2.no "rsync -Parv /nird/datapeak/NS9036K/promec/promec/Qexactive/Raw/ /nird/datalake/NS9036K/orbitrap/"
+33 22 * * * $HOME/scripts/dataRaw.sh 0> dataRaw.0.log 1>dataRaw.1.log 2>dataRaw.2.log > dataRaw.log
 
