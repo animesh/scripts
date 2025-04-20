@@ -1,3 +1,4 @@
+#cd /cluster/home/ash022/scripts
 #dos2unix slurmDIANN.sh
 #bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/acet 
 #squeue -u ash022
