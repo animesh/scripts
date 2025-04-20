@@ -9,6 +9,10 @@
 #[bam_sort_core] merging from 1 files and 4 in-memory blocks...                                                                     
 #rename '__.1P.fq.gz' '_1.fastq.gz' /cluster/home/ash022/scripts/TK9/trimmomatic.1701618021.results/*
 #rename '__.2P.fq.gz' '_2.fastq.gz' /cluster/home/ash022/scripts/TK9/trimmomatic.1701618021.results/*
+#curl -L https://github.com/attractivechaos/k8/releases/download/v0.2.4/k8-0.2.4.tar.bz2 | tar -jxf -
+#cp -rf k8-0.2.4 /cluster/projects/nn9036k/
+#export PATH=$PATH:/cluster/projects/nn9036k/k8-0.2.4
+#/cluster/projects/nn9036k/k8-0.2.4/k8-Linux /cluster/projects/nn9036k/minimap2-2.29_x64-linux/paftools.js gff2bed /cluster/projects/nn9036k/hg38v110/Homo_sapiens.GRCh38.110.gtf  > /cluster/projects/nn9036k/hg38v110/gencode.bed
 DATADIR=$1
 RUNCMD=minimap2
 PARAMFILE=scratch.slurm
