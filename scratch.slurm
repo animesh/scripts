@@ -26,4 +26,6 @@ export http_proxy=proxy.saga:3128
 export https_proxy=proxy.saga:3128
 module purge
 module load SAMtools/1.19.2-GCC-13.2.0
-/cluster/projects/nn9036k/minimap2-2.29_x64-linux/minimap2 -ax splice:sr -t80  -j /cluster/projects/nn9036k/hg38v110/gencode.bed /cluster/projects/nn9036k/hg38v110/genome.fa  FASTFILE1 FASTFILE2  | samtools sort -@20 -m8g -o FASTFILE.gencode.bam -
+/cluster/projects/nn9036k/minimap2-2.29_x64-linux/minimap2 -ax splice:sr -t80  -j /cluster/projects/nn9036k/hg38v110/gencode.bed --write-junc /cluster/projects/nn9036k/hg38v110/genome.fa  FASTFILE1 FASTFILE2  > FASTFILE.junc.bed 
+/cluster/projects/nn9036k/minimap2-2.29_x64-linux/minimap2 -ax splice:sr -t80  -j /cluster/projects/nn9036k/hg38v110/gencode.bed --pass1=FASTFILE.junc.bed  /cluster/projects/nn9036k/hg38v110/genome.fa  FASTFILE1 FASTFILE2   | samtools sort -@20 -m8g -o FASTFILE.junc.bed.bam -  
+/cluster/projects/nn9036k/minipileup-1.4/minipileup -yf /cluster/projects/nn9036k/hg38v110/genome.fa -p.2 FASTFILE.junc.bed.bam > FASTFILE.junc.bed.bam.var.vcf

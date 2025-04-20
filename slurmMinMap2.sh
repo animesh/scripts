@@ -13,6 +13,12 @@
 #cp -rf k8-0.2.4 /cluster/projects/nn9036k/
 #export PATH=$PATH:/cluster/projects/nn9036k/k8-0.2.4
 #/cluster/projects/nn9036k/k8-0.2.4/k8-Linux /cluster/projects/nn9036k/minimap2-2.29_x64-linux/paftools.js gff2bed /cluster/projects/nn9036k/hg38v110/Homo_sapiens.GRCh38.110.gtf  > /cluster/projects/nn9036k/hg38v110/gencode.bed
+# wget https://github.com/lh3/minipileup/archive/refs/tags/v1.4.tar.gz
+# tar xvzf v1.4.tar.gz 
+# cd minipileup-1.4/
+# make
+# cp -rf minipileup-1.4 /cluster/projects/nn9036k/
+
 DATADIR=$1
 RUNCMD=minimap2
 PARAMFILE=scratch.slurm
