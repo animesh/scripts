@@ -3,11 +3,19 @@
 #tar xvjf minimap2-2.29_x64-linux.tar.bz2 
 #cp minimap2-2.29_x64-linux /cluster/projects/nn9036k/
 #dos2unix slurmMinMap2.sh scratch.slurm
-#bash slurmMinMap2.sh
-module load SAMtools/1.19.2-GCC-13.2.0
-/cluster/projects/nn9036k/minimap2-2.29_x64-linux/minimap2 -ax splice:sr -t80 /cluster/projects/nn9036k/hg38v110/genome.fa /cluster/projects/nn9036k/TK/TK10_49_1.fq.gz /cluster/projects/nn9036k/TK/TK10_49_2.fq.gz | samtools sort -@4 -m4g -o TK10_49.bam -
-#/cluster/projects/nn9036k/minimap2-2.29_x64-linux/minimap2 -ax splice:sr -t80 /cluster/projects/nn9036k/hg38v110/genome.fa /cluster/projects/nn9036k/TK/TK10_49_1.fq.gz /cluster/projects/nn9036k/TK/TK10_49_2.fq.gz #https://lh3.github.io/2025/04/18/short-rna-seq-read-alignment-with-minimap2?s=09
+#bash slurmMinMap2.sh /cluster/projects/nn9036k/TK
+#/cluster/projects/nn9036k/minimap2-2.29_x64-linux/minimap2 -ax splice:sr -t80 /cluster/projects/nn9036k/hg38v110/genome.fa /cluster/projects/nn9036k/TK/TK10_49_1.fq.gz /cluster/projects/nn9036k/TK/TK10_49_2.fq.gz | samtools sort -@4 -m4g -o TK10_49.bam -
 #[M::main] Real time: 659.985 sec; CPU: 30093.450 sec; Peak RSS: 24.207 GB
-#[bam_sort_core] merging from 1 files and 4 in-memory blocks...
+#[bam_sort_core] merging from 1 files and 4 in-memory blocks...                                                                     
 #rename '__.1P.fq.gz' '_1.fastq.gz' /cluster/home/ash022/scripts/TK9/trimmomatic.1701618021.results/*
 #rename '__.2P.fq.gz' '_2.fastq.gz' /cluster/home/ash022/scripts/TK9/trimmomatic.1701618021.results/*
+DATADIR=$1
+RUNCMD=minimap2
+PARAMFILE=scratch.slurm
+CURRENTEPOCTIME=`date +%s`
+WRITEDIR=$RUNCMD.$CURRENTEPOCTIME
+for i in $DATADIR/*_1.fq.gz ; do echo $i; i2=${i/%1.fq.gz/2.fq.gz} ; echo $i2; j=$(basename $i); echo $j; k=${j%%1.fq.gz}; echo  $k ; sed "s|seqRNA|$k.$RUNCMD.$CPU|g" $PARAMFILE > $DATADIR/$WRITEDIR.$PARAMFILE.tmp1 ; 	sed "s|FASTFILE1|$i|"  $DATADIR/$WRITEDIR.$PARAMFILE.tmp1 > $DATADIR/$WRITEDIR.$PARAMFILE.tmp2 ;  sed "s|FASTFILE2|$i2|"  $DATADIR/$WRITEDIR.$PARAMFILE.tmp2 > $DATADIR/$WRITEDIR.$PARAMFILE.tmp3 ;  sed "s|FASTFILE|$DATADIR/$WRITEDIR.$k|g"  $DATADIR/$WRITEDIR.$PARAMFILE.tmp3 > $DATADIR/$WRITEDIR.$k.$PARAMFILE ; rm $DATADIR/$WRITEDIR.$PARAMFILE.tmp*  ; cat $DATADIR/$WRITEDIR.$k.$PARAMFILE ; echo $DATADIR/$WRITEDIR.$k.$PARAMFILE  ; sbatch $DATADIR/$WRITEDIR.$k.$PARAMFILE  ; done
+ls -ltrh $DATADIR/$WRITEDIR*$PARAMFILE
+squeue -u ash022
+
+
