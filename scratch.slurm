@@ -1,17 +1,13 @@
 #!/bin/sh
-##SBATCH --partition=bigmem
-#SBATCH --account=nn9036k --job-name=seqRNA
-##SBATCH --account=nn9036k --job-name=seqRNABM
-#SBATCH --time=4:00:00
+#SBATCH --account=nn9036k --job-name=TestFile.d.WRITEFILE.BM
+#SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=32
+#SBATCH --mem-per-cpu=16G
+#SBATCH --time=96:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
-##SBATCH --ntasks=1 --cpus-per-task=16 --ntasks-per-node=4
-##SBATCH --mem-per-cpu=16G
-#SBATCH --ntasks=1 --cpus-per-task=20
-#SBATCH --mem-per-cpu=8G
 #SBATCH --mail-type=ALL
-#SBATCH --output=seqRNAlog
-WORKDIR=${SLURM_SUBMIT_DIR}
-cd ${WORKDIR}
+#SBATCH --output=TestFile.d.WRITEFILE.log
+cd /cluster/projects/nn9036k/diann-2.1.0/
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
 echo " the name of the job is: $SLURM_JOB_NAME"
@@ -21,11 +17,7 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-#export LMOD_DISABLE_SAME_NAME_AUTOSWAP=FALSE
-export http_proxy=proxy.saga:3128
-export https_proxy=proxy.saga:3128
 module purge
-module load SAMtools/1.19.2-GCC-13.2.0
-/cluster/projects/nn9036k/minimap2-2.29_x64-linux/minimap2 -ax splice:sr -t80  -j /cluster/projects/nn9036k/hg38v110/gencode.bed --write-junc /cluster/projects/nn9036k/hg38v110/genome.fa  FASTFILE1 FASTFILE2  > FASTFILE.junc.bed 
-/cluster/projects/nn9036k/minimap2-2.29_x64-linux/minimap2 -ax splice:sr -t80  -j /cluster/projects/nn9036k/hg38v110/gencode.bed --pass1=FASTFILE.junc.bed  /cluster/projects/nn9036k/hg38v110/genome.fa  FASTFILE1 FASTFILE2   | samtools sort -@20 -m8g -o FASTFILE.junc.bed.bam -  
-/cluster/projects/nn9036k/minipileup-1.4/minipileup -yf /cluster/projects/nn9036k/hg38v110/genome.fa -p.2 FASTFILE.junc.bed.bam > FASTFILE.junc.bed.bam.var.vcf
+module load GCCcore/13.3.0
+./diann-linux --f "TestFile.d" --lib "/cluster/home/ash022/scripts/acet/UP000005640_9606_unique_gene.met.acet.fixprop.report-lib.predicted.speclib"   --threads 80 --verbose 1 --out "TestFile.d.WRITEFILE.met.acet.report.parquet" --qvalue 0.01 --matrices  --out-lib "TestFile.d.WRITEFILE.met.acet.fixprop.lib.parquet"  --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta UP000005640_9606_unique_gene.fasta --min-fr-mz 200 --max-fr-mz 1800 --met-excision --min-pep-len 7 --max-pep-len 35 --min-pr-mz 300 --max-pr-mz 1800 --met-excision --min-pep-len 7 --max-pep-len 35 --min-pr-charge 2 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4  --fixed-mod UniMod:58,56.026215,n --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,K --var-mod UniMod:209,112.052430,K --var-mod UniMod:34,14.015650,K --var-mod UniMod:36,28.031300,K --var-mod UniMod:37,42.046950,K --mass-acc 15 --mass-acc-ms1 15 --proteoforms  --no-cut-after-mod UniMod:58 --rt-profiling
+

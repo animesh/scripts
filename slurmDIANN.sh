@@ -1,5 +1,6 @@
 #cd /cluster/home/ash022/scripts
-#dos2unix slurmDIANN.sh
+#dos2unix slurmDIANN.sh scratch.slurm
+#for i in acet/25041*.d.1745142787.report.slurm ; do echo $i ; sed -i s/--threads\ 80/--threads\ 40/g $i;  done
 #bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/acet 
 #squeue -u ash022
 #wget https://github.com/vdemichev/DiaNN/releases/download/2.0/DIA-NN-2.1.0-Academia-Linux.zip
@@ -12,14 +13,12 @@
 #cd /cluster/projects/nn9036k/diann-2.1.0/
 #chmod +x diann.exe
 DATADIR=$1
-#leave following empty to include ALL files
 SEARCHTEXT=TestFile.d
 CURRENTEPOCTIME=`date +%s`
 WRITEFILE=$CURRENTEPOCTIME.report
 echo $WRITEFILE
 dos2unix scratch.slurm
-for i in $DATADIR/*.d ; do echo $i ; sed "s|$SEARCHTEXT|$i|g" scratch.slurm > $i.$WRITEFILE.slurm  ; sbatch $i.$WRITEFILE.slurm ; done
-#mono $MAXQUANTCMD $k.xml ; cp -rf ./combined/txt $k.REP ; echo $k ; cd $LDIR 
+for i in $DATADIR/*.d ; do echo $i ; sed "s|$SEARCHTEXT|$i|g" scratch.slurm > $i.$WRITEFILE.tmp  ; sed "s|WRITEFILE|$WRITEFILE|g" $i.$WRITEFILE.tmp > $i.$WRITEFILE.slurm  ; sbatch $i.$WRITEFILE.slurm ; done
 echo $WRITEFILE
 ls -ltrh $DATADIR/*$WRITEFILE.slurm 
 squeue -u ash022
