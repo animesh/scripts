@@ -1,2 +1,5 @@
-33 22 * * * $HOME/scripts/dataRaw.sh 0> dataRaw.0.log 1>dataRaw.1.log 2>dataRaw.2.log > dataRaw.log
+#33 22 * * * $HOME/scripts/dataRaw.sh 0> dataRaw.0.log 1>dataRaw.1.log 2>dataRaw.2.log > dataRaw.log
+45 * * * * eval $(ssh-agent);ssh-add;rclone copy -Pv promec/promec/Qexactive/Raw/ NS9036K:DL/orbitrap/ 0> dataRawQE.0.log 1>dataRawQE.1.log 2>dataRawQE.2.log > dataRawQE.log
+50 * * * * eval $(ssh-agent);ssh-add;rclone copy -Pv promec/promec/TIMSTOF/Raw/ NS9036K:DL/Raw/ 0> dataRawTT.0.log 1>dataRawTT.1.log 2>dataRawTT.2.log > dataRawTT.log
+55 * * * * eval $(ssh-agent);ssh-add;flock -w 0 $HOME/cron.lock rclone copy -Pv promec/promec NS9036K:PD  0> dataRawPD.0.log 1>dataRawPD.1.log 2>dataRawPD.2.log > dataRawPD.log
 
