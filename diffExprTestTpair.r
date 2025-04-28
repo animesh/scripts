@@ -1,4 +1,5 @@
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\Groups.txt" "Sex" "Rem" "LFQ.intensity." "female" "male" 0.1 1 0.05
+#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "SA" "SB" 0.05 0.5 100
+#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "LA" "LB" 0.05 0.5 100
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -7,34 +8,33 @@
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file and Intensity columns to include and control-group and thresholds like FDR-threshold, log2Median-FC-threshold, coefficient-of-variation-threshold; for example:
+if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file and Intensity columns to include and control-group and thresholds like FDR-threshold, log2Mean-FC-threshold, coefficient-of-variation-threshold; for example:
 
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2024/240608_stami_urine/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2025/250404_Alessandro/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-L:\promec\TIMSTOF\LARS\2024\240608_stami_urine\combined\txt\Groups.txt
-#inpL <-"L:/promec/TIMSTOF/LARS/2024/240608_stami_urine/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2025/250404_Alessandro/combined/txt/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Sex"
+#lGroup<-"Bio"
 rGroup <- args[4]
 #rGroup<-"Rem"
 selection <- args[5]
 #selection<-"LFQ.intensity."
 sample <- args[6]
-#sample<-"female"
+#sample<-"SA"
 control <- args[7]
-#control<-"male"
+#control<-"SB"
 selThr <- args[8]
-selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
+selThr <- as.numeric(selThr)
 selThrFC <- args[9]
+#selThrFC=1#log2-MeanDifference
 selThrFC <- as.numeric(selThrFC)
-#selThrFC=1#log2-MedianDifference
 cvThr <- args[10]
-cvThr <- as.numeric(cvThr)
 #cvThr=0.05#threshold for coefficient-of-variation
+cvThr <- as.numeric(cvThr)
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -61,7 +61,7 @@ summary(log2Int)
 par(mar=c(12,3,1,1))
 boxplot(log2Int,las=2)
 #scale####
-countTableDAuniGORNAddsMed<-apply(log2Int,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsMed<-apply(log2Int,1,function(x) mean(x,na.rm=T))
 countTableDAuniGORNAddsSD<-apply(log2Int,1,function(x) sd(x,na.rm=T))
 countTableDAuniGORNAdds<-(log2Int-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
 hist(countTableDAuniGORNAdds)
@@ -71,11 +71,12 @@ boxplot(countTableDAuniGORNAdds,las=2)
 IntVST<-as.matrix(intdata)
 IntVST[IntVST==0]=NA
 LFQvsn <- vsn::justvsn(IntVST)
+colnames(LFQvsn)<-gsub(selection,"",colnames(log2Int))
 hist(LFQvsn)
 vsn::meanSdPlot(LFQvsn)
 vsn::meanSdPlot(LFQvsn,ranks = FALSE)
 boxplot(LFQvsn,las=2)
-countTableDAuniGORNAddsMed<-apply(LFQvsn,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsMed<-apply(LFQvsn,1,function(x) mean(x,na.rm=T))
 countTableDAuniGORNAdds<-(LFQvsn-countTableDAuniGORNAddsMed)
 hist(countTableDAuniGORNAdds)
 boxplot(countTableDAuniGORNAdds,las=2)
@@ -114,16 +115,19 @@ ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"cluster.svg"), svgPHC
 write.csv(log2Int,paste0(inpF,selection,"log2.csv"))
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
-  #sel1<-"female"
-  #sel2<-"male"
-  #log2LFQ<-log2LFQsel#MMdata#log2LFQsel#log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+  #sel1<-"LA"
+  #sel2<-"LB"
+  #log2LFQ<-LFQvsn#log2LFQsel#MMdata#log2LFQsel#log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
   #colnames(log2LFQ)
-  #dfName="log2LFQselMMdata"#"log2LFQsel"
+  #dfName="LFQvsn"#"log2LFQsel"
   d1<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))])
   colnames(d1)<-gsub("-",".",rownames(label[label$pair2test==sel1,]))
+  d1<-d1[,order(colnames(d1))]
   d2<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel2,]))])
   colnames(d2)<-gsub("-",".",rownames(label[label$pair2test==sel2,]))
-  dataSellog2grpTtest<-merge(d1, d2, by = 'row.names', all = TRUE)
+  d2<-d2[,order(colnames(d2))]
+  if(all(paste(sapply(strsplit(colnames(d1), "_",fixed=T), "[", 1))==paste(sapply(strsplit(colnames(d2), "_",fixed=T), "[", 1)))){
+    dataSellog2grpTtest<-merge(d1, d2, by = 'row.names', all = TRUE)
   rN<-dataSellog2grpTtest[,1]
   geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "GN=",fixed=T), "[", 2)), "[; ]"), "[", 1))
   uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rN, "\\|",fixed=F), "[", 2)), "\\|"), "[", 1))
@@ -172,13 +176,25 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
       else if(is.na(sd(x[c(sCol:mCol)],na.rm=T))&(sd(x[c((mCol+1):eCol)],na.rm=T)==0)){0}#Q9QX47
       else if(is.na(sd(x[c((mCol+1):eCol)],na.rm=T))&(sd(x[c(sCol:mCol)],na.rm=T)==0)){0}
       else if(sum(is.na(x[c(sCol:mCol)]))==0&sum(is.na(x[c((mCol+1):eCol)]))==0){
-        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),var.equal=T)$p.value}
+        t.test(as.numeric(x[c(sCol:mCol)])-as.numeric(x[c((mCol+1):eCol)]))$p.value}
       else if(sum(!is.na(x[c(sCol:mCol)]))>1&sum(!is.na(x[c((mCol+1):eCol)]))<1&(sd(x[c(sCol:mCol)],na.rm=T)/mean(x[c(sCol:mCol)],na.rm=T))<cvThr){0}
       else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>1&(sd(x[c((mCol+1):eCol)],na.rm=T)/mean(x[c((mCol+1):eCol)],na.rm=T))<cvThr){0}
       else if(sum(!is.na(x[c(sCol:mCol)]))>=2&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
-        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+        v1=as.numeric(x[c(sCol:mCol)])
+        v2=as.numeric(x[c((mCol+1):eCol)])
+        v1[is.na(v1)]<-0
+        v2[is.na(v2)]<-0
+        vC=v1-v2
+        vC[vC==0]<-NA
+        t.test(vC)$p.value}
       else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=2){
-        t.test(as.numeric(x[c(sCol:mCol)]),as.numeric(x[c((mCol+1):eCol)]),na.rm=T,var.equal=T)$p.value}
+        v1=as.numeric(x[c(sCol:mCol)])
+        v2=as.numeric(x[c((mCol+1):eCol)])
+        v1[is.na(v1)]<-0
+        v2[is.na(v2)]<-0
+        vC=v1-v2
+        vC[vC==0]<-NA
+        t.test(vC)$p.value}
       else{NA}
     )
     summary(warnings())
@@ -197,23 +213,35 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
       hist(pValBHna)
       pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
       hist(pValBHnaMinusLog10)
-      logFCmedianGrp1=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) median(x,na.rm=T))}
+      logFCmeanGrp1=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) mean(x,na.rm=T))}
       grp1CV=if(is.null(dim(dataSellog2grpTtest[,c(sCol:mCol)]))){dataSellog2grpTtest[,c(sCol:mCol)]} else{apply(dataSellog2grpTtest[,c(sCol:mCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
-      #summary(logFCmedianGrp11-logFCmedianGrp1)
-      logFCmedianGrp2=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) median(x,na.rm=T))}
+      #summary(logFCmeanGrp11-logFCmeanGrp1)
+      logFCmeanGrp2=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) mean(x,na.rm=T))}
       grp2CV=if(is.null(dim(dataSellog2grpTtest[,c((mCol+1):eCol)]))){dataSellog2grpTtest[,c((mCol+1):eCol)]} else{apply(dataSellog2grpTtest[,c((mCol+1):eCol)],1,function(x) sd(x,na.rm=T)/mean(x,na.rm=T))}
-      logFCmedianGrp1[is.na(logFCmedianGrp1)]=0
-      logFCmedianGrp2[is.na(logFCmedianGrp2)]=0
-      hda<-cbind(logFCmedianGrp1,logFCmedianGrp2)
+      logFCmeanGrp1[is.na(logFCmeanGrp1)]=0
+      logFCmeanGrp2[is.na(logFCmeanGrp2)]=0
+      hda<-cbind(logFCmeanGrp1,logFCmeanGrp2)
       plot(hda)
       limma::vennDiagram(hda>0)
-      logFCmedian = logFCmedianGrp1-logFCmedianGrp2
-      logFCmedianFC = 2^(logFCmedian+.Machine$double.xmin)
-      logFCmedianFC=squish(logFCmedianFC,c(0.01,100))
-      hist(logFCmedianFC)
-      log2FCmedianFC=log2(logFCmedianFC)
-      hist(log2FCmedianFC)
-      ttest.results = data.frame(Uniprot=uniprotID,Gene=geneName,Protein=proteinNames,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,grp1CV,grp2CV,RowGeneUniProtScorePeps=rN)
+      logFCmean = apply(
+        dataSellog2grpTtest, 1, function(x)
+          if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))<1){NA}
+        else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
+          v1=as.numeric(x[c(sCol:mCol)])
+          v2=as.numeric(x[c((mCol+1):eCol)])
+          v1[is.na(v1)]<-0
+          v2[is.na(v2)]<-0
+          vC=v1-v2
+          vC[vC==0]<-NA
+          mean(vC,na.rm=T)}
+        else{NA}
+      )
+      logFCmeanFC = 2^(logFCmean+.Machine$double.xmin)
+      logFCmeanFC=squish(logFCmeanFC,c(0.01,100))
+      hist(logFCmeanFC)
+      log2FCMeanFC=log2(logFCmeanFC)
+      hist(log2FCMeanFC)
+      ttest.results = data.frame(Uniprot=uniprotID,Gene=geneName,Protein=proteinNames,logFCmeanGrp1,logFCmeanGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2Mean=logFCmeanFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MeanChange=logFCmean,grp1CV,grp2CV,RowGeneUniProtScorePeps=rN)
       ttest.results=ttest.results[order(ttest.results$CorrectedPValueBH),]
       writexl::write_xlsx(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,dfName,"tTestBH.xlsx"))
       write.csv(ttest.results,paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,dfName,"tTestBH.csv"),row.names = F)
@@ -221,10 +249,10 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
       #volcano
       ttest.results$RowGeneUniProtScorePeps<-ttest.results.return$Gene
       ttest.results[is.na(ttest.results)]=selThr
-      Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MedianChange)>selThrFC
+      Significance=ttest.results$CorrectedPValueBH<selThr&ttest.results$CorrectedPValueBH>0&abs(ttest.results$Log2MeanChange)>selThrFC
       dsub <- subset(ttest.results,Significance)
-      p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance))
-      p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+      p <- ggplot2::ggplot(ttest.results,ggplot2::aes(Log2MeanChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=Significance))
+      p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Log2 Mean Change") + ggplot2::ylab("-Log10 P-value")
       #f=paste(file,proc.time()[3],".jpg")
       #install.packages("svglite")
       ggplot2::ggsave(paste0(inpF,selection,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,rGroup,lName,dfName,"VolcanoTest.svg"), p)
@@ -235,6 +263,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
     else{return(0)}
   }
 }
+}
 #compare####
 colnames(log2Int)
 dim(log2Int)
@@ -243,7 +272,7 @@ colnames(log2LFQsel)
 dim(log2LFQsel)
 vsn::meanSdPlot(log2LFQsel)
 boxplot(log2LFQsel,las=2)
-countTableDAuniGORNAddsMed<-apply(log2LFQsel,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsMed<-apply(log2LFQsel,1,function(x) mean(x,na.rm=T))
 countTableDAuniGORNAdds<-(log2LFQsel-countTableDAuniGORNAddsMed)
 hist(countTableDAuniGORNAdds)
 boxplot(countTableDAuniGORNAdds,las=2)
@@ -253,7 +282,9 @@ inpFL<-c()
 if(sample!=control){
     print(paste(sample,control))
     inpFL<-c(inpFL,paste0(sample,control))
-    ttPair=testT(log2LFQsel,sample,control,cvThr,selection)
-    assign(paste0(sample,control),ttPair)
+    ttPairlog2Int=testT(log2LFQsel,sample,control,cvThr,"log2Int")
+    assign(paste0(sample,control),ttPairlog2Int)
+    ttPairlLFQvsn=testT(LFQvsn,sample,control,cvThr,"LFQvsn")
+    assign(paste0(sample,control),ttPairlLFQvsn)
 }
 print(paste("results saved in:",paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,rGroup,lName,control),"csv, xlsx, and svg files"))

@@ -13,7 +13,7 @@ args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2025/250411_HISTONE_SAHA/combined/txt/Acetyl (K)Sites.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2025/250411_HISTONE_SAHA/combined/txt/Dimethyl (K)Sites.txt"
 inpD<-dirname(inpF)
 inpL <- args[2]
 #inpL<-"L:/promec/TIMSTOF/LARS/2025/250411_HISTONE_SAHA/combined/txt/Groups.txt"
@@ -49,12 +49,16 @@ for(i in 1:3){
   #protNum<-"LFQ intensity"#1:ncol(LFQ)
   #colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),sep=";")
   dim(LFQ)
+  sum(LFQ)
+  mean(LFQ)
+  sd(LFQ)
   if(sum(LFQ)!=0){
-    pdf(outP)
-    log2LFQ<-log2(LFQ)
+  log2LFQ<-log2(LFQ)
   log2LFQ[log2LFQ==-Inf]=NA
   log2LFQ[log2LFQ==0]=NA
   summary(log2LFQ)
+  if(min(log2LFQ,na.rm=T)!=max(log2LFQ,na.rm=T)){
+    pdf(outP)
   hist(log2LFQ)
   rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
   writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpF,selection,selection2,"log2LFQ.xlsx"))
@@ -174,5 +178,6 @@ for(i in 1:3){
   #SAHA####
   tt=testT(log2LFQ,"SAHA","CTR",cvThr)
   dev.off()
+}
   }
 }
