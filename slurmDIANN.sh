@@ -5,7 +5,6 @@
 #cp /nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/FastaDB/UP000005640_9606_unique_gene_C24_MC1_P735_MZ1001700_Mod3.predicted.speclib /cluster/projects/nn9036k/FastaDB/.
 #mkdir kamilla
 #cp -rf PD/TIMSTOF/LARS/2025/250428_Kamilla/*.d kamilla/.
-#dos2unix slurmDIANN.sh scratch.slurm
 #for i in kamilla/*.d*slurm ; do echo $i ; sed -i s/--threads\ 80/--threads\ 40/g $i;  done
 #wget https://github.com/vdemichev/DiaNN/releases/download/2.0/DIA-NN-2.1.0-Academia-Linux.zip
 #unzip DIA-NN-2.1.0-Academia-Linux.zip
