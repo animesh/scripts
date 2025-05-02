@@ -1,5 +1,4 @@
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "SA" "SB" 0.05 0.5 100
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "LA" "LB" 0.05 0.5 100
+#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "SA" "SB" 0.1 0.5 100
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -17,9 +16,9 @@ inpF <- args[1]
 inpL <- args[2]
 #inpL <-"L:/promec/TIMSTOF/LARS/2025/250404_Alessandro/combined/txt/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Bio"
+#lGroup<-"Condition"
 rGroup <- args[4]
-#rGroup<-"Rem"
+#rGroup<-"Remove"
 selection <- args[5]
 #selection<-"LFQ.intensity."
 sample <- args[6]
@@ -27,13 +26,13 @@ sample <- args[6]
 control <- args[7]
 #control<-"SB"
 selThr <- args[8]
-#selThr=0.1#pValue-tTest
+#selThr=0.1#corrected-pValue-tTest
 selThr <- as.numeric(selThr)
 selThrFC <- args[9]
-#selThrFC=1#log2-MeanDifference
+#selThrFC=0.5#log2-MeanDifference
 selThrFC <- as.numeric(selThrFC)
 cvThr <- args[10]
-#cvThr=0.05#threshold for coefficient-of-variation
+#cvThr=100#threshold for coefficient-of-variation
 cvThr <- as.numeric(cvThr)
 inpD<-dirname(inpF)
 fName<-basename(inpF)
@@ -115,8 +114,8 @@ ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"cluster.svg"), svgPHC
 write.csv(log2Int,paste0(inpF,selection,"log2.csv"))
 #test####
 testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
-  #sel1<-"LA"
-  #sel2<-"LB"
+  #sel1<-"SA"
+  #sel2<-"SB"
   #log2LFQ<-LFQvsn#log2LFQsel#MMdata#log2LFQsel#log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
   #colnames(log2LFQ)
   #dfName="LFQvsn"#"log2LFQsel"
@@ -225,7 +224,9 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
       limma::vennDiagram(hda>0)
       logFCmean = apply(
         dataSellog2grpTtest, 1, function(x)
-          if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))<1){NA}
+        if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))<1){NA}
+        else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>=1){-1*mean(x[c((mCol+1):eCol)],na.rm=T)}
+        else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))<1){mean(x[c(sCol:mCol)],na.rm=T)}
         else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
           v1=as.numeric(x[c(sCol:mCol)])
           v2=as.numeric(x[c((mCol+1):eCol)])

@@ -1,9 +1,5 @@
 #follow up from C:\Users\animeshs\scripts>..\R-4.4.0\bin\Rscript.exe diffExprTestT.r L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\proteinGroups.txt L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Groups.txt  "Bio" "Rem" "LFQ.intensity." "SAHA" "CTR" 0.1 0.5 0.15
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTmodSites.r  "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Acetyl (K)Sites.txt" "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Groups.txt" "Bio"
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTmodSites.r  "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Acronyl (K)Sites.txt" "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Groups.txt" "Bio"
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTmodSites.r  "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Dimethyl (K)Sites.txt" "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Groups.txt" "Bio"
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTmodSites.r  "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Methyl (K)Sites.txt" "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Groups.txt" "Bio"
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTmodSites.r  "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Trimethyl (K)Sites.txt" "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Groups.txt" "Bio"
+#..\R-4.4.0\bin\Rscript.exe "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Acetyl (K)Sites.txt" "L:\promec\TIMSTOF\LARS\2025\250411_HISTONE_SAHA\combined\txt\Groups.txt" "Bio"
 #install.packages("ggplot2")
 #install.packages("svglite")
 #install.packages("limma")
@@ -13,14 +9,14 @@ args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2025/250411_HISTONE_SAHA/combined/txt/Dimethyl (K)Sites.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2025/250411_HISTONE_SAHA/combined/txt/Acetyl (K)Sites.txt"
 inpD<-dirname(inpF)
-inpL <- args[2]
+inpL <- args[1]
 #inpL<-"L:/promec/TIMSTOF/LARS/2025/250411_HISTONE_SAHA/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 selection<-"Intensity."
-#i <- 3
+#i <- 1
 for(i in 1:3){
   selection2=paste0("___",i);
   print(selection2)
@@ -30,6 +26,7 @@ for(i in 1:3){
   cvThr=0.15#threshold for coefficient-of-variation
   outP=paste(inpF,selection,selection2,selThr,selThrFC,cvThr,lGroup,"VolcanoTestT","pdf",sep = ".")
   print(outP)
+  pdf(outP)
   #data####
   data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
   ##clean####
@@ -49,16 +46,10 @@ for(i in 1:3){
   #protNum<-"LFQ intensity"#1:ncol(LFQ)
   #colnames(LFQ)=paste(protNum,sub(selection,"",colnames(LFQ)),sep=";")
   dim(LFQ)
-  sum(LFQ)
-  mean(LFQ)
-  sd(LFQ)
-  if(sum(LFQ)!=0){
   log2LFQ<-log2(LFQ)
   log2LFQ[log2LFQ==-Inf]=NA
   log2LFQ[log2LFQ==0]=NA
   summary(log2LFQ)
-  if(min(log2LFQ,na.rm=T)!=max(log2LFQ,na.rm=T)){
-    pdf(outP)
   hist(log2LFQ)
   rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
   writexl::write_xlsx(as.data.frame(cbind(rowName,log2LFQ,rownames(data))),paste0(inpF,selection,selection2,"log2LFQ.xlsx"))
@@ -154,7 +145,7 @@ for(i in 1:3){
       hist(logFCmedianFC)
       log2FCmedianFC=log2(logFCmedianFC)
       hist(log2FCmedianFC)
-      ttest.results = data.frame(ID=data$id,Gene=data$geneName,Uniprot=data$uniprotID,Isoform=data$uniprotIso,Protein=data$Protein.names,Position=data$Positions.within.proteins,SiteProbability=data[,grep("Probabilities",colnames(data))],logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
+      ttest.results = data.frame(ID=data$id,Gene=data$geneName,Uniprot=data$uniprotID,Isoform=data$uniprotIso,Protein=data$Protein.names,Position=data$Positions.within.proteins,SiteProbability=data[$Phospho..STY..Probabilities,logFCmedianGrp1,logFCmedianGrp2,PValueMinusLog10=pValNAminusLog10,FoldChanglog2median=logFCmedianFC,CorrectedPValueBH=pValBHna,TtestPval=pValNA,dataSellog2grpTtest,Log2MedianChange=logFCmedian,RowGeneUniProtScorePeps=rownames(dataSellog2grpTtest))
       writexl::write_xlsx(ttest.results,paste0(inpF,selection,selection2,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.xlsx"))
       write.csv(ttest.results,paste0(inpF,selection,selection2,sCol,eCol,comp,selThr,selThrFC,cvThr,lGroup,"tTestBH.csv"),row.names = F)
       ttest.results$RowGeneUniProtScorePeps<-paste0(data$geneName,"-",data$Phospho..STY..Probabilities)
@@ -178,6 +169,4 @@ for(i in 1:3){
   #SAHA####
   tt=testT(log2LFQ,"SAHA","CTR",cvThr)
   dev.off()
-}
-  }
 }
