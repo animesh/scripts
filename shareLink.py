@@ -11,7 +11,7 @@ key = sys.argv[1]
 dirpath = sys.argv[2]
 name = sys.argv[3]
 import minio
-minio_client=minio.Minio("server-drive.promec.sigma2.no",access_key="promecshare",secret_key=key)
+minio_client=minio.Minio("server-server-drive.promec.sigma2.no",access_key="promecshare",secret_key=key)
 url = minio_client.presigned_get_object(dirpath, name)
 print(url)
 
