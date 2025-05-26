@@ -1,4 +1,4 @@
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "SA" "SB" 0.1 0.5 100
+#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "SA" "SB" 0.1 0.5 100
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -12,9 +12,9 @@ if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of protei
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2025/250404_Alessandro/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2025/250507_Alessandro/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2025/250404_Alessandro/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2025/250507_Alessandro/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Condition"
 rGroup <- args[4]
