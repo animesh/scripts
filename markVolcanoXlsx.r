@@ -44,11 +44,11 @@ for(inpF in inpFL){
     dataTop30<-dataTop30[1:30,]
     selectID<-data$RowGeneUniProtScorePeps %in% dataTop30$RowGeneUniProtScorePeps | toupper(gsub(" ","",data$Gene)) %in% toupper(listID)
     summary(sum(selectID))
-    p <- ggplot2::ggplot(data,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=selectID),size=0.1,alpha = 0.8) + ggplot2::scale_color_manual(values = c("grey", "black"))
+    p <- ggplot2::ggplot(data,ggplot2::aes(Log2MedianChange,PValueMinusLog10))+ ggplot2::geom_point(ggplot2::aes(color=selectID),size=1,alpha = 0.9) + ggplot2::scale_color_manual(values = c("grey", "black"))
     dsub <- subset(data,selectID)
     print(dim(dsub))
-    p<-p + ggplot2::theme_bw() + ggplot2::geom_text(fontface = "bold",data=dsub,ggplot2::aes(label=Gene),hjust=0, vjust=0.5,nudge_x = 0.1,nudge_y = 0,size=1.5,alpha =1) + ggplot2::scale_fill_gradient(low="grey", high="black") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
-    ggplot2::ggsave(paste0(inpD,inpF,"top30select",length(listID), "VolcanoTest.svg"), width=8,height=6,p)
+    p<-p + ggplot2::theme_bw() + ggplot2::geom_text(fontface = "bold",data=dsub,ggplot2::aes(label=Gene),hjust=0, vjust=0.5,nudge_x = 0.1,nudge_y = 0,size=5,alpha =0.9) + ggplot2::scale_fill_gradient(low="grey", high="black") + ggplot2::xlab("Log2 Median Change") + ggplot2::ylab("-Log10 P-value")
+    ggplot2::ggsave(paste0(inpD,inpF,"top30select",length(listID), "VolcanoTest.svg"), width=16,height=12,p)
     print(p)
     #sheets<-append(sheets,list(data))
     MZ1<-dsub$RowGeneUniProtScorePeps
