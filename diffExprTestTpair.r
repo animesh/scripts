@@ -1,4 +1,4 @@
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "SA" "SB" 0.1 0.5 100
+#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "LA" "LB" 0.1 0.5 100
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())

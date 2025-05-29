@@ -1,6 +1,5 @@
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "C2" "C1" 0.1 0.5 0.15
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "C4" "C1" 0.1 0.5 0.15
-#Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\241118_Deo\tot\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "C6" "C1" 0.1 0.5 0.15
+#..\R-4.4.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "SB" "LB" 0.1 0.5 0.15
+#..\R-4.4.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "SA" "LA" 0.1 0.5 0.15   
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
