@@ -1,5 +1,5 @@
-#python geneGroupsCombineDIANN.py "L:\promec\TIMSTOF\LARS\2025\250428_Kamilla\" "*report.met.acet.report.unique_genes_matrix.tsv"
-#bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/kamilla 
+#python geneGroupsCombineDIANN.py "L:\promec\TIMSTOF\LARS\2025\250428_Kamilla\new lysis" "*report.oxM.acetN.report.unique_genes_matrix.tsv"
+#bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/newprep 
 #!pip3 install pandas --user
 # %% setup
 import sys
