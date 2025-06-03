@@ -2,7 +2,7 @@
 
 # Please edit the following path to point to the correct location.
 # In Windows, please replace single '\' with '\\'
-database.db-path=/mnt/promec-ns9036k/FPv22lin/fragpipe/2024-06-01-decoys-contam-UP000005640.fas
+database.db-path=/mnt/promec-ns9036k/FPv22lin/fragpipe/2025-06-02-decoys-contam-UP000002494_10116.fasta.fas
 
 fragpipe-config.tools-folder=/home/ash022/fragpipe/tools
 fragpipe-config.bin-diann=/home/ash022/fragpipe/tools/diann/1.8.2_beta_8/linux/diann-1.8.1.8
