@@ -1,4 +1,5 @@
-#python checkIncorporationRate.py Z:\Download\txt\ peptides.txt HL
+#python checkIncorporationRate.py L:\promec\TIMSTOF\LARS\2025\250603_EDAN\combined\txt\ peptides.txt light
+#python checkIncorporationRate.py L:\promec\TIMSTOF\LARS\2025\250603_EDAN\combined\txt\ peptides.txt heavy
 print("peptide.txt output file to calculate the incorporation rate. Distinguish between lysine- and argininecontaining peptides. For each of these subsets determine the incorporation rate as 1–1/average ratio, using the non-normalized ratios. The density plot of the density distribution should be narrow, and for both lysine and arginine it should be above 0.95, Reference: Use of stable isotope labeling by amino acids in cell culture as a spike-in standard in quantitative proteomics https://www.nature.com/articles/nprot.2010.192")
 import sys
 from pathlib import Path
@@ -18,7 +19,7 @@ else:
 trainList=list(dirName.rglob(fileName))
 print("Using file(s)\n",trainList)
 
-columnName='^(Ratio H/L) [' + colR + '](.*)'#'*([0-9])$'
+columnName='^(Ratio H/L) ' + colR + '(.*)'#'*([0-9])$'
 columnNameH='^(Intensity H)(.*)|(.*)(Light)$'#'*([0-9])$'
 columnNameL='^(Intensity L)(.*)|(.*)(Heavy)$'#'*([0-9])$'
 #f=trainList[0]
@@ -34,7 +35,7 @@ for i, f in enumerate(trainList):
     dfPG=df.filter(regex=columnName,axis=1)
     print(dfPG.columns)
     #dfPG=dfPG.rename(columns = lambda x : str(x)[10:])
-    writePGCountcsv=f.with_suffix(".count.csv")
+    writePGCountcsv=f.with_suffix(f.suffix+colR+".count.csv")
     dfPGcnt=dfPG.count()
     print(dfPGcnt)
     print("writing output to ... ")
@@ -42,7 +43,7 @@ for i, f in enumerate(trainList):
     #dfPGcnt[dfPGcnt<max(dfPGcnt)].plot(kind='bar').figure.savefig(writePGCountcsv,bbox_inches = "tight")
     print(writePGCountcsv)
     dfPG=1-(1/dfPG.mean(axis = 0, skipna = True))
-    writePGcsv=f.with_suffix(".IR.csv")
+    writePGcsv=f.with_suffix(f.suffix+colR+".IR.csv")
     dfPG.to_csv(writePGcsv,header=False)
     print(writePGcsv)
     #dfPG.hist()
@@ -53,35 +54,35 @@ for i, f in enumerate(trainList):
     dfPGL=dfPGL.rename(columns = lambda x : str(x)[12:])
     #dfPGH2Ldiff=dfPGH-dfPGL
     dfPGH2Lratio=(dfPGH+1)/(1+dfPGL)
-    writePGtxt=f.with_suffix(".IRH2L.txt")
+    writePGtxt=f.with_suffix(f.suffix+colR+".IRH2L.txt")
     dfPGH2Lratio.to_csv(writePGtxt,header=True,sep='\t')
     print(writePGtxt)
 
 
     dfPGH2LratioIR=1-(1/dfPGH2Lratio.mean(axis = 0, skipna = True))
     print(dfPGH2LratioIR)
-    writePGcsv=f.with_suffix(".IRH2L.csv")
+    writePGcsv=f.with_suffix(f.suffix+colR+".IRH2L.csv")
     dfPGH2LratioIR.to_csv(writePGcsv,header=False)
     print(writePGcsv)
     print("Overall\n",dfPG)
     import numpy as np
     if "Last amino acid" in df: dfK=df[df["Last amino acid"]=='K']
     if "Annotated Sequence" in df: dfK=df[df["Annotated Sequence"].str.contains('K')]
-    writeKpng=f.with_suffix(".log2K.png")
+    writeKpng=f.with_suffix(f.suffix+colR+".log2K.png")
     if "Ratio H/L" in dfK: np.log2(dfK["Ratio H/L"]).hist().figure.savefig(writeKpng,bbox_inches = "tight")
     dfPG=dfK.filter(regex=columnName,axis=1)
     dfPG=1-(1/dfPG.mean(axis = 0, skipna = True))
-    writePGcsv=f.with_suffix(".K.IR.csv")
+    writePGcsv=f.with_suffix(f.suffix+colR+".K.IR.csv")
     dfPG.to_csv(writePGcsv,header=False)
     print("Lysine\n",dfPG)
     if "Last amino acid" in df: dfR=df[df["Last amino acid"]=='R']
     if "Annotated Sequence" in df: dfR=df[df["Annotated Sequence"].str.contains('R')]
-    writeRpng=f.with_suffix(".log2KR.png")
+    writeRpng=f.with_suffix(f.suffix+colR+".log2KR.png")
     if "Ratio H/L" in dfR: np.log2(dfR["Ratio H/L"]).hist().figure.savefig(writeRpng,bbox_inches = "tight")
     print("writing Log2 H/L histogram to ... ")
     print(writeKpng,writeRpng)
     dfPG=dfR.filter(regex=columnName,axis=1)
     dfPG=1-(1/dfPG.mean(axis = 0, skipna = True))
-    writePGcsv=f.with_suffix(".R.IR.csv")
+    writePGcsv=f.with_suffix(f.suffix+colR+".R.IR.csv")
     dfPG.to_csv(writePGcsv,header=False)
     print("Arginine\n",dfPG)
