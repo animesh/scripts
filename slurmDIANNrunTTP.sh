@@ -1,6 +1,6 @@
-#bash slurmDIANNrunTTP.sh /cluster/projects/nn9036k/scripts/salmon/dia scratch.slurm
-#mkdir -p salmon/dia
-#rsync -Parv ash022@login.nird-lmd.sigma2.no:PD/TIMSTOF/LARS/2024/241219_Hela_DDA_DIA/Hela_Salmon/DIA/*.d salmon/dia/.
+#bash slurmDIANNrunTTP.sh /cluster/projects/nn9036k/scripts/cell scratch.slurm
+#mkdir -p cell
+#rsync -Parv /nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2025/250606_cell/ cell/
 DATADIR=$1
 #leave following empty to include ALL files
 CURRENTEPOCTIME=`date +%s`

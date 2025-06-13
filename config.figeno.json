@@ -1,0 +1,94 @@
+{
+	"general": {
+		"layout": "horizontal",
+		"reference": "hg38"
+	},
+	"output": {
+		"file": "/cluster/projects/nn9036k/TK/figure.svg",
+		"dpi": 400,
+		"width": 180
+	},
+	"regions": [
+		{
+			"chr": "12",
+			"start": 109096927,
+			"end": 109111661
+		}
+	],
+	"highlights": [],
+	"tracks": [
+		{
+			"type": "alignments",
+			"height": 50,
+			"margin_above": 1.5,
+			"bounding_box": false,
+			"fontscale": 1,
+			"file": "/cluster/projects/nn9036k/TK/TK93L002.markdup.sorted.bam",
+			"label": "",
+			"label_rotate": false,
+			"hgap_bp": 30,
+			"vgap_frac": 0.3,
+			"read_color": "#f39c12",
+			"link_splitreads": true,
+			"splitread_color": "#999999",
+			"link_color": "#999999",
+			"link_lw": 0.2,
+			"only_show_splitreads": false,
+			"min_splitreads_breakpoints": 2,
+			"group_by": "none",
+			"color_by": "none"
+		},
+		{
+			"type": "alignments",
+			"height": 50,
+			"margin_above": 1.5,
+			"bounding_box": false,
+			"fontscale": 1,
+			"file": "/cluster/projects/nn9036k/TK/TK12R1.markdup.sorted.bam",
+			"label": "",
+			"label_rotate": false,
+			"hgap_bp": 30,
+			"vgap_frac": 0.3,
+			"read_color": "#16a085",
+			"link_splitreads": true,
+			"splitread_color": "#999999",
+			"link_color": "#999999",
+			"link_lw": 0.2,
+			"only_show_splitreads": false,
+			"min_splitreads_breakpoints": 2,
+			"group_by": "none",
+			"color_by": "none"
+		},
+		{
+			"type": "genes",
+			"height": 10,
+			"margin_above": 1.5,
+			"bounding_box": false,
+			"fontscale": 1,
+			"label": "",
+			"label_rotate": false,
+			"style": "default",
+			"collapsed": true,
+			"only_protein_coding": true,
+			"exon_color": "#2980b9",
+			"genes": "auto",
+			"show_gene_names": true
+		},
+		{
+			"type": "chr_axis",
+			"height": 10,
+			"margin_above": 1.5,
+			"bounding_box": false,
+			"fontscale": 1,
+			"label": "",
+			"label_rotate": false,
+			"style": "default",
+			"lw_scale": "1.0",
+			"ticklabels_pos": "above",
+			"unit": "kb",
+			"ticks_interval": "auto",
+			"ticks_angle": 0,
+			"chr_prefix": "chr"
+		}
+	]
+}
