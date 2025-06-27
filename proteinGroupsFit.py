@@ -1,4 +1,4 @@
-#python proteinGroupsFit.py "L:\promec\TIMSTOF\LARS\2025\250329_DIA_Hela\intensityDIANNv2P_comb.sum.unique.csv"
+#python proteinGroupsFit.py "L:\promec\TIMSTOF\LARS\2025\250402_dda_Hela\tesorai\HeLaCon_quantified_protein_fdr.tsv" 3 10
 import sys
 import numpy as np
 import pandas as pd
@@ -6,12 +6,41 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.cluster import hierarchy
 fPath = sys.argv[1]
-#fPath = "L:\\promec\\TIMSTOF\\LARS\\2025\\250402_dda_Hela\\mqpar.xml_20250403_135936\\proteinGroups.txt.dfIpDD.csv"
-df = pd.read_csv(fPath, index_col=0)
-df = df.loc[:,~df.columns.str.startswith('sum')]
-df[df==0]=np.nan
+#fPath = "L:\\promec\\TIMSTOF\\LARS\\2025\\250402_dda_Hela\\tesorai\\HeLaCon_quantified_protein_fdr.tsv"
+idxCol = int(sys.argv[2])
+#idxCol = 3
+valCol = int(sys.argv[3])
+#valCol = 10
+print(fPath,idxCol,valCol)
+df = pd.read_csv(fPath,sep='\t', index_col=idxCol)
+fPath=fPath+df.columns[idxCol]+df.columns[valCol]
+print(fPath)
+def parseToNumList(intensityList):
+    if isinstance(intensityList,float):
+        return intensityList
+    else:
+        valueStr = intensityList.strip('[]').split()
+        values = []
+        for val in valueStr:
+            if val.lower() == 'nan':
+                values.append(np.nan)
+            else:
+                values.append(float(val))
+        return values
+df[df.columns[valCol]] = df[df.columns[valCol]].apply(parseToNumList)
+df['sum'] = df[df.columns[valCol]].apply(np.nansum)
+#print((df[df.columns[valCol]]-df['sum']).sum())
+print(df.columns)
+#df['top3avg'] = df['intensities'].apply(lambda x: np.mean(np.sort(np.array(x)[~np.isnan(x)])[-3:]) if np.sum(~np.isnan(x)) >= 3 else np.nanmean(x))
+#plt.plot(df['top3avg'],df['intensity_top3'])
+#df['intensitiesNormLen']=df['sum']/df['protein_length']
+#plt.plot(df['intensitiesNormLen'],df['intensity_IBAQ'])
+df=df[['filename','sum']]
+df=df.pivot(columns='filename', values='sum')
 print(df.info())
-(df/df.T.median()).describe()
+df[df==0] = np.nan
+print(df.info())
+df.to_excel(fPath+".xlsx")
 coefV=df.corr()**2
 row_linkage = hierarchy.linkage(coefV, method='average')
 col_linkage = hierarchy.linkage(coefV.T, method='average')
