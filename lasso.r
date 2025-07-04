@@ -1,3 +1,143 @@
+#https://github.com/alexcoad/Econometrics
+
+###################################################################
+# Lasso on scoreboard data
+###################################################################
+
+library(readxl)
+sb_raw <- read_excel("SB2023_World2500.xlsx")
+sb     <- sb_raw
+
+# take a first look at the data
+dim(sb); head(sb)
+
+
+################################
+# DATA CLEANING & PREPARATION
+
+# 1) Tidy up the column names
+
+colnames(sb) <- c("rank", "company", "year", "ctry", "region", "industry", "rnd", "rnd_gr", "sales", "sales_gr", "rnd_int", "capex", "capex_gr", "capex_int", "opprof",  "opprof_gr", "profbty", "empl", "empl_gr", "mcap", "mcap_gr")
+
+
+# 2) Convert variables to factor variables (i.e. categorical variables)
+
+sb$industry <- as.factor(sb$industry)
+levels(sb$industry)
+
+sb$ctry <- as.factor(sb$ctry)
+levels(sb$ctry)
+
+sb$region <- as.factor(sb$region)
+levels(sb$region)
+
+
+# 3) log (or IHS) transformations for some variables
+
+for (i in c("rnd", "sales", "empl", "mcap")) {
+  # Create a new column name for the log-transformed variable
+  new_col_name <- paste("log", i, sep="_")
+
+  # Assign the log-transformed values to the new column
+  sb[[new_col_name]] <- log(sb[[i]])
+
+  # Print the new column name and its values
+  cat("Variable:", new_col_name, "\n")
+}
+
+summary(sb_raw$opprof)
+# lots of zeroes, take the IHS instead of logs
+sb$ihs_opprof <- asinh(sb$opprof)
+
+summary(sb_raw$capex)
+# 2 cases of zeroes, take the log(1+x)
+sb$log_capex <- log(1 + sb$capex)
+
+
+# 4) remove unnecessary variables: rank, company name, year (always 2022)
+
+sb <- sb[, 4:27]
+
+
+
+# 5) Lasso requires that there are no missing values
+
+colSums(is.na(sb))
+
+# drop 185 NAs for empl_gr
+sb <- sb[complete.cases(sb$empl_gr), ]
+dim(sb)
+colSums(is.na(sb))
+
+# lots of NAs for mcap_gr, let's just leave this variable out
+sb[, 18]
+sb <- sb[, -18]
+
+sb <- na.omit(sb)
+dim(sb)
+
+
+
+###########################################################
+# Dep Var = R&D_intensity  
+
+ycol <- which(names(sb)=="rnd_int")
+# This is our DV
+ysb  <- sb$rnd_int
+
+# create sparse model matrix without intercept
+library(Matrix)
+xsb <- sparse.model.matrix( ~ ., data = sb[, -ycol])[, -1]
+
+class(xsb)
+dim(xsb)
+
+
+library(gamlr) # in case you don't already have this loaded
+fitsb <- gamlr(x=xsb, y=ysb, lmr = 1e-6)
+plot(fitsb, main = "DV = R&D Intensity")
+
+
+
+# examine the gamlr object
+fitsb
+# summary(fitsb)
+names(fitsb)
+dim(fitsb$beta)
+
+# look at models at segments 1, 2, 99 and 100
+fitsb$beta[,c(1:2,99:100)]
+fitsb$alpha[c(1:2,99:100)]
+
+
+# examine the best-fitting model
+bsb <- coef(fitsb) ## the coefficients selected under AICc
+which.min(AICc(fitsb))  ## model 54 fits best
+fitsb$lambda[54]
+head(bsb)        ## lots of coefficients are zero in model 54
+bsb <- bsb[-1,]  ## we can drop the intercept term
+sum(bsb != 0)    ## there are 20 nonzero coefficients
+# look at the 5 most negative and positive coefficients
+head(sort(bsb),5) 
+tail(sort(bsb),5) 
+
+
+# check coefficients for specific variables
+bsb[c("profbty", "sales_gr", "log_mcap", "empl_gr")]
+
+
+# Focus on the 2 largest R&D investors (i.e. Alphabet & Meta)
+sb_raw[ c(1, 2) , c(2, 7, 11) ]
+# Actual R&D intensity = 14.0% for Alphabet, 28.8% for Meta
+
+# The predict command uses the AICc by default
+( yhat <- predict(fitsb, xsb[ c(1, 2) ,]) )
+drop(yhat) # use "drop" to remove sparse formatting
+# Predicted R&D intensity = 3.53% for Alphabet, 18.59% for Meta
+
+
+
+
 # Code from Leiden Group
 # Read data setwd("M:\\R\\data\\Haks\\lasso") 
 library(foreign) 

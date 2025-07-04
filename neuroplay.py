@@ -1,3 +1,15 @@
+import statsmodels.api as sm
+
+
+fig, ax = plt.subplots(figsize=(12, 4))
+fig.gca().spines["top"].set_color("lightgray")
+fig.gca().spines["right"].set_color("lightgray")
+sm.graphics.tsa.plot_acf(
+    dfc["count"], lags=2*60, ax=ax, title="Autocorellation Function"
+)
+plt.ylim(-0.1, 1.1)
+fig.show()
+
 from NeuroPy import NeuroPy
 #import winsound 		 
 import numpy as np
