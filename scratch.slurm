@@ -25,5 +25,17 @@ java --version
 #seq 1 30 >> lan.txt
 #paste -d ','  lan.txt samples2.csv  > samples.csv
 #curl -s https://get.nextflow.io | bash
-./nextflow run nf-core/sarek  -profile singularity --input ./samples.csv --outdir ./results --genome GATK.GRCh38
+#https://nf-co.re/sarek/usage#how-can-the-different-steps-be-used
+./nextflow run nf-core/sarek -profile singularity --input ./results/csv/recalibrated.csv --outdir ./results --genome GATK.GRCh38 --tools deepvariant --step variant_calling  -resume
+#--max_memory '256.GB' --max_cpus 128 
+#snpeff,vep,merge
+#https://academic.oup.com/nargab/article/6/2/lqae031/7658070#460158048:~:text=Listing%204%3A%20Variant%20calling
+#--tools deepvariant,haplotypecaller,mutect2,strelka,freebayes,ascat,controlfreec,cnvkit,manta,tiddit,msisensorpro --step variant_calling 
 #tail -f sarekTK.out 
+#git config --global --edit
+#git config --add --global core.filemode false
+#[core]
+#        filemode = true
+#file:/cluster/projects/nn9036k/.nextflow/assets/nf-core/sarek
+#./tw-agent c18e698f-8a30-4555-9cfc-4d27ce21a7ec  --work-dir=./work
+#ls ./results/variant_calling/deepvariant/
