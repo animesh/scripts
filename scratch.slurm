@@ -37,4 +37,8 @@ java --version
 #        filemode = true
 #file:/cluster/projects/nn9036k/.nextflow/assets/nf-core/sarek
 #./tw-agent c18e698f-8a30-4555-9cfc-4d27ce21a7ec  --work-dir=./work
-#ls results/variant_calling/haplotypecaller/
+# ls results/variant_calling/haplotypecaller/
+#ls -ltrh results/reports/snpeff/haplotypecaller/ | wc
+#     31     272    1966
+#ls -ltrh results/reports/EnsemblVEP/haplotypecaller/ | wc
+#     31     272    1966
