@@ -18,3 +18,4 @@ for /d %%i in ("%dataDir%\*.d") do (
   echo "%dataDir%" NOT found
 )
 cd %workDir%
+

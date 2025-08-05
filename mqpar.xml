@@ -5,7 +5,7 @@
          <fastaFilePath>SequencesFasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
-         <taxonomyParseRule></taxonomyParseRule>
+         <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
          <taxonomyId></taxonomyId>
@@ -79,7 +79,7 @@
    <psmFdrCrosslink>0.01</psmFdrCrosslink>
    <peptideFdr>0.01</peptideFdr>
    <proteinFdr>0.01</proteinFdr>
-   <siteFdr>0.05</siteFdr>
+   <siteFdr>0.01</siteFdr>
    <minPeptideLengthForUnspecificSearch>8</minPeptideLengthForUnspecificSearch>
    <maxPeptideLengthForUnspecificSearch>25</maxPeptideLengthForUnspecificSearch>
    <useNormRatiosForOccupancy>True</useNormRatiosForOccupancy>
@@ -88,13 +88,12 @@
    <minUniquePeptides>1</minUniquePeptides>
    <useCounterparts>False</useCounterparts>
    <advancedSiteIntensities>True</advancedSiteIntensities>
-   <customProteinQuantification>False</customProteinQuantification>
-   <customProteinQuantificationFile></customProteinQuantificationFile>
    <minRatioCount>1</minRatioCount>
    <restrictProteinQuantification>True</restrictProteinQuantification>
    <restrictMods>
       <string>Oxidation (M)</string>
       <string>Acetyl (Protein N-term)</string>
+      <string>Deamidation (NQ)</string>
    </restrictMods>
    <matchingTimeWindow>0</matchingTimeWindow>
    <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
@@ -116,7 +115,6 @@
    <writeDiaFragmentTable>False</writeDiaFragmentTable>
    <writeDiaFragmentQuantTable>False</writeDiaFragmentQuantTable>
    <writeMzTab>False</writeMzTab>
-   <writeSdrf>False</writeSdrf>
    <disableMd5>False</disableMd5>
    <cacheBinInds>True</cacheBinInds>
    <etdIncludeB>False</etdIncludeB>
@@ -126,14 +124,14 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.6.7.0</maxQuantVersion>
+   <maxQuantVersion>2.7.0.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>8</numThreads>
+   <numThreads>32</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
-   <fullMinMz>-1.7976931348623157E+308</fullMinMz>
-   <fullMaxMz>1.7976931348623157E+308</fullMaxMz>
+   <fullMinMz>-1.7958954417274534E+308</fullMinMz>
+   <fullMaxMz>1.7958954417274534E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -194,9 +192,9 @@
          <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dda>35</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>0</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>10</intensityThresholdMs2>
+         <intensityThresholdMs2>0</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
@@ -241,6 +239,7 @@
          <variableModifications>
             <string>Oxidation (M)</string>
             <string>Acetyl (Protein N-term)</string>
+            <string>Deamidation (NQ)</string>
          </variableModifications>
          <useMultiModification>False</useMultiModification>
          <multiModifications>
@@ -278,8 +277,8 @@
          <filterPif>False</filterPif>
          <reporterFraction>NaN</reporterFraction>
          <reporterBasePeakRatio>NaN</reporterBasePeakRatio>
-         <timsHalfWidth>10</timsHalfWidth>
-         <timsStep>3</timsStep>
+         <timsHalfWidth>5</timsHalfWidth>
+         <timsStep>2</timsStep>
          <timsResolution>35000</timsResolution>
          <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
@@ -353,7 +352,7 @@
          <diaMinFragProfileCorrelation>0</diaMinFragProfileCorrelation>
          <diaClassificationModel>1</diaClassificationModel>
          <diaXgBoostMinChildWeight>9</diaXgBoostMinChildWeight>
-         <diaXgBoostMaximumTreeDepth>11</diaXgBoostMaximumTreeDepth>
+         <diaXgBoostMaximumTreeDepth>3</diaXgBoostMaximumTreeDepth>
          <diaXgBoostEstimators>580</diaXgBoostEstimators>
          <diaXgBoostGamma>0.9</diaXgBoostGamma>
          <diaXgBoostMaxDeltaStep>3</diaXgBoostMaxDeltaStep>
@@ -380,10 +379,12 @@
          <diaDynamicScoringMaxInstances>25000</diaDynamicScoringMaxInstances>
          <diaMaxPrecursorMz>0</diaMaxPrecursorMz>
          <diaHardRtFilter>True</diaHardRtFilter>
+         <diaHardCcsFilter>True</diaHardCcsFilter>
          <diaConvertLibraryCharge2Fragments>False</diaConvertLibraryCharge2Fragments>
          <diaChargeNormalizationLibrary>False</diaChargeNormalizationLibrary>
          <diaChargeNormalizationSample>False</diaChargeNormalizationSample>
          <diaDeleteIntermediateResults>True</diaDeleteIntermediateResults>
+         <diaDeleteRawFilesAfterSearch>False</diaDeleteRawFilesAfterSearch>
          <diaScoreWeightScanIndex>-1</diaScoreWeightScanIndex>
          <diaScoreWeightScanValue>1</diaScoreWeightScanValue>
          <diaNumNonleadingMatches>1</diaNumNonleadingMatches>
@@ -401,13 +402,14 @@
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
          <diaMultiplexQuantMethod>1</diaMultiplexQuantMethod>
          <diaOnlyPostprocess>False</diaOnlyPostprocess>
+         <diaSkipLibraryGeneration>False</diaSkipLibraryGeneration>
          <diaRequirePrecursor>False</diaRequirePrecursor>
          <diaFuturePeptides>False</diaFuturePeptides>
          <diaOverrideRtWithPrediction>False</diaOverrideRtWithPrediction>
          <diaMaxModifications>2</diaMaxModifications>
          <diaMaxPositionings>20</diaMaxPositionings>
          <diaPredictCharges>False</diaPredictCharges>
-         <diaUseProbScore>False</diaUseProbScore>
+         <diaUseProbScore>True</diaUseProbScore>
          <diaProbScoreP>0.055</diaProbScoreP>
          <diaProbScoreG>1.2</diaProbScoreG>
          <diaProbScoreStep>0.1</diaProbScoreStep>
@@ -426,13 +428,14 @@
          <diaBestPrecursorMassRangeForQuant>False</diaBestPrecursorMassRangeForQuant>
          <diaBestPrecursorIntensityForQuant>False</diaBestPrecursorIntensityForQuant>
          <diaPtmLocMethod>1</diaPtmLocMethod>
+         <diaSecondScoring>True</diaSecondScoring>
          <diaIndexedSearch>True</diaIndexedSearch>
          <diaIncreaseSequenceCoverage>True</diaIncreaseSequenceCoverage>
          <diaSequenceCoverageFdr>0.01</diaSequenceCoverageFdr>
          <diaHasIntensitiesForMl>True</diaHasIntensitiesForMl>
          <diaFdrCvIncludeCharge>True</diaFdrCvIncludeCharge>
-         <diaMinCharge>2</diaMinCharge>
-         <diaMaxCharge>3</diaMaxCharge>
+         <diaMinCharge>1</diaMinCharge>
+         <diaMaxCharge>4</diaMaxCharge>
          <diaDeltaMzLower>0.55</diaDeltaMzLower>
          <diaDeltaMzUpper>0.05</diaDeltaMzUpper>
          <diaUseNeutralLossesForQuant>True</diaUseNeutralLossesForQuant>
@@ -441,6 +444,17 @@
          <mobilityPredictionTwoConformations>False</mobilityPredictionTwoConformations>
          <diaHasLibrarySupplement>False</diaHasLibrarySupplement>
          <diaSupplementalFile></diaSupplementalFile>
+         <diaSupplementalEvidenceFile></diaSupplementalEvidenceFile>
+         <diaNeuralNetNumIter>0</diaNeuralNetNumIter>
+         <diaNeuralNetDropout>0</diaNeuralNetDropout>
+         <diaNeuralNetHiddenLayers>0</diaNeuralNetHiddenLayers>
+         <diaNeuralNetBatchSize>0</diaNeuralNetBatchSize>
+         <diaUseRnnRtModel>True</diaUseRnnRtModel>
+         <diaUseRnnCcsModel>False</diaUseRnnCcsModel>
+         <diaUseCharge2Fragments>True</diaUseCharge2Fragments>
+         <diaUseWaterLosses>False</diaUseWaterLosses>
+         <diaUseAmmoniaLosses>False</diaUseAmmoniaLosses>
+         <diaUseRtFeaturesInMlScoring>True</diaUseRtFeaturesInMlScoring>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
@@ -542,7 +556,7 @@
    </msmsParamsArray>
    <fragmentationParamsArray>
       <fragmentationParams>
-         <Name>HCD</Name>
+         <Name>CID</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
          <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
@@ -550,7 +564,7 @@
          <InternalFragmentAas>KRH</InternalFragmentAas>
       </fragmentationParams>
       <fragmentationParams>
-         <Name>CID</Name>
+         <Name>HCD</Name>
          <UseIntensityPrediction>False</UseIntensityPrediction>
          <UseSequenceBasedModifier>False</UseSequenceBasedModifier>
          <InternalFragments>False</InternalFragments>
