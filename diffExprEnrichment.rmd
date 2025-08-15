@@ -1,4 +1,13 @@
 ```{r setup, echo = FALSE}
+install.packages("explore")
+library(explore)
+beer <- use_data_beer()
+beer |> explore()
+
+```
+
+
+```{r setup, echo = FALSE}
 #library/packages
 .libPaths( c( .libPaths(), "L:/R/library") )
 .libPaths()
@@ -17,6 +26,7 @@ getwd()
 #https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/README
 #https://www.uniprot.org/help/downloads
 #https://string-db.org/cgi/help.pl?subpage=api%23getting-functional-enrichment
+fisher.test(rbind(c(1,9),c(11,3)))$p.value/2
 fisher.test(rbind(c(1,9),c(11,3)), alternative="less")$p.value
 (choose(10,1)*choose(14,11))/(choose(24,12))+(choose(10,0)*choose(14,12))/(choose(24,12))
 (choose(628,6)*choose(4458,11))/(choose(5086,17))
@@ -29,11 +39,11 @@ fisher.test(wikiP)
 fisher.test(wikiP, alternative="greater")
 fisher.test(wikiP, conf.level = 0.99)$conf.int
 #https://youtu.be/O182Gr97-DI?t=3922
-wikiP <- matrix(c(2,1,5000,5000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+wikiP <- matrix(c(2,1,1000,1000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
 fisher.test(wikiP)
-wikiP <- matrix(c(200,100,5000,5000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+wikiP <- matrix(c(20,10,1000,1000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
 fisher.test(wikiP)
-wikiP <- matrix(c(20,10,5000,5000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
+wikiP <- matrix(c(200,100,1000,1000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
 fisher.test(wikiP)
 wikiP <- matrix(c(2,10,5000,5000), nrow = 2,dimnames =list(wikiP=c("full", "selected"),pWiki=c("selected", "other")))
 fisher.test(wikiP)
@@ -77,6 +87,19 @@ library( magrittr)
 data( transcriptome)
 data( proteome)
 data( metabolome)
+# Initialize the omics data structure
+initOmicsDataStructure <- function(layer) {
+  omics_data <- list()
+  for (l in layer) {
+    omics_data[[l]] <- list()
+  }
+  return(omics_data)
+}
+rankFeatures <- function(logFC, pValue) {
+  ranked_features <- -log10(pValue) * sign(logFC)
+  return(ranked_features)
+}
+
 omics_data <- initOmicsDataStructure( layer = c("transcriptome", 
                                                 "proteome",
                                                 "metabolome"))
