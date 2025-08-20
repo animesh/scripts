@@ -202,7 +202,7 @@
             <string>Arg10;Lys8</string>
          </labelMods>
          <lcmsRunType>TIMS-DDA</lcmsRunType>
-         <reQuantify>True</reQuantify>
+         <reQuantify>False</reQuantify>
          <lfqMode>0</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
