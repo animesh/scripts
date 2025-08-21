@@ -132,8 +132,8 @@
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
-   <fullMinMz>-1.7976931348623157E+308</fullMinMz>
-   <fullMaxMz>1.7976931348623157E+308</fullMaxMz>
+   <fullMinMz>-1.7958954417274534E+308</fullMinMz>
+   <fullMaxMz>1.7958954417274534E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -194,14 +194,14 @@
          <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>35</intensityThresholdMs1Dda>
-         <intensityThresholdMs1Dia>0</intensityThresholdMs1Dia>
-         <intensityThresholdMs2>0</intensityThresholdMs2>
+         <intensityThresholdMs1Dda>0</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dia>35</intensityThresholdMs1Dia>
+         <intensityThresholdMs2>17</intensityThresholdMs2>
          <labelMods>
             <string></string>
             <string>Arg10;Lys8</string>
          </labelMods>
-         <lcmsRunType>TIMS-DDA</lcmsRunType>
+         <lcmsRunType>TIMS-MaxDIA</lcmsRunType>
          <reQuantify>False</reQuantify>
          <lfqMode>0</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
@@ -282,7 +282,7 @@
          <timsHalfWidth>10</timsHalfWidth>
          <timsStep>3</timsStep>
          <timsResolution>35000</timsResolution>
-         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
+         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -316,7 +316,7 @@
          <isobaricSumOverWindow>True</isobaricSumOverWindow>
          <isobaricWeightExponent>0.75</isobaricWeightExponent>
          <collapseMsmsOnIsotopePatterns>False</collapseMsmsOnIsotopePatterns>
-         <diaLibraryType>0</diaLibraryType>
+         <diaLibraryType>2</diaLibraryType>
          <diaLibraryPaths>
          </diaLibraryPaths>
          <diaEvidencePaths>
@@ -324,6 +324,7 @@
          <diaMsmsPaths>
          </diaMsmsPaths>
          <diaLabelIndsForLibraryMatch>
+            <int>0</int>
          </diaLabelIndsForLibraryMatch>
          <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
          <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
@@ -395,8 +396,8 @@
          <diaUseDefaultCcsModel>True</diaUseDefaultCcsModel>
          <diaAltCcsModelPath></diaAltCcsModelPath>
          <diaBatchProcessing>True</diaBatchProcessing>
-         <diaBatchSize>0</diaBatchSize>
-         <diaDecoyMode>0</diaDecoyMode>
+         <diaBatchSize>50</diaBatchSize>
+         <diaDecoyMode>2</diaDecoyMode>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
