@@ -202,7 +202,7 @@
             <string>Arg10;Lys8</string>
          </labelMods>
          <lcmsRunType>TIMS-MaxDIA</lcmsRunType>
-         <reQuantify>False</reQuantify>
+         <reQuantify>True</reQuantify>
          <lfqMode>0</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
