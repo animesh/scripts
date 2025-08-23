@@ -3,9 +3,8 @@
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 inpF <- args[1]
-#inpF<-"L:/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/report.gg_matrix.tsv"
+#inpF<-"L:/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/report rq.ha..gg_matrix.tsv"
 #inpD<- gsub("[^[:alnum:]]+", ".", dirname(inpF))
-#inpD<- strsplit(dirname(inpF), "/", fixed = TRUE)[[1]][length(split_result[[1]])]
 geneC <- args[2]
 #geneC<-"1"
 selection <- args[3]
