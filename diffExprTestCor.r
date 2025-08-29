@@ -1,32 +1,32 @@
-#install.packages(c("readxl","writexl","svglite","ggplot2"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Eye.min.diameter.mm."
-#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Yolk.area.mm2."
-#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Body.area.mm2."
-#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Yolk.body.ratio"
-#Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2023\230310 Sonali\combined\txtNoDN\Proteins dataset vs Larvel_06062024.xlsx" "LFQ.intensity." "Group" "Remove" "Eye.to.front.mm2."
+#install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
+#BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
+#..\R-4.5.0\bin\Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups Animesh analysis.xlsx" "LFQ.intensity." "LFQvsn" "Relapse" "Rem" "Days.until.relaps"
+#..\R-4.5.0\bin\Rscript diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups Animesh analysis.xlsx" "LFQ.intensity." "LFQvsn" "All" "Rem" "Days.until.relaps"
 print("USAGE:<path to>Rscript diffExprTestCor.r <complete path to directory containing proteinGroups.txt> AND <SurvivalUpdates.xlsx file>  \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"")
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 6) {stop("\n\nNeeds the full path of the directory containing BOTH proteinGroups.txt AND Survival.txt files followed by \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"", call.=FALSE)}
+if (length(args) != 7) {stop("\n\nNeeds the full path of the directory containing BOTH proteinGroups.txt AND Survival.txt files followed by \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"", call.=FALSE)}
 #thesholds####
 thr=3#count
-selThr=0.1#pValue-CorTest
-selThrCor=0.75##correlation-CorTest
+selThr=0.25#pValue-CorTest
+selThrCor=0.5##correlation-CorTest
 print(paste("Thresholds used - ", thr ,"#count-valid-samples," ,selThr,"#pValue-CorTest,",selThrCor,"#correlation-CorTest"))
 #args####
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali//combined/txtNoDN/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2025/250507_Alessandro/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2023/230310 Sonali//combined/txtNoDN/Proteins dataset vs Larvel_06062024.xlsx"
+#inpL <-"L:/promec/TIMSTOF/LARS/2025/250507_Alessandro/combined/txt/Groups Animesh analysis.xlsx"
 selection<-args[3]
 #selection<-"LFQ.intensity."
-lGroup <- args[4]
-#lGroup<-"Group"
-rGroup <- args[5]
-#rGroup<-"Remove"
-scaleF <- args[6]
-#scaleF<-"Eye.min.diameter.mm."
+transform<-args[4]
+#transform<-"LFQvsn"
+lGroup <- args[5]
+#lGroup<-"IncR"
+rGroup <- args[6]
+#rGroup<-"NoR"
+scaleF <- args[7]
+#scaleF<-"Days.until.relaps"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
@@ -46,8 +46,8 @@ table(label["removed"])
 table(label[lGroup])
 table(label[is.na(label["removed"]),lGroup])
 rownames(label)<-sub("-",".",rownames(label))
-plot(label)
-label[,scaleF]<-as.numeric(label[,scaleF])
+#plot(label)
+label[,scaleF]<-as.numeric(gsub("\\D", "",label[,scaleF]))
 hist(label[,scaleF])
 write.table(label,paste0(inpL,".txt"),sep="\t",row.names = F,quote = F)
 annoFactor<-label[lGroup]
@@ -65,8 +65,8 @@ data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", com
 #colnames(data)<-gsub("ï..","",colnames(data),fixed = T)
 print(colnames(data))
 ##clean####
-#data = data[!data$Reverse=="+",]
-#data = data[!data$Potential.contaminant=="+",]
+data = data[!data$Reverse=="+",]
+data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
 row.names(data)<-paste(row.names(data),data$Protein.IDs,data$Fasta.headers,data$Peptide.counts..all.,data$Sequence.coverage....,data$Score,sep = ";;")
 data$rowName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Fasta.headers, "|",fixed=T), "[", 2)), "-"), "[", 1))
@@ -109,10 +109,24 @@ rownames(log2LFQimpCorr)<-colnames(log2LFQ)
 summary(log2LFQimpCorr)
 hist(log2LFQimpCorr)
 heatmap(log2LFQimpCorr)
+##justVSN####
+#BiocManager::install("vsn")
+IntVST<-as.matrix(LFQ)
+IntVST[IntVST==0]=NA
+LFQvsn <- vsn::justvsn(IntVST)
+hist(LFQvsn)
+vsn::meanSdPlot(LFQvsn)
+vsn::meanSdPlot(LFQvsn,ranks = FALSE)
+colnames(LFQvsn)<-gsub(selection,"",colnames(LFQvsn))
+boxplot(LFQvsn,las=2)
+countTableDAuniGORNAddsMedVSN<-apply(LFQvsn,1,function(x) median(x,na.rm=T))
+countTableDAuniGORNAddsMedVSN<-(LFQvsn-countTableDAuniGORNAddsMedVSN)
+hist(countTableDAuniGORNAddsMedVSN)
+boxplot(countTableDAuniGORNAddsMedVSN,las=2)
 #test####
 testCor <- function(log2LFQ,sel1,sel2){
-  #sel1<-"EP"
-  #sel2<-"pH"
+  #sel1<-"Y"
+  #sel2<-"Days.until.relaps"
   #selection<-selection
   #hist(log2LFQ)
   #colnames(log2LFQ)
@@ -179,8 +193,8 @@ testCor <- function(log2LFQ,sel1,sel2){
     pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
     hist(pValBHnaMinusLog10)
     corTest.results = data.frame(Uniprot=data$rowName,Protein=data$geneName,PValueMinusLog10=pValNAminusLog10,CorrectedPValueBH=pValBHna,CorTestPval=pValNA,Cor=cValNA,d1,Fasta=row.names(data))
-    writexl::write_xlsx(corTest.results,paste0(inpF,comp,selThr,selThrCor,lGroup,rGroup,lName,selection,"CorTestBH.xlsx"))
-    write.csv(corTest.results,paste0(inpF,comp,selThr,selThrCor,lGroup,rGroup,lName,selection,"CorTestBH.csv"),row.names = F)
+    writexl::write_xlsx(corTest.results,paste0(inpF,comp,selThr,selThrCor,lGroup,rGroup,lName,transform,selection,"CorTestBH.xlsx"))
+    write.csv(corTest.results,paste0(inpF,comp,selThr,selThrCor,lGroup,rGroup,lName,transform,selection,"CorTestBH.csv"),row.names = F)
     corTest.results.return<-corTest.results
     #volcano
     corTest.results$RowGeneUniProtScorePeps<-data$geneName
@@ -193,7 +207,7 @@ testCor <- function(log2LFQ,sel1,sel2){
     p<-p + ggplot2::theme_bw(base_size=8) + ggplot2::geom_text(data=dsub,ggplot2::aes(label=RowGeneUniProtScorePeps),hjust=0, vjust=0,size=1,position=ggplot2::position_jitter(width=0.5,height=0.1)) + ggplot2::scale_fill_gradient(low="white", high="darkblue") + ggplot2::xlab("Correlation") + ggplot2::ylab("-Log10 P-value")
     #f=paste(file,proc.time()[3],".jpg")
     #install.packages("svglite")
-    ggplot2::ggsave(paste0(inpF,comp,selThr,selThrCor,lGroup,rGroup,lName,selection,"VolcanoTestCor.svg"), p)
+    ggplot2::ggsave(paste0(inpF,comp,selThr,selThrCor,lGroup,rGroup,lName,transform,selection,"VolcanoTestCor.svg"), p)
     print(p)
     return(sum(Significance,na.rm = T))
   }
@@ -206,7 +220,7 @@ for(i in 1:length(rownames(table(label$pair2test)))){
   cnt=cnt+1
   i=rownames(table(label$pair2test))[cnt]
   print(paste(i))
-  rtPair=testCor(log2LFQ,i,scaleF)
+  rtPair=testCor(get(transform),i,scaleF)
   print(rtPair)
   #assign(i,rtPair)
 }
