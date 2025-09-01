@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=FP
+#SBATCH --account=nn9036k --job-name=RAWDATA
 ##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
-#SBATCH --mem-per-cpu=8G
+#SBATCH --mem-per-cpu=4G
 #SBATCH --time=24:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=fp.out
+#SBATCH --output=RAWDATA.FP.out
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
 echo " the name of the job is: $SLURM_JOB_NAME"
@@ -27,5 +27,5 @@ java --version
 #rm -rf /cluster/home/ash022/.config/FragPipe/
 #cat fp.man.txt.fp-manifest
 #/cluster/home/ash022/scripts/240827_Bead_test/dda/240827_Beads_3A_Slot2-19_1_8128.d                     DDA
-/cluster/home/ash022/cluster/fragpipe-23.1/bin/fragpipe --headless --threads 80 --ram 160 --workflow fp.workflow.txt --manifest fp.man.txt.fp-manifest  --workdir FPv23p1bead2
+/cluster/home/ash022/cluster/fragpipe-23.1/bin/fragpipe --headless --threads 20 --ram 80 --workflow fp.workflow.txt --manifest RAWDATA.manifest.txt --workdir RAWDATA.FP.result
 #diff /cluster/projects/nn9036k/scripts/FPv23p1bead/ptm-shepherd-output/global.modsummary.tsv /cluster/projects/nn9036k/scripts/FPv23p1bead2/ptm-shepherd-output/global.modsummary.tsv
