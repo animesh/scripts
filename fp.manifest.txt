@@ -1,1 +1,1 @@
-RAWDIR	RAWFILE		DDA         
+/cluster/home/ash022/scripts/240827_Bead_test/dda/240827_Beads_3A_Slot2-19_1_8128.d			DDA
