@@ -3,13 +3,13 @@
 :: gunzip UP000005640_9606.fasta.gz
 :: copy UP000005640_9606.fasta F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta
 SET workDir=%cd%
-set DATADIR=F:\promec\TIMSTOF\LARS\2025\250812_prm\DIA
-set NCPU=32
-for /d %%i in (%DATADIR%\250812_mix1_104_DIA*.d) do (
+set DATADIR=F:\promec\TIMSTOF\LARS\2025\250829_rabina
+set NCPU=16
+for /d %%i in (%DATADIR%\*.d) do (
   cd "C:\Program Files\DIA-NN\2.2.0\"
   :: diann.exe --lib "" --threads 32 --verbose 1 --out "F:\promec\FastaDB\UP000005640_9606_unique_gene_MC2V3.parquet" --qvalue 0.01 --out-lib "F:\promec\FastaDB\UP000005640_9606_unique_gene_MC2V3.predicted.speclib" --gen-spec-lib --predictor --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta" --met-excision --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20  --rt-profiling --fasta-search
   mkdir  %%i.DIANNv2P2%NCPU%
-  start "DIANNv2P2%NCPU%.%%i" diann.exe  --f  %%i --lib "F:\promec\FastaDB\UP000005640_9606_unique_gene_MC2V3.predicted.predicted.speclib" --threads %NCPU% --verbose 1 --out %%i.DIANNv2P2%NCPU%\report.parquet --qvalue 0.01 --matrices  --out-lib %%i.DIANNv2P2%NCPU%\report-lib.parquet --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta" --met-excision --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --rt-profiling --fixed-mod SILAC,0.0,KR,label --lib-fixed-mod SILAC --channels SILAC,L,KR,0:0; SILAC,H,KR,8.014199:10.008269 --original-mods  --channel-spec-norm  
+  start "DIANNv2P2%NCPU%.%%i" diann.exe  --f  %%i --lib "F:\promec\FastaDB\UP000005640_9606_unique_gene_MC2V3.predicted.predicted.speclib" --threads %NCPU% --verbose 1 --out %%i.DIANNv2P2%NCPU%\report.parquet --qvalue 0.01 --matrices  --out-lib %%i.DIANNv2P2%NCPU%\report-lib.parquet --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta" --met-excision --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --rt-profiling --direct-quant 
   dir %%i.DIANNv2P2%NCPU%
   cd %workDir%
 )
