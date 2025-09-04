@@ -3,8 +3,8 @@
 :: gunzip UP000005640_9606.fasta.gz
 :: copy UP000005640_9606.fasta F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta
 SET workDir=%cd%
-set DATADIR=F:\promec\TIMSTOF\LARS\2025\250829_rabina
-set NCPU=16
+set DATADIR=F:\promec\TIMSTOF\LARS\2025\250902_Alessandro
+set NCPU=12
 for /d %%i in (%DATADIR%\*.d) do (
   cd "C:\Program Files\DIA-NN\2.2.0\"
   :: diann.exe --lib "" --threads 32 --verbose 1 --out "F:\promec\FastaDB\UP000005640_9606_unique_gene_MC2V3.parquet" --qvalue 0.01 --out-lib "F:\promec\FastaDB\UP000005640_9606_unique_gene_MC2V3.predicted.speclib" --gen-spec-lib --predictor --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta" --met-excision --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20  --rt-profiling --fasta-search
