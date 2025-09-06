@@ -1,5 +1,5 @@
-#python geneGroupsCombineDIANN.py "L:\promec\TIMSTOF\LARS\2025\250428_Kamilla\new lysis" "*report.oxM.acetN.report.unique_genes_matrix.tsv"
-#bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/newprep 
+#python geneGroupsCombineDIANN.py  F:\promec\TIMSTOF\LARS\2025\250902_Alessandro *gg_matrix.tsv
+#runDIANN.bat F:\promec\TIMSTOF\LARS\2025\250902_Alessandro 10 --direct-quant
 #!pip3 install pandas --user
 # %% setup
 import sys
@@ -21,8 +21,9 @@ df=pd.DataFrame()
 #f=trainList[-1]
 for f in trainList:
     if Path(f).stat().st_size > 0:
-        fName=f.parts[-1].split('_')[2]
-        print(fName,f)
+        print(f.parts)
+        fName=f.parts[-2]
+        print(fName)
         geneHits=pd.read_csv(f,sep='\t',low_memory=False)
         geneHits.rename({'Genes':'ID'},inplace=True,axis='columns')
         geneHits.rename({geneHits.columns[-1]:'intensity'},inplace=True,axis='columns')
@@ -50,3 +51,4 @@ print("Common",dfU.dropna().notnull().sum())
 print("Missing values",dfU.isnull().sum())
 writeScores=pathFiles/("intensity"+fileNameOut+".sum.csv")
 dfU.to_csv(writeScores)#.with_suffix('.combo.csv'))
+print("Writing combined intensities to",writeScores)
