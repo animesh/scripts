@@ -4,7 +4,7 @@
 # Please edit the following path to point to the correct location.
 # In Windows, please replace single '\' with '\\'
 
-database.db-path=/cluster/home/ash022/cluster/fragpipe-23.1/2025-09-01-decoys-reviewed-contam-UP000005640.fas
+database.db-path=/cluster/home/ash022/cluster/fragpipe-23.1/databases/2024-08-05-decoys-Gencode_v42.basicPCnr.602contams_JPTiRT.2043smorfs.nuORFv1.FragPipe.2.fasta.fas
 fragpipe-config.tools-folder=/cluster/projects/nn9036k/fragpipe-23.1/tools
 fragpipe-config.bin-diann=/cluster/projects/nn9036k/fragpipe-23.1/tools/diann/1.8.2_beta_8/linux/diann-1.8.1.8
 fragpipe-config.bin-ionquant=/cluster/projects/nn9036k/fragpipe-23.1/tools/IonQuant-1.11.11.jar

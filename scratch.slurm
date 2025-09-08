@@ -23,6 +23,9 @@ module purge
 #module spider java
 module load Java/21.0.2
 java --version
+module load dotNET-SDK/7.0.408-linux-x64
+dotnet --version
+conda activate mono
 #./fragpipe-23.1/bin/fragpipe
 #rm -rf /cluster/home/ash022/.config/FragPipe/
 #cat fp.man.txt.fp-manifest
