@@ -25,7 +25,7 @@ module load Java/21.0.2
 java --version
 module load dotNET-SDK/7.0.408-linux-x64
 dotnet --version
-conda activate mono
+module --ignore-cache load Mono/6.12.0.199-GCCcore-13.3.0
 #./fragpipe-23.1/bin/fragpipe
 #rm -rf /cluster/home/ash022/.config/FragPipe/
 #cat fp.man.txt.fp-manifest
