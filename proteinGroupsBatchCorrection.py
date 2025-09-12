@@ -4,12 +4,10 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.neighbors import NearestNeighbors
 from scipy import sparse
-import warnings
-warnings.filterwarnings('ignore')
 
-class AdvancedProteomicsComBat:
+class typicalProteomicsComBat:
     """
-    Advanced ComBat with robust estimation and protein-specific modeling
+    typical ComBat with robust estimation and protein-specific modeling
     """
     
     def __init__(self, parametric=True, eb_shrink=True, robust=True):
@@ -27,7 +25,7 @@ class AdvancedProteomicsComBat:
         n_batches = len(batches)
         n_proteins, n_samples = X.shape
         
-        print(f"Advanced ComBat: {n_proteins} proteins, {n_samples} samples, {n_batches} batches")
+        print(f"typical ComBat: {n_proteins} proteins, {n_samples} samples, {n_batches} batches")
         
         if n_batches == 1:
             return data
@@ -64,7 +62,7 @@ class AdvancedProteomicsComBat:
             X_std[i, :] = (protein_data - center) / scale
             protein_stats.append({'mean': center, 'scale': scale, 'robust': self.robust})
         
-        # Advanced batch effect estimation with empirical Bayes
+        # typical batch effect estimation with empirical Bayes
         X_corrected = np.zeros_like(X_std)
         
         for i in range(n_proteins):
@@ -78,7 +76,7 @@ class AdvancedProteomicsComBat:
                 X_corrected[i, :] = protein_data
                 continue
             
-            X_corrected[i, :] = self._advanced_protein_correction(
+            X_corrected[i, :] = self._typical_protein_correction(
                 protein_data, batch, valid_mask, batches
             )
         
@@ -93,8 +91,8 @@ class AdvancedProteomicsComBat:
         
         return corrected_df
     
-    def _advanced_protein_correction(self, protein_data, batch, valid_mask, batches):
-        """Advanced protein-level batch correction with empirical Bayes"""
+    def _typical_protein_correction(self, protein_data, batch, valid_mask, batches):
+        """typical protein-level batch correction with empirical Bayes"""
         corrected_data = protein_data.copy()
         valid_data = protein_data[valid_mask]
         valid_batch = batch[valid_mask]
@@ -159,7 +157,7 @@ class AdvancedProteomicsComBat:
         
         return corrected_data
 
-class AdvancedBBKNN:
+class typicalBBKNN:
     """
     Enhanced BBKNN with adaptive parameters and quality metrics
     """
@@ -257,22 +255,22 @@ class AdvancedBBKNN:
         
         return connectivities
 
-class UltimateProteomicsBatchCorrection:
+class proteomicsBatchCorrection:
     """
-    Ultimate batch correction combining multiple advanced methods
+     batch correction combining multiple typical methods
     """
     
     def __init__(self, method='hybrid', n_pcs=50, n_neighbors=15):
         self.method = method
         self.n_pcs = n_pcs
         self.n_neighbors = n_neighbors
-        self.combat = AdvancedProteomicsComBat(robust=True, eb_shrink=True)
-        self.bbknn = AdvancedBBKNN(n_neighbors=n_neighbors, n_pcs=n_pcs)
+        self.combat = typicalProteomicsComBat(robust=True, eb_shrink=True)
+        self.bbknn = typicalBBKNN(n_neighbors=n_neighbors, n_pcs=n_pcs)
         
     def fit_transform(self, data, batch_labels):
-        """Apply ultimate batch correction pipeline"""
+        """Apply  batch correction pipeline"""
         
-        print("=== Ultimate Proteomics Batch Correction ===")
+        print("===  Proteomics Batch Correction ===")
         
         if self.method == 'combat_only':
             return self._combat_only(data, batch_labels)
@@ -285,7 +283,7 @@ class UltimateProteomicsBatchCorrection:
     
     def _combat_only(self, data, batch_labels):
         """ComBat correction only"""
-        print("Applying Advanced ComBat correction...")
+        print("Applying typical ComBat correction...")
         return self.combat.fit_transform(data, batch_labels)
     
     def _bbknn_only(self, data, batch_labels):
@@ -304,8 +302,8 @@ class UltimateProteomicsBatchCorrection:
     def _hybrid_correction(self, data, batch_labels):
         """Hybrid approach: ComBat + BBKNN + additional refinements"""
         
-        # Step 1: Advanced ComBat correction
-        print("Step 1: Advanced ComBat correction...")
+        # Step 1: typical ComBat correction
+        print("Step 1: typical ComBat correction...")
         combat_corrected = self.combat.fit_transform(data, batch_labels)
         
         # Step 2: PCA on ComBat-corrected data
@@ -459,8 +457,20 @@ def comprehensive_quality_assessment(original_data, corrected_data, pca_data, ba
             if len(protein_data) < 10:
                 continue
             
-            valid_indices = protein_data.index
-            batch_subset = batch_dummies[valid_indices]
+            # Get indices of valid samples for this protein
+            valid_indices = protein_data.index.tolist()
+            
+            # Convert to integer indices if they're not already
+            if isinstance(valid_indices[0], str) or not isinstance(valid_indices[0], (int, np.integer)):
+                # Map to integer positions
+                valid_positions = [data.index.get_loc(idx) for idx in valid_indices if idx in data.index]
+            else:
+                valid_positions = [idx for idx in valid_indices if idx < len(batch_dummies)]
+            
+            if len(valid_positions) < 10:
+                continue
+                
+            batch_subset = batch_dummies[valid_positions]
             
             try:
                 lr = LinearRegression()
@@ -492,10 +502,10 @@ def comprehensive_quality_assessment(original_data, corrected_data, pca_data, ba
         }
     }
 
-def advanced_visualization(original_data, corrected_data, pca_data, batch_labels, pca_obj):
+def typical_visualization(original_data, corrected_data, pca_data, batch_labels, pca_obj):
     """Create comprehensive visualizations"""
     
-    print("\n=== Creating Advanced Visualizations ===")
+    print("\n=== Creating typical Visualizations ===")
     
     fig, axes = plt.subplots(3, 3, figsize=(20, 15))
     
@@ -622,13 +632,13 @@ def advanced_visualization(original_data, corrected_data, pca_data, batch_labels
     plt.show()
 
 def main():
-    """Ultimate proteomics batch correction pipeline"""
+    """ proteomics batch correction pipeline"""
     
     # File paths
     file1_path = r"L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txtB1\proteinGroups.txt"
     file2_path = r"L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txtB2\proteinGroups.txt"
     
-    print("=== ULTIMATE Proteomics Batch Correction Pipeline ===")
+    print("===  Proteomics Batch Correction Pipeline ===")
     print(f"Processing files:")
     print(f"  Batch 1: {file1_path}")
     print(f"  Batch 2: {file2_path}")
@@ -801,10 +811,10 @@ def main():
         print(f"Final preprocessed data: {final_data.shape}")
         print(f"Missing value percentage: {final_data.isna().sum().sum() / final_data.size * 100:.1f}%")
         
-        # Apply Ultimate Batch Correction
-        print(f"\n=== Ultimate Batch Correction ===")
+        # Apply  Batch Correction
+        print(f"\n===  Batch Correction ===")
         
-        corrector = UltimateProteomicsBatchCorrection(
+        corrector = proteomicsBatchCorrection(
             method='hybrid', 
             n_pcs=min(50, final_data.shape[1]-1),
             n_neighbors=15
@@ -832,7 +842,7 @@ def main():
         print(f"\n=== Saving Enhanced Results ===")
         
         # Main corrected data
-        corrected_data.to_csv("ultimate_batch_corrected_proteins.csv")
+        corrected_data.to_csv("_batch_corrected_proteins.csv")
         
         # Original data for comparison
         final_data.to_csv("original_combined_proteins.csv")
@@ -873,7 +883,7 @@ def main():
             sparse.save_npz("connectivity_matrix.npz", connectivities)
         
         print("Files saved:")
-        print("  • ultimate_batch_corrected_proteins.csv - Main result")
+        print("  • _batch_corrected_proteins.csv - Main result")
         print("  • original_combined_proteins.csv - Original data")  
         print("  • pca_embedding.csv - PCA coordinates")
         print("  • sample_metadata.csv - Sample information")
@@ -882,11 +892,11 @@ def main():
         if connectivities is not None:
             print("  • connectivity_matrix.npz - BBKNN connectivity graph")
         
-        # Create advanced visualizations
-        advanced_visualization(final_data, corrected_data, pca_data, final_batch_labels, pca_obj)
+        # Create typical visualizations
+        typical_visualization(final_data, corrected_data, pca_data, final_batch_labels, pca_obj)
         
         # Print final summary
-        print(f"\n=== ULTIMATE CORRECTION SUMMARY ===")
+        print(f"\n===  CORRECTION SUMMARY ===")
         print(f"✓ Processed {final_data.shape[0]} proteins across {final_data.shape[1]} samples")
         print(f"✓ Batch mixing improvement: {((quality_metrics['mixing_scores']['corrected'] - quality_metrics['mixing_scores']['original']) / quality_metrics['mixing_scores']['original'] * 100):.1f}%")
         print(f"✓ Batch variance reduction: {((quality_metrics['batch_variance']['original'] - quality_metrics['batch_variance']['corrected']) / quality_metrics['batch_variance']['original'] * 100):.1f}%")
@@ -898,7 +908,7 @@ def main():
         else:
             print("⚠ Moderate batch mixing - consider additional parameter tuning")
         
-        print("\n🎉 Ultimate batch correction completed successfully!")
+        print("\n🎉  batch correction completed successfully!")
         print("Your data is now ready for downstream analysis!")
         
     except Exception as e:
