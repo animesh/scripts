@@ -36,7 +36,7 @@ def read_and_extract_column(file_path, column_index, has_header=True):
         print(f"Error reading file: {e}")
         sys.exit(1)
 
-def create_barplot(first_digits, total_values, output_file, title):
+def create_barplot(first_digits, total_values, output_file, title, column_data):
     digit_counts = Counter(first_digits)
     digits = list(range(1, 10))
     counts = [digit_counts.get(digit, 0) for digit in digits]
@@ -48,14 +48,45 @@ def create_barplot(first_digits, total_values, output_file, title):
     # Calculate expected counts based on Benford's Law
     expected_counts = [(percentage/100) * total_count for percentage in benford_expected]
     
-    plt.figure(figsize=(12, 7))
+    # Generate uniform random data in same range as original data
+    numeric_values = []
+    for value in column_data:
+        try:
+            if pd.notna(value) and str(value).strip() != '':
+                num_val = float(str(value))
+                if num_val > 0:  # Only positive values for first digit analysis
+                    numeric_values.append(num_val)
+        except (ValueError, TypeError):
+            continue
     
-    # Create bar chart with observed and expected values
+    if numeric_values:
+        min_val = min(numeric_values)
+        max_val = max(numeric_values)
+        # Generate same number of random values as we have valid first digits
+        np.random.seed(42)  # For reproducible results
+        random_values = np.random.uniform(min_val, max_val, len(first_digits))
+        
+        # Extract first digits from random values
+        random_first_digits = []
+        for val in random_values:
+            first_digit = extract_first_digit(val)
+            if first_digit is not None:
+                random_first_digits.append(first_digit)
+        
+        random_digit_counts = Counter(random_first_digits)
+        random_counts = [random_digit_counts.get(digit, 0) for digit in digits]
+    else:
+        random_counts = [0] * 9
+    
+    plt.figure(figsize=(14, 8))
+    
+    # Create bar chart with observed, expected, and random values
     x_pos = np.arange(len(digits))
-    width = 0.35
+    width = 0.25
     
-    bars1 = plt.bar(x_pos - width/2, counts, width, color='orange', edgecolor='red', alpha=0.7, label='Observed')
-    bars2 = plt.bar(x_pos + width/2, expected_counts, width, color='skyblue', edgecolor='navy', alpha=0.7, label='Benford\'s Law Expected')
+    bars1 = plt.bar(x_pos - width, counts, width, color='orange', edgecolor='red', alpha=0.7, label='Observed Data')
+    bars2 = plt.bar(x_pos, expected_counts, width, color='skyblue', edgecolor='navy', alpha=0.7, label='Benford\'s Law Expected')
+    bars3 = plt.bar(x_pos + width, random_counts, width, color='lightcoral', edgecolor='darkred', alpha=0.7, label='Uniform Random')
     
     plt.xlabel('First Digit')
     plt.ylabel('Frequency')
@@ -65,20 +96,30 @@ def create_barplot(first_digits, total_values, output_file, title):
     plt.legend()
     
     # Add count and percentage labels on observed bars
+    max_height = max(max(counts), max(expected_counts), max(random_counts))
     for bar, count in zip(bars1, counts):
         if count > 0:
             percentage = (count / total_count) * 100
-            plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01 * max(max(counts), max(expected_counts)),
-                    f'{count}\n({percentage:.1f}%)', ha='center', va='bottom', fontsize=8)
+            plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01 * max_height,
+                    f'{count}\n({percentage:.1f}%)', ha='center', va='bottom', fontsize=7)
     
     # Add expected percentage labels on expected bars
     for bar, exp_count, exp_percent in zip(bars2, expected_counts, benford_expected):
         if exp_count > 0:
-            plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01 * max(max(counts), max(expected_counts)),
-                    f'{exp_count:.0f}\n({exp_percent:.1f}%)', ha='center', va='bottom', fontsize=8, color='blue')
+            plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01 * max_height,
+                    f'{exp_count:.0f}\n({exp_percent:.1f}%)', ha='center', va='bottom', fontsize=7, color='blue')
+    
+    # Add random percentage labels on random bars
+    random_total = sum(random_counts)
+    for bar, random_count in zip(bars3, random_counts):
+        if random_count > 0 and random_total > 0:
+            percentage = (random_count / random_total) * 100
+            plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01 * max_height,
+                    f'{random_count}\n({percentage:.1f}%)', ha='center', va='bottom', fontsize=7, color='darkred')
     
     valid_digits = sum(counts)
-    plt.text(0.98, 0.98, f'Total values: {total_values}\nValid digits: {valid_digits}', 
+    random_digits = sum(random_counts)
+    plt.text(0.98, 0.98, f'Total values: {total_values}\nValid digits: {valid_digits}\nRandom digits: {random_digits}', 
              transform=plt.gca().transAxes, verticalalignment='top', horizontalalignment='right',
              bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
     
@@ -154,15 +195,43 @@ if not first_digits:
     print("No valid first digits found in the data!")
     sys.exit(1)
 
+# Generate uniform random data for comparison
+numeric_values = []
+for value in column_data:
+    try:
+        if pd.notna(value) and str(value).strip() != '':
+            num_val = float(str(value))
+            if num_val > 0:  # Only positive values for first digit analysis
+                numeric_values.append(num_val)
+    except (ValueError, TypeError):
+        continue
+
+random_first_digits = []
+if numeric_values:
+    min_val = min(numeric_values)
+    max_val = max(numeric_values)
+    # Generate same number of random values as we have valid first digits
+    np.random.seed(42)  # For reproducible results
+    random_values = np.random.uniform(min_val, max_val, len(first_digits))
+    
+    # Extract first digits from random values
+    for val in random_values:
+        first_digit = extract_first_digit(val)
+        if first_digit is not None:
+            random_first_digits.append(first_digit)
+
 digit_counts = Counter(first_digits)
+random_digit_counts = Counter(random_first_digits)
 print("\nFirst digit distribution:")
-print("Digit | Observed | Expected (Benford)")
-print("------|----------|------------------")
+print("Digit | Observed | Expected (Benford) | Uniform Random")
+print("------|----------|--------------------|--------------")
 for digit in range(1, 10):
     count = digit_counts.get(digit, 0)
+    random_count = random_digit_counts.get(digit, 0)
     observed_percent = (count / len(first_digits)) * 100 if first_digits else 0
+    random_percent = (random_count / len(random_first_digits)) * 100 if random_first_digits else 0
     benford_percent = np.log10(1 + (1/digit)) * 100
-    print(f"  {digit}   |   {count:3d}    |    {benford_percent:.1f}%")
-    print(f"      | ({observed_percent:.1f}%)   |")
+    print(f"  {digit}   |   {count:3d}    |    {benford_percent:.1f}%         |   {random_count:3d}")
+    print(f"      | ({observed_percent:.1f}%)   |                    | ({random_percent:.1f}%)")
 
-create_barplot(first_digits, len(column_data), output_file, title)
+create_barplot(first_digits, len(column_data), output_file, title, column_data)
