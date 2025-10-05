@@ -7,6 +7,7 @@ import sys
 import os
 from collections import Counter
 import argparse
+from scipy.stats import chisquare
 
 def extract_first_digit(value):
     str_value = str(value)
@@ -300,6 +301,7 @@ for value in column_data:
     first_digit = extract_first_digit(value)
     if first_digit is not None:
         first_digits.append(first_digit)
+#np.savetxt("Z:\\Download\\proteinGroups_digit1.txt", first_digits)
 
 print(f"Found {len(first_digits)} valid first digits")
 
@@ -360,7 +362,62 @@ for digit in range(1, 10):
     random_percent = (random_count / len(random_first_digits)) * 100 if random_first_digits else 0
     log_uniform_percent = (log_uniform_count / len(log_uniform_first_digits)) * 100 if log_uniform_first_digits else 0
     benford_percent = np.log10(1 + (1/digit)) * 100
-    print(f"  {digit}   |   {count:3d}    |    {benford_percent:.1f}%         |   {log_uniform_count:3d}        |   {random_count:3d}")
-    print(f"      | ({observed_percent:.1f}%)   |                    | ({log_uniform_percent:.1f}%)      | ({random_percent:.1f}%)")
+    benford_count = int((benford_percent/100) * len(first_digits))
+    print(f"  {digit}   |   {count:4d}    |    {benford_count:4d}          |   {log_uniform_count:4d}        |   {random_count:4d}")
+    print(f"      | ({observed_percent:.1f}%)   |   ({benford_percent:.1f}%)        | ({log_uniform_percent:.1f}%)      | ({random_percent:.1f}%)")
+
+# Perform chi-square test comparing observed vs Benford's Law expected
+observed_counts = [digit_counts.get(digit, 0) for digit in range(1, 10)]
+expected_percents = [np.log10(1 + (1/digit)) * 100 for digit in range(1, 10)]
+expected_counts = [(percent/100) * len(first_digits) for percent in expected_percents]
+
+# Alternative approach: Use percentages directly (might match Excel better)
+observed_percents = [(count / len(first_digits)) * 100 for count in observed_counts]
+
+# Method 1: Chi-square test using counts (scipy standard)
+chi2_stat, p_value = chisquare(observed_counts, expected_counts)
+
+# Method 2: Chi-square test using percentages directly
+# This normalizes both observed and expected to percentages
+chi2_percent = sum(((obs_pct - exp_pct)**2) / exp_pct for obs_pct, exp_pct in zip(observed_percents, expected_percents))
+
+print(f"\nChi-square goodness-of-fit test (observed vs Benford's Law):")
+print(f"Using counts: {chi2_stat:.6f}, p-value: {p_value:.6f}")
+
+# Calculate p-value for percentage method manually using scipy.stats
+from scipy.stats import chi2
+p_value_percent = 1 - chi2.cdf(chi2_percent, len(observed_counts) - 1)
+print(f"Using percentages: {chi2_percent:.6f}, p-value: {p_value_percent:.6f}")
+
+# Additional tests for random data comparisons
+if random_first_digits:
+    random_counts = [random_digit_counts.get(digit, 0) for digit in range(1, 10)]
+    random_percents = [(count / len(random_first_digits)) * 100 for count in random_counts]
+    
+    # Method 1: Standard counts
+    chi2_random, p_random = chisquare(random_counts, expected_counts)
+    
+    # Method 2: Percentages directly
+    chi2_random_percent = sum(((rand_pct - exp_pct)**2) / exp_pct for rand_pct, exp_pct in zip(random_percents, expected_percents))
+    p_random_percent = 1 - chi2.cdf(chi2_random_percent, len(random_counts) - 1)
+    
+    print(f"\nUniform random vs Benford's Law:")
+    print(f"Using counts: Chi-square: {chi2_random:.4f}, p-value: {p_random:.6f}")
+    print(f"Using percentages: Chi-square: {chi2_random_percent:.4f}, p-value: {p_random_percent:.6f}")
+
+if log_uniform_first_digits:
+    log_uniform_counts = [log_uniform_digit_counts.get(digit, 0) for digit in range(1, 10)]
+    log_uniform_percents = [(count / len(log_uniform_first_digits)) * 100 for count in log_uniform_counts]
+    
+    # Method 1: Standard counts
+    chi2_log, p_log = chisquare(log_uniform_counts, expected_counts)
+    
+    # Method 2: Percentages directly
+    chi2_log_percent = sum(((log_pct - exp_pct)**2) / exp_pct for log_pct, exp_pct in zip(log_uniform_percents, expected_percents))
+    p_log_percent = 1 - chi2.cdf(chi2_log_percent, len(log_uniform_counts) - 1)
+    
+    print(f"Log10-uniform vs Benford's Law:")
+    print(f"Using counts: Chi-square: {chi2_log:.4f}, p-value: {p_log:.6f}")
+    print(f"Using percentages: Chi-square: {chi2_log_percent:.4f}, p-value: {p_log_percent:.6f}")
 
 create_barplot(first_digits, len(column_data), output_file, title, column_data)
