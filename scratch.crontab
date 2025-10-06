@@ -1,8 +1,5 @@
-#55 18 * * * rsync -Parv /nird/datapeak/NS9036K/promec/promec/Qexactive/Raw/ /nird/datalake/NS9036K/orbitrap/
-#55 09 * * * rsync -Parv /nird/datapeak/NS9036K/promec/promec/TIMSTOF/Raw/ /nird/datalake/NS9036K/Raw/
-05 00 * * *  find /projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec -mtime 0 -type f -print0 | tar -czvf /projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/backup.$(date +"\%m_\%d_\%Y").tar.gz --null -T - > /projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/backup.$(date +"\%m_\%d_\%Y").log 2>/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/backup.2.$(date +"\%m_\%d_\%Y").log 1>/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/backup.1.$(date +"\%m_\%d_\%Y").log
-00 15 * * * killall rclone
-15 15 * * * rclone-v1.67.0-linux-amd64/rclone sync --drive-pacer-burst 50 --drive-pacer-min-sleep 1s  -Pv DL/Raw/ remote:TIMSTOF/ 0>driveTIMSTOF.0.log 1>driveTIMSTOF.1.log 2>driveTIMSTOF.2.log > driveTIMSTOF.log
-55 23 * * * rclone-v1.67.0-linux-amd64/rclone sync --drive-stop-on-upload-limit --tpslimit 10   -Pv DL/orbitrap/ remote:orbitrap/ 0>driveorbi.0.log 1>driveorbi.1.log 2>driveorbi.2.log > driveorbi.log
-45 * * * * rclone-v1.67.0-linux-amd64/rclone sync --drive-stop-on-upload-limit --tpslimit 10   -Pv Data/ remote:Data/ 0>drivedata.0.log 1>drivedata.1.log 2>drivedata.2.log > drivedata.log
+#33 22 * * * $HOME/scripts/dataRaw.sh 0> dataRaw.0.log 1>dataRaw.1.log 2>dataRaw.2.log > dataRaw.log
+40 * * * * flock -w 0 $HOME/cron.lock -c 'eval $(ssh-agent);ssh-add;rclone copy -Pv promec/promec/Qexactive/Raw/ NS9036K:DL/orbitrap/ 0> dataRawQE.0.log 1>dataRawQE.1.log 2>dataRawQE.2.log > dataRawQE.log;rm $HOME/cron.lock;rm $HOME/cron.lock'
+35 * * * * flock -w 0 $HOME/cron.lock -c 'eval $(ssh-agent);ssh-add;rclone copy -Pv promec/promec/TIMSTOF/Raw/ NS9036K:DL/Raw/ 0> dataRawTT.0.log 1>dataRawTT.1.log 2>dataRawTT.2.log > dataRawTT.log;rm $HOME/cron.lock'
+45 * * * * flock -w 0 $HOME/cron.lock -c 'eval $(ssh-agent);ssh-add;rclone copy -Pv promec/promec NS9036K:PD  0> dataRawPD.0.log 1>dataRawPD.1.log 2>dataRawPD.2.log > dataRawPD.log;rm $HOME/cron.lock'
 
