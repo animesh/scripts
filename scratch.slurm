@@ -1,12 +1,12 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=alphaDIAtest
+#SBATCH --account=nn9036k --job-name=alphaDIAtestPatch
 ##SBATCH --partition=bigmem
 #SBATCH --time=4:00:00
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=alphaDIAtestSLURMLOG
+#SBATCH --output=alphaDIAtestSLURMLOGpatch.txt
 
 #conda create -n alphadia -y
 #conda activate alphadia
@@ -63,7 +63,9 @@ wget $URL/run_e2e_tests.sh
 mkdir -p e2e_tests && cd e2e_tests
 wget $URL/e2e_tests/e2e_test_cases.yaml
 wget $URL/e2e_tests/prepare_test_data.py
-wget $URL/e2e_tests/calc_metrics.py
+#wget $URL/e2e_tests/calc_metrics.py
+wget https://raw.githubusercontent.com/MannLabs/alphadia/55b3567e9759c97c48471ba50ea08daa9eb30ca3/tests/e2e_tests/calc_metrics.py
+
 cd ..
 
 chmod +x ./run_e2e_tests.sh
