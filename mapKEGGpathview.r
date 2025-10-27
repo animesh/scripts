@@ -56,6 +56,8 @@ hda <- aggMat[,grep("logFC", colnames(aggMat), fixed=TRUE)]
 print(summary(hda))
 write.csv(hda, file=paste0(tools::file_path_sans_ext(basename(inpF1)), ".IDmap.absmax.csv"), row.names=TRUE)
 hda[is.infinite(hda)] <- NA
+hda[hda < 0] <- 1*-1
+hda[hda > 0] <- 1
 #hda[is.na(hda)] <- 0
 #hda<-unique(hda)
 #hda<-mat
@@ -72,7 +74,7 @@ for (p in pathway) {
   message("Processing ", p)
   out_sfx <- paste("IDpos",idPos,"scale",scale, sep = ".")
   #message("Input values for ENTREZ 5291: ", paste(hda["5291",], collapse=", "))
-  pv <- try(pathview(gene.data = hda, pathway.id = p, species = "hsa", gene.idtype = "ENTREZ",low = list(gene = "blue"), mid = list(gene = "white"), high = list(gene = "orange"),both.dirs = list(gene = TRUE), na.col = "grey",limit = list(gene = max(abs(hda), na.rm = TRUE))), silent = TRUE)
+  pv <- try(pathview(gene.data = hda, pathway.id = p, species = "hsa", gene.idtype = "ENTREZ",low = list(gene = "cyan"), mid = list(gene = "white"), high = list(gene = "orange"),both.dirs = list(gene = TRUE), na.col = "grey",limit = list(gene = max(abs(hda), na.rm = TRUE))), silent = TRUE)
   #pv <- try(pathview(gene.data = hda, pathway.id = p, species = "hsa", gene.idtype = "ENSEMBL",low = list(gene = "blue"), mid = list(gene = "white"), high = list(gene = "orange"),both.dirs = list(gene = TRUE), na.col = "grey",limit = list(gene = max(abs(hda), na.rm = TRUE))), silent = TRUE)
   #if (!is.null(pv$plot.data.gene) && "5291" %in% (pv$plot.data.gene$kegg.names)) {message("Pathview output for 5291: ", paste(pv$plot.data.gene[pv$plot.data.gene$kegg.names=="5291",], collapse=", "))}
   if (inherits(pv, "try-error") || is.null(pv$plot.data.gene) || nrow(pv$plot.data.gene) == 0) {
