@@ -1,1 +1,1 @@
-RAWDATA			DDA
+RAWDIR	RAWFILE		DDA         
