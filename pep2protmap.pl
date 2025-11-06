@@ -36,9 +36,9 @@ my $cntMat=0;
 while(my $l1=<F4>){
 	chomp $l1;
   $l1=~s/\r//g;
-	if($l1=~/^>/){print "$l1\n";}
-	else{
-		my @st=split(/\t/,$l1);
+	if($l1=~/^PSH/){print "$l1\n";}
+	elsif($l1=~/^PSM/){
+		my @st=split(/\s+/,$l1);
 		my $pep=$st[$ARGV[2]-1];
 		#else{next;}
 		$pep=~s/\r//g;
@@ -46,6 +46,8 @@ while(my $l1=<F4>){
 		$pep=uc($pep);
 		$pep=~s/I/L/gi;
 		$pep =~ s/[^A-Z,]//g;
+		if(length($pep)<10){next;}
+		#sprint "$pep\n";
 		foreach(keys %seqn){
 			#print "$_\n$seqn{$_}\n$seqh{$_}\n";
 			my $pos="";
@@ -58,7 +60,7 @@ while(my $l1=<F4>){
 				$offset = $res + 1;
 				$res = index($seq, $seql, $offset);
 			}
-			if($pos ne ""){print "$_\t$pos\n";$cntMat++;}
+			if($pos ne ""){print "$seql\t$_\t$pos\n";$cntMat++;}
 		}
 	}
 	$cntSeq++;
@@ -66,12 +68,9 @@ while(my $l1=<F4>){
 print "\nProcessed $cntSeq Sequences\nFound $cntMat Matches\n";
 close F4;
 __END__
-C:\Users\animeshs\GD\scripts>perl pep2protmap.pl   "L:\promec\HF\Lars\2021\mai\MortenH\uniprot-mappedsequence__Q9NRI5-1_+OR+mappedsequence__A0A087WYX6-1_+O--.fasta" "L:\promec\HF\Lars\2021\mai\MortenH\Serie 2\combined\txt\peptides.txt" 1
-
-Read# 18 sequences from L:\promec\HF\Lars\2021\mai\MortenH\uniprot-mappedsequence__Q9NRI5-1_+OR+mappedsequence__A0A087WYX6-1_+O--.fasta
-
-Opening peptide list from L:\promec\HF\Lars\2021\mai\MortenH\Serie 2\combined\txt\peptides.txt
-
-
-Processed 23266 Sequences
-Found 0 Matches
+pip install casanovo
+/cluster/home/ash022/.local/bin/casanovo sequence scripts/251030_MAREN_DIALYSE_DDA_Slot1-37_1_11507_6.1.452.mgf
+perl pep2protmap.pl /mnt/z/Download/UP000005640_9606_unique_gene.fasta /mnt/z/Download/casanovo_20251104183757.mztab 2 > /mnt/z/Download/casanovo_20251104183757.mztab.2.matches.tsv
+sort /mnt/z/Download/casanovo_20251104183757.mztab.2.matches.tsv | uniq > /mnt/z/Download/casanovo_20251104183757.mztab.2.matches.uniq.tsv
+perl pep2protmap.pl /mnt/z/Download/UP000000589_10090.fasta /mnt/z/Download/casanovo_20251104183757.mztab 2 > /mnt/z/Download/casanovo_20251104183757.mztab.2.mouse.matches.tsv
+sort /mnt/z/Download/casanovo_20251104183757.mztab.2.mouse.matches.tsv | uniq > /mnt/z/Download/casanovo_20251104183757.mztab.2.mouse.matches.uniq.tsv 

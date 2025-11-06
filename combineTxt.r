@@ -1,7 +1,7 @@
-# ..\R-4.5.0\bin\Rscript.exe .\combineXlsx.r "L:\promec\TIMSTOF\LARS\2023\230217_Caroline\combined\txt\proteinGroups.txtLFQ.intensity.110Omego1Cntr1h00.050.5InfBiotTestBH.xlsx" "L:\promec\TIMSTOF\LARS\2023\230217_Caroline\combined\txt\proteinGroups.txtLFQ.intensity.110Omego3Cntr3h00.050.5InfBiotTestBH.xlsx" "L:\promec\TIMSTOF\LARS\2023\230217_Caroline\combined\txt\proteinGroups.txtLFQ.intensity.110Omego6Cntr6h00.050.5InfBiotTestBH.xlsx" "L:\promec\TIMSTOF\LARS\2023\230217_Caroline\combined\txt\proteinGroups.txtLFQ.intensity.110Omego12Cntr12h00.050.5InfBiotTestBH.xlsx" "Log2MedianChange" "RowGeneUniProtScorePeps"
+# ..\R-4.5.0\bin\Rscript.exe .\combineTxt.r "L:\promec\TIMSTOF\LARS\2023\230217_Caroline\mRNA\Omego_T1_vs_Control_T1_mRNA_diff_expr_CPM1.txt" "L:\promec\TIMSTOF\LARS\2023\230217_Caroline\mRNA\Omego_T3_vs_Control_T3_mRNA_diff_expr_CPM1.txt" "L:\promec\TIMSTOF\LARS\2023\230217_Caroline\mRNA\Omego_T6_vs_Control_T6_mRNA_diff_expr_CPM1.txt" "L:\promec\TIMSTOF\LARS\2023\230217_Caroline\mRNA\Omego_T12_vs_Control_T12_mRNA_diff_expr_CPM1.txt" "logFC" "genes"
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
-#args<-c("L:/promec/TIMSTOF/LARS/2023/230217_Caroline/combined/txt/proteinGroups.txtLFQ.intensity.110Omego1Cntr1h00.050.5InfBiotTestBH.xlsx","L:/promec/TIMSTOF/LARS/2023/230217_Caroline/combined/txt/proteinGroups.txtLFQ.intensity.110Omego3Cntr3h00.050.5InfBiotTestBH.xlsx","L:/promec/TIMSTOF/LARS/2023/230217_Caroline/combined/txt/proteinGroups.txtLFQ.intensity.110Omego6Cntr6h00.050.5InfBiotTestBH.xlsx","L:/promec/TIMSTOF/LARS/2023/230217_Caroline/combined/txt/proteinGroups.txtLFQ.intensity.110Omego12Cntr12h00.050.5InfBiotTestBH.xlsx","Log2MedianChange","RowGeneUniProtScorePeps")
+#args<-c("L:/promec/TIMSTOF/LARS/2023/230217_Caroline/mRNA/Omego_T1_vs_Control_T1_mRNA_diff_expr_CPM1.txt","L:/promec/TIMSTOF/LARS/2023/230217_Caroline/mRNA/Omego_T3_vs_Control_T3_mRNA_diff_expr_CPM1.txt","L:/promec/TIMSTOF/LARS/2023/230217_Caroline/mRNA/Omego_T6_vs_Control_T6_mRNA_diff_expr_CPM1.txt","L:/promec/TIMSTOF/LARS/2023/230217_Caroline/mRNA/Omego_T12_vs_Control_T12_mRNA_diff_expr_CPM1.txt","logFC","genes")
 print(args)
 rN<-args[length(args)]
 cN<-args[length(args)-1]
@@ -18,7 +18,7 @@ pdf(outPDF)
 dfMZ1<-NA
 for(inpF in args[-c((length(args)-1),(length(args)))]) {
   #inpF<-args[1]
-  data<-readxl::read_excel(path=paste0(inpF),sheet=1)
+  data<-read.csv(inpF,sep="\t",header =T)
   print(inpF)
   print(colnames(data))
   hist(as.numeric(unlist(data[,cN])),main=inpF,breaks=100)
