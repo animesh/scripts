@@ -1,48 +1,16 @@
-::git checkout 9612b5063996f260134b0052c20d028549d46b42 runDIANN.bat
-::runDIANN.bat F:\promec\TIMSTOF\LARS\2025\251107_PREETHI 32 --high-acc
 :: DIA-NN 2.2.0 Academia  (Data-Independent Acquisition by Neural Networks) Compiled on May 29 2025 21:29:29 Current date and time: Tue Aug  5 09:36:11 2025 CPU: GenuineIntel Intel(R) Xeon(R) CPU E5-2683 v4 @ 2.10GHz SIMD instructions: AVX AVX2 FMA SSE4.1 SSE4.2 Logical CPU cores: 64 Thread number set to 32 Output will be filtered at 0.01 FDR Precursor/protein x samples expression level matrices will be saved along with the main report A spectral library will be generated
-:: wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000000437/UP000000437_7955.fasta.gz
-
-@echo off
-setlocal enabledelayedexpansion
-
-SET "dataDir=%~1"
-SET "NCPU=%~2"
-SET "mode=%~3"
-
-if "%dataDir%"=="" exit /b 1
-if "%NCPU%"=="" exit /b 1
-
-SET dirMode=default
-if not "%mode%"=="" (
-    SET tempMode=%mode%
-    SET tempMode=!tempMode:--=!
-    SET tempMode=!tempMode:-=!
-    SET tempMode=!tempMode: =!
-    SET dirMode=!tempMode!
+:: wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz
+:: gunzip UP000005640_9606.fasta.gz
+:: copy UP000005640_9606.fasta F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta
+SET workDir=%cd%
+:: set DATADIR=F:\promec\TIMSTOF\LARS\2025\251024_Maike
+set DATADIR=F:\promec\TIMSTOF\LARS\2025\251106_MAIKE_b
+set NCPU=8
+for /d %%i in (%DATADIR%\*.d) do (
+  cd "C:\Program Files\DIA-NN\2.2.0\"
+  :: diann.exe --lib "" --threads 32 --verbose 1 --out "F:\promec\FastaDB\UP000005640_9606_unique_gene_MC2V3.parquet" --qvalue 0.01 --out-lib "F:\promec\FastaDB\UP000005640_9606_unique_gene_MC2V3.predicted.speclib" --gen-spec-lib --predictor --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta" --met-excision --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20  --rt-profiling --fasta-search
+  mkdir  %%i.DIANNv2P2%NCPU%
+  start "DIANNv2P2%NCPU%.%%i" diann.exe  --f  %%i --lib "F:\promec\FastaDB\UP000005640_9606_unique_gene_MC2V3.predicted.predicted.speclib" --threads %NCPU% --verbose 1 --out %%i.DIANNv2P2%NCPU%\report.parquet --qvalue 0.01 --matrices  --out-lib %%i.DIANNv2P2%NCPU%\report-lib.parquet --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta" --met-excision --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --rt-profiling --fixed-mod SILAC,0.0,KR,label --lib-fixed-mod SILAC --channels SILAC,L,KR,0:0; SILAC,H,KR,8.014199:10.008269 --original-mods  --channel-spec-norm  
+  dir %%i.DIANNv2P2%NCPU%
+  cd %workDir%
 )
-
-set /a dirCount=0
-for /d %%i in ("%dataDir%\*.d") do set /a dirCount+=1
-
-if %dirCount%==0 exit /b 1
-
-for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
-set "timestamp=%dt:~2,2%%dt:~4,2%%dt:~6,2%_%dt:~8,2%%dt:~10,2%%dt:~12,2%"
-
-set outputDir=%dataDir%\DIANNv2P2.%dirCount%.%timestamp%.SILAC.%NCPU%.!dirMode!
-mkdir "%outputDir%" 2>nul
-
-set fileList=
-for /d %%i in ("%dataDir%\*.d") do set fileList=!fileList! --f "%%i"
-
-cd "C:\Program Files\DIA-NN\2.2.0\"
-
-set diannCmd=diann.exe!fileList!  --lib "F:\promec\FastaDB\zebraPepMC2defaultslib.predicted.speclib" --threads %NCPU% --verbose 1 --out "!outputDir!\report.parquet" --qvalue 0.01 --matrices --out-lib "!outputDir!\report-lib.parquet" --gen-spec-lib --reannotate --fasta "camprotR_240512_cRAP_20190401_full_tags.fasta" --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000000437_7955.fasta" --min-fr-mz 200 --max-fr-mz 1800  --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --reanalyse --rt-profiling 
-
-if not "%mode%"=="" set diannCmd=!diannCmd! %mode%
-
-!diannCmd!
-::diann.exe --lib "" --threads 32 --verbose 1 --out "F:\promec\FastaDB\zebraPepMC2defaults.parquet" --qvalue 0.01 --matrices  --out-lib "F:\promec\FastaDB\zebraPepMC2defaultslib.parquet" --gen-spec-lib --predictor --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000000437_7955.fasta" --fasta-search --min-fr-mz 200 --max-fr-mz 1800 --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --rt-profiling --high-acc 
-
- 
