@@ -1,6 +1,6 @@
 #python diaNNparquetSILACratio.py 
 import requests
-url = "https://server-server-drive.promec.sigma2.no/Data/251106_MAIKE.SILAC.DIA.NN.1762867904.tar?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=promecshare%2F20251111%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251111T170418Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=34fe13b7a50f469f44dcbe0381c5b678458d560c3b5f793d31a752d0f4090123"
+url = "https://server-server-drive.promec.sigma2.no/Data/251024_MAIKE_.report.parquet.tar?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=promecshare%2F20251112%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251112T085631Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a1e6add4d54ac864df8e1874f50b6bf32b85a95c9d5f0ffc6d4499a99ab05fe3"
 output_filename = "reports.parquet.tar"
 response = requests.get(url, stream=True)
 response.raise_for_status()  # Raise an exception for bad status codes

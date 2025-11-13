@@ -1,5 +1,5 @@
-#python geneGroupsCombineDIANN.py  F:\promec\TIMSTOF\LARS\2025\250902_Alessandro *gg_matrix.tsv
-#runDIANN.bat F:\promec\TIMSTOF\LARS\2025\250902_Alessandro 10 --direct-quant
+#python geneGroupsCombineDIANN.py L:\promec\TIMSTOF\LARS\2025\251107_PREETHI *report.unique_genes_matrix.tsv
+#runDIANN.bat F:\promec\TIMSTOF\LARS\2025\251107_PREETHI 10 --high-acc
 #!pip3 install pandas --user
 # %% setup
 import sys
@@ -7,9 +7,9 @@ from pathlib import Path
 import pandas as pd
 # %% data
 pathFiles = Path(sys.argv[1])
-#pathFiles=Path("L:/promec/TIMSTOF/LARS/2025/250428_Kamilla/")
+#pathFiles=Path("L:/promec/TIMSTOF/LARS/2025/251107_PREETHI/")
 fileName=sys.argv[2]
-#fileName='*report.met.acet.report._genes_matrix.tsv'
+#fileName='*report.unique_genes_matrix.tsv'
 fileNameOut=fileName.replace("*","")+"_comb"
 print(fileNameOut)
 trainList=list(pathFiles.rglob(fileName))
