@@ -20,6 +20,7 @@ print(f"Extracted {output_filename} to {extract_path}")
 import glob
 parquet_files = glob.glob("**/*parquet",recursive=True)
 print(parquet_files)
+print(len(parquet_files))
 
 import pandas as pd
 import pyarrow as pa
@@ -27,7 +28,7 @@ import pyarrow.parquet as pq
 import numpy as np
 
 combined_df = None
-
+#file=parquet_files[0]
 for file in parquet_files:
     print(f"Processing {file}")
     df = pq.read_table(file).to_pandas()
@@ -37,7 +38,8 @@ for file in parquet_files:
     peptides_prots_proteotypic['Precursor.Normalised.log2'] = np.log2(peptides_prots_proteotypic['Precursor.Normalised'].replace(0, np.nan))
     peptides_prots_proteotypic['Precursor.Normalised.log2'] = peptides_prots_proteotypic['Precursor.Normalised.log2'].replace(-np.inf, np.nan)
 
-    pivoted_peptides = peptides_prots_proteotypic.pivot_table(index=['Precursor.Id', 'Genes'], columns='Channel', values='Precursor.Normalised.log2')
+    #pivoted_peptides = peptides_prots_proteotypic.pivot_table(index=['Precursor.Id', 'Genes'], columns='Channel', values='Precursor.Normalised.log2')
+    pivoted_peptides = peptides_prots_proteotypic.pivot_table(index=['Precursor.Id', 'Genes'], columns='Channel', values='RT')
 
     pivoted_peptides = pivoted_peptides.reset_index()
 
