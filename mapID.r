@@ -1,4 +1,4 @@
- #..\R-4.5.0\bin\Rscript.exe mapKEGGpathview.r "F:\tk\MSTK\combined\txt\proteinGroups.txt" 1 20 30 uniprot ensembl
+ #..\R-4.5.0\bin\Rscript.exe mapKEGGpathview.r "F:\tk\PXD033510\txt\proteinGroups.txt" 1 20 30 uniprot ensembl
 suppressPackageStartupMessages({
   if (!requireNamespace("org.Hs.eg.db", quietly = TRUE)) stop("package 'org.Hs.eg.db' required")
   if (!requireNamespace("AnnotationDbi", quietly = TRUE)) stop("package 'AnnotationDbi' required")
@@ -6,10 +6,10 @@ suppressPackageStartupMessages({
 library("AnnotationDbi", quietly = TRUE)
 library("org.Hs.eg.db", quietly = TRUE)
 args <- commandArgs(trailingOnly = TRUE)
-inpF1 <- if (length(args) >= 1 && nzchar(args[1])) args[1] else "F:/tk/MSTK/combined/txt/proteinGroups.txt"
+inpF1 <- if (length(args) >= 1 && nzchar(args[1])) args[1] else "F:/tk/PXD033510/txt/proteinGroups.txt"
 idC <- if (length(args) >= 2 && nzchar(args[2])) strsplit(args[2], ",")[[1]] else 1
-startVC <- if (length(args) >= 3 && nzchar(args[3])) args[3] else 155
-endVC <- if (length(args) >= 4 && nzchar(args[4])) args[4] else 173
+startVC <- if (length(args) >= 3 && nzchar(args[3])) args[3] else 178
+endVC <- if (length(args) >= 4 && nzchar(args[4])) args[4] else 203
 fromID <- if (length(args) >= 5 && nzchar(args[5])) args[5] else "uniprot"
 toID <- if (length(args) >= 5 && nzchar(args[6])) args[6] else "ensembl"
 idC <- as.integer(idC)

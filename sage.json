@@ -36,16 +36,16 @@
             "y"
         ],
         "min_ion_index": 2,
-        "max_variable_mods": 1,
+        "max_variable_mods": 0,
         "static_mods": {
             "C": 57.0215
         },
         "variable_mods": {
-            "M": 15.994
+            "M": [15.994]
         },
         "decoy_tag": "rev_",
         "generate_decoys": true,
-        "fasta": "/cluster/projects/nn9036k/sage/human_crap.fasta"
+        "fasta": "/mnt/f/maren/human_crap.fasta"
     },
     "quant": {
         "lfq": true,
@@ -53,7 +53,9 @@
             "peak_scoring": "Hybrid",
             "integration": "Sum",
             "spectral_angle": 0.6,
-            "ppm_tolerance": 5.0
+            "ppm_tolerance": 5.0,
+            "mobility_pct_tolerance": 1.0,
+            "combine_charge_states": true
         }
     },
     "precursor_tol": {
@@ -74,12 +76,14 @@
     ],
     "deisotope": true,
     "min_peaks": 15,
-    "max_peaks": 150,
+    "max_peaks": 100,
     "max_fragment_charge": 4,
     "min_matched_peaks": 4,
     "predict_rt": true,
+    "precursor_charge": [2, 3],
+    "output_directory": ".",
     "mzml_paths": [
-        "/cluster/projects/nn9036k/sage/251030_maren_DIA.mzML"
+        "/mnt/f/maren/251030_maren_DIA.mzML"
     ]
 }
 
