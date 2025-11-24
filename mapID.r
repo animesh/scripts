@@ -26,7 +26,8 @@ mat <- as.matrix(df1[, vals, drop = FALSE])
 rownames(mat) <- as.character(df1[[idC]])
 storage.mode(mat) <- "double"
 mat[mat == 0] <- NA
-rN <- paste(sapply(strsplit(rownames(mat), ";", fixed = TRUE), "[", idPos))
+#hist(log2(mat), breaks = 100)
+rN <- paste(sapply(strsplit(rownames(mat), ";", fixed = TRUE), "[", idC))
 rNs <- strsplit(rN, "|", fixed = TRUE)
 allN <- unlist(rNs)
 keep <- !is.na(allN) & nzchar(trimws(allN))
