@@ -102,7 +102,6 @@ else:
     print('SIMPLE_GREP mode (default): for each sequence in reads, scan the other file once; no large-memory structures used.')
 # Simple grep-like mode: for each sequence in `reads`, scan `collectReads` once
 # Use environment variable SIMPLE_GREP=1 to enable. This is slow but simple.
-SIMPLE_GREP = os.environ.get('SIMPLE_GREP', '0') == '1'
 
 if SIMPLE_GREP:
     print('Running SIMPLE_GREP mode: for each seq in reads, scan collectReads for a match (slow).')
@@ -139,4 +138,8 @@ else:
                     print('  scanned', scanned, f'{large_name}...')
 
 t2 = time.time()
-print('Done. Scanned', scanned, 'collectReads; wrote', missing, 'unique sequences not present in reads; total time(s):', round(t2 - t0, 1))
+if scanned is None:
+    scanned_msg = 'N/A (SIMPLE_GREP mode)'
+else:
+    scanned_msg = f'{scanned:,}'
+print('Done. Scanned', scanned_msg, 'collectReads; wrote', missing, 'unique sequences not present in reads; total time(s):', round(t2 - t0, 1))
