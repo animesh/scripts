@@ -1,4 +1,4 @@
-#..\R-4.5.0\bin\Rscript.exe mapID.r "F:\tk\PXD033510\txt\proteinGroups.txt" 1 178 203 uniprot ensembl
+#..\R-4.5.0\bin\Rscript.exe mapID.r "F:\tk\PXD033510\txt\proteinGroups.txt" 1 178 203 uniprot entrezid #symbol ensembl
 suppressPackageStartupMessages({
   if (!requireNamespace("org.Hs.eg.db", quietly=TRUE)) stop("org.Hs.eg.db required")
   if (!requireNamespace("AnnotationDbi", quietly=TRUE)) stop("AnnotationDbi required")
@@ -62,7 +62,8 @@ if (ensembl_col %in% colnames(df_expanded)) {
           aggMat <- do.call(rbind, agg_list)
           colnames(aggMat) <- value_cols; rownames(aggMat) <- names(agg_list); storage.mode(aggMat) <- "double"
           agg_df <- as.data.frame(aggMat, stringsAsFactors=FALSE)
-          agg_out <- cbind(ENSEMBL=rownames(agg_df), agg_df)
+          agg_out <- cbind(rownames(agg_df), agg_df)
+          colnames(agg_out)[1] <- ensembl_col
           out_agg <- paste0(tools::file_path_sans_ext(basename(inpF1)), param_tag, ".aggregated.tsv")
           write.table(agg_out, file=out_agg, row.names=FALSE, col.names=TRUE, quote=FALSE, sep="\t")
           cat("aggregated:", normalizePath(out_agg, winslash="\\", mustWork=FALSE), "\n")
