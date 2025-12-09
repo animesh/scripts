@@ -1,8 +1,10 @@
 #java -jar "Z:\Download\SearchGUI-4.3.15-windows\SearchGUI-4.3.17\resources\Novor\novor.jar" "F:\maren\251203_1kda_A3_dda.raw.centroid.MGF"   -p novo.params
 #for %i in ("F:\maren\*.MGF") do (java -jar "Z:\Download\SearchGUI-4.3.15-windows\SearchGUI-4.3.17\resources\Novor\novor.jar" "%i" -p novo.params -f)
 enzyme = Nonspecific
-massAnalyzer = Trap
-fragmentation = CID
+massAnalyzer = FT
+fragmentation = HCD
 fragmentIonErrorTol = 0.02Da
 precursorErrorTol = 10ppm
 forbiddenResidues = I,U
+variableModifications = Acetyl (N-term), Deamidated (NQ), Oxidation (M)
+fixedModifications = Carbamidomethyl (C)
