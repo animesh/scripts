@@ -1,3 +1,21 @@
+from scipy.stats import false_discovery_control
+import numpy as np
+
+# Your p-values
+p_values = np.array([
+    0.000719929,
+    0.00139014,
+    0.00162029,
+    0.0146431,
+    0.0147919,
+    0.0263679,
+    1, 1, 1, 1, 1
+])
+
+# Calculate FDR using Benjamini-Hochberg
+fdr_values = false_discovery_control(p_values, method='bh')
+print(f"FDR values: {fdr_values}")
+
 #https://blog.stackademic.com/pythons-functools-library-the-hidden-gem-for-advanced-programming-23760d8e3de5?gi=9041e4798813
 
 from functools import lru_cache

@@ -1,3 +1,7 @@
+```{r}
+pv<-c(0.00071993,0.001390152,0.001620303,0.014643094,0.014791889,0.026367867,1,1,1,1,1)
+p.adjust(pv,method="BH")
+```
 ```{r perm-ANOVA}
 library(vegan)
 library(tidyverse)
