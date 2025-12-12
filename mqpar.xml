@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/home/ash022/scripts/edan/UP000005640_9606_1protein1gene_additional.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/afz/UP000005640_9606_1protein1gene_additional.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
@@ -11,7 +11,7 @@
          <taxonomyId></taxonomyId>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/home/ash022/scripts/edan/UP000005640_9606_1protein1gene.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/afz/UP000005640_9606_1protein1gene.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
@@ -135,12 +135,12 @@
    <name>session1</name>
    <maxQuantVersion>2.7.0.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>48</numThreads>
+   <numThreads>40</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
-   <fullMinMz>-1.7976931348623157E+308</fullMinMz>
-   <fullMaxMz>1.7976931348623157E+308</fullMaxMz>
+   <fullMinMz>-1.7958954417274534E+308</fullMinMz>
+   <fullMaxMz>1.7958954417274534E+308</fullMaxMz>
    <sendEmail>False</sendEmail>
    <ionCountIntensities>False</ionCountIntensities>
    <verboseColumnHeaders>False</verboseColumnHeaders>
@@ -149,106 +149,295 @@
    <showIsotopeMassDifferences>False</showIsotopeMassDifferences>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_1_Slot2-1_1_11168.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_2_Slot2-2_1_11170.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_3_Slot2-3_1_11172.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_4_Slot2-4_1_11174.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_5_Slot2-5_1_11176.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_6_Slot2-6_1_11178.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_7_Slot2-7_1_11180.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_8_Slot2-8_1_11182.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_9_Slot2-9_1_11184.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_10_Slot2-10_1_11186.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_11_Slot2-11_1_11188.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_12_Slot2-12_1_11190.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_13_Slot2-13_1_11194.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_14_Slot2-14_1_11196.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_15_Slot2-15_1_11198.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_16_Slot2-16_1_11200.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_17_Slot2-17_1_11202.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_18_Slot2-18_1_11204.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_19_Slot2-19_1_11206.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_20_Slot2-20_1_11208.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_21_Slot2-21_1_11210.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_22_Slot2-22_1_11212.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_23_Slot2-23_1_11214.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_24_Slot2-24_1_11216.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_25_Slot2-25_1_11220.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_26_Slot2-26_1_11222.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_27_Slot2-27_1_11224.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_28_Slot2-28_1_11226.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_29_Slot2-29_1_11228.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_30_Slot2-30_1_11230.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_31_Slot2-31_1_11232.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_32_Slot2-32_1_11234.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_33_Slot2-33_1_11236.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_34_Slot2-34_1_11238.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_35_Slot2-35_1_11240.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_36_Slot2-36_1_11242.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_37_Slot2-37_1_11246.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_38_Slot2-38_1_11248.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_39_Slot2-39_1_11250.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_40_Slot2-40_1_11252.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_41_Slot2-41_1_11254.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_42_Slot2-42_1_11256.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_43_Slot2-43_1_11258.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_44_Slot2-44_1_11260.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_45_Slot2-45_1_11262.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_46_Slot2-46_1_11264.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_47_Slot2-47_1_11266.d</string>
-      <string>/cluster/home/ash022/scripts/edan/250919_Edan_48_Slot2-48_1_11268.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A23c_Slot1-43_1_11727.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A24a_Slot1-38_1_11717.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A24b_Slot1-24_1_11689.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A24c_Slot1-14_1_11669.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A25a_Slot1-34_1_11812.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A25b_Slot1-49_1_11739.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A25c_Slot1-29_1_11699.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A26a_Slot1-6_1_11756.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A26b_Slot1-41_1_11723.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A26c_Slot1-20_1_11681.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A27a_Slot1-33_1_11810.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A27b_Slot1-51_1_11743.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A27c_Slot1-14_1_11772.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A28a_Slot1-13_1_11770.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A28b_Slot1-27_1_11695.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A28c_Slot1-8_1_11861.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A29a_Slot1-24_1_11792.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A29b_Slot1-16_1_11673.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A29c_Slot1-21_1_11786.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A30a_Slot1-28_1_11697.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A30b_Slot1-39_1_11719.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A30c_Slot1-44_1_11832.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A31a_Slot1-27_1_11798.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A31b_Slot1-9_1_11659.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A31c_Slot1-47_1_11735.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A32a_Slot1-41_1_11826.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A32b_Slot1-12_1_11665.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A32c_Slot1-52_1_11745.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A33a_Slot1-6_1_11653.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A33b_Slot1-7_1_11758.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A33c_Slot1-23_1_11687.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A34a_Slot1-35_1_11814.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A34b_Slot1-20_1_11784.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A34c_Slot1-44_1_11729.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A1a_AgainQC01_Slot1-1_1_11747.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A1a_AgainQC02_Slot1-1_1_11863.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A1a_Slot1-1_1_11645.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A1b_Slot1-30_1_11804.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A2a_AgainQC01_Slot1-2_1_11748.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A2a_Slot1-2_1_11647.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A2b_Slot1-29_1_11802.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A3a_Slot1-3_1_11648.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A3b_Slot1-49_1_11842.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A4a_Slot1-4_1_11649.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A4b_Slot1-18_1_11780.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A5a_Slot1-5_1_11651.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A5b_Slot1-8_1_11657.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A5c_Slot1-15_1_11774.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A6a_Slot1-26_1_11693.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A6b_Slot1-16_1_11776.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A6c_Slot1-32_1_11808.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A6d_Slot1-11_1_11766.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A7a_Slot1-18_1_11677.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A7b_Slot1-21_1_11683.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A7c_Slot1-17_1_11778.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A7d_Slot1-48_1_11737.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A8a_Slot1-33_1_11707.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A8b_Slot1-7_1_11859.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A8c_Slot1-9_1_11762.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A8d_Slot1-51_1_11846.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A9a_Slot1-13_1_11667.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A9b_Slot1-52_1_11848.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A9c_Slot1-30_1_11701.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A9d_Slot1-48_1_11840.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A10a_Slot1-22_1_11685.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A10b_Slot1-31_1_11806.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A10c_Slot1-40_1_11824.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A10d_Slot1-4_1_11853.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A11a_Slot1-36_1_11713.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A11b_Slot1-50_1_11844.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A11c_Slot1-6_1_11857.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A11d_Slot1-15_1_11671.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A12a_Slot1-11_1_11663.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A12b_Slot1-43_1_11830.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A12c_Slot1-10_1_11764.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A12d_Slot1-5_1_11754.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A13a_Slot1-40_1_11721.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A13b_Slot1-12_1_11768.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A13c_Slot1-42_1_11725.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A13d_Slot1-19_1_11782.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A14a_Slot1-25_1_11691.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A14b_Slot1-8_1_11760.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A14c_Slot1-37_1_11715.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A15a_Slot1-46_1_11733.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A15b_Slot1-22_1_11788.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A15c_Slot1-23_1_11790.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A15d_Slot1-46_1_11836.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A16a_Slot1-19_1_11679.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A16b_Slot1-7_1_11655.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A16c_Slot1-37_1_11818.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A17a_Slot1-45_1_11731.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A17b_Slot1-28_1_11800.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A17c_Slot1-26_1_11796.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A18a_Slot1-32_1_11705.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A18b_Slot1-36_1_11816.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A18c_Slot1-3_1_11750.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A19a_Slot1-31_1_11703.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A19b_Slot1-47_1_11838.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A19c_Slot1-45_1_11834.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A20a_Slot1-38_1_11820.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A20b_Slot1-4_1_11752.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A20c_Slot1-39_1_11822.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A21a_Slot1-50_1_11741.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A21b_Slot1-25_1_11794.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A21c_Slot1-42_1_11828.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A21d_Slot1-17_1_11675.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A22a_Slot1-5_1_11855.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A22b_Slot1-34_1_11709.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A22c_Slot1-35_1_11711.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A23a_Slot1-3_1_11851.d</string>
+      <string>/cluster/projects/nn9036k/afz/20251113_A23b_Slot1-10_1_11661.d</string>
    </filePaths>
    <experiments>
-      <string>1_Slot2-1_1_11168</string>
-      <string>2_Slot2-2_1_11170</string>
-      <string>3_Slot2-3_1_11172</string>
-      <string>4_Slot2-4_1_11174</string>
-      <string>5_Slot2-5_1_11176</string>
-      <string>6_Slot2-6_1_11178</string>
-      <string>7_Slot2-7_1_11180</string>
-      <string>8_Slot2-8_1_11182</string>
-      <string>9_Slot2-9_1_11184</string>
-      <string>10_Slot2-10_1_11186</string>
-      <string>11_Slot2-11_1_11188</string>
-      <string>12_Slot2-12_1_11190</string>
-      <string>13_Slot2-13_1_11194</string>
-      <string>14_Slot2-14_1_11196</string>
-      <string>15_Slot2-15_1_11198</string>
-      <string>16_Slot2-16_1_11200</string>
-      <string>17_Slot2-17_1_11202</string>
-      <string>18_Slot2-18_1_11204</string>
-      <string>19_Slot2-19_1_11206</string>
-      <string>20_Slot2-20_1_11208</string>
-      <string>21_Slot2-21_1_11210</string>
-      <string>22_Slot2-22_1_11212</string>
-      <string>23_Slot2-23_1_11214</string>
-      <string>24_Slot2-24_1_11216</string>
-      <string>25_Slot2-25_1_11220</string>
-      <string>26_Slot2-26_1_11222</string>
-      <string>27_Slot2-27_1_11224</string>
-      <string>28_Slot2-28_1_11226</string>
-      <string>29_Slot2-29_1_11228</string>
-      <string>30_Slot2-30_1_11230</string>
-      <string>31_Slot2-31_1_11232</string>
-      <string>32_Slot2-32_1_11234</string>
-      <string>33_Slot2-33_1_11236</string>
-      <string>34_Slot2-34_1_11238</string>
-      <string>35_Slot2-35_1_11240</string>
-      <string>36_Slot2-36_1_11242</string>
-      <string>37_Slot2-37_1_11246</string>
-      <string>38_Slot2-38_1_11248</string>
-      <string>39_Slot2-39_1_11250</string>
-      <string>40_Slot2-40_1_11252</string>
-      <string>41_Slot2-41_1_11254</string>
-      <string>42_Slot2-42_1_11256</string>
-      <string>43_Slot2-43_1_11258</string>
-      <string>44_Slot2-44_1_11260</string>
-      <string>45_Slot2-45_1_11262</string>
-      <string>46_Slot2-46_1_11264</string>
-      <string>47_Slot2-47_1_11266</string>
-      <string>48_Slot2-48_1_11268</string>
+      <string>23c_Slot1-43_1_11727</string>
+      <string>24a_Slot1-38_1_11717</string>
+      <string>24b_Slot1-24_1_11689</string>
+      <string>24c_Slot1-14_1_11669</string>
+      <string>25a_Slot1-34_1_11812</string>
+      <string>25b_Slot1-49_1_11739</string>
+      <string>25c_Slot1-29_1_11699</string>
+      <string>26a_Slot1-6_1_11756</string>
+      <string>26b_Slot1-41_1_11723</string>
+      <string>26c_Slot1-20_1_11681</string>
+      <string>27a_Slot1-33_1_11810</string>
+      <string>27b_Slot1-51_1_11743</string>
+      <string>27c_Slot1-14_1_11772</string>
+      <string>28a_Slot1-13_1_11770</string>
+      <string>28b_Slot1-27_1_11695</string>
+      <string>28c_Slot1-8_1_11861</string>
+      <string>29a_Slot1-24_1_11792</string>
+      <string>29b_Slot1-16_1_11673</string>
+      <string>29c_Slot1-21_1_11786</string>
+      <string>30a_Slot1-28_1_11697</string>
+      <string>30b_Slot1-39_1_11719</string>
+      <string>30c_Slot1-44_1_11832</string>
+      <string>31a_Slot1-27_1_11798</string>
+      <string>31b_Slot1-9_1_11659</string>
+      <string>31c_Slot1-47_1_11735</string>
+      <string>32a_Slot1-41_1_11826</string>
+      <string>32b_Slot1-12_1_11665</string>
+      <string>32c_Slot1-52_1_11745</string>
+      <string>33a_Slot1-6_1_11653</string>
+      <string>33b_Slot1-7_1_11758</string>
+      <string>33c_Slot1-23_1_11687</string>
+      <string>34a_Slot1-35_1_11814</string>
+      <string>34b_Slot1-20_1_11784</string>
+      <string>34c_Slot1-44_1_11729</string>
+      <string>1a_AgainQC01_Slot1-1_1_11747</string>
+      <string>1a_AgainQC02_Slot1-1_1_11863</string>
+      <string>1a_Slot1-1_1_11645</string>
+      <string>1b_Slot1-30_1_11804</string>
+      <string>2a_AgainQC01_Slot1-2_1_11748</string>
+      <string>2a_Slot1-2_1_11647</string>
+      <string>2b_Slot1-29_1_11802</string>
+      <string>3a_Slot1-3_1_11648</string>
+      <string>3b_Slot1-49_1_11842</string>
+      <string>4a_Slot1-4_1_11649</string>
+      <string>4b_Slot1-18_1_11780</string>
+      <string>5a_Slot1-5_1_11651</string>
+      <string>5b_Slot1-8_1_11657</string>
+      <string>5c_Slot1-15_1_11774</string>
+      <string>6a_Slot1-26_1_11693</string>
+      <string>6b_Slot1-16_1_11776</string>
+      <string>6c_Slot1-32_1_11808</string>
+      <string>6d_Slot1-11_1_11766</string>
+      <string>7a_Slot1-18_1_11677</string>
+      <string>7b_Slot1-21_1_11683</string>
+      <string>7c_Slot1-17_1_11778</string>
+      <string>7d_Slot1-48_1_11737</string>
+      <string>8a_Slot1-33_1_11707</string>
+      <string>8b_Slot1-7_1_11859</string>
+      <string>8c_Slot1-9_1_11762</string>
+      <string>8d_Slot1-51_1_11846</string>
+      <string>9a_Slot1-13_1_11667</string>
+      <string>9b_Slot1-52_1_11848</string>
+      <string>9c_Slot1-30_1_11701</string>
+      <string>9d_Slot1-48_1_11840</string>
+      <string>10a_Slot1-22_1_11685</string>
+      <string>10b_Slot1-31_1_11806</string>
+      <string>10c_Slot1-40_1_11824</string>
+      <string>10d_Slot1-4_1_11853</string>
+      <string>11a_Slot1-36_1_11713</string>
+      <string>11b_Slot1-50_1_11844</string>
+      <string>11c_Slot1-6_1_11857</string>
+      <string>11d_Slot1-15_1_11671</string>
+      <string>12a_Slot1-11_1_11663</string>
+      <string>12b_Slot1-43_1_11830</string>
+      <string>12c_Slot1-10_1_11764</string>
+      <string>12d_Slot1-5_1_11754</string>
+      <string>13a_Slot1-40_1_11721</string>
+      <string>13b_Slot1-12_1_11768</string>
+      <string>13c_Slot1-42_1_11725</string>
+      <string>13d_Slot1-19_1_11782</string>
+      <string>14a_Slot1-25_1_11691</string>
+      <string>14b_Slot1-8_1_11760</string>
+      <string>14c_Slot1-37_1_11715</string>
+      <string>15a_Slot1-46_1_11733</string>
+      <string>15b_Slot1-22_1_11788</string>
+      <string>15c_Slot1-23_1_11790</string>
+      <string>15d_Slot1-46_1_11836</string>
+      <string>16a_Slot1-19_1_11679</string>
+      <string>16b_Slot1-7_1_11655</string>
+      <string>16c_Slot1-37_1_11818</string>
+      <string>17a_Slot1-45_1_11731</string>
+      <string>17b_Slot1-28_1_11800</string>
+      <string>17c_Slot1-26_1_11796</string>
+      <string>18a_Slot1-32_1_11705</string>
+      <string>18b_Slot1-36_1_11816</string>
+      <string>18c_Slot1-3_1_11750</string>
+      <string>19a_Slot1-31_1_11703</string>
+      <string>19b_Slot1-47_1_11838</string>
+      <string>19c_Slot1-45_1_11834</string>
+      <string>20a_Slot1-38_1_11820</string>
+      <string>20b_Slot1-4_1_11752</string>
+      <string>20c_Slot1-39_1_11822</string>
+      <string>21a_Slot1-50_1_11741</string>
+      <string>21b_Slot1-25_1_11794</string>
+      <string>21c_Slot1-42_1_11828</string>
+      <string>21d_Slot1-17_1_11675</string>
+      <string>22a_Slot1-5_1_11855</string>
+      <string>22b_Slot1-34_1_11709</string>
+      <string>22c_Slot1-35_1_11711</string>
+      <string>23a_Slot1-3_1_11851</string>
+      <string>23b_Slot1-10_1_11661</string>
    </experiments>
    <fractions>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
       <short>32767</short>
       <short>32767</short>
       <short>32767</short>
@@ -347,8 +536,134 @@
       <boolean>False</boolean>
       <boolean>False</boolean>
       <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
       <int>0</int>
       <int>0</int>
       <int>0</int>
@@ -447,6 +762,69 @@
       <string></string>
       <string></string>
       <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
    </referenceChannel>
    <lfqTopNPeptides>0</lfqTopNPeptides>
    <diaJoinPrecChargesForLfq>False</diaJoinPrecChargesForLfq>
@@ -483,15 +861,14 @@
          <valleyFactor>1.1</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
          <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>35</intensityThresholdMs1Dda>
+         <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>0</intensityThresholdMs1Dia>
          <intensityThresholdMs2>0</intensityThresholdMs2>
          <labelMods>
             <string></string>
-            <string>Arg10;Lys8</string>
          </labelMods>
          <lcmsRunType>TIMS-DDA</lcmsRunType>
-         <reQuantify>True</reQuantify>
+         <reQuantify>False</reQuantify>
          <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
@@ -508,11 +885,11 @@
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
          <lfqLamdaLimit>20</lfqLamdaLimit>
          <lfqMaxIter>10</lfqMaxIter>
-         <maxLabeledAa>3</maxLabeledAa>
+         <maxLabeledAa>0</maxLabeledAa>
          <maxNmods>5</maxNmods>
          <maxMissedCleavages>2</maxMissedCleavages>
          <maxMissedCleavagesDia>1</maxMissedCleavagesDia>
-         <multiplicity>2</multiplicity>
+         <multiplicity>1</multiplicity>
          <enzymeMode>0</enzymeMode>
          <complementaryReporterType>0</complementaryReporterType>
          <reporterNormalization>0</reporterNormalization>
