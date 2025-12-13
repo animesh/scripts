@@ -35,7 +35,7 @@ git checkout 7dec9c1ae8f302a4e96206364446c53cdffbc5d1
 # cd $HOME/AppData/Local/atom-nightly/bin/
 # apm-nightly install --packages-file config-packages.atom
 # cp config.atom $HOME/.atom/config.cson
-*
+/*
 !*.*
 .Rproj.user
 *.pdf
@@ -80,4 +80,8 @@ core.*
 rtmodel.*
 *.results
 *.fas
+*.fasta
 *log
+*.vcf
+*.vcf.gz
+
