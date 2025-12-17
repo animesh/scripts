@@ -1,9 +1,9 @@
 @echo off
 SETLOCAL ENABLEDELAYEDEXPANSION
 :: change the following paths according to the MaxQuant Installation, directory containing experiment raw files, fasta file and representative parameter file for that version respectively
-set MAXQUANTCMD="C:\Program Files\MaxQuant_v2.6.7.0\bin\MaxQuantCmd.exe"
-set DATADIR="F:\promec\TIMSTOF\LARS\2025\250812_prm\DIA"
-set FASTAFILE=F:\promec\FastaDB\UP000005640_9606_unique_gene.fasta
+set MAXQUANTCMD="C:\Program Files\MaxQuant_v2.7.0.0\bin\MaxQuantCmd.exe"
+set DATADIR="F:\promec\TIMSTOF\LARS\2025\251216_Preethi\DDA"
+set FASTAFILE=F:\promec\FastaDB\UP000005640_9606_1protein1gene.fasta
 set PARAMFILE=mqpar.xml
 set TMPDIR=D:\TMPDIR
 set DT=%date:~-4,4%%date:~-10,2%%date:~7,2%

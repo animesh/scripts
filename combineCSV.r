@@ -1,9 +1,9 @@
-# "c:\Program Files\R\R-4.5.1\bin\Rscript.exe" combineCSV.r "F:\promec\HF\Lars\2025\251204_Maren_Gemma\Extra\251203_3kda_A9_dda1_2_desalt.raw.centroid.MGF.csv" "F:\promec\HF\Lars\2025\251204_Maren_Gemma\Extra\251203_3kda_A9_dda1_2.raw.centroid.MGF.csv" "F:\promec\HF\Lars\2025\251204_Maren_Gemma\Extra\251203_3kda_A3_dda1_2_desalt.raw.centroid.MGF.csv" "F:\promec\HF\Lars\2025\251204_Maren_Gemma\Extra\251203_3kda_A3_dda1_2.raw.centroid.MGF.csv" "F:\promec\HF\Lars\2025\251204_Maren_Gemma\Extra\251203_1kda_A7_dda1_2_desalt.raw.centroid.MGF.csv" "F:\promec\HF\Lars\2025\251204_Maren_Gemma\Extra\251203_1kda_A7_dda1_2.raw.centroid.MGF.csv" "F:\promec\HF\Lars\2025\251204_Maren_Gemma\Extra\251203_1kda_A3_dda1_2_desalt.raw.centroid.MGF.csv" "F:\promec\HF\Lars\2025\251204_Maren_Gemma\Extra\251203_1kda_A3_dda1_2.raw.centroid.MGF.csv" "20" "score" "peptide"
-# for i in /mnt/f/maren/extra/*.raw ; do echo $i;  mono RawRead.exe $i ; done
+# "c:\Program Files\R\R-4.5.1\bin\Rscript.exe" combineCSV.r "F:\promec\HF\Lars\2025\251204_Maren_Gemma\251203_3kda_A9_dda.raw.centroid.MGF.csv"  "F:\promec\HF\Lars\2025\251204_Maren_Gemma\251203_3kda_A3_dda.raw.centroid.MGF.csv" "F:\promec\HF\Lars\2025\251204_Maren_Gemma\251203_1kda_A7_dda.raw.centroid.MGF.csv" "F:\promec\HF\Lars\2025\251204_Maren_Gemma\251203_1kda_A3_dda.raw.centroid.MGF.csv"  "20" "score" "peptide"
+# for i in /mnt/f/maren/*.raw ; do echo $i;  mono RawRead.exe $i ; done
 # for %i in ("F:\maren\*.MGF") do (java -jar "Z:\Download\SearchGUI-4.3.15-windows\SearchGUI-4.3.17\resources\Novor\novor.jar" "%i" -p novo.params -f)
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
-#args<-c("F:/maren/extra/251203_3kda_A9_dda1_2_desalt.raw.centroid.MGF.csv","20","score","peptide")
+#args<-c("F:/promec/HF/Lars/2025/251204_Maren_Gemma/251203_3kda_A9_dda.raw.centroid.MGF.csv","20","score","peptide")
 print(args)
 rN<-args[length(args)]
 cN<-args[length(args)-1]
