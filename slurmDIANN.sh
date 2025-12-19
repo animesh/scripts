@@ -1,12 +1,9 @@
+#bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/maike
 #cd /cluster/home/ash022/scripts
 dos2unix scratch.slurm # slurmDIANN.sh
-#bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/0maike
-#bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/maike
-#mkdir 0maike maike
-#rsync -Parv /nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2025/251024_Maike/*.d 0maike/
-#rsync -Parv /nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2025/251106_MAIKE_b/*.d maike/
-#git checkout e2dad48e3f0337756b8adbeacd0f6968eb33c6e4 runDIANN.bat
-#rsync -Parv /nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/FastaDB/UP000005640_9606_unique_gene_MC2V3.predicted.predicted.speclib* /cluster/projects/nn9036k/FastaDB/
+#mkdir maike
+#cp -rf ./DL/Raw/LARS/251212_Maike/251212_*H*P*d ./maike/.
+#cp ./PD/FastaDB/UP000000589_10090.fasta ./maike/.
 #for i in $PWD/maike/*.d ; do grep "TestFile.d" ; sed -i "s|TestFile\.d|$i|g" $i.slurm  ;done
 DATADIR=$1
 SEARCHTEXT=TestFile.d

@@ -13,11 +13,6 @@
 # unzip ./DIA-NN-2.3.1-Academia-Linux.zip
 cd /cluster/home/ash022/scripts/diann-2.3.1
 #cp /cluster/projects/nn9036k/diann-2.3.0/camprotR_240512_cRAP_20190401_full_tags.fasta . 
-#rsync -Parv /mnt/f/*.d  ash022@login.saga.sigma2.no:/cluster/work/users/ash022/hecoli/.
-#rsync -Parv /mnt/f/*.fasta  ash022@login.saga.sigma2.no:/cluster/work/users/ash022/hecoli/.
-#rsync -Parv /mnt/f/*.quant  ash022@login.saga.sigma2.no:/cluster/work/users/ash022/hecoli/.
-#https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz
-#https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Bacteria/UP000000625/UP000000625_83333.fasta.gz
 #chmod 755 diann-linux 
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
@@ -30,9 +25,9 @@ echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 module purge
 module load GCCcore/14.3.0
-./diann-linux --f TestFile.d --lib "" --threads 80 --verbose 5 --out "TestFile.d.WRITEFILE.parquet" --qvalue 0.01 --matrices  --out-lib "TestFile.d.WRITEFILE.lib.parquet" --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "/cluster/work/users/ash022/hecoli/UP000000625_83333.fasta" --fasta "/cluster/work/users/ash022/hecoli/UP000005640_9606.fasta" --pre-search --pre-filter --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:7,0.984016,NQ --var-mod UniMod:1,42.010565,*n --mass-acc 15 --mass-acc-ms1 15 --individual-mass-acc --individual-windows --peptidoforms --rt-profiling  --reanalyse
+./diann-linux --f TestFile.d --lib "" --threads 80 --verbose 5 --out "TestFile.d.WRITEFILE.parquet" --qvalue 0.01 --matrices  --out-lib "TestFile.d.WRITEFILE.lib.parquet" --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "/cluster/home/ash022/scripts/maike/UP000000589_10090.fasta" --pre-search --pre-filter --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:7,0.984016,NQ --var-mod UniMod:1,42.010565,*n --mass-acc 15 --mass-acc-ms1 15 --individual-mass-acc --individual-windows --peptidoforms --rt-profiling  --reanalyse
 #tail -f BMppm15DIAmix.log 
 #dos2unix scratch.slurm  slurmDIANN.sh
-#bash slurmDIANN.sh /cluster/work/users/ash022/hecoli
+#bash slurmDIANN.sh /cluster/home/ash022/scripts
 
 
