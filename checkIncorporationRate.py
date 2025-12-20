@@ -1,13 +1,13 @@
-#python checkIncorporationRate.py Z:\Download\txt\ peptides.txt HL
+#python checkIncorporationRate.py F:\promec\HF\Lars\2025\251220_edan\combined\txt peptides.txt "Heavy"
 print("peptide.txt output file to calculate the incorporation rate. Distinguish between lysine- and argininecontaining peptides. For each of these subsets determine the incorporation rate as 1–1/average ratio, using the non-normalized ratios. The density plot of the density distribution should be narrow, and for both lysine and arginine it should be above 0.95, Reference: Use of stable isotope labeling by amino acids in cell culture as a spike-in standard in quantitative proteomics https://www.nature.com/articles/nprot.2010.192")
 import sys
 from pathlib import Path
 
 if len(sys.argv) != 4:
-    dirName = Path("Z:/Download/txt/")
+    dirName = Path(r"F:\promec\HF\Lars\2025\251220_edan\combined\txt")
     #fileName='proteinGroups.txt'
     fileName='peptides.txt'
-    colR='HL'
+    colR='Heavy'
     print("\n\nUSAGE: python checkIncorporationRate.py <path to folder containing",fileName,"file(s)>\n\nUsing DEFAULT directory\"", dirName, "\"looking for\"", fileName, colR, "\"file(s)\n\n")
 else:
     dirName = Path(sys.argv[1])
@@ -18,9 +18,10 @@ else:
 trainList=list(dirName.rglob(fileName))
 print("Using file(s)\n",trainList)
 
-columnName='^(Ratio H/L) ' + colR + ' (.*)'#'*([0-9])$'
-columnNameH='^(Intensity H)(.*)|(.*)(Light)$'#'*([0-9])$'
-columnNameL='^(Intensity L)(.*)|(.*)(Heavy)$'#'*([0-9])$'
+columnName='^(Ratio H/L) ' + colR #+ ' (.*)'#'*([0-9])$'
+columnNameH='^(Intensity H) ' + colR #(.*)|(.*)(Light)$'#'*([0-9])$'
+columnNameL='^(Intensity L) ' + colR #(.*)|(.*)(Heavy)$'#'*([0-9])$'
+print("Looking for columns matching regex:\n",columnName,"\n",columnNameH,"\n",columnNameL)
 #f=trainList[0]
 import pandas as pd 
 for i, f in enumerate(trainList):
