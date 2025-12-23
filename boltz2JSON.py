@@ -1,37 +1,21 @@
 from pathlib import Path
 import sys
 import json
-import gzip
 import csv
 import glob
 import re
 import os
 
-def _open_text(path: Path):
-    if path.suffix == ".gz":
-        return gzip.open(path, "rt", encoding="utf-8")
-    return path.open("r", encoding="utf-8")
 
 in_arg = sys.argv[1] if len(sys.argv) > 1 else ""
 out_path = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("boltz2.combined.csv")
 
 def load_file(p: Path):
-    with _open_text(p) as fh:
+    with p.open("r", encoding="utf-8") as fh:
         return json.load(fh)
 
-def _get(src, i):
-    if src is None:
-        return ""
-    if not isinstance(src, list):
-        return src
-    if i < len(src):
-        return src[i]
-    return ""
 
-def _is_number_list(x):
-    return isinstance(x, list) and all(not isinstance(e, list) for e in x)
 
-# determine run count: prefer confidence or complex scores, or iptm if it's per-run (list of lists)
 def _process(data, source_name=""):
     confidence = data.get("confidence_scores") or data.get("confidence") or []
     chains_ptm = data.get("chains_ptm_scores") or data.get("chains_ptm") or data.get("ptm_scores") or []
@@ -56,23 +40,21 @@ def _process(data, source_name=""):
         else:
             conf_v = confidence
 
-        # pTM
         if isinstance(chains_ptm, list) and len(chains_ptm) > 0 and isinstance(chains_ptm[0], list):
             ch = chains_ptm[i] if i < len(chains_ptm) else chains_ptm[0]
             pTM_Ch0 = ch[0] if len(ch) > 0 else ""
             pTM_Ch1 = ch[1] if len(ch) > 1 else ""
-        elif _is_number_list(chains_ptm) and len(chains_ptm) >= 2:
+        elif isinstance(chains_ptm, list) and all(not isinstance(e, list) for e in chains_ptm) and len(chains_ptm) >= 2:
             pTM_Ch0, pTM_Ch1 = chains_ptm[0], chains_ptm[1]
         else:
             pTM_Ch0 = pTM_Ch1 = ""
 
-        # ipTM: reuse existing logic but refer to local variables
         if isinstance(iptm_src, list) and len(iptm_src) > 0 and isinstance(iptm_src[0], list):
             ip = iptm_src[i] if i < len(iptm_src) else iptm_src[0]
             ipTM_Ch0 = ip[0] if len(ip) > 0 else ""
             ipTM_Ch1 = ip[1] if len(ip) > 1 else ""
             try:
-                pairwise = sum(float(x) for x in ip if x not in (None, "")) / max(1, len([x for x in ip if x not in (None, "")] ))
+                pairwise = sum(float(x) for x in ip if x not in (None, "")) / max(1, len([x for x in ip if x not in (None, "")]))
             except Exception:
                 pairwise = ""
         elif isinstance(iptm_src, list) and len(iptm_src) > 0 and isinstance(iptm_src[0], dict):
@@ -88,10 +70,10 @@ def _process(data, source_name=""):
                 ipTM_Ch1 = (chains_ptm[1] if isinstance(chains_ptm, list) and len(chains_ptm) > 1 else None)
             if pairwise is None:
                 pairwise = ""
-        elif _is_number_list(iptm_src) and len(iptm_src) >= 2 and run_count == 1:
+        elif isinstance(iptm_src, list) and all(not isinstance(e, list) for e in iptm_src) and len(iptm_src) >= 2 and run_count == 1:
             ipTM_Ch0, ipTM_Ch1 = iptm_src[0], iptm_src[1]
             try:
-                pairwise = sum(float(x) for x in iptm_src if x not in (None, "")) / max(1, len([x for x in iptm_src if x not in (None, "")] ))
+                pairwise = sum(float(x) for x in iptm_src if x not in (None, "")) / max(1, len([x for x in iptm_src if x not in (None, "")]))
             except Exception:
                 pairwise = ""
         else:
@@ -131,40 +113,38 @@ files = []
 if in_arg:
     files = sorted([Path(p) for p in glob.glob(in_arg)])
 else:
-    files = sorted(Path.cwd().glob("boltz2*.json*"))
+    files = sorted(Path.cwd().glob("boltz2.*.*.json"))
 
-def _common_token_prefix(names):
-    lists = [re.findall(r"[A-Za-z0-9]+", n) for n in names if n]
-    if not lists:
-        return None
-    min_len = min(len(lst) for lst in lists)
-    common = []
-    for i in range(min_len):
-        tok = lists[0][i]
-        if all(lst[i] == tok for lst in lists):
-            common.append(tok)
-        else:
-            break
-    if common:
-        return "_".join(common)
-    # fallback to os.path.commonprefix on raw names (without extension)
-    cp = os.path.commonprefix(names)
-    cp = re.sub(r"[^A-Za-z0-9]+$", "", cp)
-    if cp:
-        return cp
-    return None
 
-# if user didn't pass an explicit output, derive base from input/files
+
 if len(sys.argv) <= 2:
     base = None
     if in_arg and "boltz2" in in_arg:
         base = "boltz2"
     elif files:
         names = [p.stem for p in files]
-        base = _common_token_prefix(names)
+        cp = os.path.commonprefix(names)
+        cp = re.sub(r"[^A-Za-z0-9]+$", "", cp)
+        base = cp if cp else None
     if not base:
         base = "boltz2"
-    out_path = Path(f"{base}.combined.csv")
+    
+    token_label = None
+    if in_arg:
+        m = re.match(r"^[^.]+\.([^.]+)\.", in_arg)
+        if m:
+            token_label = m.group(1)
+    if not token_label and files:
+        parts = files[0].name.split('.')
+        if len(parts) >= 3:
+            token_label = parts[1]
+
+    if token_label:
+        token_label = re.sub(r"[^A-Za-z0-9_]+", "", token_label)
+        out_path = Path(f"{base}.{token_label}.combined.csv")
+    else:
+        token_label = None
+        out_path = Path(f"{base}.combined.csv")
 
 all_rows = []
 for p in files:
@@ -172,9 +152,26 @@ for p in files:
         d = load_file(p)
     except Exception:
         continue
-    all_rows.extend(_process(d, source_name=p.name))
+    
+    token = None
+    if token_label:
+        pat = rf"\.{re.escape(token_label)}\.([^.]+)(?:\.|$)"
+        m2 = re.search(pat, p.name, re.IGNORECASE)
+        token = m2.group(1) if m2 else None
+    rows_local = _process(d, source_name=p.name)
+    for r in rows_local:
+        r["File"] = p.name
+        if token_label:
+            r[token_label] = token
+        
+        
+        r["Run"] = str(r.get('Run'))
+    all_rows.extend(rows_local)
 
-fieldnames = ["File", "Run", "Confidence", "pTM_Ch0", "pTM_Ch1", "ipTM_Ch0", "ipTM_Ch1", "complex_pLDDT", "complex_iPLDDT", "complex_pDE", "complex_iPDE", "Pairwise_ipTM"]
+fieldnames = ["File"]
+if token_label:
+    fieldnames.append(token_label)
+fieldnames.extend(["Run", "Confidence", "pTM_Ch0", "pTM_Ch1", "ipTM_Ch0", "ipTM_Ch1", "complex_pLDDT", "complex_iPLDDT", "complex_pDE", "complex_iPDE", "Pairwise_ipTM"]) 
 out_path.parent.mkdir(parents=True, exist_ok=True)
 with out_path.open("w", newline="", encoding="utf-8") as fh:
     w = csv.DictWriter(fh, fieldnames=fieldnames)
@@ -196,7 +193,7 @@ for r in all_rows:
         best = r
 
 if best is not None:
-    hdr = [c for c in fieldnames if c != "File"]
+    hdr = fieldnames[:]  # include File in CLI output
     vals = [str(best.get(c, "")) for c in hdr]
     print("Best ipTM_Ch0:", f"{best_val:.3f}")
     print("\t".join(hdr))
