@@ -1,65 +1,71 @@
 #python diaNNparquetSILACratio.py 
-import requests
-url = "https://server-server-drive.promec.sigma2.no/Data/251024_MAIKE_.report.parquet.tar?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=promecshare%2F20251112%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251112T085631Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=a1e6add4d54ac864df8e1874f50b6bf32b85a95c9d5f0ffc6d4499a99ab05fe3"
-output_filename = "reports.parquet.tar"
-response = requests.get(url, stream=True)
-response.raise_for_status()  # Raise an exception for bad status codes
-with open(output_filename, 'wb') as f:
-    for chunk in response.iter_content(chunk_size=8192):
-        f.write(chunk)
-print(f"Downloaded {output_filename}")
-
-import tarfile
-import os
-output_filename = "reports.parquet.tar"
-extract_path = "."
-with tarfile.open(output_filename, 'r') as tar:
-    tar.extractall(path=extract_path)
-print(f"Extracted {output_filename} to {extract_path}")
-
-import glob
-parquet_files = glob.glob("**/*parquet",recursive=True)
-print(parquet_files)
-print(len(parquet_files))
-
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 import numpy as np
 
-combined_df = None
-#file=parquet_files[0]
-for file in parquet_files:
-    print(f"Processing {file}")
-    df = pq.read_table(file).to_pandas()
+mz_parquet = pq.read_table('/content/report.parquet')
+mz_parquet = mz_parquet.to_pandas()
+mz_parquet.to_csv('reports.csv')
+print(mz_parquet.describe())
 
-    peptides_prots_proteotypic = df[df['Proteotypic'] == 1].copy()
+peptides_prots_proteotypic_log2int = mz_unimod_21.copy()
+peptides_prots_proteotypic_log2int['Genes.MaxLFQ.log2'] = np.log2(peptides_prots_proteotypic_log2int['Genes.MaxLFQ'])
+print(peptides_prots_proteotypic_log2int)
 
-    peptides_prots_proteotypic['Precursor.Normalised.log2'] = np.log2(peptides_prots_proteotypic['Precursor.Normalised'].replace(0, np.nan))
-    peptides_prots_proteotypic['Precursor.Normalised.log2'] = peptides_prots_proteotypic['Precursor.Normalised.log2'].replace(-np.inf, np.nan)
+pivoted_peptides = peptides_prots_proteotypic_log2int.pivot_table(index=['Precursor.Id', 'Genes','Run'], columns='Channel', values='Genes.MaxLFQ.log2')
+print(pivoted_peptides)
 
-    #pivoted_peptides = peptides_prots_proteotypic.pivot_table(index=['Precursor.Id', 'Genes'], columns='Channel', values='Precursor.Normalised.log2')
-    pivoted_peptides = peptides_prots_proteotypic.pivot_table(index=['Precursor.Id', 'Genes'], columns='Channel', values='RT')
+peptides_in_both_channels = pivoted_peptides.dropna(subset=['H', 'L'])
+print(peptides_in_both_channels)
 
-    pivoted_peptides = pivoted_peptides.reset_index()
+pivoted_peptides.describe()
 
-    h_values = pivoted_peptides['H'].fillna(0) if 'H' in pivoted_peptides.columns else 0
-    l_values = pivoted_peptides['L'].fillna(0) if 'L' in pivoted_peptides.columns else 0
-    pivoted_peptides['Difference'] = h_values.astype(str) + 'H;L' + l_values.astype(str) #h_values - l_values
-    pivoted_peptides['ID'] = pivoted_peptides['Genes'] + ';' + pivoted_peptides['Precursor.Id']
+pivoted_peptides_na = pivoted_peptides.replace([np.inf, -np.inf], np.nan)
+pivoted_peptides_na.describe()
 
-    #pivoted_peptides['Precursor.Id'] = pivoted_peptides['Precursor.Id'].str.replace(r'\(.*\)\d*', '', regex=True)
-    result = pivoted_peptides[['ID','Difference']].copy()
+pivoted_peptides_na['Difference'] = pivoted_peptides_na['H'].fillna(0) - pivoted_peptides_na['L'].fillna(0)
+pivoted_peptides_na = pivoted_peptides_na.reset_index()
+pivoted_peptides_na['Difference'].describe()
 
-    filename = file.split('/')[-1].split('\\')[-1].rsplit('.', 1)[0]
-    result = result.rename(columns={'Difference': filename})
+pivoted_peptides_na['Difference'] = pivoted_peptides_na['H'] - pivoted_peptides_na['L']
+pivoted_peptides_na = pivoted_peptides_na.reset_index()
+pivoted_peptides_na['Difference'].describe()
 
-    if combined_df is None:
-        combined_df = result
-    else:
-        combined_df = combined_df.merge(result, on='ID', how='outer')
+pivoted_peptides_by_run = pivoted_peptides_na.pivot_table(index=['Precursor.Id', 'Genes','H','L'], columns='Run', values=['Difference'])
+pivoted_peptides_by_run=pivoted_peptides_by_run.reset_index()
+print(pivoted_peptides_by_run)
 
-print(combined_df.info())
-#combined_df
-combined_df.to_csv('diaNNparquetSILACratio.csv', index=False)
-print("Saved diaNNparquetSILACratio.csv")
+pivoted_peptides_by_run.Difference.describe()
+
+pivoted_peptides_by_run.Difference.isna().describe()
+
+aggregation_functions = {}
+
+# Aggregate 'Difference' columns by taking the median
+for run_col in pivoted_peptides_by_run.columns.get_level_values('Run').unique():
+    if run_col != '': # Exclude the empty string level for index columns
+        aggregation_functions[('Difference', run_col)] = 'median'
+
+# Concatenate string columns
+for level0_col in ['Precursor.Id', 'H', 'L']:
+    if (level0_col, '') in pivoted_peptides_by_run.columns:
+        aggregation_functions[(level0_col, '')] = lambda x: ';'.join(map(str, x.dropna()))
+
+
+combined_peptides = pivoted_peptides_by_run.groupby(('Genes', '')).agg(aggregation_functions).reset_index()
+print(combined_peptides)
+
+import matplotlib.pyplot as plt
+
+combined_peptides.to_csv('reports_silac.csv')
+
+# Plot histograms for each 'Difference' column
+ax_list = combined_peptides['Difference'].hist()
+
+# Add titles to each histogram and display the plots
+for i, ax in enumerate(ax_list.flatten()):
+    ax.set_title(f'Difference for Run {i+1}')
+
+plt.tight_layout()
+plt.show()
