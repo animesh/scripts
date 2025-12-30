@@ -1,4 +1,5 @@
 #python diaNNparquet.py -f "F:\promec\TIMSTOF\LARS\2025\250107_Hela_Coli\DDAreport.parquet" -c  "Ms1.Area"
+#python diaNNparquet.py -f "F:\promec\TIMSTOF\LARS\2025\250107_Hela_Coli\reportDDA.parquet" -c  "Ms1.Area"
 import pandas as pd
 import pyarrow.parquet as pq
 import os
@@ -12,6 +13,7 @@ parser.add_argument('-f', '--fileP', help='path to parquet file', default=r'F:\p
 parser.add_argument('-c', '--value-col', help="name of numeric column to use (default 'Precursor.Normalised'), e.g. 'Precursor.Quantity'", default='Precursor.Normalised')
 args = parser.parse_args()
 value_col = args.value_col
+#value_col = "Ms1.Area"
 fileP = args.fileP
 # safe token to put into output filenames
 safe_col = re.sub(r'[^A-Za-z0-9_-]+', '_', value_col)
@@ -23,6 +25,12 @@ print(mz_parquet.describe())
 #print(mz_parquet.describe()-mz_parquet2.describe())
 #mzDiff=mz_parquet2['Precursor.Normalised']-mz_parquet['Precursor.Normalised']
 #print(mzDiff.describe())
+pivoted_peptides_by_run = mz_parquet.pivot_table(index=['Precursor.Id', 'Protein.Names'], columns='Run', values=value_col)
+pivoted_peptides_by_run=pivoted_peptides_by_run.reset_index()
+print(pivoted_peptides_by_run)
+print(pivoted_peptides_by_run.count())
+pivoted_peptides_by_run.to_csv(fileP + f'_{safe_col}_pivot_all.csv', index=False)
+print('Saved full pivot to', fileP + f'_{safe_col}_pivot_all.csv')
 
 peptides_prots_proteotypic = mz_parquet[mz_parquet['Proteotypic'] == 1]
 print(peptides_prots_proteotypic)
