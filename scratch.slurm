@@ -1,24 +1,22 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=DDAppm15mix
-#SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=32
-#SBATCH --mem-per-cpu=72G
-#SBATCH --time=96:00:00
+#SBATCH --account=nn9036k --job-name=TestFile.d.WRITEFILE
+##SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=20
+#SBATCH --mem-per-cpu=8G
+#SBATCH --time=48:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=DDAppm15mix.log
-# wget "https://github.com/vdemichev/DiaNN/releases/download/2.0/DIA-NN-2.3.1-Academia-Linux.zip"
-# sha256sum ./DIA-NN-2.3.1-Academia-Linux.zip 
-#614dba4449e06358469fbe443826658749f610d6e015ed4c771ec645e8457eb4  ./DIA-NN-2.3.1-Academia-Linux.zip
-# unzip ./DIA-NN-2.3.1-Academia-Linux.zip
-cd /cluster/home/ash022/scripts/diann-2.3.1
-#cp /cluster/projects/nn9036k/diann-2.3.0/camprotR_240512_cRAP_20190401_full_tags.fasta . 
-#rsync -Parv /mnt/f/*.d  ash022@login.saga.sigma2.no:/cluster/work/users/ash022/hecoli/.
-#rsync -Parv /mnt/f/*.fasta  ash022@login.saga.sigma2.no:/cluster/work/users/ash022/hecoli/.
-#rsync -Parv /mnt/f/*.quant  ash022@login.saga.sigma2.no:/cluster/work/users/ash022/hecoli/.
-#https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz
-#https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Bacteria/UP000000625/UP000000625_83333.fasta.gz
-#chmod 755 diann-linux 
+#SBATCH --output=TestFile.d.WRITEFILE.log
+#wget "https://objects.githubusercontent.com/github-production-release-asset-2e65be/125283280/6d0978fc-15e7-41d3-9f1b-027a7b889780?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=releaseassetproduction%2F20250530%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250530T135309Z&X-Amz-Expires=300&X-Amz-Signature=195fa2d2efe5aca54ca53637ec411c012988efd2d0fa6b0b989acd8f2a81d802&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3DDIA-NN-2.2.0-Academia-Linux.zip&response-content-type=application%2Foctet-stream" -O diannv2p2.zip
+#unzip diannv2p2.zip
+#mv diann-2.2.0 /cluster/projects/nn9036k/.
+#chmod 755 /cluster/projects/nn9036k/diann-2.2.0/diann-linux
+#cp /cluster/projects/nn9036k/diann-2.1.0/*.fasta /cluster/projects/nn9036k/diann-2.2.0/.
+#wget "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000000589/UP000000589_10090.fasta.gz"https://rest.uniprot.org/uniprotkb/stream?download=true&format=fasta&query=%28%28proteome%3AUP000001449%29%29"
+#mkdir tore
+#rsync -Parv TIMSTOF/LARS/2026/260107_Tore/*.d tore/
+#rsync -Parv TIMSTOF/LARS/2026/260107_Tore/Th* tore/
+cd /cluster/projects/nn9036k/diann-2.2.0/
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
 echo " the name of the job is: $SLURM_JOB_NAME"
@@ -29,8 +27,7 @@ echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
 module purge
-module load GCCcore/14.3.0
-./diann-linux  --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_5_1_DDA_c_Slot1-47_1_9385.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_5_1_DDA_b_Slot1-47_1_9379.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_5_1_DDA_a_Slot1-47_1_9373.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_4_1_DDA_c_Slot1-48_1_9386.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_4_1_DDA_b_Slot1-48_1_9380.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_4_1_DDA_a_Slot1-48_1_9374.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_2_1_DDA_c_Slot1-50_1_9387.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_2_1_DDA_b_Slot1-50_1_9381.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_2_1_DDA_a_Slot1-50_1_9375.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_1_1_DDA_c_Slot1-51_1_9388.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_1_1_DDA_b_Slot1-51_1_9382.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_1_1_DDA_a_Slot1-51_1_9376.d"  --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_10_1_DDA_c_Slot1-46_1_9384.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_10_1_DDA_b_Slot1-46_1_9378.d" --f "/cluster/work/users/ash022/hecoli/250107_Hela_coli_10_1_DDA_a_Slot1-46_1_9372.d" --lib "" --threads 128 --verbose 5 --out "/cluster/work/users/ash022/hecoli/DDAreport.parquet" --qvalue 0.01 --matrices  --out-lib "/cluster/work/users/ash022/hecoli/DDAreport-lib.parquet" --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "/cluster/work/users/ash022/hecoli/UP000000625_83333.fasta" --fasta "/cluster/work/users/ash022/hecoli/UP000005640_9606.fasta" --pre-search --pre-filter --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:7,0.984016,NQ --var-mod UniMod:1,42.010565,*n --mass-acc 15 --mass-acc-ms1 15 --individual-mass-acc --individual-windows --peptidoforms  --rt-profiling  --reanalyse
-#dos2unix scratch.slurm
-#tail -f BMppm15DIAmix.log 
-
+module load GCCcore/13.3.0
+#::diann.exe --lib "" --threads 32 --verbose 1 --out "L:\promec\TIMSTOF\LARS\2026\260107_Tore\Thalassiosira_pseudonana_PASA-proteins_uniprot.report.parquet" --qvalue 0.01 --matrices  --out-lib "L:\promec\TIMSTOF\LARS\2026\260107_Tore\Thalassiosira_pseudonana_PASA-proteins_uniprot.MC1V3.parquet" --gen-spec-lib --predictor --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "L:\promec\TIMSTOF\LARS\2026\260107_Tore\Thalassiosira_pseudonana_PASA-proteins_uniprot.fasta" --fasta-search --min-fr-mz 200 --max-fr-mz 1800 --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 1 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --var-mod UniMod:21,79.966331,STY --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --reanalyse --rt-profiling 
+#diann.exe --f "L:\promec\TIMSTOF\LARS\2026\260107_Tore\260107_Tore_15_5_Slot1-15_1_12397.d " --lib "L:\promec\TIMSTOF\LARS\2026\260107_Tore\Thalassiosira_pseudonana_PASA-proteins_uniprot.MC1V3.predicted.speclib" --threads 32 --verbose 1 --out "L:\promec\TIMSTOF\LARS\2026\260107_Tore\260107_Tore_15_5_Slot1-15_1_12397.dreport.parquet" --qvalue 0.01 --matrices  --out-lib "L:\promec\TIMSTOF\LARS\2026\260107_Tore\260107_Tore_15_5_Slot1-15_1_12397.dreplib.parquet" --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "L:\promec\TIMSTOF\LARS\2026\260107_Tore\Thalassiosira_pseudonana_PASA-proteins_uniprot.fasta" --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 1 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --var-mod UniMod:21,79.966331,STY --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --reanalyse --rt-profiling 
+./diann-linux   --f "TestFile.d"  --lib "/cluster/projects/nn9036k/scripts/tore/Thalassiosira_pseudonana_PASA-proteins_uniprot.MC1V3.predicted.speclib" --gen-spec-lib   --threads 80   --verbose 1   --out "TestFile.d.WRITEFILE.report.parquet"   --qvalue 0.01   --matrices   --reannotate   --fasta camprotR_240512_cRAP_20190401_full_tags.fasta   --cont-quant-exclude cRAP-   --fasta "/cluster/projects/nn9036k/scripts/tore/Thalassiosira_pseudonana_PASA-proteins_uniprot.fasta"   --fasta-search  --min-fr-mz 200   --max-fr-mz 1800   --met-excision   --min-pep-len 7  --max-pep-len 30   --min-pr-mz 300   --max-pr-mz 1800   --min-pr-charge 1  --max-pr-charge 4  --cut "K*,R*"  --missed-cleavages 1   --unimod4   --var-mods 3   --var-mod "UniMod:35,15.994915,M"   --var-mod "UniMod:1,42.010565,*n" --var-mod UniMod:21,79.966331,STY --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --reanalyse --rt-profiling 
