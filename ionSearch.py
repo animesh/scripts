@@ -1,23 +1,26 @@
-# single-file script: load pandas and lightweight XML/num libs
+# python ionSearch.py
 import pandas as pd
 import xml.etree.ElementTree as ET
 import numpy as np
 import os
 #Load and filter data
-chargeThreshold = 2
-intensityThreshold = 1e6
-mzData = pd.read_csv("L:/promec/HF/Lars/2025/251204_Maren_Gemma/combined/txt/matchedFeatures.txt", sep='\t')
-mzSelect = mzData[(mzData['Charge'] < chargeThreshold) & (mzData['Intensity 1kda_A3_ms1']  > intensityThreshold) & (mzData['Intensity 1kda_A7_ms1']  > intensityThreshold) & (mzData['Intensity 3kda_A3_ms1']  > intensityThreshold) & (mzData['Intensity 3kda_A9_ms1']  > intensityThreshold)].copy()
+chargeThreshold = 1000
+intensityThreshold = 1
+dirPath="L:/promec/HF/Lars/2025/251204_Maren_Gemma/combined/txt/"
+mzData = pd.read_csv(dirPath+"matchedFeatures.txt", sep='\t')
+ionSelect = pd.read_csv(dirPath+"ions to check.txt", sep='\t')
+print(ionSelect.describe())
+mzSelect = ionSelect.merge(mzData, on=['m/z'], how='left')
 mzSelect['MassCalc'] = mzSelect['m/z'] * mzSelect['Charge'] - mzSelect['Charge'] * 1.007276
-#mzSelect.describe()
+print(mzSelect['MassCalc'].describe())
 #(mzSelect['MassCalc']-mzSelect['Mass']).hist()
 # metabolites DB (example path):
 # https://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip
 # example local XML: r"Z:\Download\hmdb_metabolites\hmdb_metabolites.xml"
 # --- inline HMDB search: stream the XML and match MassCalc values within tolerance
 # Example usage: set path and run search (adjust as required for your system)
-hmdb_xml = r"Z:\Download\serum_metabolites\serum_metabolites.xml"
-out_matches = "hmdb_matches.tsv"
+hmdb_xml = dirPath+"serum_metabolites.xml"
+out_matches = dirPath+"hmdb_select.tsv"
 # tolerance: use tol_ppm=None to use absolute Da tolerance
 tol_da = 0.005
 tol_ppm = None
