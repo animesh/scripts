@@ -20,7 +20,7 @@ safe_col = re.sub(r'[^A-Za-z0-9_-]+', '_', value_col)
 mz_parquet = pq.read_table(fileP)
 mz_parquet = mz_parquet.to_pandas()
 print(mz_parquet.describe())
-#mz_parquet.to_csv(fileP+'.csv')
+mz_parquet.to_csv(fileP+'.csv')
 #mz_parquet2 = pd.read_csv(fileP+'.csv',index_col=0)
 #print(mz_parquet.describe()-mz_parquet2.describe())
 #mzDiff=mz_parquet2['Precursor.Normalised']-mz_parquet['Precursor.Normalised']

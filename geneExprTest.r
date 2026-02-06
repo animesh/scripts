@@ -1,4 +1,6 @@
-#..\R-4.4.0\bin\Rscript.exe geneExprTest.r "L:\promec\TIMSTOF\LARS\2025\250805_Kamila\DIANNv2p2\report rq.ha..gg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2025\250805_Kamila\DIANNv2p2\Groups.txt" "Bio" "Rem" 1 4 4 "IS" "NS" 0.1 0.5 0.1
+# "c:\Program Files\r\R-4.5.1\bin\Rscript.exe" geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups.txt" "Groups" "Rem" 1 4 4 "Good responders" "Poor responders" 0.1 0.5 0.1
+#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups45Gy.txt" "Groups" "Rem" 1 4 4 "Good responders" "Poor responders" 0.1 0.5 0.1
+#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups60Gy.txt" "Groups" "Rem" 1 4 4 "Good responders" "Poor responders" 0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -12,12 +14,13 @@ if (length(args) != 12) {stop("\n\nNeeds NINE arguments, the full path of protei
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF<-"L:/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/report rq.ha..gg_matrix.tsv"
+#inpF<-"L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv"
 #inpFD<- gsub("[^[:alnum:]]+", ".", dirname(inpF))
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups.txt"
+#_Alessandro_|\.d
 lGroup <- args[3]
-#lGroup<-"Bio"
+#lGroup<-"Groups"
 rGroup <- args[4]
 #rGroup<-"Rem"
 geneC <- args[5]
@@ -27,9 +30,9 @@ selection <- args[6]
 cName <- args[7]
 #cName<-"4"
 sample <- args[8]
-#sample<-"IS"
+#sample<-"Good responders"
 control <- args[9]
-#control<-"NS"
+#control<-"Poor responders"
 selThr <- args[10]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
