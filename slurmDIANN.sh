@@ -1,5 +1,5 @@
 #dos2unix scratch.slurm  slurmDIANN.sh
-#bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/tore
+#bash slurmDIANN.sh /cluster/projects/nn9036k/scripts/tore_phos
 #for i in $PWD/maike/*.d ; do grep "TestFile.d" ; sed -i "s|TestFile\.d|$i|g" $i.slurm  ;done
 DATADIR=$1
 SEARCHTEXT=TestFile.d
