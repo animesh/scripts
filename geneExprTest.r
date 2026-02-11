@@ -1,6 +1,6 @@
-# "c:\Program Files\r\R-4.5.1\bin\Rscript.exe" geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups.txt" "Groups" "Rem" 1 4 4 "Good responders" "Poor responders" 0.1 0.5 0.1
-#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups45Gy.txt" "Groups" "Rem" 1 4 4 "Good responders" "Poor responders" 0.1 0.5 0.1
-#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups60Gy.txt" "Groups" "Rem" 1 4 4 "Good responders" "Poor responders" 0.1 0.5 0.1
+#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/GroupsBigC.txt" "Groups" "Rem" 1 4 4 "Good responders" "Poor responders" 0.1 0.5 0.1
+#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups45GyBigC.txt" "Groups" "Rem" 1 4 4 "Good responders" "Poor responders" 0.1 0.5 0.1
+#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups60GyBigC.txt" "Groups" "Rem" 1 4 4 "Good responders" "Poor responders" 0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())

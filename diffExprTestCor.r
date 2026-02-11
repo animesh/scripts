@@ -1,4 +1,6 @@
-#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\report.gg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\Groups.txt" "F..promec.TIMSTOF.LARS.2025.250902_Alessandro.250902_Alessandro_" ".d" "LFQvsn" "Rem" "Progression.free.survival..months._2023_taha"
+#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\report.gg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\GroupsBigC.txt" "F..promec.TIMSTOF.LARS.2025.250902_Alessandro.250902_Alessandro_" ".d" "LFQvsn" "Rem" "Progression.free.survival..months._2023_taha"
+#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\report.gg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\Groups45GyBigC.txt" "F..promec.TIMSTOF.LARS.2025.250902_Alessandro.250902_Alessandro_" ".d" "LFQvsn" "Rem" "Progression.free.survival..months._2023_taha"
+#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\report.gg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\Groups60GyBigC.txt" "F..promec.TIMSTOF.LARS.2025.250902_Alessandro.250902_Alessandro_" ".d" "LFQvsn" "Rem" "Progression.free.survival..months._2023_taha"
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
 print("USAGE:<path to>Rscript diffExprTestCor.r <complete path to directory containing proteinGroups.txt> AND <SurvivalUpdates.xlsx file>  \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"")
@@ -15,7 +17,7 @@ print(paste("Thresholds used - ", thr ,"#count-valid-samples," ,selThr,"#pValue-
 inpF <- args[1]
 #inpF <-"L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/GroupsBigC.txt"
 selection<-args[3]
 #selection<-"F..promec.TIMSTOF.LARS.2025.250902_Alessandro.250902_Alessandro_"
 sufFix <- args[4]
@@ -37,9 +39,11 @@ label<-read.table(inpL,stringsAsFactors = FALSE, header = TRUE, quote = "", comm
 label<-data.frame(label)
 #cor(label$cell.number/label$cur.area,label$ratio.correction.factor)
 rownames(label)=sub(selection,"",label$Name)
-if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
-print(label)
 rownames(label)<-sub("-",".",rownames(label))
+if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
+print(dim(label))
+labelR<-label[is.na(label$removed)|label$removed=="",]
+print(dim(labelR))
 #plot(label)
 label[,scaleF]<-as.numeric(label[,scaleF])
 hist(label[,scaleF],breaks=25)
@@ -60,10 +64,11 @@ summary(data)
 dim(data)
 #sel####
 intDat<-data[,grep(selection,colnames(data))]
+colnames(intDat)=sub(selection,"",colnames(intDat))
+colnames(intDat)=sub(sufFix,"",colnames(intDat))
+intDat<-intDat[,colnames(intDat) %in% rownames(labelR)]
 log2LFQ<-as.matrix(log2(intDat))
 log2LFQ[log2LFQ==-Inf]=NA
-colnames(log2LFQ)=sub(selection,"",colnames(log2LFQ))
-colnames(log2LFQ)=sub(sufFix,"",colnames(log2LFQ))
 hist(log2LFQ,main=paste("Mean:",mean(log2LFQ,na.rm=T),"SD:",sd(log2LFQ,na.rm=T)),breaks=round(max(log2LFQ,na.rm=T)),xlim=range(min(log2LFQ,na.rm=T),max(log2LFQ,na.rm=T)))
 summary(log2(data[,grep(selection,colnames(data))]))
 par(mar=c(12,3,1,1))
@@ -182,6 +187,5 @@ testCor <- function(log2LFQ,corVal,rN,comp){
   }
 }
 #compare####
-label=label[is.na(label$removed)|label$removed==" "|label$removed=='',]
 rtPair=testCor(get(transform),data.frame(label[,scaleF]),rownames(label),transform)
 print(rtPair)
