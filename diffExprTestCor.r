@@ -187,5 +187,5 @@ testCor <- function(log2LFQ,corVal,rN,comp){
   }
 }
 #compare####
-rtPair=testCor(get(transform),data.frame(label[,scaleF]),rownames(label),transform)
+rtPair=testCor(get(transform),data.frame(labelR[,scaleF]),rownames(labelR),transform)
 print(rtPair)
