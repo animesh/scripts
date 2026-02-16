@@ -1,4 +1,4 @@
- #..\R-4.5.0\bin\Rscript.exe mapKEGGpathview.r "L:/promec/TIMSTOF/LARS/2023/230217_Caroline/mRNA/CPM1.txt.Omego_T3_vs_Control_T3_mRNA_diff_expr_CPM1.Omego_T6_vs_Control_T6_mRNA_diff_expr_CPM1.Omego_T12_vs_Control_T12_mRNA_diff_expr_CPM1.logFC.genesselect.IDmap.absmax.csv" ""hsa4144,hsa4110,hsa4979,hsa0061,hsa04141,hsa0416" 1 1 "L:/promec/TIMSTOF/LARS/2023/230217_Caroline/combined/txt/proteinGroups.txtLFQ.intensity.110Omego1Cntr1h00.050.5InfBiotTestBH.xlsx.110Omego3Cntr3h00.110Omego6Cntr6h00.110Omego12Cntr12h00.Log2MedianChange.RowGeneUniProtScorePepsselect.IDmap.absmax.csv" "L:/promec/TIMSTOF/LARS/2023/230217_Caroline/mapKEGGpathview.out"
+ #..\R-4.5.0\bin\Rscript.exe mapKEGGpathview.r "L:/promec/TIMSTOF/LARS/2023/230217_Caroline/mRNA/CPM1.txt.Omego_T3_vs_Control_T3_mRNA_diff_expr_CPM1.Omego_T6_vs_Control_T6_mRNA_diff_expr_CPM1.Omego_T12_vs_Control_T12_mRNA_diff_expr_CPM1.logFC.genesselect.IDmap.absmax.csv" "hsa00100,hsa03050,hsa03320,hsa04068,hsa04066,hsa04120,hsa04137,hsa04142,hsa04150,hsa04151,hsa04152,hsa04210,hsa04975,hsa05200" 1 1 "L:/promec/TIMSTOF/LARS/2023/230217_Caroline/combined/txt/proteinGroups.txtLFQ.intensity.110Omego1Cntr1h00.050.5InfBiotTestBH.xlsx.110Omego3Cntr3h00.110Omego6Cntr6h00.110Omego12Cntr12h00.Log2MedianChange.RowGeneUniProtScorePepsselect.IDmap.absmax.csv" "L:/promec/TIMSTOF/LARS/2023/230217_Caroline/mapKEGGpathview.out"
 suppressPackageStartupMessages({
   if (!requireNamespace("pathview", quietly = TRUE)) stop("package 'pathview' required")
   if (!requireNamespace("readxl", quietly = TRUE)) stop("package 'readxl' required")
@@ -10,13 +10,21 @@ library("pathview", quietly = TRUE)
 library("org.Hs.eg.db", quietly = TRUE)
 args <- commandArgs(trailingOnly = TRUE)
 inpF1 <- if (length(args) >= 1 && nzchar(args[1])) args[1] else "L:/promec/TIMSTOF/LARS/2023/230217_Caroline/mRNA/CPM1.txt.Omego_T3_vs_Control_T3_mRNA_diff_expr_CPM1.Omego_T6_vs_Control_T6_mRNA_diff_expr_CPM1.Omego_T12_vs_Control_T12_mRNA_diff_expr_CPM1.logFC.genesselect.IDmap.absmax.csv"
-#hsa4144 Endocytosis
-#hsa4110 Cell cycle
-#hsa4979 Cholesterol
-#hsa0061 Fatty acid synthesis
-#hsa04141 Protein processing in the ER
-#hsa0416 Ferroptosis
-pathway <- if (length(args) >= 2 && nzchar(args[2])) strsplit(args[2], ",")[[1]] else c("hsa04144","hsa04110","hsa04979","hsa00061","hsa04141","hsa04216","hsa05208")
+#00100 Steroid biosynthesis
+#03050 Proteasome
+#03320 PPAR signaling 
+#04068 FOXO
+#04066 HIF#1
+#04120 Ubiquitin
+#04137 Lysosom
+#04142 Lysosom
+#04150 mTOR singaling
+#04151 PI3K#AKT signaling
+#04152 AMPK signaling
+#04210 Apoptosis
+#04975 Fat digestion and absorption
+#05200 Pathways in cancer
+pathway <- if (length(args) >= 2 && nzchar(args[2])) strsplit(args[2], ",")[[1]] else c("hsa00100","hsa03050","hsa03320","hsa04068","hsa04066","hsa04120","hsa04137","hsa04142","hsa04150","hsa04151","hsa04152","hsa04210","hsa04975","hsa05200")
 idPos1 <- if (length(args) >= 3 && nzchar(args[3])) args[3] else 1
 idPos2 <- if (length(args) >= 4 && nzchar(args[4])) args[4] else 1
 inpF2 <- if (length(args) >= 5 && nzchar(args[5])) args[5] else "L:/promec/TIMSTOF/LARS/2023/230217_Caroline/combined/txt/proteinGroups.txtLFQ.intensity.110Omego1Cntr1h00.050.5InfBiotTestBH.xlsx.110Omego3Cntr3h00.110Omego6Cntr6h00.110Omego12Cntr12h00.Log2MedianChange.RowGeneUniProtScorePepsselect.IDmap.absmax.csv"
