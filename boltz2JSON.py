@@ -1,3 +1,4 @@
+#c:\Users\animeshs\scripts>python boltz2JSON.py
 from pathlib import Path
 import sys
 import json
@@ -141,10 +142,12 @@ if len(sys.argv) <= 2:
 
     if token_label:
         token_label = re.sub(r"[^A-Za-z0-9_]+", "", token_label)
-        out_path = Path(f"{base}.{token_label}.combined.csv")
     else:
         token_label = None
-        out_path = Path(f"{base}.combined.csv")
+
+    # Default out filename includes the number of files combined (boltz2.<N>.combined.csv)
+    count = len(files) if files is not None else 0
+    out_path = Path(f"{base}.{count}.combined.csv")
 
 all_rows = []
 for p in files:
@@ -154,23 +157,27 @@ for p in files:
         continue
     
     token = None
+    protein_token = None
     if token_label:
+        parts = p.name.split('.')
+        if len(parts) >= 3:
+            protein_token = parts[1]
         pat = rf"\.{re.escape(token_label)}\.([^.]+)(?:\.|$)"
         m2 = re.search(pat, p.name, re.IGNORECASE)
-        token = m2.group(1) if m2 else None
+        token = m2.group(1) if m2 else (parts[2] if len(parts) >= 3 else None)
     rows_local = _process(d, source_name=p.name)
     for r in rows_local:
         r["File"] = p.name
         if token_label:
-            r[token_label] = token
-        
-        
+            r["PROTEIN"] = protein_token
+            r["PEPTIDE"] = token
+
         r["Run"] = str(r.get('Run'))
     all_rows.extend(rows_local)
 
 fieldnames = ["File"]
 if token_label:
-    fieldnames.append(token_label)
+    fieldnames.extend(["PROTEIN", "PEPTIDE"])
 fieldnames.extend(["Run", "Confidence", "pTM_Ch0", "pTM_Ch1", "ipTM_Ch0", "ipTM_Ch1", "complex_pLDDT", "complex_iPLDDT", "complex_pDE", "complex_iPDE", "Pairwise_ipTM"]) 
 out_path.parent.mkdir(parents=True, exist_ok=True)
 with out_path.open("w", newline="", encoding="utf-8") as fh:
