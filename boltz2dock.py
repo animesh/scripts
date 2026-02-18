@@ -1,4 +1,4 @@
-#for %i in ("L:\promec\Animesh\boltz2\*.fasta") do (python boltz2dock.py "%i" DDPK DPEL ENDP)
+#for %i in ("L:\promec\Animesh\boltz2\*.fasta") do (python boltz2dock.py "%i" DKPD)
 #https://build.nvidia.com/mit/boltz2?snippet_tab=Try https://docs.api.nvidia.com/nim/reference/mit-boltz2
 #$env:NVIDIA_API_KEY="your-api-key-here"
 #python boltz2dock.py <protein_sequence> <peptide1> [peptide2 ...]
