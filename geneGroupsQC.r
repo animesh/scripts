@@ -1,19 +1,19 @@
-#Rscript geneGroupsQC.r "L:/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/report.gg_matrix.tsv" 1 4 4
+#..\R-4.5.0\bin\Rscript.exe geneGroupsQC.r "Z:/Download/report.gg_matrix.tsv" 1 4 3
 #setup####
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 inpF <- args[1]
-#inpF<-"L:/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/report rq.ha..gg_matrix.tsv"
+#inpF<-"Z:/Download/report.gg_matrix.tsv"
 #inpD<- gsub("[^[:alnum:]]+", ".", dirname(inpF))
 geneC <- args[2]
 #geneC<-"1"
 selection <- args[3]
 #selection<-"4"
 cName <- args[4]
-#cName<-"4"
+#cName<-"3"
 print(args)
 #data####
-data<-read.table(inpF,header = T,sep = "\t",quote = "")
+data<-read.table(inpF,header = T,sep = "\t",comment.char = "",quote="")
 print(summary(data))
 #intensity####
 intdata<-data[,as.numeric(unlist(strsplit(selection," "))):ncol(data)]
