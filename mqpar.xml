@@ -46,16 +46,16 @@
    <dependentPeptidesWithinParameterGroup>False</dependentPeptidesWithinParameterGroup>
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
-   <ibaq>False</ibaq>
-   <top3>False</top3>
+   <ibaq>True</ibaq>
+   <top3>True</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
    <splitProteinGroupsByTaxonomy>False</splitProteinGroupsByTaxonomy>
    <taxonomyLevel>Species</taxonomyLevel>
    <avalon>False</avalon>
    <nModColumns>3</nModColumns>
-   <ibaqLogFit>False</ibaqLogFit>
-   <ibaqChargeNormalization>False</ibaqChargeNormalization>
+   <ibaqLogFit>True</ibaqLogFit>
+   <ibaqChargeNormalization>True</ibaqChargeNormalization>
    <razorProteinFdr>True</razorProteinFdr>
    <deNovoSequencing>False</deNovoSequencing>
    <deNovoVarMods>False</deNovoVarMods>
@@ -126,7 +126,7 @@
    <name>session1</name>
    <maxQuantVersion>2.7.0.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>32</numThreads>
+   <numThreads>16</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
