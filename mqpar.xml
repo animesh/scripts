@@ -126,7 +126,7 @@
    <name>session1</name>
    <maxQuantVersion>2.7.0.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>16</numThreads>
+   <numThreads>1</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
