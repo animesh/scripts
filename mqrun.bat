@@ -45,7 +45,7 @@ echo.
 :: Main watch loop
 :: ============================================================
 :watch_loop
-set FOUND=0 & set DONE=0 & set QUEUED=0
+set FOUND=0 & set DONE=0 & set QUEUED=0 & set LIVE=0
 
 set "MQ_LIVE=0"
 for /f "tokens=1" %%P in ('%TLIST% /fi "imagename eq MaxQuantCmd.exe" /fo csv /nh 2^>nul') do set /a MQ_LIVE+=1
@@ -59,14 +59,13 @@ for /d %%U in ("%DATAROOT%\*") do (
         )
     )
 )
-echo [%time%] Poll: !FOUND! found  ^|  !DONE! done  ^|  !QUEUED! queued
+echo [%time%] Poll: !FOUND! found  ^|  !DONE! done  ^|  !LIVE! running  ^|  !QUEUED! queued
 timeout /t %POLL_INTERVAL% /nobreak >nul
 goto :watch_loop
 
 
 :: ============================================================
 :: :GetSize <file_path> <var_name>
-:: Gets file size using wmic. Strips CR via inner for /f tokens=1.
 :: ============================================================
 :GetSize
 set "%~2="
@@ -93,20 +92,36 @@ if exist "%WORKDIR%\combined\txt\proteinGroups.txt" (
     exit /b 0
 )
 
-:: --- Running: verify PID still alive ---
+:: --- Running via lockfile ---
 if exist "%WORKDIR%\running.lock" (
+    set /a LIVE+=1
     set "MQ_PID="
     for /f "usebackq tokens=1" %%P in ("%WORKDIR%\running.lock") do set "MQ_PID=%%P"
     if defined MQ_PID (
-        %TLIST% /fi "pid eq !MQ_PID!" /fi "imagename eq MaxQuantCmd.exe" /fo csv /nh 2>nul | findstr /i "MaxQuantCmd" >nul
+        %TLIST% /fi "pid eq !MQ_PID!" /fo csv /nh 2>nul | findstr /i "MaxQuantCmd" >nul
         if errorlevel 1 (
             echo [%time%] Failed   : %BN% ^(PID !MQ_PID! gone, retrying^)
             del "%WORKDIR%\running.lock"
-            if exist "%DATADEST%" rmdir /s /q "%DATADEST%"
+            set /a LIVE-=1
+            if exist "%DATADEST%" rmdir /s /q "%DATADEST%" 2>nul
         )
     )
     exit /b 0
 )
+
+:: --- Running without lockfile (launched by previous script version) ---
+:: Check if MaxQuant is already processing this runparam before doing anything
+set "WMIC_PARAM=!RUNPARAM:\=\\!"
+set "ALREADY_RUNNING=0"
+set "ADOPT_PID="
+for /f "tokens=2 delims==" %%P in ('%WMIC% process where "name=^'MaxQuantCmd.exe^' and commandline like ^'%%!WMIC_PARAM!%%^'" get ProcessId /format:value 2^>nul ^| more') do for /f "tokens=1" %%V in ("%%P") do if not defined ADOPT_PID set "ADOPT_PID=%%V"
+if defined ADOPT_PID (
+    echo !ADOPT_PID!> "%WORKDIR%\running.lock"
+    set "ALREADY_RUNNING=1"
+    set /a LIVE+=1
+    echo [%time%] Adopted  : %BN% ^(PID:!ADOPT_PID!, recovering lock^)
+)
+if !ALREADY_RUNNING! EQU 1 exit /b 0
 
 :: --- Source files must exist ---
 set "F1=%SRC%\analysis.tdf"
@@ -116,12 +131,12 @@ if not exist "!F1!" ( echo [%time%] Waiting  : %BN% ^(analysis.tdf missing^)    
 if not exist "!F2!" ( echo [%time%] Waiting  : %BN% ^(analysis.tdf_bin missing^)           & exit /b 0 )
 if not exist "!F3!" ( echo [%time%] Waiting  : %BN% ^(chromatography-data.sqlite missing^) & exit /b 0 )
 
-:: --- Get source sizes (one wmic call each) ---
+:: --- Get source sizes ---
 call :GetSize "!F1!" SZ1
 call :GetSize "!F2!" SZ2
 call :GetSize "!F3!" SZ3
 
-:: --- Check destination first: if it matches source, skip stability wait ---
+:: --- Check destination: if sizes match source, skip stability wait ---
 set "NEED_COPY=1"
 if exist "%DATADEST%\analysis.tdf" if exist "%DATADEST%\analysis.tdf_bin" if exist "%DATADEST%\chromatography-data.sqlite" (
     set "DS1=" & set "DS2=" & set "DS3="
@@ -136,7 +151,7 @@ if exist "%DATADEST%\analysis.tdf" if exist "%DATADEST%\analysis.tdf_bin" if exi
     )
 )
 
-:: --- If copy needed: stability check first, then copy ---
+:: --- Stability check then copy ---
 if !NEED_COPY! EQU 1 (
     echo [%time%] Checking : %BN% ^(!SZ1! / !SZ2! / !SZ3!^)
     timeout /t %POLL_INTERVAL% /nobreak >nul
@@ -144,30 +159,39 @@ if !NEED_COPY! EQU 1 (
     call :GetSize "!F1!" SZ1B
     call :GetSize "!F2!" SZ2B
     call :GetSize "!F3!" SZ3B
-    if not "!SZ1!"=="!SZ1B!" ( echo [%time%] Acquiring: %BN% ^(analysis.tdf changing^)               & exit /b 0 )
-    if not "!SZ2!"=="!SZ2B!" ( echo [%time%] Acquiring: %BN% ^(analysis.tdf_bin changing^)           & exit /b 0 )
-    if not "!SZ3!"=="!SZ3B!" ( echo [%time%] Acquiring: %BN% ^(chromatography-data.sqlite changing^) & exit /b 0 )
+)
+if !NEED_COPY! EQU 1 if not "!SZ1!"=="!SZ1B!" ( echo [%time%] Acquiring: %BN% ^(analysis.tdf changing^)               & exit /b 0 )
+if !NEED_COPY! EQU 1 if not "!SZ2!"=="!SZ2B!" ( echo [%time%] Acquiring: %BN% ^(analysis.tdf_bin changing^)           & exit /b 0 )
+if !NEED_COPY! EQU 1 if not "!SZ3!"=="!SZ3B!" ( echo [%time%] Acquiring: %BN% ^(chromatography-data.sqlite changing^) & exit /b 0 )
+if !NEED_COPY! EQU 1 (
     mkdir "%WORKDIR%"  2>nul
     mkdir "%DATADEST%" 2>nul
     echo [%time%] Copying  : %BN% ^(!SZ1B! / !SZ2B! / !SZ3B! bytes^)
     xcopy /y "!F1!" "%DATADEST%\"
     xcopy /y "!F2!" "%DATADEST%\"
     xcopy /y "!F3!" "%DATADEST%\"
-    if not exist "%DATADEST%\analysis.tdf"               ( echo [%time%] ERROR: copy failed analysis.tdf               & exit /b 1 )
-    if not exist "%DATADEST%\analysis.tdf_bin"           ( echo [%time%] ERROR: copy failed analysis.tdf_bin           & exit /b 1 )
-    if not exist "%DATADEST%\chromatography-data.sqlite" ( echo [%time%] ERROR: copy failed chromatography-data.sqlite & exit /b 1 )
+    if not exist "%DATADEST%\analysis.tdf"               ( echo [%time%] ERROR: copy failed analysis.tdf               & exit /b 0 )
+    if not exist "%DATADEST%\analysis.tdf_bin"           ( echo [%time%] ERROR: copy failed analysis.tdf_bin           & exit /b 0 )
+    if not exist "%DATADEST%\chromatography-data.sqlite" ( echo [%time%] ERROR: copy failed chromatography-data.sqlite & exit /b 0 )
     echo [%time%] Copied   : %BN%
 )
 
-:: --- Rewrite mqpar.xml ---
-if exist "%RUNPARAM%" del "%RUNPARAM%"
-for /f "usebackq tokens=* delims=" %%A in ("%PARAMFILE%") do (
-    set "LINE=%%A"
-    set "LINE=!LINE:%SEARCHTEXT%=%DATADEST%!"
-    set "LINE=!LINE:%SEARCHTEXT2%=%FASTAFILE%!"
-    echo !LINE!>> "%RUNPARAM%"
+:: --- Write mqpar.xml only if it doesn't already have the correct data path ---
+set "NEED_PARAM=1"
+if exist "%RUNPARAM%" (
+    findstr /i "%DATADEST%" "%RUNPARAM%" >nul 2>nul
+    if not errorlevel 1 set "NEED_PARAM=0"
 )
-if not exist "%RUNPARAM%" ( echo [%time%] ERROR: failed to write %RUNPARAM% & exit /b 1 )
+if !NEED_PARAM! EQU 1 (
+    if exist "%RUNPARAM%" del "%RUNPARAM%" 2>nul
+    for /f "usebackq tokens=* delims=" %%A in ("%PARAMFILE%") do (
+        set "LINE=%%A"
+        set "LINE=!LINE:%SEARCHTEXT%=%DATADEST%!"
+        set "LINE=!LINE:%SEARCHTEXT2%=%FASTAFILE%!"
+        echo !LINE!>> "%RUNPARAM%"
+    )
+    if not exist "%RUNPARAM%" ( echo [%time%] ERROR: param write failed for %BN% & exit /b 0 )
+)
 
 :: --- Gate: re-count before launch ---
 set "MQ_LIVE=0"
@@ -180,11 +204,16 @@ if !MQ_LIVE! GEQ %CPU_COUNT% (
 
 :: --- Launch ---
 start "MQ.%BN%" %MAXQUANTCMD% "%RUNPARAM%"
-timeout /t 2 /nobreak >nul
+timeout /t 5 /nobreak >nul
 set "MQ_PID="
-set "WMIC_PARAM=%RUNPARAM:\=\\%"
+set "WMIC_PARAM=!RUNPARAM:\=\\!"
 for /f "tokens=2 delims==" %%P in ('%WMIC% process where "name=^'MaxQuantCmd.exe^' and commandline like ^'%%!WMIC_PARAM!%%^'" get ProcessId /format:value 2^>nul ^| more') do for /f "tokens=1" %%V in ("%%P") do set "MQ_PID=%%V"
-echo !MQ_PID! > "%WORKDIR%\running.lock"
+if not defined MQ_PID (
+    echo [%time%] ERROR    : PID capture failed for %BN%, retrying next poll
+    exit /b 0
+)
+echo !MQ_PID!> "%WORKDIR%\running.lock"
+set /a LIVE+=1
 echo [%time%] Launched : %BN% ^(PID:!MQ_PID! slot !MQ_LIVE!+1/%CPU_COUNT%^)
 echo.
 exit /b 0
