@@ -92,36 +92,38 @@ if exist "%WORKDIR%\combined\txt\proteinGroups.txt" (
     exit /b 0
 )
 
-:: --- Running via lockfile ---
-if exist "%WORKDIR%\running.lock" (
-    set /a LIVE+=1
-    set "MQ_PID="
-    for /f "usebackq tokens=1" %%P in ("%WORKDIR%\running.lock") do set "MQ_PID=%%P"
-    if defined MQ_PID (
-        %TLIST% /fi "pid eq !MQ_PID!" /fo csv /nh 2>nul | findstr /i "MaxQuantCmd" >nul
-        if errorlevel 1 (
-            echo [%time%] Failed   : %BN% ^(PID !MQ_PID! gone, retrying^)
-            del "%WORKDIR%\running.lock"
-            set /a LIVE-=1
-            if exist "%DATADEST%" rmdir /s /q "%DATADEST%" 2>nul
-        )
-    )
-    exit /b 0
-)
+:: --- Running via lockfile: verify PID still alive ---
+:: FIX: errorlevel inside parenthesized blocks is evaluated at parse time.
+:: Using goto so errorlevel is read immediately after the pipe command.
+if not exist "%WORKDIR%\running.lock" goto :no_lockfile
+set /a LIVE+=1
+set "MQ_PID="
+for /f "usebackq tokens=1" %%P in ("%WORKDIR%\running.lock") do set "MQ_PID=%%P"
+if not defined MQ_PID exit /b 0
+%TLIST% /fi "pid eq !MQ_PID!" /fo csv /nh 2>nul | findstr /i "MaxQuantCmd" >nul
+if not errorlevel 1 exit /b 0
+echo [%time%] Failed   : %BN% ^(PID !MQ_PID! gone, retrying^)
+del "%WORKDIR%\running.lock"
+set /a LIVE-=1
+if exist "%DATADEST%" rmdir /s /q "%DATADEST%" 2>nul
+exit /b 0
 
-:: --- Running without lockfile (launched by previous script version) ---
-:: Check if MaxQuant is already processing this runparam before doing anything
+:no_lockfile
+:: --- Orphan recovery: running without lockfile ---
+:: FIX: capture first PID only; correct variable syntax (no !%%V! bug)
 set "WMIC_PARAM=!RUNPARAM:\=\\!"
-set "ALREADY_RUNNING=0"
 set "ADOPT_PID="
-for /f "tokens=2 delims==" %%P in ('%WMIC% process where "name=^'MaxQuantCmd.exe^' and commandline like ^'%%!WMIC_PARAM!%%^'" get ProcessId /format:value 2^>nul ^| more') do for /f "tokens=1" %%V in ("%%P") do if not defined ADOPT_PID set "ADOPT_PID=%%V"
+for /f "tokens=2 delims==" %%P in ('%WMIC% process where "name=^'MaxQuantCmd.exe^' and commandline like ^'%%!WMIC_PARAM!%%^'" get ProcessId /format:value 2^>nul ^| more') do (
+    for /f "tokens=1" %%V in ("%%P") do (
+        if not defined ADOPT_PID set "ADOPT_PID=%%V"
+    )
+)
 if defined ADOPT_PID (
     echo !ADOPT_PID!> "%WORKDIR%\running.lock"
-    set "ALREADY_RUNNING=1"
     set /a LIVE+=1
     echo [%time%] Adopted  : %BN% ^(PID:!ADOPT_PID!, recovering lock^)
+    exit /b 0
 )
-if !ALREADY_RUNNING! EQU 1 exit /b 0
 
 :: --- Source files must exist ---
 set "F1=%SRC%\analysis.tdf"
@@ -176,10 +178,12 @@ if !NEED_COPY! EQU 1 (
     echo [%time%] Copied   : %BN%
 )
 
-:: --- Write mqpar.xml only if it doesn't already have the correct data path ---
+:: --- Write mqpar.xml only if not already configured for this folder ---
+:: FIX: DATADEST contains backslashes which findstr misparses as escape chars.
+:: Search for BN instead - it's unique per folder and has no backslashes.
 set "NEED_PARAM=1"
 if exist "%RUNPARAM%" (
-    findstr /i "%DATADEST%" "%RUNPARAM%" >nul 2>nul
+    findstr /i "%BN%" "%RUNPARAM%" >nul 2>nul
     if not errorlevel 1 set "NEED_PARAM=0"
 )
 if !NEED_PARAM! EQU 1 (
@@ -205,9 +209,14 @@ if !MQ_LIVE! GEQ %CPU_COUNT% (
 :: --- Launch ---
 start "MQ.%BN%" %MAXQUANTCMD% "%RUNPARAM%"
 timeout /t 5 /nobreak >nul
+:: FIX: capture first matching PID only (guard against multiple wmic matches)
 set "MQ_PID="
 set "WMIC_PARAM=!RUNPARAM:\=\\!"
-for /f "tokens=2 delims==" %%P in ('%WMIC% process where "name=^'MaxQuantCmd.exe^' and commandline like ^'%%!WMIC_PARAM!%%^'" get ProcessId /format:value 2^>nul ^| more') do for /f "tokens=1" %%V in ("%%P") do set "MQ_PID=%%V"
+for /f "tokens=2 delims==" %%P in ('%WMIC% process where "name=^'MaxQuantCmd.exe^' and commandline like ^'%%!WMIC_PARAM!%%^'" get ProcessId /format:value 2^>nul ^| more') do (
+    for /f "tokens=1" %%V in ("%%P") do (
+        if not defined MQ_PID set "MQ_PID=%%V"
+    )
+)
 if not defined MQ_PID (
     echo [%time%] ERROR    : PID capture failed for %BN%, retrying next poll
     exit /b 0
