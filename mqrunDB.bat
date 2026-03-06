@@ -1,4 +1,8 @@
 @echo off
+::C:\Users\animeshs\scripts>del l:\promec\TIMSTOF\QC\mqrun.duckdb
+::mqrunDB.bat
+::C:\Users\animeshs\scripts>l:\promec\TIMSTOF\QC\duckdb.exe l:\promec\TIMSTOF\QC\mqrun.duckdb -c "VACUUM;"
+::C:\Users\animeshs\scripts>del l:\promec\TIMSTOF\QC\mqrun.duckdb
 setlocal EnableDelayedExpansion
 set "QC_ROOT=L:\promec\TIMSTOF\QC"
 set "DUCKDB_BIN=%QC_ROOT%\duckdb.exe"
@@ -170,11 +174,14 @@ set "SQL=%QC_ROOT%\mq_%RUN_NAME%.sql"
 >> "%SQL%" echo current_timestamp FROM read_csv_auto('%PG_SL%',delim=chr(9),header=true,ignore_errors=true);
 >> "%SQL%" echo INSERT OR REPLACE INTO ingested_runs VALUES('%RUN_NAME%',(SELECT COUNT(*) FROM proteinGroups WHERE run_id='%RUN_NAME%'),current_timestamp);
 >> "%SQL%" echo COMMIT;
+>> "%SQL%" echo COPY(SELECT row_count FROM ingested_runs WHERE run_id='%RUN_NAME%')TO '%SQL%.csv'(FORMAT CSV,HEADER false);
 "%DUCKDB_BIN%" "%DB_FILE%" -f "%SQL%"
 set "EX=%ERRORLEVEL%"
-del "%SQL%" 2>nul
+set "RC=0"
+if exist "%SQL%.csv" for /f "usebackq delims=" %%R in ("%SQL%.csv") do set "RC=%%R"
+del "%SQL%" "%SQL%.csv" 2>nul
 if "%EX%" NEQ "0" (echo %DATE% %TIME% ERROR %RUN_NAME% & endlocal & exit /b 1)
-echo %DATE% %TIME% DONE %RUN_NAME%
+echo %DATE% %TIME% DONE %RUN_NAME% (%RC% rows)
 endlocal & exit /b 0
 
 :count
