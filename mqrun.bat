@@ -90,6 +90,12 @@ set STABILITY_WAIT=60
 set SEARCHTEXT=TestDir
 set SEARCHTEXT2=SequencesFasta
 
+:: QCROOT: destination for completed results (combined\txt\ only).
+:: Robocopy copies txt folder here on job completion, then bulk files
+:: on D:\TMPDIR are deleted. Set blank to disable QC copy.
+:: Keep on a DIFFERENT drive from DATAROOT to avoid single point of failure.
+set QCROOT=F:\promec\TIMSTOF\QC
+
 :: CPU_COUNT: MUST be set explicitly. DO NOT leave blank.
 ::
 :: Hardware: 2x 16-core Intel = 32 physical cores, 64 logical (HT).
@@ -153,10 +159,105 @@ for /d %%U in ("%DATAROOT%\*") do (
         )
     )
 )
+
+:: ---------------------------------------------------------------
+:: Orphan-completed scan (v6)
+:: Counts TMPDIR workdirs with done.lock but no corresponding
+:: source .d folder on the instrument drive.
+:: Typical case: _2/_N reprocessing jobs from prior sessions.
+:: Never visited by main poll loop so excluded from DONE without
+:: this scan.
+:: ---------------------------------------------------------------
+set "ORPHAN_DONE=0"
+for /d %%W in ("!SESSIONDIR!\*") do (
+    if exist "%%~fW\done.lock" (
+        set "BN_=%%~nxW"
+        set "SRC_FOUND=0"
+        for /d %%U in ("%DATAROOT%\*") do (
+            for /d %%V in ("%%~fU\*") do (
+                if exist "%%~fV\!BN_!.d" set "SRC_FOUND=1"
+            )
+        )
+        if "!SRC_FOUND!"=="0" (
+            set /a ORPHAN_DONE+=1
+            set /a DONE+=1
+        )
+    )
+)
+if !ORPHAN_DONE! GTR 0 echo [%time%] Orphan-done: !ORPHAN_DONE! completed jobs with no source folder ^(counted in done^)
+
 echo [%time%] Poll: !FOUND! found  ^|  !DONE! done  ^|  !LIVE! running  ^|  !QUEUED! queued  ^|  !SKIPPED! skipped
 timeout /t %POLL_INTERVAL% /nobreak >nul
 goto :watch_loop
 
+
+:: ============================================================
+:: :MarkDone <workdir> <bn>
+:: Verifies true completion, copies results to QCROOT, cleans up bulk
+:: files, writes done.lock.
+:: Steps (only if both conditions met):
+::   1. combined\txt\proteinGroups.txt exists
+::   2. combined\proc\#runningTimes.txt contains "Finish writing tables"
+:: Then:
+::   - Robocopy combined\txt\ -> QCROOT\<bn>\combined\txt\ (/XO /LOG+)
+::   - Delete data.d\, data\, combined\andromeda\, combined\search\,
+::     combined\proc\, combined\sdrf\, combined\combinedRunInfo\,
+::     mqpar.xml, running.lock, data.index
+::   - Write done.lock, set DONE_FLAG=1
+:: If not ready -> return 0 (job still running or writing)
+:: ============================================================
+:MarkDone
+set "MD_WORKDIR=%~1"
+set "MD_BN=%~2"
+set "DONE_FLAG=0"
+
+:: Safety: MD_WORKDIR is always SESSIONDIR\<job>, which is always
+:: under TMPDIR (D:\TMPDIR). This is structurally guaranteed by how
+:: WORKDIR is constructed at the top of :CheckFolder. No runtime
+:: path check needed - batch string matching is unreliable here.
+
+:: Condition 1: proteinGroups.txt present
+if not exist "%MD_WORKDIR%\combined\txt\proteinGroups.txt" exit /b 0
+
+:: Condition 2: "Finish writing tables" in #runningTimes.txt
+if not exist "%MD_WORKDIR%\combined\proc\#runningTimes.txt" exit /b 0
+findstr /i "Finish writing tables" "%MD_WORKDIR%\combined\proc\#runningTimes.txt" >nul 2>nul
+if errorlevel 1 exit /b 0
+
+:: Both conditions met - job is truly complete.
+:: Step 1: Copy results to QCROOT before deleting anything.
+:: Check mapped drive is reachable. If not: skip cleanup entirely,
+:: results stay on D: and will be retried on the next poll.
+if not "%QCROOT%"=="" (
+    if not exist "%QCROOT%\\" (
+        echo [%time%] WARNING  : %MD_BN% QCROOT not reachable ^(%QCROOT%^) - will retry next poll
+        exit /b 0
+    )
+    if not exist "%QCROOT%\\%MD_BN%\\combined\\txt" mkdir "%QCROOT%\\%MD_BN%\\combined\\txt"
+    robocopy "%MD_WORKDIR%\\combined\\txt" "%QCROOT%\\%MD_BN%\\combined\\txt" /E /XO /R:3 /W:10 /NFL /NDL /NJH /NJS /LOG+:"%QCROOT%\\copy_log.txt" >nul
+    if errorlevel 8 (
+        echo [%time%] ERROR    : %MD_BN% QC copy failed - skipping cleanup to preserve results
+        exit /b 0
+    )
+    echo [%time%] QC copy  : %MD_BN% -> %QCROOT%\\%MD_BN%\\combined\\txt
+)
+
+:: Step 2: Delete bulk files now that results are safely copied.
+echo [%time%] Cleanup  : %MD_BN%
+if exist "%MD_WORKDIR%\data.d"                    rmdir /s /q "%MD_WORKDIR%\data.d"
+if exist "%MD_WORKDIR%\data"                      rmdir /s /q "%MD_WORKDIR%\data"
+if exist "%MD_WORKDIR%\combined\andromeda"       rmdir /s /q "%MD_WORKDIR%\combined\andromeda"
+if exist "%MD_WORKDIR%\combined\search"          rmdir /s /q "%MD_WORKDIR%\combined\search"
+if exist "%MD_WORKDIR%\combined\proc"            rmdir /s /q "%MD_WORKDIR%\combined\proc"
+if exist "%MD_WORKDIR%\combined\sdrf"            rmdir /s /q "%MD_WORKDIR%\combined\sdrf"
+if exist "%MD_WORKDIR%\combined\combinedRunInfo" rmdir /s /q "%MD_WORKDIR%\combined\combinedRunInfo"
+if exist "%MD_WORKDIR%\mqpar.xml"                 del /f /q "%MD_WORKDIR%\mqpar.xml"
+if exist "%MD_WORKDIR%\data.index"                del /f /q "%MD_WORKDIR%\data.index"
+if exist "%MD_WORKDIR%\running.lock"              del /f /q "%MD_WORKDIR%\running.lock"
+
+echo 1> "%MD_WORKDIR%\done.lock"
+set "DONE_FLAG=1"
+exit /b 0
 
 :: ============================================================
 :: :GetSize <file_path> <var_name>
@@ -191,13 +292,8 @@ set "DATADEST=%WORKDIR%\data.d"
 set "RUNPARAM=%WORKDIR%\%PARAMFILE%"
 
 :: ---------------------------------------------------------------
-:: COMPLETION CHECK 1: done.lock sentinel (v6)
-::
-:: Written the first time a job's PID exits with output present.
-:: Persists across script restarts. Makes all subsequent polls O(1).
-:: Fixes: completion counter stuck at 100 for 20+ hours because
-:: combined\txt\ only appears at the very last MQ step, so the
-:: proteinGroups.txt check alone was never triggered mid-session.
+:: COMPLETION CHECK 1: done.lock sentinel
+:: Fast path - job already fully processed and cleaned up.
 :: ---------------------------------------------------------------
 if exist "%WORKDIR%\done.lock" (
     set /a DONE+=1
@@ -205,13 +301,17 @@ if exist "%WORKDIR%\done.lock" (
     exit /b 0
 )
 
-:: COMPLETION CHECK 2: proteinGroups.txt (belt and suspenders)
-:: First-time detection: backfill done.lock for future polls.
+:: COMPLETION CHECK 2: proteinGroups.txt + "Finish writing tables"
+:: Only triggers if job completed since last poll.
+:: :MarkDone verifies both conditions, cleans bulk files, writes done.lock.
 if exist "%WORKDIR%\combined\txt\proteinGroups.txt" (
-    echo 1> "%WORKDIR%\done.lock"
-    set /a DONE+=1
-    if exist "%WORKDIR%\running.lock" del "%WORKDIR%\running.lock"
-    exit /b 0
+    set "DONE_FLAG=0"
+    call :MarkDone "%WORKDIR%" "%BN%"
+    if "!DONE_FLAG!"=="1" (
+        set /a DONE+=1
+        echo [%time%] Completed: %BN%
+        exit /b 0
+    )
 )
 
 :: ---------------------------------------------------------------
@@ -270,19 +370,12 @@ if not errorlevel 1 exit /b 0
 del "%WORKDIR%\running.lock"
 set /a LIVE-=1
 
-if exist "%WORKDIR%\combined\txt\proteinGroups.txt" (
-    echo 1> "%WORKDIR%\done.lock"
+:: Check for completion using same two-condition verification
+set "DONE_FLAG=0"
+call :MarkDone "%WORKDIR%" "%BN%"
+if "!DONE_FLAG!"=="1" (
     set /a DONE+=1
-    echo [%time%] Completed: %BN% ^(proteinGroups.txt found^)
-    exit /b 0
-)
-:: Fallback: any .txt file in combined\txt
-set "FOUND_OUTPUT=0"
-for %%F in ("%WORKDIR%\combined\txt\*.txt") do set "FOUND_OUTPUT=1"
-if !FOUND_OUTPUT! EQU 1 (
-    echo 1> "%WORKDIR%\done.lock"
-    set /a DONE+=1
-    echo [%time%] Completed: %BN% ^(output txt found^)
+    echo [%time%] Completed: %BN% ^(PID !MQ_PID! exited, cleanup done^)
     exit /b 0
 )
 
@@ -421,6 +514,6 @@ set /a MQ_LIVE+=1
 echo [%time%] Launched : %BN% ^(PID:!MQ_PID! slot !MQ_LIVE!/%CPU_COUNT%^)
 echo.
 exit /b 0
-:: FOR /D %E IN ("D:\TMPDIR\Raw_UP000005640_9606_1protein1gene\*") DO (    IF EXIST "%E\combined\txt\" (        Robocopy "%E\combined\txt" "F:\QC\%~nxE\combined\txt" /E /XO /LOG+:F:\QC\copy_log.txt    ))
+:: FOR /D %E IN ("D:\TMPDIR\Raw_UP000005640_9606_1protein1gene\*") DO (IF EXIST "%E\combined\txt\" (Robocopy "%E\combined\txt" "F:\promec\TIMSTOF\QC\%~nxE\combined\txt" /E /XO /LOG+:F:\promec\TIMSTOF\QC\copy_log.txt))
 :: delete SRC
 

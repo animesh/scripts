@@ -13,21 +13,22 @@ from dash import Dash, dcc, html, Input, Output, callback
 
 DB = sys.argv[1] if len(sys.argv) > 1 else "L:/promec/TIMSTOF/QC/mqrun.duckdb"
 
-# ── palette ───────────────────────────────────────────────────────────────────
-BG     = "#08090a"
-SURF   = "#111318"
-BORDER = "#1e2229"
-TEXT   = "#dce3ed"
-MUTED  = "#5a6478"
-CYAN   = "#4dd9c0"
-RED    = "#e05a5a"
-AMBER  = "#e8a838"
-VIOLET = "#9b72f2"
-GRID   = "#161a20"
-FONT   = "'IBM Plex Mono', 'Courier New', monospace"
+FONT = "'Inter', 'Helvetica Neue', Arial, sans-serif"
+MONO = "'JetBrains Mono', 'Fira Code', 'Courier New', monospace"
 
-FC = {"target": CYAN, "Reverse": RED,
-      "Potential contaminant": AMBER, "Only identified by site": VIOLET}
+C_BLUE   = "#2563eb"
+C_RED    = "#dc2626"
+C_AMBER  = "#d97706"
+C_VIOLET = "#7c3aed"
+C_GREY   = "#6b7280"
+C_TREND  = "#059669"
+
+FC = {
+    "target":                  C_BLUE,
+    "Reverse":                 C_RED,
+    "Potential contaminant":   C_AMBER,
+    "Only identified by site": C_VIOLET,
+}
 
 METRICS = {
     "proteins":        ("Proteins identified",     "target"),
@@ -49,7 +50,7 @@ def parse_date(rid):
 
 def load_summary():
     con = duckdb.connect(DB, read_only=True)
-    df  = con.execute("""
+    q = """
         SELECT run_id,
             COUNT(*)                                                           AS total,
             COUNT(*) FILTER (WHERE "Reverse"                IS NULL
@@ -65,7 +66,8 @@ def load_summary():
             MEDIAN("Peptides")                                                 AS median_peptides
         FROM proteinGroups
         GROUP BY run_id ORDER BY run_id
-    """).df()
+    """
+    df = con.execute(q).df()
     con.close()
     df["date"] = df["run_id"].apply(parse_date)
     return df
@@ -84,99 +86,192 @@ def load_run(run_id):
 
 SUM = load_summary()
 
-# ── plotly helpers ────────────────────────────────────────────────────────────
-def base(title="", tb=44):
+# ── plotly base (transparent = follows page bg) ───────────────────────────────
+def base(title="", mt=44):
     return dict(
-        title       = dict(text=title, font=dict(size=11, color=MUTED, family=FONT),
-                           x=0.0, xanchor="left", pad=dict(l=2)),
-        paper_bgcolor=BG, plot_bgcolor=SURF,
-        font        = dict(family=FONT, color=TEXT, size=10),
-        margin      = dict(l=54, r=16, t=tb, b=44),
-        xaxis       = dict(gridcolor=GRID, linecolor=BORDER, tickfont=dict(size=9)),
-        yaxis       = dict(gridcolor=GRID, linecolor=BORDER, tickfont=dict(size=9)),
-        legend      = dict(bgcolor="rgba(0,0,0,0)", font=dict(size=10),
-                           orientation="h", yanchor="bottom", y=1.01, xanchor="left", x=0),
-        hoverlabel  = dict(bgcolor="#1a1f28", bordercolor=BORDER,
-                           font=dict(family=FONT, size=11)),
-        hovermode   = "x unified",
+        title         = dict(text=title,
+                             font=dict(size=11, family=MONO, color="#6b7280"),
+                             x=0.0, xanchor="left", pad=dict(l=2)),
+        paper_bgcolor = "rgba(0,0,0,0)",
+        plot_bgcolor  = "rgba(0,0,0,0)",
+        font          = dict(family=FONT, size=11, color="#374151"),
+        margin        = dict(l=56, r=16, t=mt, b=52),
+        xaxis         = dict(showgrid=False,
+                             linecolor="rgba(0,0,0,0.1)",
+                             tickfont=dict(size=9, family=MONO, color="#6b7280"),
+                             tickcolor="rgba(0,0,0,0.15)"),
+        yaxis         = dict(gridcolor="rgba(0,0,0,0.06)",
+                             linecolor="rgba(0,0,0,0)",
+                             tickfont=dict(size=9, family=MONO, color="#6b7280"),
+                             zeroline=False),
+        legend        = dict(font=dict(size=11, color="#374151"),
+                             orientation="h",
+                             yanchor="bottom", y=1.02,
+                             xanchor="left",   x=0,
+                             bgcolor="rgba(0,0,0,0)"),
+        hoverlabel    = dict(bgcolor="white",
+                             bordercolor="rgba(0,0,0,0.1)",
+                             font=dict(family=MONO, size=11, color="#111827")),
+        hovermode     = "x unified",
     )
 
-def card(label, val, color=CYAN):
-    return html.Div([
-        html.Div(label, style={"fontSize":"9px","color":MUTED,
-                               "letterSpacing":"0.12em","textTransform":"uppercase"}),
-        html.Div(val,   style={"fontSize":"19px","fontWeight":"600",
-                               "color":color,"marginTop":"4px"}),
-    ], style={"background":SURF,"border":f"1px solid {BORDER}","borderRadius":"3px",
-              "padding":"11px 15px","minWidth":"115px"})
+# ── CSS ───────────────────────────────────────────────────────────────────────
+CSS = """
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: #f9fafb; }
+
+.qc-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 14px 18px;
+    min-width: 120px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+}
+.qc-card-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #9ca3af;
+}
+.qc-card-value {
+    font-size: 22px; font-weight: 600; margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace; color: #111827;
+}
+
+.qc-header  { background: white; border-bottom: 1px solid #e5e7eb; padding: 16px 28px; display: flex; align-items: baseline; gap: 18px; }
+.qc-toolbar { background: white; border-bottom: 1px solid #e5e7eb; padding: 14px 28px; display: flex; gap: 40px; align-items: flex-end; flex-wrap: wrap; }
+.qc-cards   { display: flex; gap: 12px; padding: 18px 28px; flex-wrap: wrap; }
+.qc-hint    { font-size: 11px; color: #9ca3af; padding: 4px 30px 10px; }
+.qc-detail  { display: flex; gap: 12px; padding: 0 28px 32px; }
+.qc-ctrl-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #9ca3af; margin-bottom: 6px;
+}
+
+/* Dash dropdown */
+.Select-control {
+    background: white !important;
+    border: 1.5px solid #e5e7eb !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    transition: border-color 0.15s !important;
+}
+.Select-control:hover { border-color: #2563eb !important; }
+.Select.is-open .Select-control {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important;
+}
+.Select-value-label { color: #111827 !important; }
+.Select-placeholder { color: #9ca3af !important; }
+.Select-arrow       { border-top-color: #9ca3af !important; }
+.Select-menu-outer {
+    background: white !important;
+    border: 1.5px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06) !important;
+    margin-top: 3px !important;
+    z-index: 9999 !important;
+}
+.Select-option {
+    background: white !important; color: #374151 !important;
+    font-size: 13px !important; padding: 9px 14px !important; cursor: pointer !important;
+}
+.Select-option:hover, .Select-option.is-focused { background: #eff6ff !important; color: #1d4ed8 !important; }
+.Select-option.is-selected { background: #dbeafe !important; color: #1d4ed8 !important; font-weight: 600 !important; }
+.Select-input > input { color: #111827 !important; font-size: 13px !important; background: transparent !important; }
+
+input[type=checkbox] { accent-color: #2563eb; cursor: pointer; width: 13px; height: 13px; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #f9fafb; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    body { background: #0f1117 !important; }
+    .qc-header, .qc-toolbar { background: #161b27 !important; border-color: rgba(255,255,255,0.07) !important; }
+    .qc-card { background: #161b27 !important; border-color: rgba(255,255,255,0.07) !important; box-shadow: none !important; }
+    .qc-card-label { color: #4b5563 !important; }
+    .qc-card-value { color: #f3f4f6 !important; }
+    .qc-ctrl-label { color: #4b5563 !important; }
+    .qc-hint { color: #4b5563 !important; }
+    .Select-control { background: #1e2433 !important; border-color: rgba(255,255,255,0.08) !important; color: #e5e7eb !important; }
+    .Select-value-label { color: #e5e7eb !important; }
+    .Select-placeholder { color: #4b5563 !important; }
+    .Select-menu-outer { background: #1e2433 !important; border-color: rgba(255,255,255,0.08) !important; box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important; }
+    .Select-option { background: #1e2433 !important; color: #9ca3af !important; }
+    .Select-option:hover, .Select-option.is-focused { background: #252d40 !important; color: #60a5fa !important; }
+    .Select-option.is-selected { background: #1e3a5f !important; color: #60a5fa !important; }
+    .Select-input > input { color: #e5e7eb !important; }
+}
+</style>
+"""
 
 # ── app ───────────────────────────────────────────────────────────────────────
 app = Dash(__name__, title="MQ QC")
-app.index_string = app.index_string.replace("</head>",
-    '<link rel="preconnect" href="https://fonts.googleapis.com">'
-    '<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">'
-    "</head>")
+app.index_string = app.index_string.replace("</head>", CSS + "</head>")
 
-_ctrl_label = {"fontSize":"9px","color":MUTED,"letterSpacing":"0.12em","marginBottom":"5px"}
-_chk_label  = {"marginRight":"20px","fontSize":"12px","color":TEXT,"cursor":"pointer"}
+def card(label, val, color="#111827"):
+    return html.Div([
+        html.Div(label, className="qc-card-label"),
+        html.Div(val,   className="qc-card-value", style={"color": color}),
+    ], className="qc-card")
 
-app.layout = html.Div(style={"background":BG,"minHeight":"100vh","color":TEXT,"fontFamily":FONT}, children=[
+_chk = {"marginRight":"18px", "fontSize":"13px", "cursor":"pointer", "color":"#374151"}
 
-    # ── header ────────────────────────────────────────────────────────────
-    html.Div(style={"padding":"14px 24px","borderBottom":f"1px solid {BORDER}",
-                    "display":"flex","alignItems":"baseline","gap":"20px"}, children=[
+app.layout = html.Div(style={"minHeight":"100vh"}, children=[
+
+    html.Div(className="qc-header", children=[
         html.Span("PROMEC · MaxQuant QC",
-                  style={"fontSize":"14px","fontWeight":"600","letterSpacing":"0.06em"}),
+                  style={"fontSize":"15px","fontWeight":"600","letterSpacing":"0.04em",
+                         "fontFamily":MONO,"color":"#111827"}),
         html.Span(f"{len(SUM)} runs  ·  {SUM['total'].sum():,} protein groups",
-                  style={"fontSize":"11px","color":MUTED}),
+                  style={"fontSize":"12px","color":"#9ca3af"}),
     ]),
 
-    # ── controls ──────────────────────────────────────────────────────────
-    html.Div(style={"padding":"12px 24px","borderBottom":f"1px solid {BORDER}",
-                    "display":"flex","gap":"36px","alignItems":"flex-end","flexWrap":"wrap"}, children=[
+    html.Div(className="qc-toolbar", children=[
         html.Div([
-            html.Div("METRIC", style=_ctrl_label),
+            html.Div("Metric", className="qc-ctrl-label"),
             dcc.Dropdown(id="dd-metric",
                 options=[{"label":v[0],"value":k} for k,v in METRICS.items()],
-                value="proteins", clearable=False,
-                style={"width":"215px","fontSize":"12px"}),
+                value="proteins", clearable=False, style={"width":"220px"}),
         ]),
         html.Div([
-            html.Div("FILTER LAYERS", style=_ctrl_label),
+            html.Div("Filter layers", className="qc-ctrl-label"),
             dcc.Checklist(id="chk-filters",
                 options=[{"label":"  Reverse",    "value":"Reverse"},
                          {"label":"  Contaminant","value":"Potential contaminant"},
                          {"label":"  Site only",  "value":"Only identified by site"}],
                 value=["Reverse","Potential contaminant","Only identified by site"],
-                inline=True,
-                inputStyle={"marginRight":"4px"},
-                labelStyle=_chk_label),
+                inline=True, inputStyle={"marginRight":"5px"}, labelStyle=_chk),
         ]),
         html.Div([
-            html.Div("ROLLING AVG", style=_ctrl_label),
+            html.Div("Rolling avg", className="qc-ctrl-label"),
             dcc.Checklist(id="chk-trend",
                 options=[{"label":"  Show","value":"y"}],
                 value=["y"], inline=True,
-                inputStyle={"marginRight":"4px"},
-                labelStyle=_chk_label),
+                inputStyle={"marginRight":"5px"}, labelStyle=_chk),
         ]),
     ]),
 
-    # ── stat cards ────────────────────────────────────────────────────────
-    html.Div(id="cards", style={"display":"flex","gap":"10px","padding":"14px 24px","flexWrap":"wrap"}),
+    html.Div(id="cards", className="qc-cards"),
 
-    # ── main trend chart ──────────────────────────────────────────────────
     dcc.Graph(id="trend", config={"displayModeBar":False},
-              style={"height":"370px","margin":"0 24px 2px"}),
+              style={"height":"400px","margin":"0 28px"}),
 
     html.Div("↑  click any bar or point to inspect that run",
-             style={"fontSize":"10px","color":MUTED,"padding":"2px 26px 10px"}),
+             className="qc-hint"),
 
-    # ── detail row ────────────────────────────────────────────────────────
-    html.Div(style={"display":"flex","gap":"10px","padding":"0 24px 28px"}, children=[
-        dcc.Graph(id="breakdown",  config={"displayModeBar":False}, style={"flex":"1","height":"250px"}),
-        dcc.Graph(id="ibaq-hist",  config={"displayModeBar":False}, style={"flex":"1","height":"250px"}),
-        dcc.Graph(id="score-hist", config={"displayModeBar":False}, style={"flex":"1","height":"250px"}),
+    html.Div(className="qc-detail", children=[
+        dcc.Graph(id="breakdown",  config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
+        dcc.Graph(id="ibaq-hist",  config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
+        dcc.Graph(id="score-hist", config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
     ]),
 
     dcc.Store(id="sel-run"),
@@ -189,9 +284,9 @@ def update_cards(_):
     return [
         card("Runs ingested",  str(len(SUM))),
         card("Avg target/run", f"{SUM['target'].mean():,.0f}"),
-        card("Best run",       f"{SUM['target'].max():,}",  CYAN),
-        card("Worst run",      f"{SUM['target'].min():,}",  RED),
-        card("Total groups",   f"{SUM['total'].sum():,}",   MUTED),
+        card("Best run",       f"{SUM['target'].max():,}", C_BLUE),
+        card("Worst run",      f"{SUM['target'].min():,}", C_RED),
+        card("Total groups",   f"{SUM['total'].sum():,}",  C_GREY),
     ]
 
 
@@ -206,7 +301,7 @@ def update_trend(metric, active, trend_on):
 
     if metric == "proteins":
         fig.add_trace(go.Bar(x=x, y=df["target"], name="Target",
-                             marker_color=CYAN, marker_line_width=0,
+                             marker_color=C_BLUE, marker_line_width=0,
                              hovertemplate="%{x}<br>Target: %{y:,}<extra></extra>"))
         fmap  = {"Reverse":"n_rev","Potential contaminant":"n_cont","Only identified by site":"n_site"}
         fname = {"Reverse":"Reverse","Potential contaminant":"Contaminant","Only identified by site":"Site only"}
@@ -220,8 +315,8 @@ def update_trend(metric, active, trend_on):
     else:
         label, col = METRICS[metric]
         fig.add_trace(go.Scatter(x=x, y=df[col], mode="lines+markers",
-                                 line=dict(color=CYAN, width=1.5),
-                                 marker=dict(size=4, color=CYAN),
+                                 line=dict(color=C_BLUE, width=2),
+                                 marker=dict(size=4, color=C_BLUE),
                                  name=label,
                                  hovertemplate="%{x}<br>" + label + ": %{y:,.3g}<extra></extra>"))
         ytitle = label
@@ -231,13 +326,19 @@ def update_trend(metric, active, trend_on):
         roll = df["target"].rolling(w, center=True, min_periods=1).mean()
         fig.add_trace(go.Scatter(x=x, y=roll, mode="lines",
                                  name=f"{w}-run rolling avg",
-                                 line=dict(color="#ffffff", width=1.5, dash="dot"),
+                                 line=dict(color=C_TREND, width=2, dash="dot"),
                                  hoverinfo="skip"))
 
-    layout = base(tb=48)
-    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=8))
-    layout["yaxis"]["title"] = dict(text=ytitle, font=dict(size=10))
-    layout["bargap"] = 0.1
+    short = [re.match(r'^(\d{6,8})', r).group(1)
+             if re.match(r'^(\d{6,8})', r) else r[:8]
+             for r in df["run_id"]]
+
+    layout = base(mt=52)
+    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=8, family=MONO, color="#9ca3af"),
+                           tickmode="array", tickvals=list(df["run_id"]), ticktext=short)
+    layout["yaxis"]["title"] = dict(text=ytitle, font=dict(size=11))
+    layout["bargap"]         = 0.12
+    layout["margin"]["b"]    = 80
     fig.update_layout(**layout)
     return fig
 
@@ -256,16 +357,17 @@ def update_breakdown(run_id):
     total  = r["total"]
     cats   = ["Target", "Reverse", "Contaminant", "Site only"]
     vals   = [r["target"], r["n_rev"], r["n_cont"], r["n_site"]]
-    colors = [CYAN, RED, AMBER, VIOLET]
+    colors = [C_BLUE, C_RED, C_AMBER, C_VIOLET]
     pct    = [f"{v:,}  ({100*v/total:.1f}%)" if total else f"{v:,}" for v in vals]
     fig = go.Figure(go.Bar(x=cats, y=vals, marker_color=colors, marker_line_width=0,
                            text=pct, textposition="outside",
-                           textfont=dict(size=9, color=TEXT),
+                           textfont=dict(size=10, family=MONO, color="#374151"),
                            hovertemplate="%{x}: %{y:,}<extra></extra>"))
     short  = (run_id[:20] + "…") if len(run_id) > 20 else run_id
-    layout = base(f"breakdown  ·  {short}", tb=50)
-    layout["yaxis"]["title"]  = dict(text="Count", font=dict(size=9))
-    layout["hovermode"]       = "closest"
+    layout = base(f"breakdown  ·  {short}", mt=40)
+    layout["yaxis"]["title"] = dict(text="Count", font=dict(size=10))
+    layout["hovermode"]      = "closest"
+    layout["margin"]["t"]    = 40
     fig.update_layout(**layout)
     return fig
 
@@ -280,16 +382,18 @@ def update_ibaq(run_id):
     log_i = np.log10(ibaq)
     med   = float(log_i.median())
     fig = go.Figure(go.Histogram(x=log_i, nbinsx=50,
-                                 marker_color=CYAN, marker_line_width=0, opacity=0.85,
+                                 marker_color=C_BLUE, marker_line_width=0, opacity=0.7,
                                  hovertemplate="log₁₀(iBAQ) %{x:.2f}<br>n=%{y}<extra></extra>"))
-    fig.add_vline(x=med, line_color=AMBER, line_dash="dot", line_width=1.5,
+    fig.add_vline(x=med, line_color=C_AMBER, line_dash="dash", line_width=2,
                   annotation_text=f"med {med:.1f}",
-                  annotation_font_size=9, annotation_font_color=AMBER)
+                  annotation_font_size=10, annotation_font_color=C_AMBER,
+                  annotation_font_family=MONO)
     short  = (run_id[:20] + "…") if len(run_id) > 20 else run_id
-    layout = base(f"iBAQ  ·  {short}", tb=50)
-    layout["xaxis"]["title"] = dict(text="log₁₀(iBAQ)", font=dict(size=9))
-    layout["yaxis"]["title"] = dict(text="Proteins",    font=dict(size=9))
+    layout = base(f"iBAQ  ·  {short}", mt=40)
+    layout["xaxis"]["title"] = dict(text="log₁₀(iBAQ)", font=dict(size=10))
+    layout["yaxis"]["title"] = dict(text="Proteins",    font=dict(size=10))
     layout["hovermode"]      = "closest"
+    layout["margin"]["t"]    = 40
     fig.update_layout(**layout)
     return fig
 
@@ -302,16 +406,18 @@ def update_score(run_id):
     if score.empty: return go.Figure()
     med = float(score.median())
     fig = go.Figure(go.Histogram(x=score, nbinsx=50,
-                                 marker_color=VIOLET, marker_line_width=0, opacity=0.85,
+                                 marker_color=C_VIOLET, marker_line_width=0, opacity=0.7,
                                  hovertemplate="Score %{x:.1f}<br>n=%{y}<extra></extra>"))
-    fig.add_vline(x=med, line_color=AMBER, line_dash="dot", line_width=1.5,
+    fig.add_vline(x=med, line_color=C_AMBER, line_dash="dash", line_width=2,
                   annotation_text=f"med {med:.0f}",
-                  annotation_font_size=9, annotation_font_color=AMBER)
+                  annotation_font_size=10, annotation_font_color=C_AMBER,
+                  annotation_font_family=MONO)
     short  = (run_id[:20] + "…") if len(run_id) > 20 else run_id
-    layout = base(f"Andromeda score  ·  {short}", tb=50)
-    layout["xaxis"]["title"] = dict(text="Score",    font=dict(size=9))
-    layout["yaxis"]["title"] = dict(text="Proteins", font=dict(size=9))
+    layout = base(f"Score  ·  {short}", mt=40)
+    layout["xaxis"]["title"] = dict(text="Andromeda Score", font=dict(size=10))
+    layout["yaxis"]["title"] = dict(text="Proteins",        font=dict(size=10))
     layout["hovermode"]      = "closest"
+    layout["margin"]["t"]    = 40
     fig.update_layout(**layout)
     return fig
 
@@ -320,5 +426,4 @@ if __name__ == "__main__":
     print(f"DB   : {DB}")
     print(f"Runs : {len(SUM)}")
     print(f"Rows : {SUM['total'].sum():,}")
-    print("Open : http://localhost:8050")
-    app.run(debug=False, port=8050)
+    app.run(host='0.0.0.0',debug=False, port=8050)
