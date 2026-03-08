@@ -85,3 +85,4 @@ rtmodel.*
 *.vcf
 *.vcf.gz
 
+.positai

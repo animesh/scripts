@@ -3,8 +3,8 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 # default files created by scripts/gen_input.R
-default_mat <- "random_4_gene_matrix_seed1_nA3_nB3_max20.csv"
-default_design <- "random_4_gene_design_seed1_nA3_nB3_max20.csv"
+default_mat <- "random_10000gene_seed42_nA3_nB3_max50_lognorm_matrix.csv"
+default_design <- "random_10000gene_seed42_nA3_nB3_max50_lognorm_design.csv"
 if (length(args) < 2) {
   if (length(args) == 0) {
     matrix_file <- default_mat
@@ -24,11 +24,8 @@ if (!file.exists(design_file)) stop("design file not found: ", design_file)
 
 y <- as.matrix(read.csv(matrix_file, row.names = 1))
 design <- read.csv(design_file, stringsAsFactors = FALSE)
-# convert input to log2 scale (guard against non-positive values)
-if (any(y <= 0)) {
-  y[y <= 0] <- .Machine$double.xmin
-}
-y <- log2(y)
+# convert input to log2 scale (guard against non-positive values,add 1 to avoid log(0))
+y <- log2(abs(y) + 1)
 if (!"group" %in% names(design)) stop("design file must contain a 'group' column")
 group <- factor(design$group)
 
@@ -45,10 +42,16 @@ logFC <- meanB - meanA
 res <- data.frame(
   gene = rownames(y),
   logFC = logFC,
-  limma_mod_t = leB$t[, 2],
-  limma_mod_p = leB$p.value[, 2],
+  AveExpr = rowMeans(y),
+  t = leB$t[, 2],
+  P.Value = leB$p.value[, 2],
+  adj.P.Val = p.adjust(leB$p.value[, 2], method = "BH"),
   stringsAsFactors = FALSE
 )
+res <- res[order(res$P.Value), ]
+head(res)
+cat("DE genes P-value < 0.05:", sum(res$P.Value<0.05,na.rm = TRUE),
+    "| adj.P < 0.05:", sum(res$adj.P.Val<0.05,na.rm = TRUE),"\n")
 
 # build output path: <matrix_base>_<design_base>_limmaR.csv
 mbase <- tools::file_path_sans_ext(basename(matrix_file))

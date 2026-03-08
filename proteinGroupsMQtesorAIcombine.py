@@ -190,11 +190,58 @@ else:
 if master_prot is not None and master is not None:
 	try:
 		merged_master = pd.merge(master_prot, master, on='ID', how='outer', suffixes=('_prot', '_quant'))
+		before = len(merged_master)
 		# write combined master with a concise tag (no underscores)
 		merged_tag = f"{safe_arg(dir_prot)}-{safe_arg(dir_quant)}-{safe_arg(prot_id_col_cli)}-{safe_arg(quant_id_col_cli)}-{safe_arg(prot_int_col_cli)}-{safe_arg(quant_int_col_cli)}"
 		merged_fname = f"comb-{merged_tag}.csv"
-		merged_master.to_csv(merged_fname, index=False)
-		print('Wrote', merged_fname, '— rows:', len(merged_master))
+		# remove duplicate rows that have the same values across all columns except ID
+		# concatenate their IDs (unique, sorted) separated by ';'
+		try:
+			cols = list(merged_master.columns)
+			if 'ID' not in cols:
+				merged_master.to_csv(merged_fname, index=False)
+				print('Wrote', merged_fname, '— rows:', len(merged_master))
+			else:
+				id_col = 'ID'
+				other_cols = [c for c in cols if c != id_col]
+				# create a stable key based on stringified other column values (treat NaN consistently)
+				def row_key(row):
+					vals = []
+					for v in row:
+						if pd.isna(v):
+							vals.append('__NA__')
+						else:
+							vals.append(str(v))
+					return tuple(vals)
+
+				temp = merged_master.copy()
+				temp['_merge_key'] = temp[other_cols].apply(lambda r: row_key(r.values), axis=1)
+
+				grouped_ids = temp.groupby('_merge_key')[id_col].agg(lambda ids: ';'.join(sorted(set([str(i) for i in ids if pd.notna(i)]))))
+
+				# build deduplicated rows by taking a representative row for each group (preserving types)
+				rows = []
+				for key, id_comb in grouped_ids.items():
+					rep = temp[temp['_merge_key'] == key].iloc[0]
+					row = {c: rep[c] for c in other_cols}
+					row[id_col] = id_comb
+					rows.append(row)
+
+				deduped = pd.DataFrame(rows)
+				# ensure columns order matches original (ID first if originally first)
+				try:
+					deduped = deduped[cols]
+				except Exception:
+					# fallback: put ID first then others
+					deduped = deduped[[id_col] + other_cols]
+
+				after = len(deduped)
+				deduped.to_csv(merged_fname, index=False)
+				print(f'Wrote {merged_fname} — rows (deduplicated): {before} -> {after}')
+		except Exception as e:
+			# fallback: write original merged_master if deduplication fails
+			merged_master.to_csv(merged_fname, index=False)
+			print('Wrote', merged_fname, '— rows:', len(merged_master), '(deduplication failed:', e, ')')
 	except Exception as e:
 		print('Failed merging master tables on ID:', e)
 else:
