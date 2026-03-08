@@ -1,5 +1,4 @@
-#..\R-4.5.0\bin\Rscript.exe proteinExprTest.r "L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/report.pg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/Groups.txt" "Test" "Rem" 1 7 5 "DUO" "DUOIGG" 0.1 0.5 0.1
-#..\R-4.5.0\bin\Rscript.exe proteinExprTest.r "L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/report.pg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/Groups.txt" "Test" "Rem" 1 7 5 "ILE" "ILEIGG"  0.1 0.5 0.1
+#..\R-4.5.0\bin\Rscript.exe proteinExprTest.r "L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/report.pg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/GroupsRem.txt" "Test" "Rem" 1 7 5 "ILE" "ILEIGG"  0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
