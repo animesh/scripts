@@ -14,11 +14,11 @@ parse_num <- function(x, default, min_val = 0) {
 
 # ── Parse arguments ───────────────────────────────────────────────────────────
 args   <- commandArgs(trailingOnly = TRUE)
-seed   <- parse_int(args[1], 42L,  min_val = 1L)
-ngenes <- parse_int(args[2], 10000L,  min_val = 1L)
+seed   <- parse_int(args[1], 1L,  min_val = 1L)
+ngenes <- parse_int(args[2], 4L,  min_val = 1L)
 nA     <- parse_int(args[3], 3L,  min_val = 1L)
 nB     <- parse_int(args[4], 3L,  min_val = 1L)
-maxval <- parse_int(args[5], 50L, min_val = 1L)
+maxval <- parse_int(args[5], 20L, min_val = 1L)
 dist   <- if (length(args) >= 6 && tolower(trimws(args[6])) %in% c("poisson", "lognorm", "nbinom"))
               tolower(trimws(args[6])) else "lognorm"
 # size controls overdispersion for nbinom (smaller = more overdispersed)
@@ -52,8 +52,7 @@ Examples:
   # Fixed Poisson lambda=50, 5 samples per group
   Rscript gen_input.R 1 10000 5 5 50 poisson
 
-  # Negative binomial, high overdispersion (size=0.5), unbalanced groups
-  Rscript gen_input.R 7 10000 4 2 100 nbinom 0.5
+  # Negative binomial, high overdispersion (size=0.5), unbalanced groups? Rscript gen_input.R 7 10000 4 2 100 nbinom 0.5
 
 Resolved: seed=%d ngenes=%d nA=%d nB=%d maxval=%d dist=%s size=%.2f\n\n",
     seed, ngenes, nA, nB, maxval, dist, size))
