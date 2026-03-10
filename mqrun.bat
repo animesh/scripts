@@ -1,6 +1,8 @@
 @echo off
 SETLOCAL ENABLEDELAYEDEXPANSION
-:: mqrun v23 — MaxQuant batch watcher for timsTOF HeLa QC runs
+:: mqrun v24 — MaxQuant batch watcher for timsTOF HeLa QC runs
+:: Completion sentinel: SESSIONDIR\<BN>.done  (not inside WORKDIR)
+:: This allows full rmdir of WORKDIR after job completes.
 set MAXQUANTCMD=C:\Program Files\MaxQuant_v2.7.0.0\bin\MaxQuantCmd.exe
 set DATAROOT=F:\promec\TIMSTOF\Raw
 set DATAPATTERN=*HeLa*.d
@@ -31,6 +33,17 @@ echo Watching     : %DATAROOT%\*\*\%DATAPATTERN%
 echo Poll: %POLL_INTERVAL%s  ^| Stability: %STABILITY_WAIT%s  ^| Max parallel: %CPU_COUNT%
 echo.
 echo [%date% %time%] ===== SESSION START  !SESSIONDIR! ===== >> "%LOGFILE%"
+:: Migrate v23 done.lock files -> SESSIONDIR\<BN>.done  (one-time, safe to re-run)
+set "MIG=0"
+for /d %%J in ("!SESSIONDIR!\*") do (
+    if exist "%%~fJ\done.lock" (
+        echo 1> "!SESSIONDIR!\%%~nxJ.done"
+        del /f /q "%%~fJ\done.lock"
+        set /a MIG+=1
+    )
+)
+if !MIG! GTR 0 call :Log "Migrate  : !MIG! done.lock file(s) moved to SESSIONDIR level"
+:: Remove stale lock files from dead/interrupted processes
 set "STALE=0"
 for /d %%J in ("!SESSIONDIR!\*") do (
     if exist "%%~fJ\queued.lock" ( del "%%~fJ\queued.lock" & set /a STALE+=1 )
@@ -59,16 +72,21 @@ for /d %%U in ("%DATAROOT%\*") do (
         )
     )
 )
-set "ORPHAN_DONE=0"
+:: Cleanup pass: rmdir any WORKDIR whose .done sentinel exists
 for /d %%W in ("!SESSIONDIR!\*") do (
-    if exist "%%~fW\done.lock" (
-        set "BN_=%%~nxW"
-        set "SRC_FOUND=0"
-        for /d %%U in ("%DATAROOT%\*") do (
-            for /d %%V in ("%%~fU\*") do if exist "%%~fV\!BN_!.d" set "SRC_FOUND=1"
-        )
-        if "!SRC_FOUND!"=="0" set /a ORPHAN_DONE+=1
+    if exist "!SESSIONDIR!\%%~nxW.done" (
+        if exist "%%~fW" rmdir /s /q "%%~fW" 2>nul
     )
+)
+:: Orphan-done count: .done sentinels with no matching source folder
+set "ORPHAN_DONE=0"
+for %%S in ("!SESSIONDIR!\*.done") do (
+    set "BN_=%%~nS"
+    set "SRC_FOUND=0"
+    for /d %%U in ("%DATAROOT%\*") do (
+        for /d %%V in ("%%~fU\*") do if exist "%%~fV\!BN_!.d" set "SRC_FOUND=1"
+    )
+    if "!SRC_FOUND!"=="0" set /a ORPHAN_DONE+=1
 )
 set /a UNKNOWN=FOUND-DONE-LIVE-QUEUED-ACQUIRING-RETRYING-ERRORS-SKIPPED
 echo [%time%] Poll: !FOUND! found  ^|  !DONE! done  ^|  !ORPHAN_DONE! orphan-done  ^|  !LIVE! running  ^|  !QUEUED! queued  ^|  !ACQUIRING! acquiring  ^|  !RETRYING! retrying  ^|  !ERRORS! errors  ^|  !SKIPPED! skipped  ^|  !UNKNOWN! unknown
@@ -112,11 +130,12 @@ if !RC! GEQ %MAX_RETRIES% (
 exit /b 0
 :: :MarkDone — Arg1: WORKDIR  Arg2: basename  Arg3: PID|PENDING|""
 :: Gate: proteinGroups.txt + "Finish writing tables" + MQ dead
-:: Pass: QC robocopy, done.lock, cleanup. Sets DONE_FLAG=1.
+:: Pass: QC robocopy, SESSIONDIR\<BN>.done written, cleanup. Sets DONE_FLAG=1.
 :MarkDone
 set "MD_W=%~1"
 set "MD_BN=%~2"
 set "MD_PID=%~3"
+set "MD_DONE=!SESSIONDIR!\%MD_BN%.done"
 set "DONE_FLAG=0"
 if not exist "%MD_W%\combined\txt\proteinGroups.txt"  exit /b 0
 if not exist "%MD_W%\combined\proc\#runningTimes.txt" exit /b 0
@@ -137,21 +156,11 @@ if not "%QCROOT%"=="" (
     robocopy "%MD_W%\combined\txt" "%QCROOT%\%MD_BN%\combined\txt" /E /XO /R:3 /W:10 /NFL /NDL /NJH /NJS /LOG+:"%QCROOT%\copy_log.txt" >nul
     if errorlevel 8 ( call :Log "ERROR    : %MD_BN% QC copy failed - skipping cleanup" & exit /b 0 )
     call :Log "QC copy  : %MD_BN% -> %QCROOT%\%MD_BN%\combined\txt"
-    echo 1> "%MD_W%\done.lock"
-    set "DONE_FLAG=1"
-    if exist "%MD_W%\combined\txt" rmdir /s /q "%MD_W%\combined\txt"
 )
-if "!DONE_FLAG!"=="0" ( echo 1> "%MD_W%\done.lock" & set "DONE_FLAG=1" )
+echo 1> "!MD_DONE!"
+set "DONE_FLAG=1"
 call :Log "Cleanup  : %MD_BN%"
-if exist "%MD_W%\data.d"                   rmdir /s /q "%MD_W%\data.d"
-if exist "%MD_W%\data"                     rmdir /s /q "%MD_W%\data"
-if exist "%MD_W%\combined\andromeda"       rmdir /s /q "%MD_W%\combined\andromeda"
-if exist "%MD_W%\combined\search"          rmdir /s /q "%MD_W%\combined\search"
-if exist "%MD_W%\combined\sdrf"            rmdir /s /q "%MD_W%\combined\sdrf"
-if exist "%MD_W%\combined\combinedRunInfo" del   /f /q "%MD_W%\combined\combinedRunInfo"
-if exist "%MD_W%\mqpar.xml"                del   /f /q "%MD_W%\mqpar.xml"
-if exist "%MD_W%\data.index"               del   /f /q "%MD_W%\data.index"
-if exist "%MD_W%\running.lock"             del   /f /q "%MD_W%\running.lock"
+rmdir /s /q "%MD_W%" 2>nul
 set "_RC=!SESSIONDIR!\%MD_BN%.retries"
 if exist "!_RC!" del /f /q "!_RC!"
 exit /b 0
@@ -162,10 +171,8 @@ set "BN=%~n1"
 set "WORKDIR=!SESSIONDIR!\%BN%"
 set "DATADEST=!WORKDIR!\data.d"
 set "RUNPARAM=!WORKDIR!\%PARAMFILE%"
-if exist "!WORKDIR!\done.lock" (
+if exist "!SESSIONDIR!\%BN%.done" (
     set /a DONE+=1
-    if exist "!WORKDIR!\running.lock" del "!WORKDIR!\running.lock"
-    if exist "!WORKDIR!\queued.lock"  del "!WORKDIR!\queued.lock"
     exit /b 0
 )
 if exist "!WORKDIR!\queued.lock" (
@@ -211,7 +218,7 @@ if "!DONE_FLAG!"=="1" ( set /a DONE+=1 & call :Log "Completed: %BN% (PID !MQ_PID
 set "FOUND_OUTPUT=0"
 for %%F in ("!WORKDIR!\combined\txt\*.txt") do set "FOUND_OUTPUT=1"
 if !FOUND_OUTPUT! EQU 1 (
-    echo 1> "!WORKDIR!\done.lock"
+    echo 1> "!SESSIONDIR!\%BN%.done"
     set /a DONE+=1
     call :Log "Completed: %BN% (fallback .txt - QC copy + cleanup skipped)"
     exit /b 0
