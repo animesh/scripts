@@ -1,5 +1,5 @@
-#..\R-4.5.0\bin\Rscript.exe geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/GroupsOverallSurvival.txt" "Groups" "Rem" 1 4 4 "Good prognosis" "Bad prognosis" 0.1 0.5 0.1
-#..\R-4.5.0\bin\Rscript.exe geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/GroupsOverallSurvivalBigC.txt" "Groups" "Rem" 1 4 4 "Good prognosis" "Bad prognosis" 0.1 0.5 0.1
+#..\R-4.5.0\bin\Rscript.exe geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/GroupsOverallSurvivalIgnoreGy.txt" "Groups" "Rem" 1 4 4 "Good prognosis" "Bad prognosis" 0.1 0.5 0.1
+#..\R-4.5.0\bin\Rscript.exe geneExprTest.r "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/GroupsOverallSurvivalgnoreGyBigC.txt" "Groups" "Rem" 1 4 4 "Good prognosis" "Bad prognosis" 0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
