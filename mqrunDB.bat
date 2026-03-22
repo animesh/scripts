@@ -35,11 +35,15 @@ set "INIT_SQL=%QC_ROOT%\mqrunDB_init.sql"
 >> "%INIT_SQL%" echo ingested_at TIMESTAMP DEFAULT current_timestamp,PRIMARY KEY(run_id,"id"));
 "%DUCKDB_BIN%" "%DB_FILE%" -f "%INIT_SQL%" >nul 2>&1
 del "%INIT_SQL%" 2>nul
+:poll_loop
 call :count start
 if defined SINGLE_RUN (set "LOOP_GLOB=%QC_ROOT%\%SINGLE_RUN%") else (set "LOOP_GLOB=%QC_ROOT%\*")
 for /d %%P in ("%LOOP_GLOB%") do call :ingest "%%~fP" "%%~nxP"
 call :count end
-exit /b 0
+if defined SINGLE_RUN exit /b 0
+echo %DATE% %TIME% Sleeping 3600s
+timeout /t 3600 /nobreak >nul
+goto :poll_loop
 
 :ingest
 setlocal EnableDelayedExpansion

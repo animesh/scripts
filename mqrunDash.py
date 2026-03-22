@@ -84,7 +84,6 @@ def load_run(run_id):
     con.close()
     return df
 
-SUM = load_summary()
 
 # ── plotly base (transparent = follows page bg) ───────────────────────────────
 def base(title="", mt=44):
@@ -231,7 +230,7 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
         html.Span("PROMEC · MaxQuant QC",
                   style={"fontSize":"15px","fontWeight":"600","letterSpacing":"0.04em",
                          "fontFamily":MONO,"color":"#111827"}),
-        html.Span(f"{len(SUM)} runs  ·  {SUM['total'].sum():,} protein groups",
+        html.Span(id="header-stats",
                   style={"fontSize":"12px","color":"#9ca3af"}),
     ]),
 
@@ -275,27 +274,32 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
     ]),
 
     dcc.Store(id="sel-run"),
+    dcc.Interval(id="interval", interval=3600*1000, n_intervals=0),
 ])
 
 # ── callbacks ─────────────────────────────────────────────────────────────────
 
-@callback(Output("cards","children"), Input("dd-metric","value"))
-def update_cards(_):
-    return [
+@callback(Output("cards","children"), Output("header-stats","children"), Input("dd-metric","value"), Input("interval","n_intervals"))
+def update_cards(_, _n):
+    SUM = load_summary()
+    stats = f"{len(SUM)} runs  ·  {SUM['total'].sum():,} protein groups"
+    cards = [
         card("Runs ingested",  str(len(SUM))),
         card("Avg target/run", f"{SUM['target'].mean():,.0f}"),
         card("Best run",       f"{SUM['target'].max():,}", C_BLUE),
         card("Worst run",      f"{SUM['target'].min():,}", C_RED),
         card("Total groups",   f"{SUM['total'].sum():,}",  C_GREY),
     ]
+    return cards, stats
 
 
 @callback(Output("trend","figure"),
           Input("dd-metric","value"),
           Input("chk-filters","value"),
-          Input("chk-trend","value"))
-def update_trend(metric, active, trend_on):
-    df  = SUM.copy()
+          Input("chk-trend","value"),
+          Input("interval","n_intervals"))
+def update_trend(metric, active, trend_on, _n):
+    df  = load_summary()
     x   = df["run_id"]
     fig = go.Figure()
 
@@ -343,14 +347,15 @@ def update_trend(metric, active, trend_on):
     return fig
 
 
-@callback(Output("sel-run","data"), Input("trend","clickData"))
-def store_sel(cd):
-    if not cd: return SUM["run_id"].iloc[-1]
+@callback(Output("sel-run","data"), Input("trend","clickData"), Input("interval","n_intervals"))
+def store_sel(cd, _n):
+    if not cd: return load_summary()["run_id"].iloc[-1]
     return cd["points"][0]["x"]
 
 
 @callback(Output("breakdown","figure"), Input("sel-run","data"))
 def update_breakdown(run_id):
+    SUM = load_summary()
     row = SUM[SUM["run_id"] == run_id]
     if row.empty: return go.Figure()
     r      = row.iloc[0]
@@ -423,7 +428,8 @@ def update_score(run_id):
 
 
 if __name__ == "__main__":
+    SUM = load_summary()
     print(f"DB   : {DB}")
     print(f"Runs : {len(SUM)}")
     print(f"Rows : {SUM['total'].sum():,}")
-    app.run(host='0.0.0.0',debug=False, port=8050)
+    app.run(host='0.0.0.0',debug=False, port=805)
