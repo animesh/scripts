@@ -1,230 +1,273 @@
-#python evidenceIntSum.py  "F:\maxlLFQ\combined\txt\evidence.txt" "F:\maxlLFQ\combined\txt\proteinGroups.txt" "F:\maxlLFQ\\mqpar.xml"
-# MaxLFQ (Cox et al. MCP 2014) from evidence.txt
-# Species = (Modified sequence, Charge); intensity = sum(SECPEP) + max(other types)
-# Anchor  = first experiment in mqpar.xml if provided, else first sample alphabetically
-#
-# Algorithm:
-#   1. Build species × sample matrix from evidence.txt
-#   2. Global N_j via Levenberg-Marquardt: minimise H(N) = Σ(log N_a·I_pa − log N_b·I_pb)²
-#   3. Apply N_j: normalised_I = N_j · raw_I
-#   4. Per-protein: pairwise median log2-ratios over shared species → lstsq → rescale
-#      Connected components (_cc): isolated samples get LFQ = normalised intensity directly
-#
-# Merge: evidence 'Leading razor protein' (first token) ↔
-#        proteinGroups 'Majority protein IDs' (first token)
-import sys, os, warnings
-import numpy as np, pandas as pd
-from itertools import combinations
+import numpy as np
+import pandas as pd
 from scipy.optimize import least_squares
-warnings.filterwarnings('ignore')
 
-# ── load & filter evidence ────────────────────────────────────────────────────
-ev = pd.read_csv(sys.argv[1], sep='\t', low_memory=False)
-ev = ev[ev['Type'].isin({'MULTI-MSMS','MULTI-MATCH','MULTI-SECPEP',
-                         'MSMS','MULTI-MATCH-MSMS','ISO-MSMS'})].copy()
-for c in ['Reverse','Potential contaminant','Contaminant']:
-    if c in ev.columns: ev = ev[ev[c].astype(str).str.strip()!='+']
-ev['Intensity'] = pd.to_numeric(ev['Intensity'], errors='coerce')
-ev_noint = ev[~(ev['Intensity']>0)].copy()   # identified but not quantified
-ev       = ev[ev['Intensity']>0].copy()
-ev['_razor']   = ev['Leading razor protein'].astype(str).str.split(';').str[0].str.strip()
-ev['_species'] = ev['Modified sequence'].astype(str) + '_z' + ev['Charge'].astype(str)
-ev['Experiment']= ev['Experiment'].astype(str)
-samples = sorted(ev['Experiment'].unique())
 
-print(f"\nevidence: {len(ev):,} rows  |  {len(samples)} samples  |  "
-      f"{ev['_species'].nunique():,} species  |  {ev['_razor'].nunique():,} proteins")
+# -----------------------------
+# LOAD EVIDENCE
+# -----------------------------
+def load_evidence(path):
+    df = pd.read_csv(path, sep="\t")
 
-# ── species × sample matrix ───────────────────────────────────────────────────
-# MULTI-SECPEP = multiple elution events of the same species → sum (matches peptides.txt)
-# All other types → max per (species, experiment) to avoid duplicate-scan inflation
-_sec  = ev[ev['Type']=='MULTI-SECPEP']
-_rest = ev[ev['Type']!='MULTI-SECPEP']
-_s    = _sec.groupby(['_species','_razor','Experiment'])['Intensity'].sum()
-_r    = _rest.groupby(['_species','_razor','Experiment'])['Intensity'].max()
-wide  = (pd.concat([_s.rename('s'),_r.rename('r')],axis=1)
-           .fillna(0).assign(I=lambda d:d['s']+d['r']).replace(0,np.nan)['I']
-           .unstack('Experiment').reindex(columns=samples).replace(0,np.nan))
+    df = df[[
+        "Sequence",
+        "Charge",
+        "Raw file",
+        "Intensity",
+        "Leading razor protein"
+    ]].copy()
 
-# ── N_j via Levenberg-Marquardt ───────────────────────────────────────────────
-# Residuals: log(N_a) + log(I_pa) − log(N_b) − log(I_pb) = 0
-# Solved simultaneously across all species — gives N_j that equalise each
-# species' intensity across all runs (N_j ∝ 1/intensity of that sample).
-logX  = np.log(wide.values.astype(float))
-pairs = list(combinations(range(len(samples)), 2))
+    df = df[df["Intensity"] > 0]
 
-def _nj_res(nv):
-    out = []
-    for a, b in pairs:
-        ok = np.isfinite(logX[:,a]) & np.isfinite(logX[:,b])
-        if ok.any(): out.append((logX[ok,a]+nv[a]) - (logX[ok,b]+nv[b]))
-    return np.concatenate(out) if out else np.array([0.])
+    # species definition (critical)
+    df["species"] = df["Sequence"] + "_z" + df["Charge"].astype(str)
 
-Nj = np.exp(least_squares(_nj_res, np.zeros(len(samples)), method='lm', max_nfev=2000).x)
+    return df
 
-# ── anchor ────────────────────────────────────────────────────────────────────
-# Anchor pins the absolute scale (all fold-changes identical regardless of choice).
-# MaxQuant uses the first experiment in mqpar.xml; default: first sample alphabetically.
-_mqpar  = sys.argv[3] if len(sys.argv) > 3 else None
-_anchor = samples[0]
-if _mqpar:
-    import xml.etree.ElementTree as _ET
-    _exps = [el.text for el in _ET.parse(_mqpar).getroot().findall('.//experiments/string')]
-    if _exps:
-        _a = str(_exps[0]).strip()
-        _anchor = _a if _a in samples else samples[0]
-        if _a not in samples:
-            print(f"WARNING: mqpar anchor '{_a}' not in samples — using {samples[0]}")
 
-Nj = Nj / Nj[samples.index(_anchor)]
-print(f"\nanchor : {_anchor}  (N = 1.000000)")
-for s, v in zip(samples, Nj): print(f"  N[{s}] = {v:.6f}")
+# -----------------------------
+# GLOBAL NORMALIZATION (Fig 2C)
+# -----------------------------
+def estimate_global_normalization(df):
 
-# ── per-protein MaxLFQ ────────────────────────────────────────────────────────
-wide_N  = wide.multiply(Nj, axis='columns')   # normalised species matrix
-wide_Nr = wide_N.reset_index()                 # _species, _razor as columns
+    runs = df["Raw file"].unique()
+    idx = {r: i for i, r in enumerate(runs)}
 
-def _cc(logP):
-    """Label samples by connected component in co-observation graph."""
-    ns  = logP.shape[1]
-    lbl = np.full(ns, -1, dtype=int)
-    adj = (np.isfinite(logP).T @ np.isfinite(logP)) > 0
-    np.fill_diagonal(adj, False)
-    cc = 0
-    for i in range(ns):
-        if lbl[i] != -1 or not np.isfinite(logP[:,i]).any(): continue
-        q = [i]; lbl[i] = cc
-        while q:
-            nd = q.pop()
-            for nb in np.where(adj[nd])[0]:
-                if lbl[nb] == -1: lbl[nb] = cc; q.append(nb)
-        cc += 1
-    return lbl
+    rows = []
 
-def maxlfq(mat):
-    """
-    MaxLFQ per-protein profile from normalised species matrix (n_species × n_samples).
-    Returns profile (n_samples,) with NaN for unquantifiable samples.
-    Single-sample connected components get LFQ = normalised intensity directly
-    (classicLfqForSingleShots behaviour).
-    """
-    logP    = np.log2(mat)
-    ns      = logP.shape[1]
-    lbl     = _cc(logP)
-    profile = np.full(ns, np.nan)
+    for sp, sub in df.groupby("species"):
 
-    for cc in range(int(lbl.max())+1 if lbl.max() >= 0 else 0):
-        idx = np.where(lbl==cc)[0]
-        nc  = len(idx)
-        lp  = logP[:, idx]
-        nm  = np.nanmax(mat[:, idx], axis=0)   # rescaling target per sample
+        sub = sub.sort_values("Raw file")
 
-        if nc == 1:
-            profile[idx[0]] = nm[0]
+        for i in range(len(sub)):
+            for j in range(i + 1, len(sub)):
+
+                ri = sub.iloc[i]["Raw file"]
+                rj = sub.iloc[j]["Raw file"]
+
+                Ii = sub.iloc[i]["Intensity"]
+                Ij = sub.iloc[j]["Intensity"]
+
+                r_ij = np.log(Ii) - np.log(Ij)
+
+                rows.append((ri, rj, r_ij))
+
+    def residuals(x):
+        res = []
+        for ri, rj, r_ij in rows:
+            res.append(x[idx[ri]] - x[idx[rj]] - r_ij)
+        return np.array(res)
+
+    def residuals_reduced(x):
+        full = np.concatenate([[0], x])  # anchor first run
+        return residuals(full)
+
+    x0 = np.zeros(len(runs) - 1)
+
+    sol = least_squares(residuals_reduced, x0, method="trf")
+
+    x = np.concatenate([[0], sol.x])
+
+    N = {runs[i]: np.exp(x[i]) for i in range(len(runs))}
+
+    return N
+
+def rescale_maxquant(df, lfq, N):
+
+    scaled = {}
+
+    for prot, sub in df.groupby("Leading razor protein"):
+
+        if prot not in lfq.index:
             continue
 
-        # pairwise median log2-ratios over shared species (GPT v2 idea: explicit merge clarity)
-        rat = np.full((nc, nc), np.nan)
-        for j, k in combinations(range(nc), 2):
-            sh = np.isfinite(lp[:,j]) & np.isfinite(lp[:,k])
-            if sh.sum() < 1: continue
-            m = float(np.median((lp[:,j] - lp[:,k])[sh]))
-            rat[j,k] = m; rat[k,j] = -m
+        runs = lfq.columns
+        x = lfq.loc[prot].copy()
 
-        has_r = np.any(np.isfinite(rat), axis=1)
-        rows, vals = [], []
-        for j, k in combinations(range(nc), 2):
-            if np.isfinite(rat[j,k]) and has_r[j] and has_r[k]:
-                r = np.zeros(nc); r[j]=1.; r[k]=-1.
-                rows.append(r); vals.append(rat[j,k])
+        # Step 1: compute ALL normalized peptide intensities
+        all_vals = []
 
-        if not rows:
-            p = np.full(nc, np.nan); p[has_r] = nm[has_r]; profile[idx] = p; continue
+        for _, row in sub.iterrows():
+            run = row["Raw file"]
+            if run not in N:
+                continue
+            val = row["Intensity"] * N[run]
+            if np.isfinite(val):
+                all_vals.append(val)
 
-        sol, _, _, _ = np.linalg.lstsq(np.array(rows), np.array(vals), rcond=None)
-        p = 2.**sol; p[~has_r] = np.nan
-        act = has_r & np.isfinite(p) & (p>0) & np.isfinite(nm)
-        if act.any(): p *= np.nansum(nm[act]) / np.nansum(p[act])   # rescale to normalised sum
-        p[~has_r] = np.nan; profile[idx] = p
+        if len(all_vals) == 0:
+            continue
 
-    return profile
+        # Step 2: single global max (critical MQ rule)
+        scale = np.max(all_vals)
 
-recs = []
-for prot, grp in wide_Nr.groupby('_razor'):
-    mat  = grp[samples].values.astype(float); mat[mat==0] = np.nan
-    prof = maxlfq(mat)
-    recs.append({'Protein': prot,
-                 **{f'calc_{s}': float(v) if np.isfinite(v) and v>0 else np.nan
-                    for s, v in zip(samples, prof)}})
-dfCalc = pd.DataFrame(recs).set_index('Protein')
+        # Step 3: scale LFQ
+        scaled_vals = np.exp(np.log(x) - np.nanmax(np.log(x))) * scale
 
-# ── load proteinGroups ────────────────────────────────────────────────────────
-pg = pd.read_csv(sys.argv[2], sep='\t', low_memory=False)
-for c in ['Reverse','Potential contaminant','Contaminant']:
-    if c in pg.columns: pg = pg[pg[c].astype(str).str.strip()!='+']
-pg = pg.set_index('Majority protein IDs')
-pgLFQ = (pg[[c for c in pg.columns if c.startswith('LFQ intensity ')]]
-           .apply(pd.to_numeric, errors='coerce').replace(0, np.nan))
-pgLFQ.columns = pgLFQ.columns.str.removeprefix('LFQ intensity ')
-pgLFQ.index   = [i.split(';')[0].strip() for i in pgLFQ.index]
-shared_s = [s for s in samples if s in pgLFQ.columns]
+        scaled[prot] = dict(zip(runs, scaled_vals))
 
-# ── merge report ──────────────────────────────────────────────────────────────
-common  = dfCalc.index.intersection(pgLFQ.index)
-ev_only = dfCalc.index.difference(pgLFQ.index)
-pg_only = pgLFQ.index.difference(dfCalc.index)
+    return pd.DataFrame(scaled).T
 
-print(f"\nmerge: evidence._razor ↔ proteinGroups.Majority_protein_IDs (first token)")
-print(f"  quantified in evidence : {len(dfCalc)}")
-print(f"  in proteinGroups       : {len(pgLFQ)}")
-print(f"  common (compared)      : {len(common)}")
+# -----------------------------
+# SOLVE LFQ (Fig 2F exact)
+# -----------------------------
+def solve_lfq(df, N):
 
-razors_noint = set(ev_noint['Leading razor protein'].astype(str)
-                             .str.split(';').str[0].str.strip().unique())
-if ev_only.size:
-    print(f"\n  in evidence only ({len(ev_only)}):")
-    for p in sorted(ev_only): print(f"    {p}")
-if pg_only.size:
-    print(f"\n  in proteinGroups only ({len(pg_only)}):")
-    for p in sorted(pg_only):
-        reason = ("identified but Intensity=NaN" if p in razors_noint else "absent from evidence")
-        print(f"    {p}  [{reason}]")
+    results = {}
 
-# ── comparison table ──────────────────────────────────────────────────────────
-rows = []
-for prot in sorted(common):
-    rec = {'Protein': prot}
-    for s in shared_s:
-        c = dfCalc.loc[prot, f'calc_{s}']
-        m = pgLFQ.loc[prot, s]
-        rec[f'calc_{s}'] = c
-        rec[f'pg_{s}']   = m
-        rec[f'log2diff_{s}'] = (np.log2(float(c)) - np.log2(float(m))
-                                 if pd.notna(c) and c>0 and pd.notna(m) and m>0
-                                 else np.nan)
-    rows.append(rec)
-dfOut = pd.DataFrame(rows).set_index('Protein')
+    for prot, sub in df.groupby("Leading razor protein"):
 
-_out = os.path.basename(sys.argv[1]) + '.maxLFQ_comparison.tsv'
-dfOut.to_csv(_out, sep='\t')
+        runs = sorted(sub["Raw file"].unique())
+        idx = {r: i for i, r in enumerate(runs)}
 
-hdr = f"  {'Protein':<35}" + ''.join(
-      f"  {'calc_'+s:>14} {'pg_'+s:>14} {'Δlog2':>7}" for s in shared_s)
-print(f"\n{'─'*len(hdr)}\n{hdr}\n{'─'*len(hdr)}")
-for prot in sorted(common):
-    row = f"  {prot:<35}"
-    for s in shared_s:
-        c = dfOut.loc[prot, f'calc_{s}']
-        m = dfOut.loc[prot, f'pg_{s}']
-        d = dfOut.loc[prot, f'log2diff_{s}']
-        row += (f"  {c:>14.4e}" if pd.notna(c) else f"  {'NaN':>14}")
-        row += (f" {m:>14.4e}" if pd.notna(m) else f" {'NaN':>14}")
-        row += (f" {d:>+7.3f}" if pd.notna(d) else f" {'NaN':>7}")
-    print(row)
+        if len(runs) <= 1:
+            continue
 
-all_d = dfOut[[f'log2diff_{s}' for s in shared_s]].values.flatten()
-all_d = all_d[np.isfinite(all_d)]
-if len(all_d):
-    print(f"\n  n={len(all_d)}  MAE={np.mean(np.abs(all_d)):.4f}  "
-          f"bias={np.mean(all_d):+.4f}  95th|Δ|={np.percentile(np.abs(all_d),95):.4f}  log2")
-print(f'\noutput → {_out}')
+        rows = []
+
+        for sp, sp_sub in sub.groupby("species"):
+
+            sp_sub = sp_sub.sort_values("Raw file")
+
+            for i in range(len(sp_sub)):
+                for j in range(i + 1, len(sp_sub)):
+
+                    ri = sp_sub.iloc[i]["Raw file"]
+                    rj = sp_sub.iloc[j]["Raw file"]
+
+                    Ii = sp_sub.iloc[i]["Intensity"]
+                    Ij = sp_sub.iloc[j]["Intensity"]
+
+                    r_ij = np.log(N[ri] * Ii) - np.log(N[rj] * Ij)
+
+                    rows.append((ri, rj, r_ij))
+
+        if len(rows) == 0:
+            continue
+
+        def residuals(x):
+            res = []
+            for ri, rj, r_ij in rows:
+                res.append(x[idx[ri]] - x[idx[rj]] - r_ij)
+            return np.array(res)
+
+        def residuals_reduced(x):
+            full = np.concatenate([[0], x])
+            return residuals(full)
+
+        x0 = np.zeros(len(runs) - 1)
+
+        sol = least_squares(residuals_reduced, x0, method="trf")
+
+        x = np.concatenate([[0], sol.x])
+        vals = np.exp(x)
+
+        # -----------------------------
+        # MQ scaling constraint (MAX)
+        # -----------------------------
+        S = []
+
+        for r in runs:
+            sub_run = sub[sub["Raw file"] == r]
+
+            if len(sub_run) > 0:
+                S.append(np.max(sub_run["Intensity"] * N[r]))
+            else:
+                S.append(np.nan)
+
+        S = np.array(S)
+        mask = ~np.isnan(S)
+
+        if np.any(mask):
+            c = np.nanmax(S[mask]) / np.nanmax(vals[mask] * S[mask])
+        else:
+            c = 1.0
+
+        vals = vals * c
+
+        results[prot] = dict(zip(runs, vals))
+
+    return pd.DataFrame(results).T
+
+
+# -----------------------------
+# DIAGNOSTICS (Q2KIF2)
+# -----------------------------
+def report_q2kif2(lfq, N, df):
+
+    prot = "Q2KIF2"
+
+    if prot not in lfq.index:
+        print("\nQ2KIF2 not found")
+        return
+
+    print("\n==============================")
+    print("Q2KIF2 DIAGNOSTICS")
+    print("==============================")
+
+    print("\nLFQ values:")
+    print(lfq.loc[prot])
+
+    # MQ reference (given)
+    MQ_REF = {
+        "Flush01_20251203085025": 172860,
+        "Flush01_20260308233519": 164540,
+        "Flush01_20260309024925": 181600,
+    }
+
+    print("\nlog2 differences vs MQ:")
+    for run in lfq.columns:
+        if run in MQ_REF and not np.isnan(lfq.loc[prot, run]):
+            calc = lfq.loc[prot, run]
+            ref = MQ_REF[run]
+            log2diff = np.log2(calc / ref)
+            print(f"{run}: {calc:.1f} vs {ref} → Δlog2 = {log2diff:+.3f}")
+
+    # inspect dominant peptide
+    print("\nTop contributing peptide (per run):")
+
+    sub = df[df["Leading razor protein"] == prot]
+
+    for run in lfq.columns:
+        sub_run = sub[sub["Raw file"] == run]
+        if len(sub_run) == 0:
+            continue
+
+        sub_run = sub_run.copy()
+        sub_run["norm_int"] = sub_run["Intensity"] * N[run]
+
+        top = sub_run.sort_values("norm_int", ascending=False).iloc[0]
+
+        print(f"{run}: {top['Sequence']} (z{top['Charge']}) → {top['norm_int']:.1f}")
+
+
+# -----------------------------
+# MAIN
+# -----------------------------
+def run(path):
+
+    df = load_evidence(path)
+
+    print("Loaded:", df.shape)
+    print("Runs:", df["Raw file"].unique())
+
+    print("\nEstimating normalization...")
+    N = estimate_global_normalization(df)
+    print("\nN_j:", N)
+
+    print("\nSolving LFQ (Fig 2F exact)...")
+    lfq = solve_lfq(df, N)
+
+    print("\nLFQ (scaled):")
+    print(lfq)
+
+    scaled_lfq = rescale_maxquant(df, lfq, N)
+    print("\nLFQ (scaled to MQ max):")
+    print(scaled_lfq)
+
+    report_q2kif2(lfq, N, df)
+
+
+# -----------------------------
+if __name__ == "__main__":
+    run(r"F:\maxlLFQ\combined\txt\evidence.txt")
