@@ -1,5 +1,5 @@
-#..\R-4.4.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "SB" "LB" 0.1 0.5 0.15
-#..\R-4.4.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "SA" "LA" 0.1 0.5 0.15   
+#..\R-4.5.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2026\260310_BARATH\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2026\260310_BARATH\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "Pole1D275A" "Pole1WT" 0.1 0.5 0.1
+#..\R-4.5.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2026\260310_BARATH\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2026\260310_BARATH\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "Pole1P286R" "Pole1WT" 0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -13,9 +13,9 @@ if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of protei
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2024/241118_Deo/tot/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2026/260310_BARATH/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2024/241118_Deo/tot/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2026/260310_BARATH/combined/txt/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
@@ -23,9 +23,9 @@ rGroup <- args[4]
 selection <- args[5]
 #selection<-"LFQ.intensity."
 sample <- args[6]
-#sample<-"C6"
+#sample<-"Pole1D275A"
 control <- args[7]
-#control<-"C1"
+#control<-"Pole1WT"
 selThr <- args[8]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
