@@ -1,4 +1,4 @@
-#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250507_Alessandro\combined\txt\Groups.txt" "Condition" "Remove" "LFQ.intensity." "LA" "LB" 0.1 0.5 100
+#..\R-4.4.0\bin\Rscript.exe diffExprTestTpair.r "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2025\250404_Alessandro\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "SA" "SB" 0.05 0.5 100
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -12,13 +12,13 @@ if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of protei
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2025/250507_Alessandro/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2025/250404_Alessandro/combined/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2025/250507_Alessandro/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2025/250404_Alessandro/combined/txt/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Condition"
+#lGroup<-"Bio"
 rGroup <- args[4]
-#rGroup<-"Remove"
+#rGroup<-"Rem"
 selection <- args[5]
 #selection<-"LFQ.intensity."
 sample <- args[6]
@@ -26,13 +26,13 @@ sample <- args[6]
 control <- args[7]
 #control<-"SB"
 selThr <- args[8]
-#selThr=0.1#corrected-pValue-tTest
+#selThr=0.1#pValue-tTest
 selThr <- as.numeric(selThr)
 selThrFC <- args[9]
-#selThrFC=0.5#log2-MeanDifference
+#selThrFC=1#log2-MeanDifference
 selThrFC <- as.numeric(selThrFC)
 cvThr <- args[10]
-#cvThr=100#threshold for coefficient-of-variation
+#cvThr=0.05#threshold for coefficient-of-variation
 cvThr <- as.numeric(cvThr)
 inpD<-dirname(inpF)
 fName<-basename(inpF)
@@ -70,7 +70,6 @@ boxplot(countTableDAuniGORNAdds,las=2)
 IntVST<-as.matrix(intdata)
 IntVST[IntVST==0]=NA
 LFQvsn <- vsn::justvsn(IntVST)
-colnames(LFQvsn)<-gsub(selection,"",colnames(log2Int))
 hist(LFQvsn)
 vsn::meanSdPlot(LFQvsn)
 vsn::meanSdPlot(LFQvsn,ranks = FALSE)
@@ -116,9 +115,9 @@ write.csv(log2Int,paste0(inpF,selection,"log2.csv"))
 testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
   #sel1<-"SA"
   #sel2<-"SB"
-  #log2LFQ<-LFQvsn#log2LFQsel#MMdata#log2LFQsel#log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
+  #log2LFQ<-log2LFQsel#MMdata#log2LFQsel#log2LFQ[,gsub("-",".",rownames(label[is.na(label$removed)|label$removed==" "|label$removed=='',]))]
   #colnames(log2LFQ)
-  #dfName="LFQvsn"#"log2LFQsel"
+  #dfName="log2LFQselMMdata"#"log2LFQsel"
   d1<-data.frame(log2LFQ[,gsub("-",".",rownames(label[label$pair2test==sel1,]))])
   colnames(d1)<-gsub("-",".",rownames(label[label$pair2test==sel1,]))
   d1<-d1[,order(colnames(d1))]
@@ -224,9 +223,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
       limma::vennDiagram(hda>0)
       logFCmean = apply(
         dataSellog2grpTtest, 1, function(x)
-        if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))<1){NA}
-        else if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))>=1){-1*mean(x[c((mCol+1):eCol)],na.rm=T)}
-        else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))<1){mean(x[c(sCol:mCol)],na.rm=T)}
+          if(sum(!is.na(x[c(sCol:mCol)]))<1&sum(!is.na(x[c((mCol+1):eCol)]))<1){NA}
         else if(sum(!is.na(x[c(sCol:mCol)]))>=1&sum(!is.na(x[c((mCol+1):eCol)]))>=1){
           v1=as.numeric(x[c(sCol:mCol)])
           v2=as.numeric(x[c((mCol+1):eCol)])
@@ -234,7 +231,7 @@ testT <- function(log2LFQ,sel1,sel2,cvThr,dfName){
           v2[is.na(v2)]<-0
           vC=v1-v2
           vC[vC==0]<-NA
-          mean(vC,na.rm=T)}
+          mean(vC)}
         else{NA}
       )
       logFCmeanFC = 2^(logFCmean+.Machine$double.xmin)
@@ -283,9 +280,7 @@ inpFL<-c()
 if(sample!=control){
     print(paste(sample,control))
     inpFL<-c(inpFL,paste0(sample,control))
-    ttPairlog2Int=testT(log2LFQsel,sample,control,cvThr,"log2Int")
-    assign(paste0(sample,control),ttPairlog2Int)
-    ttPairlLFQvsn=testT(LFQvsn,sample,control,cvThr,"LFQvsn")
-    assign(paste0(sample,control),ttPairlLFQvsn)
+    ttPair=testT(log2LFQsel,sample,control,cvThr,selection)
+    assign(paste0(sample,control),ttPair)
 }
 print(paste("results saved in:",paste0(inpF,selection,selThr,selThrFC,cvThr,lGroup,rGroup,lName,control),"csv, xlsx, and svg files"))
