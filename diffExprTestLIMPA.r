@@ -1,74 +1,77 @@
-# "c:\Program Files\r\R-4.5.1\bin\Rscript.exe" diffExprTestLIMPA.r
+# "c:\Program Files\r\R-4.5.2\bin\Rscript.exe" diffExprTestLIMPA.r
 #setup####
-#install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
-#BiocManager::install(c("limpa","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
+#BiocManager::install(c("limpa","pheatmap"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
 library(limpa) #https://bioconductor.org/packages/release/bioc/vignettes/limpa/inst/doc/limpa.html
 set.seed(42)
-#data https://bioshare.bioinformatics.ucdavis.edu/bioshare/view/sc_2023_2025/#
-#wget -r --level=10 -nH -nc --cut-dirs=3 --no-parent --reject "wget_index.html" --no-check-certificate --header "Cookie: sessionid=None;" https://bioshare.bioinformatics.ucdavis.edu/bioshare/wget/6a4r34mb3d8ytdh/wget_index.html
 #label####
-labelF <- "L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/Groups.txt"   # built from exported column names
-preLab<-"250902_Alessandro_"
+labelF <- "L:/promec/TIMSTOF/LARS/2024/240605_Veronica/saga/txt/Groups.txt"   # built from exported column names
 annoData<-read.table(labelF,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
-rownames(annoData)<-paste0(preLab,rownames(annoData))
 print(annoData)
 #data####
-inpF<-"L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.parquet"
-y.peptide <- readDIANN(inpF)
-y.peptide <- filterNonProteotypicPeptides(y.peptide)
+inpF<-"L:/promec/TIMSTOF/LARS/2024/240605_Veronica/saga/txt/peptides.txt"
+y.peptide <- readMaxQuant(inpF)
 dpcFit    <- dpc(y.peptide)
 #plot####
 outP=paste(inpF,"TestLIMPA","pdf",sep = ".")
 pdf(outP)
 plotDPC(dpcFit)
-y.proteinGroup <- dpcQuant(y.peptide, "Protein.Group", dpc = dpcFit)
+y.proteinGroup <- dpcQuant(y.peptide, "Leading razor protein", dpc = dpcFit)
 log2Int<-y.proteinGroup[["E"]]
 print(dim(log2Int))
 write.csv(log2Int,paste0(inpF,"pg.log2Int.csv"))
-boxplot(log2Int,las=2)
-svgPHC<-pheatmap::pheatmap(log2Int)
 log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="pearson")
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr)
-ggplot2::ggsave(paste0(inpF,"log2Intcluster.svg"), svgPHC)
-write.csv(log2Int,paste0(inpF,selection,"log2Int.csv"))
-#scale####
-countTableDAuniGORNAddsMed<-apply(log2Int,1,function(x) median(x,na.rm=T))
-hist(countTableDAuniGORNAddsMed)
-countTableDAuniGORNAddsSD<-apply(log2Int,1,function(x) sd(x,na.rm=T))
-hist(countTableDAuniGORNAddsSD)
-countTableDAuniGORNAdds<-(log2Int-countTableDAuniGORNAddsMed)#/countTableDAuniGORNAddsSD
-hist(countTableDAuniGORNAdds)
-boxplot(countTableDAuniGORNAdds,las=2)
+ggplot2::ggsave(paste0(inpF,"log2Int.corr.svg"), svgPHC)
 #des####
-annoData <- annoData[colnames(y.peptide$E), ]
+annoData <- annoData[colnames(y.peptide$E), , drop = FALSE]
 stopifnot(identical(colnames(y.proteinGroup$E), colnames(y.peptide$E)))
 stopifnot(identical(rownames(annoData), colnames(y.peptide$E)))
-annoData$Group <- factor(annoData$Group)#, levels = c("GR", "PR"))
-levels(annoData$Group) <- make.names(levels(annoData$Group))
-#annoData$Group <- factor(targets$year)
-design <- model.matrix(~ Group , data = annoData)
-head(design)
+# Explicit 6 biological groups in the order we want
+grp_levels <- c("CT26_1", "CT26_2", "CT26_3", "KPC_1", "KPC_2", "KPC_3")
+annoData$Group <- factor(annoData$Cell_Rep, levels = grp_levels)
+stopifnot(!any(is.na(annoData$Group)))
+annoData$Group <- factor(make.names(as.character(annoData$Group)),levels = make.names(grp_levels))
+# use ~0 + Group so each column is a group mean directly
+design <- model.matrix(~ 0 + Group, data = annoData)
+colnames(design) <- levels(annoData$Group)
+print(head(design))
+print(colnames(design))
+print(table(annoData$Group))
+# Colors for MDS (same 6 groups)
 Group.color <- annoData$Group
-levels(Group.color) <- c("blue","orange")
-plotMDSUsingSEs(y.proteinGroup, pch = 16, col = as.character(Group.color),main = "MDS by Sample Prep Group", cex = 1, gene.selection = "common")
-#test####
-fit <- dpcDE(y.proteinGroup, design, plot = TRUE)
+levels(Group.color) <- c("blue", "orange", "darkgreen", "cyan", "magenta", "pink")
+plotMDSUsingSEs(y.proteinGroup,pch = 16,col = as.character(Group.color),main = "MDS by Cell_Rep group",cex = 1,gene.selection = "common")
+# Base fit
+fit0 <- dpcDE(y.proteinGroup, design, plot = TRUE)
+# Explicit 10 contrasts
+contr <- makeContrasts(
+  # 1) Overall cell-line comparison
+  CellLine_KPC_vs_CT26 =
+    (KPC_1 + KPC_2 + KPC_3)/3 - (CT26_1 + CT26_2 + CT26_3)/3,
+  # 2-4) Overall experiment comparisons
+  Exp2_vs_1_overall =
+    (KPC_2 + CT26_2)/2 - (KPC_1 + CT26_1)/2,
+  Exp3_vs_1_overall =
+    (KPC_3 + CT26_3)/2 - (KPC_1 + CT26_1)/2,
+  Exp3_vs_2_overall =
+    (KPC_3 + CT26_3)/2 - (KPC_2 + CT26_2)/2,
+  # 5-7) KPC-specific comparisons
+  KPC_2_vs_1 = KPC_2 - KPC_1,
+  KPC_3_vs_1 = KPC_3 - KPC_1,
+  KPC_3_vs_2 = KPC_3 - KPC_2,
+  # 8-10) CT26-specific comparisons
+  CT26_2_vs_1 = CT26_2 - CT26_1,
+  CT26_3_vs_1 = CT26_3 - CT26_1,
+  CT26_3_vs_2 = CT26_3 - CT26_2,
+  levels = design
+)
+print(contr)
+fit <- contrasts.fit(fit0, contr)
 fit <- eBayes(fit)
-topTable(fit)
-write.csv(topTable(fit,number =dim(log2Int)[1]), paste0(inpF,"pg.topTable.csv"))
-#dat <- readDIANN(report_file)#,format    = "parquet")#,q.columns = c("Q.Value","Lib.Q.Value","Lib.PG.Q.Value"),q.cutoffs = 0.01)
-#dim(dat$genes)
-#dat <- filterNonProteotypicPeptides(dat)
-#dat <- filterCompoundProteins(dat)
-#dat <- filterSingletonPeptides(dat, min.n.peptides = 2)  # optional
-#write.csv2(colnames(dat$E), "colnames.txt")
-#dpcfit    <- dpc(dat)
-#plotDPC(dpcfit)
-#y.protein <- dpcQuant(dat, "Protein.Group", dpc = dpcfit)
-#boxplot(y.protein[["E"]],las=2)
-#svgPHC<-pheatmap::pheatmap(y.protein[["E"]])
-#dpcest <- dpc(y.peptide)
-#y.protein <- dpcQuant(y.peptide, protein.id, dpc=dpcest)
-#fit <- dpcDE(y.protein, design)
-#fit <- eBayes(fit)
-#topTable(fit)
+print(topTable(fit, coef = "CT26_3_vs_2"))
+write.csv(as.data.frame(contr),paste0(inpF, ".pg.contrast_matrix.csv"))
+# Write one full result file per contrast
+for (cn in colnames(contr)) {
+  tt <- topTable(fit,coef = cn,number = nrow(log2Int),sort.by = "P")
+  write.csv(tt,paste0(inpF, ".pg.", cn, ".csv"))
+}
