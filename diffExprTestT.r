@@ -1,5 +1,4 @@
-#..\R-4.5.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2026\260310_BARATH\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2026\260310_BARATH\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "Pole1D275A" "Pole1WT" 0.1 0.5 0.1
-#..\R-4.5.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2026\260310_BARATH\combined\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2026\260310_BARATH\combined\txt\Groups.txt" "Bio" "Rem" "LFQ.intensity." "Pole1P286R" "Pole1WT" 0.1 0.5 0.1
+#..\R-4.5.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240605_Veronica\saga\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240605_Veronica\saga\txt\Groups.txt" "Cell_Rep" "Rem" "LFQ.intensity." "CT26_2" "CT26_1" 0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -13,19 +12,19 @@ if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of protei
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2026/260310_BARATH/combined/txt/proteinGroups.txt"
+#inpF <-"L:/promec/TIMSTOF/LARS/2024/240605_Veronica/saga/txt/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2026/260310_BARATH/combined/txt/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2024/240605_Veronica/saga/txt/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Bio"
+#lGroup<-"Cell_Rep"
 rGroup <- args[4]
 #rGroup<-"Rem"
 selection <- args[5]
 #selection<-"LFQ.intensity."
 sample <- args[6]
-#sample<-"Pole1D275A"
+#sample<-"CT26_2"
 control <- args[7]
-#control<-"Pole1WT"
+#control<-"CT26_1"
 selThr <- args[8]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
@@ -108,6 +107,7 @@ bk <- c(bk1,bk2)  #combine the break limits for purpose of graphing
 palette <- c(colorRampPalette(colors = c("white", "yellow"))(n = length(bk1)-1),"yellow", "yellow",c(colorRampPalette(colors = c("yellow","red"))(n = length(bk2)-1)))
 colnames(log2Intimp)<-colnames(log2Int)
 log2IntimpCorr<-cor(log2Int,use="pairwise.complete.obs",method="pearson")
+log2IntimpCorrInt<-log2IntimpCorr
 colnames(log2IntimpCorr)<-colnames(log2Int)
 rownames(log2IntimpCorr)<-colnames(log2Int)
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr,color = palette,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = anno,annotation_col = anno)
@@ -122,6 +122,11 @@ ggplot2::ggsave(paste0(inpF,selection,lGroup,rGroup,lName,"log2IntcountTableDAun
 write.csv(log2Int,paste0(inpF,selection,"log2IntcountTableDAuniGORNAdds.csv"))
 #corHCvsnint####
 log2IntimpCorr<-cor(LFQvsn,use="pairwise.complete.obs",method="pearson")
+log2IntimpCorrVsn<-log2IntimpCorr
+hist(log2IntimpCorrInt-log2IntimpCorrVsn)
+hist(log2Int-LFQvsn,na.rm = T)
+range(log2IntimpCorrInt-log2IntimpCorrVsn)
+range(log2Int-LFQvsn,na.rm = T)
 colnames(log2IntimpCorr)<-colnames(LFQvsn)
 rownames(log2IntimpCorr)<-colnames(LFQvsn)
 svgPHC<-pheatmap::pheatmap(log2IntimpCorr,color = palette,clustering_distance_rows = "euclidean",clustering_distance_cols = "euclidean",fontsize_row=6,cluster_cols=T,cluster_rows=T,fontsize_col  = 6,annotation_row = anno,annotation_col = anno)
