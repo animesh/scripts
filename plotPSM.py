@@ -1,395 +1,310 @@
-#python plotPSM.py "L:\promec\HF\Lars\2026\260330_Essa\combined\txt\msms_alsS_LTGKPGVVLVTSGPGASNLATGLLTANTEGDPVVALAGNVIR.txt" "L:\promec\HF\Lars\2026\260330_Essa\combined\txt\evidence_alsS_LTGKPGVVLVTSGPGASNLATGLLTANTEGDPVVALAGNVIR.txt" --out "alsS_LTGKPGVVLVTSGPGASNLATGLLTANTEGDPVVALAGNVIR.png" #L:\promec\HF\Lars\2026\260330_Essa\combined\txt\msms_alsS_AHPLEIVK.txt L:\promec\HF\Lars\2026\260330_Essa\combined\txt\evidence_alsS_AHPLEIVK.txt --out alsS_AHPLEIVK_test.png
-#plot an annotated MS/MS spectrum using an MSMS peak list and an evidence record, script attempts to auto-detect common column names. It computes b/y ion masses from the peptide sequence and annotates matched peaks.
+#!/usr/bin/env python3
+"""
+Plot an annotated MS/MS spectrum from MaxQuant msms.txt + evidence.txt.
+
+Usage:
+    python plot_msms.py <msms.txt> <evidence.txt> [--out output.png]
+
+Data flow (verified against MaxQuant output in session):
+  - evidence.txt : pick best row by max Score; use 'Best MS/MS' id to locate scan
+  - msms.txt     : find row where id == Best MS/MS
+  - Masses2 / Intensities2 : full observed spectrum (all peaks)
+  - Masses / Intensities / Matches : observed m/z, intensity, label for matched ions
+    (Masses stores observed m/z values, identical to entries in Masses2)
+  - MS/MS m/z in evidence : raw selected precursor m/z (includes isotope offset)
+"""
+
 import argparse
-from pathlib import Path
+import re
 import sys
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import re
 
-PROTON = 1.007276466812
-H2O = 18.010564684
 
-# Monoisotopic residue masses (average commonly used set)
-AA_MONO = {
-    'A': 71.03711, 'R': 156.10111, 'N': 114.04293, 'D': 115.02694,
-    'C': 103.00919, 'E': 129.04259, 'Q': 128.05858, 'G': 57.02146,
-    'H': 137.05891, 'I': 113.08406, 'L': 113.08406, 'K': 128.09496,
-    'M': 131.04049, 'F': 147.06841, 'P': 97.05276, 'S': 87.03203,
-    'T': 101.04768, 'W': 186.07931, 'Y': 163.06333, 'V': 99.06841,
+# ── Ion colour map ────────────────────────────────────────────────────────────
+# Keyed on the first token of the label (before digits / modifiers)
+ION_COLORS = {
+    'y':  '#2166ac',   # blue
+    'b':  '#d6604d',   # red-orange
+    'a':  '#f4a582',   # pale orange
+    'c':  '#4dac26',   # green  (ETD)
+    'z':  '#b8e186',   # light green (ETD)
+    'IM': '#7b3294',   # purple  (immonium)
+    '_':  '#888888',   # internal fragments (PL, LE, IV …)
 }
+GREY = '#aaaaaa'
 
 
-def find_column(df, patterns):
-    for c in df.columns:
-        low = c.lower()
-        if any(p in low for p in patterns):
-            return c
-    return None
+def ion_color(label: str) -> str:
+    """Return colour for an ion label string."""
+    for prefix, color in ION_COLORS.items():
+        if label.startswith(prefix):
+            return color
+    return ION_COLORS['_']
 
 
-def sanitize_sequence(seq: str):
-    seq_letters = ''.join(re.findall(r'[A-Z]', str(seq).upper()))
-    return seq_letters
+def format_label(raw_label: str, sequence: str, mz: float) -> str:
+    """
+    Format ion label as shown in MaxQuant Viewer:
+        b2(1+) AH 209.1
+        y11(2+) PVVALAGNVIR 1108.7
+        y1-NH3(1+) K 130.1
+        a2(1+) AH 181.1
+
+    Rules:
+    - If charge not already in label (e.g. b2, y1-NH3) append (1+)
+    - For b/a ions: sequence fragment = first N residues
+    - For y ions:   sequence fragment = last N residues
+    - Append observed m/z rounded to 1 decimal
+    - Non-b/y/a ions (immonium, internal): just add charge + mz, no fragment
+    """
+    n = len(sequence)
+    has_charge = bool(re.search(r'\(\d+\+\)', raw_label))
+    charge_suffix = '' if has_charge else '(1+)'
+
+    # Strip existing charge notation to parse core ion
+    base = re.sub(r'\(\d+\+\)', '', raw_label)
+    core = re.split(r'[-]', base)[0]          # strip -NH3, -H2O etc
+    m = re.match(r'^([aby])(\d+)$', core)
+    if not m:
+        return f"{raw_label}{charge_suffix} {mz:.1f}"
+
+    ion_type = m.group(1)
+    ion_num  = min(int(m.group(2)), n)
+    fragment = sequence[:ion_num] if ion_type in ('b', 'a') else sequence[n - ion_num:]
+    return f"{raw_label}{charge_suffix} {fragment} {mz:.1f}"
 
 
-def choose_evidence_row(df: pd.DataFrame):
-    seq_col = find_column(df, ['sequence', 'peptide'])
-    score_col = None
-    for c in df.columns:
-        if c.strip().lower() == 'score':
-            score_col = c
-            break
-    if score_col is None:
-        for c in df.columns:
-            if 'score' in c.lower() and 'match score' not in c.lower():
-                score_col = c
-                break
-    pep_col = None
-    for c in df.columns:
-        if c.strip().lower() == 'pep':
-            pep_col = c
-            break
-    if seq_col is None:
-        return df.iloc[0]
-    if score_col is not None:
-        return df.loc[df[score_col].idxmax()]
-    if pep_col is not None:
-        return df.loc[df[pep_col].idxmin()]
+# ── I/O helpers ───────────────────────────────────────────────────────────────
+
+def _parse_semi(s) -> np.ndarray:
+    """Parse a semicolon-separated numeric string into a float array."""
+    if pd.isna(s) or str(s).strip() == '':
+        return np.array([], dtype=float)
+    return np.array([float(x) for x in str(s).split(';') if x.strip() != ''], dtype=float)
+
+
+def load_tsv(path: Path) -> pd.DataFrame:
+    return pd.read_csv(path, sep='\t', low_memory=False)
+
+
+def best_evidence_row(ev_df: pd.DataFrame) -> pd.Series:
+    """
+    Return the evidence row with the highest Score.
+    For multi-charge-state / multi-scan features (e.g. LTGK... with 4 rows)
+    the highest Score row is also the Best MS/MS designation — verified in session.
+    If Score is absent fall back to lowest PEP.
+    """
+    if 'Score' in ev_df.columns:
+        return ev_df.loc[ev_df['Score'].astype(float).idxmax()]
+    if 'PEP' in ev_df.columns:
+        return ev_df.loc[ev_df['PEP'].astype(float).idxmin()]
+    return ev_df.iloc[0]
+
+
+def load_evidence(path: Path):
+    """
+    Returns (ev_row, sequence, precursor_mz, charge, raw_file, scan_number).
+    Uses 'Best MS/MS' id to identify which msms scan to render.
+    'MS/MS m/z' is the RAW selected precursor m/z (including isotope offset).
+    """
+    df = load_tsv(path)
+    # All rows that have a non-empty Sequence
+    seq_col = next((c for c in df.columns if c.lower() == 'sequence'), df.columns[0])
+    df = df[df[seq_col].notna() & (df[seq_col].astype(str).str.strip() != '')]
+
+    ev_row   = best_evidence_row(df)
+    sequence = str(ev_row[seq_col]).strip().upper()
+    charge   = int(float(ev_row['Charge'])) if 'Charge' in ev_row else None
+    # MS/MS m/z = raw precursor m/z as selected by the instrument (isotope-aware)
+    prec_mz  = float(ev_row['MS/MS m/z']) if 'MS/MS m/z' in ev_row else None
+    raw_file = str(ev_row.get('Raw file', ''))
+    # Best MS/MS points to msms.txt 'id' column — use this as primary selector
+    best_msms_id = int(float(ev_row['Best MS/MS'])) if 'Best MS/MS' in ev_row else None
+    return ev_row, sequence, prec_mz, charge, raw_file, best_msms_id
+
+
+def load_msms(path: Path, best_msms_id: int | None):
+    """
+    Load the correct msms row.
+    Priority: match 'id' == best_msms_id → then 'Scan number' from evidence → else first row.
+    Returns the pandas Series for the matched row.
+    """
+    df = load_tsv(path)
+
+    if best_msms_id is not None and 'id' in df.columns:
+        match = df[df['id'].astype(float).fillna(-1).astype(int) == best_msms_id]
+        if len(match):
+            return match.iloc[0]
+        print(f"Warning: id={best_msms_id} not found in msms file; using first row", file=sys.stderr)
+
     return df.iloc[0]
 
 
-def row_scan_number(row):
-    for c in row.index:
-        if 'ms/ms scan number' in c.lower() or c.lower() == 'scan number':
-            try:
-                return int(float(row[c]))
-            except Exception:
-                continue
-    return None
+def extract_spectrum(msms_row: pd.Series):
+    """
+    Returns:
+      full_mz, full_int  — all observed peaks (Masses2/Intensities2)
+      ann_mz, ann_int    — matched-ion peaks (Masses/Intensities)
+      ann_labels         — ion label strings (Matches)
+    """
+    full_mz  = _parse_semi(msms_row.get('Masses2'))
+    full_int = _parse_semi(msms_row.get('Intensities2'))
+    ann_mz   = _parse_semi(msms_row.get('Masses'))
+    ann_int  = _parse_semi(msms_row.get('Intensities'))
+    ann_labels = [x for x in str(msms_row.get('Matches', '')).split(';')
+                  if x.strip() not in ('', 'nan')]
+
+    if len(ann_labels) != len(ann_mz):
+        ann_labels = ['?'] * len(ann_mz)
+
+    return full_mz, full_int, ann_mz, ann_int, ann_labels
 
 
-def parse_semicolon_list(s):
-    if pd.isna(s):
-        return np.array([])
-    items = [x for x in str(s).split(';') if x.strip() != '' and x.strip().lower() != 'nan']
-    try:
-        return np.array([float(x) for x in items])
-    except Exception:
-        return np.array([])
+# ── Plot ──────────────────────────────────────────────────────────────────────
 
+def plot(full_mz, full_int, ann_mz, ann_int, ann_labels,
+         sequence, charge, prec_mz, raw_file, scan_number, score,
+         fragmentation, mass_analyzer, out: Path):
 
-def read_peak_file(path: Path, evidence_row=None):
-    # Read the MSMS file and select the matching scan from evidence if available.
-    for sep in ['\t', ',']:
-        try:
-            df = pd.read_csv(path, sep=sep, low_memory=False)
-        except Exception:
-            continue
-        selected_row = None
-        if evidence_row is not None:
-            scan = row_scan_number(evidence_row)
-            if scan is not None and 'Scan number' in df.columns:
-                matched = df[df['Scan number'].astype(float).fillna(-1).astype(int) == scan]
-                if len(matched) > 0:
-                    selected_row = matched.iloc[0]
-                    print(f"Using MSMS scan {scan} from evidence file")
-                else:
-                    print(f"Warning: evidence scan {scan} not found in MSMS file; using first MSMS row")
-        if selected_row is None:
-            selected_row = df.iloc[0]
+    # Normalise to 100 %
+    max_int = full_int.max() if full_int.size else 1.0
+    full_pct = full_int / max_int * 100.0
+    ann_pct  = ann_int  / max_int * 100.0
 
-        full_mz = np.array([])
-        full_intensity = np.array([])
-        if 'Masses2' in df.columns and 'Intensities2' in df.columns:
-            full_mz = parse_semicolon_list(selected_row['Masses2'])
-            full_intensity = parse_semicolon_list(selected_row['Intensities2'])
-        elif 'Masses' in df.columns and 'Intensities' in df.columns:
-            full_mz = parse_semicolon_list(selected_row['Masses'])
-            full_intensity = parse_semicolon_list(selected_row['Intensities'])
+    # Build a set of annotated m/z for fast lookup (Masses are observed, same values as Masses2)
+    ann_set = set(ann_mz.tolist())
 
-        ann_mz = np.array([])
-        ann_intensity = np.array([])
-        ann_labels = []
-        if 'Masses' in df.columns and 'Intensities' in df.columns:
-            ann_mz = parse_semicolon_list(selected_row['Masses'])
-            ann_intensity = parse_semicolon_list(selected_row['Intensities'])
-            ann_labels = [x for x in str(selected_row.get('Matches', '')).split(';') if x.strip() != '' and x.strip().lower() != 'nan']
-            if len(ann_labels) != len(ann_mz):
-                ann_labels = [''] * len(ann_mz)
-
-        if full_mz.size and full_intensity.size:
-            return full_mz, full_intensity, ann_mz, ann_intensity, ann_labels, selected_row
-
-        # Fall back to raw m/z and intensity columns per row
-        mz_col = find_column(df, ['mz', 'm/z'])
-        int_col = find_column(df, ['intensity', 'int'])
-        if mz_col and int_col:
-            mz = df[mz_col].astype(float).to_numpy()
-            intensity = df[int_col].astype(float).to_numpy()
-            labels = [''] * len(mz)
-            return mz, intensity, labels, selected_row
-    # Fallback: whitespace separated two-column file
-    try:
-        arr = np.loadtxt(path)
-        if arr.ndim == 1 and arr.size >= 2:
-            arr = arr.reshape(1, -1)
-        if arr.shape[1] >= 2:
-            mz = arr[:, 0]
-            intensity = arr[:, 1]
-            return mz, intensity, [], None
-    except Exception:
-        pass
-    raise ValueError(f"Could not parse peak file: {path}")
-
-
-def read_evidence(path: Path):
-    df = pd.read_csv(path, sep='\t', low_memory=False)
-    # Look for peptide sequence column
-    seq_col = None
-    charge_col = None
-    prec_mz_col = None
-    for c in df.columns:
-        cl = c.lower()
-        if cl in ('sequence','peptide','peptidesequence') or 'sequence' in cl:
-            seq_col = c
-        if 'charge' in cl and charge_col is None:
-            charge_col = c
-        if 'ms/ms m/z' in cl:
-            prec_mz_col = c
-        elif prec_mz_col is None and ('m/z' in cl or cl == 'mz' or 'precursor m/z' in cl):
-            prec_mz_col = c
-    if seq_col is None:
-        seq_col = df.columns[0]
-    seq = sanitize_sequence(str(df.iloc[0][seq_col]))
-    if seq == '':
-        row = df.iloc[0]
-    else:
-        rows = df[df[seq_col].astype(str).apply(sanitize_sequence) == seq]
-        if len(rows) > 0:
-            row = choose_evidence_row(rows)
-        else:
-            row = df.iloc[0]
-    if row is None:
-        row = df.iloc[0]
-    charge = int(row[charge_col]) if charge_col and not pd.isna(row[charge_col]) else None
-    prec_mz = float(row[prec_mz_col]) if prec_mz_col and not pd.isna(row[prec_mz_col]) else None
-    proteins = str(row['Proteins']) if 'Proteins' in row and not pd.isna(row['Proteins']) else ''
-    if seq != str(row[seq_col]).strip():
-        print(f"Note: using evidence row sequence '{row[seq_col]}'", file=sys.stderr)
-    return {
-        'sequence': seq,
-        'charge': charge,
-        'precursor_mz': prec_mz,
-        'proteins': proteins,
-        'row': row,
-    }
-
-
-def plot_spectrum(full_mz, full_intensity, ann_mz, ann_intensity, ann_labels, row: pd.Series, peptide: str, evidence_row: pd.Series, outpath: Path, title=None):
-    order_full = np.argsort(full_mz)
-    full_mz = full_mz[order_full]
-    full_intensity = full_intensity[order_full]
-
-    order_ann = np.argsort(ann_mz)
-    ann_mz = ann_mz[order_ann]
-    ann_intensity = ann_intensity[order_ann]
-    ann_labels = [ann_labels[i] for i in order_ann]
-
-    if full_intensity.size and np.max(full_intensity) > 0:
-        intensity_norm = full_intensity / np.max(full_intensity) * 100.0
-    else:
-        intensity_norm = full_intensity.copy()
-    if ann_intensity.size and np.max(full_intensity) > 0:
-        ann_norm = ann_intensity / np.max(full_intensity) * 100.0
-    else:
-        ann_norm = ann_intensity.copy()
-
-    fig, ax = plt.subplots(figsize=(14, 6))
+    fig, ax = plt.subplots(figsize=(13, 5.5))
     ax.set_facecolor('white')
-    annotated_mask = np.array([np.any(np.isclose(x, ann_mz, atol=1e-4)) for x in full_mz])
-    ax.vlines(full_mz[~annotated_mask], 0, intensity_norm[~annotated_mask], color='grey', linewidth=0.8, alpha=0.7)
-    ax.scatter(full_mz[~annotated_mask], intensity_norm[~annotated_mask], color='grey', s=8, zorder=2)
 
-    b_ion_color = '#D18F3F'  # earthy orange
-    y_ion_color = '#3D6B8A'  # earthy blue
-    annotated_colors = []
-    for mz in full_mz[annotated_mask]:
-        if ann_mz.size:
-            idx = int(np.argmin(np.abs(ann_mz - mz)))
-            label = str(ann_labels[idx]).lower()
-            if label.startswith('y'):
-                annotated_colors.append(y_ion_color)
-            elif label.startswith('b'):
-                annotated_colors.append(b_ion_color)
-            else:
-                annotated_colors.append('black')
-        else:
-            annotated_colors.append('black')
+    # ── Grey unannotated peaks ────────────────────────────────────────────────
+    for mz, pct in zip(full_mz, full_pct):
+        if mz not in ann_set:
+            ax.vlines(mz, 0, pct, color=GREY, lw=0.7, alpha=0.6)
 
-    ax.vlines(full_mz[annotated_mask], 0, intensity_norm[annotated_mask], color=annotated_colors, linewidth=0.8, alpha=0.9)
-    ax.scatter(full_mz[annotated_mask], intensity_norm[annotated_mask], color=annotated_colors, s=10, zorder=3)
+    # ── Coloured annotated peaks ──────────────────────────────────────────────
+    for mz, pct, label in zip(ann_mz, ann_pct, ann_labels):
+        color = ion_color(label)
+        ax.vlines(mz, 0, pct, color=color, lw=1.0)
 
-    ax.set_xlabel('m/z')
-    ax.set_ylabel('Relative intensity (%)')
-    ax.set_xlim(full_mz.min() - 20, full_mz.max() + 20)
-    ax.set_ylim(0, 100)
+    # ── Ion labels (with peptide fragment + m/z, matching MaxQuant Viewer style) ──
+    placed: list[tuple[float, float, float, float]] = []  # (x0,x1,y0,y1) data coords
 
-    max_raw = np.max(full_intensity) if full_intensity.size else 0.0
-    ax_right = ax.twinx()
-    ax_right.set_ylabel('Raw intensity')
-    ax_right.set_ylim(ax.get_ylim())
-    ax_right.set_yticks(ax.get_yticks())
-    def raw_intensity_formatter(value, pos):
-        return f"{(value / 100.0 * max_raw):.0f}"
-    ax_right.yaxis.set_major_formatter(ticker.FuncFormatter(raw_intensity_formatter))
-    ax_right.tick_params(axis='y', which='major', right=True, labelright=True, left=False, length=6, width=1)
-    ax_right.yaxis.set_ticks_position('right')
-    ax_right.spines['right'].set_visible(True)
-    ax_right.spines['right'].set_linewidth(1.0)
-    ax_right.spines['right'].set_color('#333333')
-    ax_right.set_zorder(ax.get_zorder() + 1)
-    ax_right.patch.set_visible(False)
+    label_fontsize = 6.5
+    x_range    = full_mz.max() - full_mz.min() if full_mz.size > 1 else 1.0
+    char_width = x_range * 0.010
+    line_height = 5.0
 
-    ax.grid(axis='y', linestyle=':', color='#cccccc', alpha=0.6)
-    ax.tick_params(axis='x', which='both', bottom=True, top=False)
-    ax.tick_params(axis='y', which='both', left=True, right=False)
+    def overlaps(x, y, w, h):
+        for (bx0, bx1, by0, by1) in placed:
+            if x < bx1 and x + w > bx0 and y < by1 and y + h > by0:
+                return True
+        return False
 
-    header_items = []
-    ref_row = evidence_row if evidence_row is not None else row
-    if 'Raw file' in ref_row:
-        header_items.append(str(ref_row['Raw file']))
-    if 'Scan number' in row:
-        header_items.append(f"Scan {int(row['Scan number'])}")
-    if 'Mass analyzer' in ref_row:
-        header_items.append(str(ref_row['Mass analyzer']))
-    if 'Fragmentation' in ref_row:
-        header_items.append(str(ref_row['Fragmentation']))
-    if 'Charge' in ref_row and pd.notna(ref_row['Charge']):
-        try:
-            charge_val = int(float(ref_row['Charge']))
-        except Exception:
-            charge_val = ref_row['Charge']
-        header_items.append(f"z {charge_val}+")
-    header_items.append(f"Score {row.get('Score', '')}")
-    if 'MS/MS m/z' in ref_row and pd.notna(ref_row['MS/MS m/z']):
-        header_items.append(f"MS/MS m/z {ref_row['MS/MS m/z']}")
-    else:
-        header_items.append(f"m/z {ref_row.get('m/z', '')}")
-    header_text = '   '.join(header_items)
-    ax.text(0, 1.07, header_text, transform=ax.transAxes, fontsize=10, ha='left', va='bottom')
-    if title:
-        ax.text(0, 1.13, title, transform=ax.transAxes, fontsize=12, fontweight='bold', ha='left', va='bottom')
-    seq_annotation = peptide if peptide else ''
-    if 'Modified sequence' in row and pd.notna(row['Modified sequence']):
-        seq_annotation = str(row['Modified sequence'])
-    ax.text(0, 1.01, f"Peptide: {seq_annotation}", transform=ax.transAxes, fontsize=10, ha='left', va='bottom', color='#333333')
-
-    placed_bboxes = []
-    x_min, x_max = ax.get_xlim()
-    y_min, y_max = ax.get_ylim()
-    x_margin = (x_max - x_min) * 0.02
-    fig.canvas.draw()
-    axis_bbox = ax.get_window_extent(renderer=fig.canvas.get_renderer())
-    for x, y, label in zip(ann_mz, ann_norm, ann_labels):
-        if not label:
-            continue
-        b_ion_color = '#D18F3F'
-        y_ion_color = '#3D6B8A'
-        color = y_ion_color if label.lower().startswith('y') else b_ion_color if label.lower().startswith('b') else 'purple'
-        if not re.search(r'\(\d\+\)', label):
-            label = f"{label}(1+)"
-        match = re.match(r'^([by])(\d+)', label.lower())
-        segment = ''
-        if match and peptide:
-            ion = match.group(1)
-            idx_num = int(match.group(2))
-            if ion == 'b':
-                segment = peptide[:idx_num]
-            elif ion == 'y':
-                segment = peptide[-idx_num:]
-        if segment:
-            peak_text = f"{label} {segment} {x:.1f}"
-        else:
-            peak_text = f"{label} {x:.1f}"
-
-        x_data = x
-        if x < x_min + x_margin:
-            x_data = x_min + x_margin
-        elif x > x_max - x_margin:
-            x_data = x_max - x_margin
-
-        y_offsets = [4, 8, 12, 16, 20, 24, 28, 32, -6, -14, -22]
-        tries = 0
-        while True:
-            y_offset = y_offsets[min(tries, len(y_offsets)-1)]
-            va = 'bottom' if y_offset >= 0 else 'top'
-            text = ax.text(
-                x_data,
-                y + y_offset,
-                peak_text,
-                ha='center',
-                va=va,
-                fontsize=7,
-                color=color,
-                clip_on=True,
-                bbox=dict(facecolor='white', alpha=0.75, edgecolor='none', pad=0.5)
-            )
-            fig.canvas.draw()
-            bbox = text.get_window_extent(renderer=fig.canvas.get_renderer())
-            inside_axis = (
-                bbox.x0 >= axis_bbox.x0 and bbox.x1 <= axis_bbox.x1 and
-                bbox.y0 >= axis_bbox.y0 and bbox.y1 <= axis_bbox.y1
-            )
-            if inside_axis and not any(bbox.overlaps(prev) for prev in placed_bboxes):
-                placed_bboxes.append(bbox)
+    for mz, pct, raw_label in sorted(zip(ann_mz, ann_pct, ann_labels), key=lambda t: -t[1]):
+        color      = ion_color(raw_label)
+        text_str   = format_label(raw_label, sequence, mz)
+        w = len(text_str) * char_width
+        y = pct + 2.0
+        for _ in range(15):
+            if not overlaps(mz - w / 2, y, w, line_height):
                 break
-            if tries == 0 and x_data == x and x > x_max - x_margin:
-                x_data = x_max - x_margin
-            elif tries == 0 and x_data == x and x < x_min + x_margin:
-                x_data = x_min + x_margin
-            elif tries == 1 and x_data == x:
-                x_data = x
-            elif tries >= len(y_offsets) - 1:
-                placed_bboxes.append(bbox)
-                break
-            text.remove()
-            tries += 1
+            y += line_height
+        ax.text(mz, y, text_str, ha='center', va='bottom',
+                fontsize=label_fontsize, color=color,
+                bbox=dict(facecolor='white', alpha=0.0, edgecolor='none', pad=0))
+        placed.append((mz - w / 2, mz + w / 2, y, y + line_height))
 
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['bottom'].set_linewidth(1.0)
-    ax.spines['left'].set_linewidth(1.0)
+    # ── Axes ──────────────────────────────────────────────────────────────────
+    ax.set_xlabel('m/z', fontsize=10)
+    ax.set_ylabel('Relative intensity (%)', fontsize=10)
+    ax.set_xlim(full_mz.min() - 20, full_mz.max() + 30)
+    ax.set_ylim(0, min(max(full_pct) * 1.45, 130))
 
-    fig.subplots_adjust(right=0.85, top=0.93, left=0.08)
-    plt.savefig(outpath, dpi=200, bbox_inches='tight')
+    # Right axis in raw counts
+    ax2 = ax.twinx()
+    ax2.set_ylim(ax.get_ylim())
+    ax2.set_yticks(ax.get_yticks())
+    ax2.yaxis.set_major_formatter(
+        ticker.FuncFormatter(lambda v, _: f'{v / 100 * max_int:.3g}'))
+    ax2.set_ylabel('Intensity', fontsize=9)
+    ax2.tick_params(labelsize=8)
+    ax2.spines['top'].set_visible(False)
+
+    for sp in ('top', 'right'):
+        ax.spines[sp].set_visible(False)
+
+    # ── Header (mirroring MaxQuant Viewer layout) ─────────────────────────────
+    method = '; '.join(filter(None, [mass_analyzer, fragmentation]))
+    charge_str = f"{charge}+" if charge else ''
+    mz_str  = f"{prec_mz:.2f}" if prec_mz else ''
+    score_str = f"{float(score):.2f}" if score is not None else ''
+
+    header = (f"{raw_file}    Scan {scan_number}    {method}    "
+              f"Score {score_str}    m/z {mz_str}    z={charge_str}")
+    ax.text(0, 1.08, header, transform=ax.transAxes,
+            fontsize=8.5, ha='left', va='bottom', color='#333333')
+    ax.text(0, 1.02, sequence, transform=ax.transAxes,
+            fontsize=9, ha='left', va='bottom', color='black',
+            fontfamily='monospace')
+
+    # ── Legend ────────────────────────────────────────────────────────────────
+    from matplotlib.lines import Line2D
+    legend_items = [
+        Line2D([0], [0], color=ION_COLORS['y'],  lw=1.5, label='y'),
+        Line2D([0], [0], color=ION_COLORS['b'],  lw=1.5, label='b'),
+        Line2D([0], [0], color=ION_COLORS['a'],  lw=1.5, label='a'),
+        Line2D([0], [0], color=ION_COLORS['c'],  lw=1.5, label='c/z'),
+        Line2D([0], [0], color=ION_COLORS['IM'], lw=1.5, label='immonium'),
+        Line2D([0], [0], color=ION_COLORS['_'],  lw=1.5, label='internal'),
+        Line2D([0], [0], color=GREY,             lw=1.0, label='unmatched', alpha=0.7),
+    ]
+    ax.legend(handles=legend_items, fontsize=7, loc='upper right',
+              framealpha=0.8, ncol=1)
+
+    fig.subplots_adjust(top=0.87, right=0.88, left=0.07, bottom=0.10)
+    fig.savefig(out, dpi=200, bbox_inches='tight')
     plt.close()
+    print(f"Saved: {out}")
 
+
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description='Plot annotated MS/MS spectrum')
-    parser.add_argument('msms', type=Path)
-    parser.add_argument('evidence', type=Path)
-    parser.add_argument('--out', type=Path, default=None, help='Output PNG path')
-    parser.add_argument('--tol', type=float, default=0.5, help='Tolerance in Da (default 0.5)')
-    parser.add_argument('--ppm', action='store_true', help='Interpret tolerance as ppm instead of Da')
+    parser = argparse.ArgumentParser(description='Plot MaxQuant MS/MS spectrum')
+    parser.add_argument('msms',     type=Path, help='msms.txt')
+    parser.add_argument('evidence', type=Path, help='evidence.txt')
+    parser.add_argument('--out',    type=Path, default=None)
     args = parser.parse_args()
 
-    ev = read_evidence(args.evidence)
-    seq = ev['sequence']
-    proteins = ev.get('proteins') or seq
-    full_mz, full_intensity, ann_mz, ann_intensity, ann_labels, msms_row = read_peak_file(args.msms, evidence_row=ev['row'])
+    # 1. Load evidence — get Best MS/MS id and metadata
+    ev_row, sequence, prec_mz, charge, raw_file, best_msms_id = load_evidence(args.evidence)
 
-    if args.out is None:
-        out = args.msms.with_suffix('.png')
-    else:
-        out = args.out
+    # 2. Load the correct msms scan (by id, not by scan number)
+    msms_row = load_msms(args.msms, best_msms_id)
 
-    title = f"{proteins}"
-    plot_spectrum(full_mz, full_intensity, ann_mz, ann_intensity, ann_labels, msms_row, seq, ev['row'], out, title=title)
-    print(f"Saved annotated spectrum to: {out}")
+    # 3. Extract spectrum arrays from msms row
+    full_mz, full_int, ann_mz, ann_int, ann_labels = extract_spectrum(msms_row)
+
+    if full_mz.size == 0:
+        sys.exit("Error: no peaks found in Masses2/Intensities2 columns")
+
+    # 4. Collect header fields from msms row (scan-level values)
+    scan_number  = msms_row.get('Scan number', '')
+    score        = msms_row.get('Score', '')
+    fragmentation = msms_row.get('Fragmentation', '')
+    mass_analyzer = msms_row.get('Mass analyzer', '')
+
+    out = args.out or args.msms.with_suffix('.png')
+
+    plot(full_mz, full_int, ann_mz, ann_int, ann_labels,
+         sequence, charge, prec_mz, raw_file,
+         scan_number, score, fragmentation, mass_analyzer, out)
 
 
 if __name__ == '__main__':
