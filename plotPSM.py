@@ -1,5 +1,11 @@
-#python plotPSM.py "L:\promec\HF\Lars\2026\260330_Essa\combined\txt\msms_alsS_LTGKPGVVLVTSGPGASNLATGLLTANTEGDPVVALAGNVIR.txt" --out "alsS_LTGKPGVVLVTSGPGASNLATGLLTANTEGDPVVALAGNVIR.png" #L:\promec\HF\Lars\2026\260330_Essa\combined\txt\msms_alsS_AHPLEIVK.txt --out alsS_AHPLEIVK_test.png
+#python plotPSM.py "L:\promec\HF\Lars\2026\260330_Essa\combined\txt\msms.txt" --protein alsS --peptide LTGKPGVVLVTSGPGASNLATGLLTANTEGDPVVALAGNVIR --out "alsS_LTGKPGVVLVTSGPGASNLATGLLTANTEGDPVVALAGNVIR.png" #--protein add_alsS --peptide AHPLEIVK --out alsS_AHPLEIVK.png
 #  Needs Proteins, Sequence, Modified sequence, Raw file, Charge, Fragmentation, Mass analyzer, Masses2/Intensities2 (full spectrum), Masses/Intensities/Matches (annotated ions), Raw precursor m/z = m/z + isotope_index * (1.003355 / charge)  [verified <1.5 mDa error]
+#python plotPSM.py msms.txt [--out output.png]
+#evidence.txt is NOT needed — all required fields are in msms.txt:
+#  Proteins, Sequence, Modified sequence, Raw file, Charge, Fragmentation, Mass analyzer,
+#  Masses2/Intensities2 (full spectrum), Masses/Intensities/Matches (annotated ions).
+#  Raw precursor m/z = m/z + isotope_index * (1.003355 / charge)  [verified <1.5 mDa error]
+#evidence argument kept optional for backwards compatibility but ignored when provided.
 import argparse
 from pathlib import Path
 import sys
@@ -43,14 +49,33 @@ def parse_semicolon_list(s):
         return np.array([])
 
 
-def read_peak_file(path: Path):
+def read_peak_file(path: Path, protein: str = None, peptide: str = None):
     for sep in ['\t', ',']:
         try:
             df = pd.read_csv(path, sep=sep, low_memory=False)
         except Exception:
             continue
 
-        # Pick best-scored row
+        # Filter by protein (substring match against Proteins column)
+        if protein and 'Proteins' in df.columns:
+            mask = df['Proteins'].astype(str).str.contains(protein, case=False, na=False)
+            filtered = df[mask]
+            if filtered.empty:
+                sys.exit(f"Error: no rows found matching protein '{protein}'")
+            df = filtered
+
+        # Filter by peptide sequence (strip underscores, compare sanitized)
+        if peptide:
+            seq_clean = sanitize_sequence(peptide)
+            seq_col = 'Sequence' if 'Sequence' in df.columns else find_column(df, ['sequence'])
+            if seq_col:
+                mask = df[seq_col].astype(str).apply(sanitize_sequence) == seq_clean
+                filtered = df[mask]
+                if filtered.empty:
+                    sys.exit(f"Error: no rows found matching peptide '{peptide}'")
+                df = filtered
+
+        # Pick best-scored row from the (filtered) dataframe
         if 'Score' in df.columns:
             selected_row = df.loc[df['Score'].astype(float).idxmax()]
         else:
@@ -288,6 +313,10 @@ def main():
     parser.add_argument('msms', type=Path)
     parser.add_argument('evidence', type=Path, nargs='?', default=None,
                         help='Optional — not used, kept for backwards compatibility')
+    parser.add_argument('--protein', type=str, default=None,
+                        help='Protein name/id substring to filter rows (e.g. add_alsS)')
+    parser.add_argument('--peptide', type=str, default=None,
+                        help='Peptide sequence to filter rows (e.g. AHPLEIVK)')
     parser.add_argument('--out', type=Path, default=None)
     parser.add_argument('--tol', type=float, default=0.5)
     parser.add_argument('--ppm', action='store_true')
@@ -296,13 +325,16 @@ def main():
     if args.evidence:
         print(f"Note: evidence file ignored — all fields sourced from msms.txt")
 
-    full_mz, full_intensity, ann_mz, ann_intensity, ann_labels, msms_row = read_peak_file(args.msms)
+    full_mz, full_intensity, ann_mz, ann_intensity, ann_labels, msms_row = read_peak_file(
+        args.msms, protein=args.protein, peptide=args.peptide)
 
-    seq = ''
-    proteins = ''
+    seq = args.peptide or ''
+    proteins = args.protein or ''
     if msms_row is not None:
-        seq = sanitize_sequence(str(msms_row.get('Sequence', '')))
-        proteins = str(msms_row.get('Proteins', '')) if pd.notna(msms_row.get('Proteins', '')) else ''
+        if not seq:
+            seq = sanitize_sequence(str(msms_row.get('Sequence', '')))
+        if not proteins:
+            proteins = str(msms_row.get('Proteins', '')) if pd.notna(msms_row.get('Proteins', '')) else ''
 
     out = args.out or args.msms.with_suffix('.png')
     title = proteins or seq
