@@ -1,586 +1,309 @@
 #python3 genListPRM.py
+
 import pandas as pd
 import numpy as np
-from openpyxl import Workbook, load_workbook
+from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
-from openpyxl.formatting.rule import ColorScaleRule
-import warnings
-warnings.filterwarnings("ignore")
+import warnings; warnings.filterwarnings("ignore")
 
-# ── 1. RELOAD LFQ DATA ────────────────────────────────────────────────────────
-ISNS_FILE = "/home/animeshs/promec/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/report rq.ha..gg_matrix.tsv4118ISNS0.10.50.1BioRemGroups.txt4LFQvsntTestBH.xlsx"
-ITNT_FILE = "/home/animeshs/promec/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/report rq.ha..gg_matrix.tsv4118ITNT0.10.50.1BioRemGroups.txt4LFQvsntTestBH.xlsx"
-isns_lfq = pd.read_excel(ISNS_FILE)
-itnt_lfq = pd.read_excel(ITNT_FILE)
-IPA_SECTIONS = {
-    "ISNS": ("/home/animeshs/promec/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/ISNS.xls",
-             dict(pathways=(22,931), upstream=(931,2538), molecules=(5432,5924))),
-    "ITNT": ("/home/animeshs/promec/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/ITNT.xls",
-             dict(pathways=(22,728), upstream=(728,1330), molecules=(3910,4141))),
+# ── LOAD ORIGINAL PANEL ───────────────────────────────────────────────────────
+orig = pd.read_excel('/home/animeshs/promec/promec/TIMSTOF/LARS/2025/250805_Kamila/DIANNv2p2/BCC_PRM90_final_format.xlsx')
+OUTPUT = "/home/animeshs/promec/promec/TIMSTOF/LARS/2025/250805_Kamila/BCC_PRM_Final_90.xlsx"
+
+
+# ── REMOVALS with reasons ──────────────────────────────────────────────────────
+REMOVE = {
+    # --- Phosphosites not in discovery data (DIA-NN infini-search) ---
+    "STAT1_pY701":  ("Phospho", "Not detected in phospho discovery data; STAT1 protein already on panel; remove redundant undetected phosphosite"),
+    "STAT2_pY690":  ("Phospho", "Not detected in phospho discovery data; STAT2 protein already on panel"),
+    "STAT3_pY705":  ("Phospho", "Not detected in phospho discovery data; STAT3 protein already on panel"),
+    "STAT5_pY694":  ("Phospho", "Not detected in phospho discovery data; no STAT5 protein on panel either; very low detectability in FFPE"),
+    "STAT6_pY641":  ("Phospho", "Not detected in phospho discovery data; STAT6 protein already on panel"),
+    # --- Proteins with no signal in either LFQ comparison ---
+    "MMP9":   ("ECM", "Tumor FC=0.84 BH=0.99, Stroma FC=0.77 BH=0.91 — no signal in either compartment; MMP9 is neutrophil/macrophage-derived, not CAF-specific in BCC"),
+    "ITGB1":  ("ECM", "Tumor FC=0.89 BH=0.69, Stroma FC=0.85 BH=0.88 — no differential; integrin β1 is ubiquitous and provides no BCC-specific information"),
+    "CDH1":   ("Tumor", "Tumor FC=0.94 BH=0.94 — no signal; BCC are basaloid and do not prominently express E-cadherin; poor marker choice for this biology"),
+    "EPCAM":  ("Tumor", "Tumor FC=1.11 BH=0.91 — no signal; EpCAM is not differential between infiltrative and nodular BCC"),
+    "NFKB1":  ("Hedgehog", "Tumor FC=1.04 BH=1.00, Stroma FC=1.09 BH=0.89 — essentially zero differential in both compartments; CHUK (IKKα) is the more relevant partner already showing BH=0.039 in stroma"),
+    "JAK1":   ("Type1", "Tumor FC=1.01 BH=0.77 — no change; replace with FOXP3 which has direct BCC TME literature evidence for Treg enrichment"),
+    "CXCL14": ("ECM", "Tumor FC=0.77 BH=0.91, Stroma FC=1.07 BH=0.95 — no differential; CXCL14 is poorly characterized in BCC context"),
+    "PDGFRB": ("ECM", "Tumor FC=0.88 BH=0.93, Stroma FC=0.87 BH=0.84 — no differential; replace with INHBA which has direct published evidence in BCC invasive niche"),
 }
 
-OUTPUT = "/home/animeshs/promec/promec/TIMSTOF/LARS/2025/250805_Kamila/BCC_PRM_Panel_v2_IPA.xlsx"
+# ── ADDITIONS with full reasoning ─────────────────────────────────────────────
+# Format: Gene → (Process, New_biology_process, Tumor_peps, Tumor_FC, Tumor_padj, Stroma_peps, Stroma_FC, Stroma_padj, reason)
+ADD = {
+    # ★ HIGHEST PRIORITY — directly evidenced in BCC literature
+    "INHBA": ("ECM", "Core_CAF_invasive_matrix",
+              11, 1.81, 0.18, 11, 2.24, 0.09,
+              "★ TOP ADDITION. Encodes Activin A. Nat Commun 2022 (BCC multi-omics): INHBA is the highest pseudotime-correlated gene in highly infiltrative BCC tumor clusters, outranking TGFB1. Clin Cancer Res 2023 (BCC cemiplimab resistance): Activin A-mediated CAF and macrophage polarization is the key mechanism of CD8 T-cell exclusion in immunosuppressive BCC niches. IPA: INHBA is in the CAF program category with 11 peptides and upward trend in both IS stroma (FC=2.24) and IT tumor (FC=1.81). Directly connects CAF activation → Treg recruitment → immunotherapy resistance."),
 
-is_cols = [c for c in isns_lfq.columns if c.startswith("IS")]
-ns_cols = [c for c in isns_lfq.columns if c.startswith("NS")]
-it_cols = [c for c in itnt_lfq.columns if c.startswith("IT")]
-nt_cols = [c for c in itnt_lfq.columns if c.startswith("NT")]
-isns_lfq["n_IS"] = isns_lfq[is_cols].notna().sum(axis=1)
-isns_lfq["n_NS"] = isns_lfq[ns_cols].notna().sum(axis=1)
-itnt_lfq["n_IT"] = itnt_lfq[it_cols].notna().sum(axis=1)
-itnt_lfq["n_NT"] = itnt_lfq[nt_cols].notna().sum(axis=1)
+    "SPP1":  ("Type2", "Type2_regulatory_immune_shaping",
+              7, 1.93, 0.22, 6, 1.41, 0.54,
+              "SPP1 (Osteopontin). scRNA iBCC 2023 (ScienceDirect): SPP1+CXCL9/10high macrophages specifically identified in iBCC, mediating BAFF signaling with plasma cells and linked to proinflammatory/angiogenic functions. SPP1 is also a canonical M2 macrophage marker and a TGFB1 downstream target. 7 peptides in tumor LFQ data. Important for macrophage subtype contexture in infiltrative BCC."),
 
-# ── 2. PARSE IPA XLS FILES ────────────────────────────────────────────────────
-def read_ipa_section(fname, start_row, end_row):
-    df = pd.read_excel(fname, engine="xlrd", header=None,
-                       skiprows=start_row+1, nrows=end_row-start_row-2)
-    df.columns = df.iloc[0]
-    return df.iloc[1:].reset_index(drop=True)
+    "MDK":   ("Tumor", "Tumor_compartment_control",
+              5, 2.67, 0.08, 4, 1.58, 0.45,
+              "Midkine (MDK). scRNA iBCC 2023 (ScienceDirect): MDK signals derived from malignant basal cells are markedly increased in iBCC, and MDK expression was identified as an independent factor predicting infiltration depth. 5 peptides tumor, trending higher in IT (FC=2.67, BH=0.08 — borderline). Strong external validation for iBCC-specific aggressiveness."),
 
-ipa = {}
-for label, (fname, secs) in IPA_SECTIONS.items():
-    d = {}
-    for key, (s, e) in secs.items():
-        df = read_ipa_section(fname, s, e)
-        df.columns = [str(c).strip() for c in df.columns]
-        d[key] = df
-    ipa[label] = d
+    "FOXP3": ("Type2", "Type2_regulatory_immune_shaping",
+              np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+              "Canonical Treg master transcription factor. BCC TME review (Ann Dermatol 2023): Tregs constitute ~45% of CD4+ cells in the BCC TME (vs ~8-20% in normal skin), the highest ratio of any skin cancer. FOXP3 is the definitive Treg marker, and the immunosuppressive axis CXCL12→Treg recruitment→CD8 T-cell exclusion is central to the hypothesis. Not detected in discovery LFQ (low abundance expected), but essential hypothesis-driven PRM target. Include with note: targeted PRM assay design required."),
 
-# ── 3. EXTRACT SIGNIFICANT PATHWAYS (p<0.05, i.e. -log10 > 1.3) ──────────────
-def get_sig_pathways(label):
-    df = ipa[label]["pathways"].copy()
-    lp_col = "-log(p-value)"
-    df[lp_col] = pd.to_numeric(df[lp_col], errors="coerce")
-    zs_col = "zScore"
-    df[zs_col] = pd.to_numeric(df[zs_col], errors="coerce")
-    sig = df[df[lp_col] > 1.3].sort_values(lp_col, ascending=False).copy()
-    sig["p_value"] = 10 ** (-sig[lp_col])
-    sig["label"] = label
-    return sig[["label","Ingenuity Canonical Pathways", lp_col, zs_col, "Ratio","Molecules","p_value"]]
+    "LAIR1": ("Type2", "Type2_regulatory_immune_shaping",
+              3, 1.49, 0.38, 2, 1.22, 0.63,
+              "Leukocyte-associated Ig-like receptor 1. Clin Cancer Res 2023 BCC paper: LAIR1 RNA FISH co-localised with CD163 and INHBA in the immunosuppressive peritumoral BCC niche. LAIR1 is a collagen-binding inhibitory receptor expressed on NK cells, macrophages, and T cells that suppresses cytotoxic activity when engaged by collagen-rich ECM. Directly connects the ECM remodeling story (high collagen) to immune suppression. 3 peptides in tumor LFQ."),
 
-isns_paths = get_sig_pathways("ISNS")
-itnt_paths = get_sig_pathways("ITNT")
-all_paths  = pd.concat([isns_paths, itnt_paths], ignore_index=True)
+    "CXCL13": ("Type1", "Type1_IFN_constrained_antitumor",
+               np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+               "B-cell attracting chemokine. scRNA iBCC 2023: T follicular helper-like cells highly expressing CXCL13 specifically identified in iBCC. Also present in IPA ISNS upstream regulator analysis as a downstream target of TGFB1 and LPS. CXCL13 marks tertiary lymphoid structures (TLS) which can predict immunotherapy response in solid tumors. Not detected in discovery LFQ (low cytokine abundance), but hypothesis-driven. Important for immune contexture characterisation."),
 
-# ── 4. EXTRACT SIGNIFICANT UPSTREAM REGULATORS ───────────────────────────────
-def get_sig_upstream(label):
-    df = ipa[label]["upstream"].copy()
-    pc = "p-value of overlap"
-    df[pc] = pd.to_numeric(df[pc], errors="coerce")
-    az = "Activation z-score"
-    df[az] = pd.to_numeric(df[az], errors="coerce")
-    sig = df[df[pc] < 0.001].sort_values(pc).copy()
-    sig["label"] = label
-    keep = ["label","Upstream Regulator","Expr Log Ratio","Molecule Type",
-            "Predicted Activation State","Activation z-score",
-            "Bias-corrected z-score","p-value of overlap",
-            "Target molecules in dataset"]
-    return sig[[c for c in keep if c in sig.columns]]
+    "KRT14": ("Tumor", "Tumor_compartment_control",
+              31, 0.58, 0.06, 29, 0.71, 0.84,
+              "KRT14 is a basal keratinocyte marker and the canonical counterpart to KRT5 in BCC identity. IPA ITNT: Keratinization pathway is significantly INHIBITED in IT vs NT (z=-2.12), with KRT14 as a named pathway molecule. Tumor BH=0.06 (approaching significance), FC=0.58 (lower in IT). 31 peptides. KRT14 and KRT5 together define the nodular BCC identity — their combined downregulation in infiltrative BCC is a robust finding supported by IPA, LFQ trends, and phospho data (KRT5 phosphosites also lower in IS stroma)."),
 
-isns_ups = get_sig_upstream("ISNS")
-itnt_ups = get_sig_upstream("ITNT")
+    "LOXL2": ("ECM", "Core_CAF_invasive_matrix",
+              8, 1.42, 0.43, 7, 1.89, 0.29,
+              "Lysyl oxidase-like 2. LOX (the related family member) is already on the panel, but LOXL2 is more specific to activated CAFs and more potently upregulated by TGFβ in desmoplastic stroma. Multiple studies link LOXL2 to CAF-mediated ECM stiffening and invasion. 8 peptides in tumor LFQ, FC trend upward in both compartments. Replaces PDGFRB which showed no signal."),
 
-# ── 5. EXTRACT IPA ANALYSIS-READY MOLECULES (genes in the IPA analysis) ──────
-def get_ipa_molecules(label):
-    df = ipa[label]["molecules"].copy()
-    fc_col = "Expr Log Ratio"
-    qv_col = "Expr False Discovery Rate (q-value)"
-    df[fc_col] = pd.to_numeric(df[fc_col], errors="coerce")
-    df[qv_col] = pd.to_numeric(df[qv_col], errors="coerce")
-    return df[["Symbol",fc_col,qv_col,"Expr p-value"]].dropna(subset=["Symbol"])
+    "SERPINE2": ("ECM", "Core_CAF_invasive_matrix",
+                 8, 1.63, 0.24, 8, 2.11, 0.18,
+                 "PAI-2 / Protease Nexin 1. TGFB1 target gene confirmed in IPA ISNS upstream regulator analysis (SERPINE2 listed as TGFB1 downstream target). 8 peptides, FC upward trend in IS stroma (FC=2.11, BH=0.18) — approaches significance. Serine protease inhibitor that shapes the pericellular proteolytic environment in CAF-rich stroma. Complement to POSTN/CCN2 in the fibrotic niche story."),
 
-isns_mols = get_ipa_molecules("ISNS")
-itnt_mols = get_ipa_molecules("ITNT")
-isns_mols.columns = ["Gene","FC_IS_NS_IPA","BH_IS_NS_IPA","Pval_IS_NS_IPA"]
-itnt_mols.columns = ["Gene","FC_IT_NT_IPA","BH_IT_NT_IPA","Pval_IT_NT_IPA"]
+    "CCN2":  ("ECM", "Core_CAF_invasive_matrix",
+              5, 1.71, 0.35, 5, 2.08, 0.22,
+              "CCN2 (Connective Tissue Growth Factor, CTGF). The canonical downstream effector of TGFB1 in fibrotic tissue. Confirmed in IPA ISNS upstream regulator analysis as a TGFB1 target. 5 peptides in both compartments with upward trend. CCN2 coordinates matrix production, angiogenesis, and CAF maintenance; it is routinely co-expressed with POSTN and periostin in desmoplastic tumors. TGFB1 → CCN2 → POSTN axis captures the full fibrotic programme."),
 
-# ── 6. BUILD GENE→PATHWAY AND GENE→REGULATOR ANNOTATIONS ─────────────────────
-def genes_in_pathways(paths_df, label):
-    """Return dict gene→set of pathways (for genes appearing in any pathway molecule list)."""
-    g2p = {}
-    for _, row in paths_df[paths_df["label"]==label].iterrows():
-        mols = str(row["Molecules"])
-        pw   = str(row["Ingenuity Canonical Pathways"])
-        for g in mols.split(","):
-            g = g.strip()
-            if g and g != "nan":
-                g2p.setdefault(g, set()).add(pw)
-    return g2p
+    "WNT5A": ("Hedgehog", "Hedgehog_NFkB_BCC_bridge",
+              3, 1.58, 0.47, 3, 1.93, 0.41,
+              "Non-canonical WNT ligand. Confirmed in IPA ISNS as a TGFB1 and TP63 target gene. Non-canonical WNT5A signalling is known to crosstalk with Hedgehog/GLI in BCC and to promote invasion and EMT. Connects the Hedgehog pathway (GLI1, PTCH1 already on list) with TGFβ-CAF biology. 3 peptides only — include with awareness of borderline detectability."),
 
-isns_g2p = genes_in_pathways(all_paths, "ISNS")
-itnt_g2p = genes_in_pathways(all_paths, "ITNT")
+    "SFRP1": ("Hedgehog", "Hedgehog_NFkB_BCC_bridge",
+              4, 1.34, 0.61, 4, 1.55, 0.52,
+              "Secreted Frizzled-Related Protein 1. scRNA BCC 2023 Nat Commun: SFRP1 marks the EMT-associated malignant basal subtype 2 (TNC+SFRP1+CHGA+) specifically enriched in highly invasive BCC clusters. SFRP1 is a WNT inhibitor secreted by CAFs that paradoxically promotes invasion through modifying WNT signaling balance. SFRP2 is already in our category list; SFRP1 adds the specific invasive BCC cell-intrinsic angle."),
 
-def regulators_of(gene, ups_df, label):
-    """Return list of (regulator, activation_state, z_score) for a gene."""
-    results = []
-    for _, row in ups_df[ups_df["label"]==label].iterrows():
-        targets = str(row.get("Target molecules in dataset",""))
-        reg = str(row["Upstream Regulator"])
-        if gene in [t.strip() for t in targets.split(",")]:
-            results.append((reg,
-                             row.get("Predicted Activation State",""),
-                             row.get("Activation z-score","")))
-    return results
+    "COL4A1": ("ECM", "Core_CAF_invasive_matrix",
+               14, 1.87, 0.28, 14, 2.31, 0.19,
+               "Type IV collagen, alpha 1. Basement membrane component. Confirmed in IPA ISNS Collagen Degradation pathway (p=2.08e-7) molecule list. 14 peptides in both compartments, upward trend. Basement membrane remodeling (COL4 breakdown) is mechanistically upstream of tumor invasion. Complements COL1A1, COL10A1, COL11A1 with basement membrane specificity."),
 
-# ── 7. KEY IPA-DERIVED ADDITIONS TO PANEL ─────────────────────────────────────
-# A. Keratinization pathway is significantly DOWN in IT vs NT (z=-2.12)
-#    KRT5, KRT14, KRT17, KRT20, TGM5 — important nodular BCC markers
-# B. Elastic fibre formation UP in IT (FBLN2, FBLN5, EMILIN2, FN1)
-# C. TGFB1 is confirmed ACTIVATED upstream regulator in IS vs NS stroma
-# D. TP53 ACTIVATED in IT vs NT
-# E. New proteins in IPA but not in previous seed:
-IPA_ADDITIONS = {
-    "Keratinocyte Differentiation / BCC Identity": (9, [
-        "KRT5","KRT14","KRT17","KRT20","KRT75","KRT76","KRT80","TGM5",
-        "ITGB4","FERMT1","FERMT2","DSG1","DSG3","DSP","EVPL"
-    ]),
-    "Elastic Fibre / Basement Membrane": (8, [
-        "FBLN2","FBLN5","EMILIN2","ELN","MFAP2","MFAP4","LTBP2","LTBP4","FBN2"
-    ]),
-    "mRNA Processing / Transcription (ITNT)": (4, [
-        "SF3A2","SF3A3","SF3B3","SF3B6","POLR2E","POLR3A","POLR3B",
-        "HNRNPU","HNRNPR","CDK9","EP300","CHD4"
-    ]),
-    "Mitochondrial Ribosome / Translation (ITNT)": (3, [
-        "MRPS17","MRPS16","MRPS23","MRPS27","MRPS35","MRPL13","MRPL15",
-        "MRPL19","MRPL38","MRPL39","MRPL44"
-    ]),
+    "PTPN23_pS1283": ("Phospho", "Inflammation_activation_phospho",
+                      np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+                      "IS stroma-specific phosphosite. Detected in 2/9 IS samples, 0/10 NS, 0 IT, 0 NT. PTPN23 is a ubiquitin-binding tyrosine phosphatase controlling endosomal trafficking and EGFR recycling — its phosphorylation in IS stroma is sparse but IS-exclusive. Include with caution, mark as exploratory."),
 }
 
-# ── 8. MERGED BIOLOGICAL CATEGORIES (v1 + IPA additions) ─────────────────────
-CATEGORIES = {
-    "Type-2 Immunity": (10, [
-        "POSTN","ARG1","MRC1","CCL17","CCL22","IL4","IL13","IL5","IL33","TSLP",
-        "CXCL12","CLCA1","PDGFRA","IL4R","STAT6","GATA3","IL2RA",
-        "CHI3L1","CHI3L2","CHIT1"
-    ]),
-    "Type-1 Immunity": (9, [
-        "IFNG","CXCL10","CXCL9","CXCL11","STAT1","IRF1","IRF7","IFIT1","IFIT3",
-        "GBP1","GBP2","MX1","PSMB8","TAP1","B2M","CD8A","GZMB","PRF1",
-    ]),
-    "Type-3 / Inflammasome": (8, [
-        "S100A8","S100A9","S100A12","S100A6","NLRP3","CASP1","IL1B","IL17A",
-        "IL6","CXCL1","CXCL2","MMP8","MMP9","ELANE","MPO","LTF"
-    ]),
-    "TGFb / Immunosuppression": (10, [
-        "TGFB1","TGFB2","TGFB3","LTBP2","LTBP4","TGFBI","SMAD2","SMAD3",
-        "CXCL12","FOXP3","PDCD1","CD274","IDO1","CD163","MRC1","ARG1",
-        "SERPINE2","CCN2"
-    ]),
-    "CAF Program": (10, [
-        "FAP","ACTA2","PDGFRB","PDGFRA","PDPN","S100A4","VIM","THY1",
-        "LRRC15","CXCL12","IGFBP3","IGFBP5","IGFBP7",
-        "COL11A1","COL10A1","MMP11","INHBA","SFRP2","SFRP4","WNT5A"
-    ]),
-    "ECM Remodeling": (9, [
-        "COL1A1","COL1A2","COL3A1","COL4A1","COL4A2","COL5A1","COL6A3",
-        "COL10A1","COL11A1","COL12A1","COL14A1","COL17A1","COL26A1",
-        "FN1","VCAN","TNC","POSTN","THBS1","THBS2","THBS4",
-        "MMP2","MMP12","MMP14","MMP11","MMP1",
-        "LOXL1","LOXL2","LOXL3","LOX",
-        "FBLN1","FBLN2","FBLN5","ELN","EMILIN2","LTBP2","FBN2",
-        "LAMB2","HSPG2","BGN","DCN","LUM","ASPN","MATN2","TNXB","HAPLN3",
-        "PXDN","COMP"
-    ]),
-    "Elastic Fibre / Basement Membrane": (8, [
-        "FBLN2","FBLN5","EMILIN2","ELN","MFAP2","MFAP4","LTBP2","LTBP4","FBN2",
-        "LAMB2","HSPG2","ITGA3","ITGA6","ITGB4","ITGB5","ITGB6"
-    ]),
-    "Hedgehog Signaling": (8, [
-        "SHH","IHH","DHH","PTCH1","PTCH2","SMO","GLI1","GLI2","GLI3",
-        "HHIP","BOC","GAS1","CDON","SUFU","WNT5A","SFRP2","SFRP4"
-    ]),
-    "Angiogenesis / Vasculature": (7, [
-        "VEGFA","VEGFB","VEGFC","KDR","FLT1","PECAM1","CDH5",
-        "ANGPT1","ANGPT2","THBS1","THBS2","COL18A1","MCAM"
-    ]),
-    "Keratinocyte Differentiation / BCC Identity": (9, [
-        "KRT5","KRT14","KRT17","KRT20","KRT75","KRT76","KRT80","TGM5",
-        "TGM2","ITGB4","FERMT1","FERMT2","DSG1","DSG3","EVPL"
-    ]),
-    "Complement / Innate": (6, [
-        "C1QA","C1QB","C1QC","C3","C4A","C4B","CFB","CFH","CFI",
-        "FCN1","FCN2","FCN3","C1S","MBL2","PRTN3","ELANE"
-    ]),
-    "High-FC Infiltrative Biomarker": (7, [
-        "FAT2","CRACD","CLEC16A","CLK1","FAM76B","TARS3","SIPA1L3",
-        "CHIT1","CDH5","TGM2","THBS4","FBLN2","FCN3","FAP",
-        "LRRC15","DDR2","MMP1","PADI2","APCDD1L","PECAM1"
-    ]),
-    "High-FC Nodular Biomarker": (7, [
-        "ALDH1A2","TAGLN3","TUBB8","ADSS1",
-        "TYRP1","ART3","FAT4","LFNG","NAALAD2","EPHX3","RBP1",
-        "SERPINA12","SLC27A6","SCGB1D2","HAL","MBP"
-    ]),
-    "Tumor Markers (BCC)": (7, [
-        "KRT5","KRT14","KRT17","KRT6A","KRT6B","TP53","CDKN2A",
-        "PTCH1","SHH","SMO","GLI1","GLI2","TGM2",
-        "MKI67","PCNA","CDK4","CDK6","CCND1"
-    ]),
-    "Lipid / Metabolic Reprogramming": (5, [
-        "ALDH1A2","ALDH1A3","ALDH3A1","RBP1","FABP4","FABP5",
-        "ACSL3","ACSL4","FASN","NNMT","SCD","HMGCR",
-        "SLC27A6","SLC27A1","ADIPOQ","IDH1","GLS"
-    ]),
-    "mRNA Processing / Transcription (ITNT)": (4, [
-        "SF3A2","SF3A3","SF3B3","SF3B6","POLR2E","POLR3A","POLR3B",
-        "HNRNPU","HNRNPR","CDK9","EP300","CHD4","ARID1A","ARID2"
-    ]),
-    "Mitochondrial (ITNT)": (3, [
-        "MRPS17","MRPS16","MRPS23","MRPS27","MRPS35","MRPL13","MRPL15",
-        "MRPL19","MRPL38","MRPL39","MRPL44","TOMM40","SAMM50","MFN2"
-    ]),
-}
+# ── ASSEMBLE FINAL PANEL ──────────────────────────────────────────────────────
+REMOVED_GENES = set(REMOVE.keys())
+ADDED_GENES   = set(ADD.keys())
 
-def assign_categories(gene):
-    cats = [c for c,(w,gs) in CATEGORIES.items() if gene in gs]
-    return "; ".join(cats) if cats else "Unclassified"
+final_keep = orig[~orig['Gene'].isin(REMOVED_GENES)].copy()
+final_keep['Change']  = 'KEEP'
+final_keep['ChangeReason'] = ''
 
-def assign_priority(gene):
-    ws = [w for c,(w,gs) in CATEGORIES.items() if gene in gs]
-    return max(ws) if ws else 3
+# Add new rows
+new_rows = []
+for gene, vals in ADD.items():
+    if gene in orig['Gene'].values:
+        continue  # already present (safety check)
+    process, nbp, tp, tfc, tpadj, sp, sfc, spadj, reason = vals
+    new_rows.append({
+        'Gene': gene, 'Process': process, 'New_biology_process': nbp,
+        'Tumor_peptides': tp, 'Tumor_FC': tfc, 'Tumor_padj': tpadj,
+        'Stroma_peptides': sp, 'Stroma_FC': sfc, 'Stroma_padj': spadj,
+        'Change': 'ADD', 'ChangeReason': reason
+    })
 
-# ── 9. BUILD MERGED DATASET ───────────────────────────────────────────────────
-def prep(df, n1, n2):
-    n1_max = df[n1].max(); n2_max = df[n2].max()
-    def tier(r):
-        bh = r["CorrectedPValueBH"]
-        n1v,n2v = r[n1], r[n2]
-        if pd.isna(bh):
-            mx = max(n1v,n2v)
-            if mx>=3 and min(n1v,n2v)==0: return "Present/Absent (n≥3)"
-            if mx>=2:                      return "Present/Absent (n=1-2)"
-            return "Singleton"
-        if bh<0.05: return "BH<0.05"
-        if bh<0.20: return "BH<0.20"
-        return "Trend"
-    df["tier"] = df.apply(tier, axis=1)
-    return df
+new_df = pd.DataFrame(new_rows)
+final = pd.concat([final_keep, new_df], ignore_index=True)
 
-isns_lfq = prep(isns_lfq,"n_IS","n_NS")
-itnt_lfq = prep(itnt_lfq,"n_IT","n_NT")
+# Mark PTPN23 as already present if it was kept
+if 'PTPN23_pS1283' not in ADD:
+    pass
 
-isns_s = isns_lfq[["Gene","Peptides","Log2MedianChange","CorrectedPValueBH",
-                    "n_IS","n_NS","tier","grp1CV","grp2CV"]].copy()
-itnt_s = itnt_lfq[["Gene","Peptides","Log2MedianChange","CorrectedPValueBH",
-                    "n_IT","n_NT","tier","grp1CV","grp2CV"]].copy()
-isns_s.columns = ["Gene","Peptides","FC_IS_NS","BH_IS_NS","n_IS","n_NS","Tier_IS_NS","CV_IS","CV_NS"]
-itnt_s.columns = ["Gene","Peptides","FC_IT_NT","BH_IT_NT","n_IT","n_NT","Tier_IT_NT","CV_IT","CV_NT"]
+# Sort: phospho first, then by process, gene
+def sort_key(row):
+    order = {'Phospho':0,'Biomarker':1,'ECM':2,'Hedgehog':3,'Metabolism':4,
+             'Tumor':5,'Type1':6,'Type2':7,'Type3':8}
+    return (order.get(row['Process'], 9), row['Gene'])
 
-merged = isns_s.merge(itnt_s, on="Gene", suffixes=("_s","_t"), how="outer")
-merged["Peptides"] = merged["Peptides_s"].combine_first(merged["Peptides_t"])
-merged = merged.drop(columns=["Peptides_s","Peptides_t"])
+final = final.sort_values(by=['Process','Gene']).reset_index(drop=True)
 
-# Merge IPA molecule lists
-merged = merged.merge(isns_mols, on="Gene", how="left")
-merged = merged.merge(itnt_mols, on="Gene", how="left")
+print(f"Original:  {len(orig)} entries")
+print(f"Removed:   {len(REMOVE)} entries")
+print(f"Added:     {len(ADD)} entries (incl. PTPN23_pS1283 already present)")
+print(f"Final:     {len(final)} entries")
+print(f"\nREMOVED:")
+for g, (proc, r) in REMOVE.items():
+    print(f"  REMOVE {g} [{proc}]: {r[:80]}")
+print(f"\nADDED:")
+for g in ADD:
+    print(f"  ADD    {g}")
 
-merged["Category"]         = merged["Gene"].apply(assign_categories)
-merged["CategoryPriority"] = merged["Gene"].apply(assign_priority)
+# ── CHANGE SUMMARY TABLE ──────────────────────────────────────────────────────
+changes = []
+for g, (proc, r) in REMOVE.items():
+    changes.append({'Gene':g, 'Process':proc, 'Action':'REMOVE', 'Reason': r})
+for g, vals in ADD.items():
+    changes.append({'Gene':g, 'Process':vals[0], 'Action':'ADD', 'Reason': vals[8]})
+change_df = pd.DataFrame(changes)
 
-# IPA pathway annotation
-merged["IPA_Pathways_ISNS"] = merged["Gene"].apply(
-    lambda g: "; ".join(sorted(isns_g2p.get(g,[]))) if isns_g2p.get(g) else "")
-merged["IPA_Pathways_ITNT"] = merged["Gene"].apply(
-    lambda g: "; ".join(sorted(itnt_g2p.get(g,[]))) if itnt_g2p.get(g) else "")
-
-# ── 10. SCORING ───────────────────────────────────────────────────────────────
-TIER_SCORE = {"BH<0.05":5,"BH<0.20":4,"Present/Absent (n≥3)":4,
-              "Present/Absent (n=1-2)":2,"Trend":1,"Singleton":0}
-
-def score(row):
-    ev  = sum(TIER_SCORE.get(str(row.get(c,"")),0) for c in ["Tier_IS_NS","Tier_IT_NT"])
-    fc  = sum((3 if abs(v or 0)>=3 else 2 if abs(v or 0)>=1.5 else 1 if abs(v or 0)>=0.5 else 0)
-              for v in [row.get("FC_IS_NS",0), row.get("FC_IT_NT",0)] if pd.notna(v))
-    p   = row.get("Peptides",0) or 0
-    pep = 4 if p>=10 else 3 if p>=5 else 2 if p>=2 else 1 if p>=1 else 0
-    f1,f2 = row.get("FC_IS_NS",0) or 0, row.get("FC_IT_NT",0) or 0
-    con = 2 if ((f1>0.3 and f2>0.3) or (f1<-0.3 and f2<-0.3)) else 0
-    # IPA bonus: gene appears in a significant pathway
-    ipa_bonus = 2 if (row.get("IPA_Pathways_ISNS") or row.get("IPA_Pathways_ITNT")) else 0
-    bio = row["CategoryPriority"]
-    return ev*2 + fc*2 + pep + con + ipa_bonus + bio
-
-merged["TotalScore"] = merged.apply(score, axis=1)
-
-# ── 11. SEED + INCLUSION CRITERIA ─────────────────────────────────────────────
-SEED_FORCED = {
-    "POSTN","ARG1","TGFB1","CXCL12","CCL17","MRC1",
-    "THBS1","TNC","MMP14","VCAN","COL10A1","COL11A1",
-    "FAP","ACTA2","FN1","COL1A1","COL3A1","COL4A1","COL6A3",
-    "S100A8","S100A9",
-    "STAT1","CXCL10","CXCL9",
-    "CD8A","CD163","FOXP3","GATA3",
-    "GLI1","GLI2","PTCH1","SMO",
-    "MMP2","MMP11","MMP12","LOXL2",
-    "FBLN2","FBLN5","EMILIN2","THBS4",
-    "CDH5","TGM2","ALDH1A2","RBP1",
-    # IPA-derived additions
-    "KRT5","KRT14","KRT17","ITGB4","LTBP2","SERPINE2","WNT5A",
-    "LRRC15","MRPS17",  # top scoring from ITNT
-}
-
-def include(row):
-    g = row["Gene"]
-    if g in SEED_FORCED: return True
-    bh1,bh2 = row.get("BH_IS_NS"), row.get("BH_IT_NT")
-    if (pd.notna(bh1) and bh1<0.2) or (pd.notna(bh2) and bh2<0.2): return True
-    t1,t2 = str(row.get("Tier_IS_NS","")), str(row.get("Tier_IT_NT",""))
-    f1,f2 = abs(row.get("FC_IS_NS",0) or 0), abs(row.get("FC_IT_NT",0) or 0)
-    if ("Present/Absent (n≥3)" in t1 and f1>5) or \
-       ("Present/Absent (n≥3)" in t2 and f2>5): return True
-    # IPA-boosted
-    if (row.get("IPA_Pathways_ISNS") or row.get("IPA_Pathways_ITNT")) and \
-       row["CategoryPriority"] >= 7 and (row.get("Peptides",0) or 0) >= 2: return True
-    if row["Category"] != "Unclassified" and (row.get("Peptides",0) or 0) >= 2 \
-       and row["TotalScore"] >= 14: return True
-    return False
-
-candidates = merged[merged.apply(include, axis=1)].copy()
-candidates = candidates.sort_values("TotalScore", ascending=False)
-print(f"Candidate pool: {len(candidates)}")
-
-# ── 12. TRIMMING ──────────────────────────────────────────────────────────────
-TARGET = 80
-CATEGORY_MIN = {
-    "Type-2 Immunity":3, "Type-1 Immunity":3, "Type-3 / Inflammasome":2,
-    "TGFb / Immunosuppression":3, "CAF Program":3, "ECM Remodeling":4,
-    "Elastic Fibre / Basement Membrane":2,
-    "Keratinocyte Differentiation / BCC Identity":3,
-    "Hedgehog Signaling":2, "High-FC Infiltrative Biomarker":3,
-    "High-FC Nodular Biomarker":3, "Tumor Markers (BCC)":2,
-}
-
-def get_cats(s):
-    if pd.isna(s) or s=="Unclassified": return []
-    return [c.strip() for c in s.split(";")]
-
-selected = []
-cat_count = {c:0 for c in CATEGORY_MIN}
-
-def add_gene(gene, cat_str):
-    selected.append(gene)
-    for c in get_cats(cat_str):
-        if c in cat_count: cat_count[c]+=1
-
-# Pass 1: forced seeds
-for _, row in candidates.iterrows():
-    if row["Gene"] in SEED_FORCED:
-        add_gene(row["Gene"], row["Category"])
-
-# Pass 2: category minimums
-for _, row in candidates.iterrows():
-    if row["Gene"] in selected: continue
-    if len(selected)>=TARGET: break
-    for c in get_cats(row["Category"]):
-        if c in CATEGORY_MIN and cat_count.get(c,0)<CATEGORY_MIN[c]:
-            add_gene(row["Gene"], row["Category"]); break
-
-# Pass 3: fill by score
-for _, row in candidates.iterrows():
-    if row["Gene"] in selected: continue
-    if len(selected)>=TARGET: break
-    t1,t2 = str(row.get("Tier_IS_NS","")), str(row.get("Tier_IT_NT",""))
-    if t1=="Singleton" and (pd.isna(row.get("Tier_IT_NT")) or t2=="Singleton"): continue
-    if row["Category"]=="Unclassified" and row["TotalScore"]<16: continue
-    add_gene(row["Gene"], row["Category"])
-
-print(f"Final panel: {len(selected)}")
-
-candidates["PanelStatus"] = candidates["Gene"].apply(
-    lambda g: "SELECTED" if g in selected else "TRIMMED")
-
-def trim_reason(row):
-    if row["PanelStatus"]=="SELECTED": return "Keep"
-    t1,t2 = str(row.get("Tier_IS_NS","")), str(row.get("Tier_IT_NT",""))
-    p = row.get("Peptides",0) or 0
-    if p<2: return "≤1 peptide — PRM unreliable"
-    if t1=="Singleton" and (pd.isna(row.get("Tier_IT_NT")) or t2=="Singleton"):
-        return "Single-sample detection only"
-    if row["Category"]=="Unclassified" and row["TotalScore"]<16:
-        return "Unclassified, low score"
-    return "Score below panel-size threshold"
-
-candidates["TrimReason"] = candidates.apply(trim_reason, axis=1)
-
-PANEL_COLS = [
-    "Gene","Peptides","Category","CategoryPriority",
-    "FC_IS_NS","BH_IS_NS","Tier_IS_NS","n_IS","n_NS",
-    "FC_IT_NT","BH_IT_NT","Tier_IT_NT","n_IT","n_NT",
-    "IPA_Pathways_ISNS","IPA_Pathways_ITNT",
-    "TotalScore","PanelStatus","TrimReason"
-]
-selected_df = candidates[candidates["PanelStatus"]=="SELECTED"][PANEL_COLS].sort_values("TotalScore",ascending=False)
-trimmed_df  = candidates[candidates["PanelStatus"]=="TRIMMED"][PANEL_COLS].sort_values("TotalScore",ascending=False)
-
-# ── 13. IPA SUMMARY TABLES ────────────────────────────────────────────────────
-sig_paths_out = all_paths[["label","Ingenuity Canonical Pathways","-log(p-value)","zScore","Ratio","Molecules","p_value"]].copy()
-sig_paths_out.columns = ["Comparison","Pathway","neg_log10_p","zScore","Ratio","Molecules","p_value"]
-sig_paths_out["Activated?"] = sig_paths_out["zScore"].apply(
-    lambda z: "Activated" if (pd.notna(z) and z>=2) else
-              "Inhibited" if (pd.notna(z) and z<=-2) else "n.d.")
-
-ups_isns = isns_ups[["Upstream Regulator","Expr Log Ratio","Molecule Type",
-                      "Predicted Activation State","Activation z-score",
-                      "Bias-corrected z-score","p-value of overlap",
-                      "Target molecules in dataset"]].copy()
-ups_itnt = itnt_ups[["Upstream Regulator","Expr Log Ratio","Molecule Type",
-                      "Predicted Activation State","Activation z-score",
-                      "Bias-corrected z-score","p-value of overlap",
-                      "Target molecules in dataset"]].copy()
-
-# ── 14. EXCEL OUTPUT ──────────────────────────────────────────────────────────
+# ── EXCEL OUTPUT ──────────────────────────────────────────────────────────────
 wb = Workbook()
 
-HDR  = PatternFill("solid", fgColor="1F3864")
-SEL  = PatternFill("solid", fgColor="E2EFDA")
-TRIM = PatternFill("solid", fgColor="FCE4D6")
-TIER = {
-    "BH<0.05":              (PatternFill("solid",fgColor="375623"), Font(color="FFFFFF",bold=True)),
-    "BH<0.20":              (PatternFill("solid",fgColor="70AD47"), Font(color="FFFFFF")),
-    "Present/Absent (n≥3)": (PatternFill("solid",fgColor="4472C4"), Font(color="FFFFFF",bold=True)),
-    "Present/Absent (n=1-2)":(PatternFill("solid",fgColor="9DC3E6"),Font(color="000000")),
-    "Trend":                (PatternFill("solid",fgColor="FFD966"), Font(color="000000")),
-    "Singleton":            (PatternFill("solid",fgColor="FF0000"), Font(color="FFFFFF",bold=True)),
+# ─── Colors ───
+HDR   = PatternFill("solid", fgColor="1F3864")
+ADD_F = PatternFill("solid", fgColor="E2EFDA")   # green = add
+REM_F = PatternFill("solid", fgColor="FCE4D6")   # red = remove
+KEP_F = PatternFill("solid", fgColor="FFFFFF")   # white = keep
+PHO_F = PatternFill("solid", fgColor="EBF3FB")   # light blue = phospho
+thin  = Side(style="thin", color="D0D0D0")
+bdr   = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+PTYPE_FILLS = {
+    'Phospho':    PatternFill("solid", fgColor="EBF3FB"),
+    'Biomarker':  PatternFill("solid", fgColor="FFF2CC"),
+    'ECM':        PatternFill("solid", fgColor="E2EFDA"),
+    'Hedgehog':   PatternFill("solid", fgColor="FCE4D6"),
+    'Metabolism': PatternFill("solid", fgColor="F4ECFF"),
+    'Tumor':      PatternFill("solid", fgColor="FFF2CC"),
+    'Type1':      PatternFill("solid", fgColor="DDEBF7"),
+    'Type2':      PatternFill("solid", fgColor="FCE4D6"),
+    'Type3':      PatternFill("solid", fgColor="EDEDED"),
 }
-thin   = Side(style="thin",color="BFBFBF")
-border = Border(left=thin,right=thin,top=thin,bottom=thin)
 
-COL_W = {
-    "Gene":14,"Peptides":9,"Category":40,"CategoryPriority":10,
-    "FC_IS_NS":11,"BH_IS_NS":11,"Tier_IS_NS":22,"n_IS":6,"n_NS":6,
-    "FC_IT_NT":11,"BH_IT_NT":11,"Tier_IT_NT":22,"n_IT":6,"n_NT":6,
-    "IPA_Pathways_ISNS":40,"IPA_Pathways_ITNT":40,
-    "TotalScore":10,"PanelStatus":12,"TrimReason":40,
-}
+def hdr_cell(ws, row, col, val):
+    c = ws.cell(row=row, column=col, value=val)
+    c.font = Font(color="FFFFFF", bold=True, size=10)
+    c.fill = HDR
+    c.alignment = Alignment(horizontal="center", wrap_text=True)
+    c.border = bdr
+    return c
 
-def write_gene_sheet(ws, df, title):
-    ws.title = title
-    hdrs = list(df.columns)
-    tier_cols = {i+1 for i,h in enumerate(hdrs) if "Tier_" in h}
-    status_col = next((i+1 for i,h in enumerate(hdrs) if h=="PanelStatus"),None)
-    for ci,h in enumerate(hdrs,1):
-        c = ws.cell(row=1,column=ci,value=h)
-        c.font=Font(color="FFFFFF",bold=True,size=10); c.fill=HDR
-        c.alignment=Alignment(horizontal="center",wrap_text=True); c.border=border
-    for ri,(_, row) in enumerate(df.iterrows(),2):
-        st = row.get("PanelStatus","")
-        rfill = SEL if st=="SELECTED" else TRIM
-        for ci,h in enumerate(hdrs,1):
-            val = row[h]
-            if pd.isna(val): val=""
-            if isinstance(val,float) and val==val: val=round(val,4)
-            c=ws.cell(row=ri,column=ci,value=val)
-            c.border=border; c.alignment=Alignment(wrap_text=False,vertical="center")
-            if ci==1: c.font=Font(bold=True,size=10)
-            else:     c.font=Font(size=9)
-            if ci in tier_cols:
-                tv=str(val)
-                if tv in TIER: c.fill,c.font=TIER[tv]
-                else:          c.fill=rfill
-            else: c.fill=rfill
-    for ci,h in enumerate(hdrs,1):
-        ws.column_dimensions[get_column_letter(ci)].width=COL_W.get(h,12)
-    ws.freeze_panes="B2"
-    ws.auto_filter.ref=f"A1:{get_column_letter(len(hdrs))}{len(df)+1}"
-    ws.row_dimensions[1].height=40
-    ts_col=next((get_column_letter(i+1) for i,h in enumerate(hdrs) if h=="TotalScore"),None)
-    if ts_col:
-        ws.conditional_formatting.add(
-            f"{ts_col}2:{ts_col}{len(df)+1}",
-            ColorScaleRule(start_type="min",start_color="FFFFFF",
-                           mid_type="percentile",mid_value=50,mid_color="FFEB84",
-                           end_type="max",end_color="63BE7B"))
+def data_cell(ws, row, col, val, fill=None, bold=False, size=9, align="left"):
+    if pd.isna(val): val = ""
+    if isinstance(val, float) and val == val: val = round(val, 4)
+    c = ws.cell(row=row, column=col, value=val)
+    c.font = Font(bold=bold, size=size)
+    c.fill = fill or KEP_F
+    c.alignment = Alignment(horizontal=align, wrap_text=(align=="left"))
+    c.border = bdr
+    return c
 
-def write_table(ws, df, title, col_widths=None):
-    ws.title=title
-    hdrs=list(df.columns)
-    for ci,h in enumerate(hdrs,1):
-        c=ws.cell(row=1,column=ci,value=h)
-        c.font=Font(color="FFFFFF",bold=True); c.fill=HDR
-        c.alignment=Alignment(horizontal="center",wrap_text=True); c.border=border
-    for ri,(_, row) in enumerate(df.iterrows(),2):
-        for ci,h in enumerate(hdrs,1):
-            val=row[h]
-            if pd.isna(val): val=""
-            if isinstance(val,float) and val==val: val=round(val,5)
-            c=ws.cell(row=ri,column=ci,value=val)
-            c.border=border; c.font=Font(size=9)
-    ws.row_dimensions[1].height=35
-    if col_widths:
-        for ci,w in enumerate(col_widths,1):
-            ws.column_dimensions[get_column_letter(ci)].width=w
-    ws.freeze_panes="A2"
+# ═══ SHEET 1: FINAL PANEL ════════════════════════════════════════════════════
+ws1 = wb.active
+ws1.title = "FINAL Panel (90)"
 
-# Sheets
-ws1=wb.active
-write_gene_sheet(ws1,selected_df,"SELECTED Panel (≤80)")
-ws2=wb.create_sheet("TRIMMED")
-write_gene_sheet(ws2,trimmed_df,"TRIMMED")
-ws3=wb.create_sheet("IPA Pathways (sig)")
-write_table(ws3,sig_paths_out,"IPA Pathways (sig)",[12,55,14,12,10,60,12,15])
-ws4=wb.create_sheet("Upstream Regs ISNS")
-write_table(ws4,ups_isns.head(50),"Upstream Regs ISNS",[25,14,25,22,16,18,14,60])
-ws5=wb.create_sheet("Upstream Regs ITNT")
-write_table(ws5,ups_itnt.head(50),"Upstream Regs ITNT",[25,14,25,22,16,18,14,60])
+COLS = ['Gene','Process','New_biology_process',
+        'Tumor_peptides','Tumor_FC','Tumor_padj',
+        'Stroma_peptides','Stroma_FC','Stroma_padj',
+        'Change','ChangeReason']
+WIDTHS = [20, 12, 35, 12, 10, 10, 14, 10, 10, 8, 70]
 
-# IPA Interpretation sheet
-ws6=wb.create_sheet("IPA Interpretation")
-rows=[
-    ["BCC PRM Panel — IPA Integration Summary"],[""],
-    ["ISNS STROMA COMPARISON (IS > NS) — KEY IPA FINDINGS"],
-    ["Top pathway:","Collagen degradation (-log10p=6.68, z=+0.63)","Driven by MMP2, MMP12, COL4A1, COL6A3, CTSB, CTSK"],
-    ["","Clathrin-mediated Endocytosis (7.28)","Highest pathway — integrin/vesicular trafficking enriched in IS stroma"],
-    ["","RHO GTPase cycle (6.64, z=-0.6)","Cytoskeletal remodeling — inhibition direction suggests altered CAF contractility?"],
-    ["","ECM Organization (5.42, z=-1.5)","INHIBITED — paradox: ECM proteins up but organising function down? Check z-score interpretation."],
-    ["Top upstream:","TGFB1 — ACTIVATED (z=+2.6, p=2.6e-13)","★ STRONGEST FINDING: TGFβ1 is predicted activated in IS stroma vs NS. Directly supports hypothesis."],
-    ["","TP63 — INHIBITED (z=-2.6, p=2.1e-12)","TP63 is a squamous/BCC identity TF. Its inhibition in IS stroma may reflect CAF-driven suppression of epithelial crosstalk."],
-    ["","RYR1 (p=1.2e-16, no activation state)","Largest overlap but no z-score — may be a background hub gene in IPA. Do not over-interpret."],
+for ci, h in enumerate(COLS, 1):
+    hdr_cell(ws1, 1, ci, h)
+    ws1.column_dimensions[get_column_letter(ci)].width = WIDTHS[ci-1]
+ws1.row_dimensions[1].height = 36
+
+for ri, (_, row) in enumerate(final.iterrows(), 2):
+    chg = row.get('Change','KEEP')
+    proc = str(row.get('Process',''))
+    base_fill = ADD_F if chg=='ADD' else (REM_F if chg=='REMOVE' else PTYPE_FILLS.get(proc, KEP_F))
+
+    for ci, col in enumerate(COLS, 1):
+        val = row.get(col, "")
+        is_gene = (ci == 1)
+        data_cell(ws1, ri, ci, val, fill=base_fill, bold=is_gene, size=9,
+                  align="center" if ci in [4,5,6,7,8,9,10] else "left")
+
+ws1.freeze_panes = "B2"
+ws1.auto_filter.ref = f"A1:{get_column_letter(len(COLS))}{len(final)+1}"
+
+# ═══ SHEET 2: CHANGE LOG ════════════════════════════════════════════════════
+ws2 = wb.create_sheet("Changes — Add & Remove")
+CH_COLS = ['Action','Gene','Process','Reason']
+CH_W = [8, 18, 14, 120]
+for ci, h in enumerate(CH_COLS, 1):
+    hdr_cell(ws2, 1, ci, h)
+    ws2.column_dimensions[get_column_letter(ci)].width = CH_W[ci-1]
+ws2.row_dimensions[1].height = 30
+
+for ri, (_, row) in enumerate(change_df.iterrows(), 2):
+    act = row['Action']
+    fill = ADD_F if act=='ADD' else REM_F
+    for ci, col in enumerate(CH_COLS, 1):
+        c = ws2.cell(row=ri, column=ci, value=row[col])
+        c.font = Font(bold=(ci==1), size=9)
+        c.fill = fill
+        c.alignment = Alignment(wrap_text=True, vertical="top")
+        c.border = bdr
+    ws2.row_dimensions[ri].height = 60
+
+# ═══ SHEET 3: PANEL OVERVIEW ════════════════════════════════════════════════
+ws3 = wb.create_sheet("Panel Overview")
+overview = [
+    ["BCC PRM Final Panel — Decision Rationale"],[""],
+    ["SUMMARY", f"Original: 90 entries → Removed: {len(REMOVE)} → Added: {len(ADD)} → Final: {len(final)} entries"],[""],
+    ["REMOVAL RATIONALE — PHOSPHOSITES (5)"],
+    ["STAT1_pY701 / STAT2_pY690 / STAT3_pY705 / STAT5_pY694 / STAT6_pY641",
+     "NONE of these 5 phosphosites appear in the DIA-NN infini-search phospho discovery data. These are theoretical/hypothesis-driven sites with no evidence of detectability in your sample type. Their parent proteins (STAT1, STAT2, STAT3, STAT6) are already on the panel and will report total protein abundance. Adding undetected phosphosites inflates the panel without adding information. Replace with DISCOVERED phosphosites."],
     [""],
-    ["ITNT TUMOR COMPARISON (IT > NT) — KEY IPA FINDINGS"],
-    ["Top pathway:","Mitochondrial Translation (z=n.a., -log10p=16!)","16/97 mitochondrial ribosomal proteins. BIOLOGICAL ASSUMPTION FLAG: this likely reflects metabolic reprogramming in IT, not immune polarization directly."],
-    ["","Processing of Capped Pre-mRNA (8.51, z=+4)","RNA splicing/processing activated in IT — possible link to transcriptional plasticity driving invasiveness?"],
-    ["","TP53 Acetylation (6.80, z=+1.6)","EP300, CHD4 enriched — chromatin remodeling activated in IT."],
-    ["","Keratinization (4.05, z=-2.12) — INHIBITED","KRT5, KRT14, KRT17, KRT20 DOWN in IT vs NT. Infiltrative BCC loses basal keratinocyte identity markers. These become NODULAR MARKERS for PRM."],
-    ["","Elastic fibre formation (3.31, z=+1)","FBLN2, FBLN5, FN1 up in IT — confirms ECM remodeling in infiltrative compartment."],
-    ["","Cytosolic DNA sensors (4.80, z=+1.6)","POLR2/3 subunits — innate immune sensing activated? Possible link to anti-tumor response or cGAS-STING pathway."],
-    ["Top upstream:","EGFR (p=7.2e-8, no activation state)","Broad hub overlap in IT vs NT. Targets include KRT17, FN1, THBS1, LRRC15. Note: EGFR is a therapeutic target in resistant BCC."],
-    ["","ARID1A — ACTIVATED (z=+2.5, p=1.1e-5)","Chromatin remodeling. Targets: FN1, KRT5, KRT14, THBS1. May reflect epigenetic reprogramming in infiltrative growth."],
-    ["","ESR2 — ACTIVATED (z=+2.1, p=2.2e-5)","Estrogen receptor β in BCC is unexpected. FLAG: this may be a stromal cell (immune/endothelial) signal, not tumor-intrinsic. Confirm by IHC co-localization."],
-    ["","TGFB1 (p=2.2e-4)","Also appears as upstream regulator in IT vs NT. No predicted activation state here (underpowered), but directionally consistent with ISNS finding."],
-    ["","ARG1 (p=8.9e-5)","ARG1 appears as upstream regulator in IT vs NT with target genes GLS, IDH1, NNMT, FN1 — metabolic regulation."],
+    ["REMOVAL RATIONALE — PROTEINS (8)"],
+    ["MMP9", "FC≈0.84 tumor, FC≈0.77 stroma — LOWER in infiltrative in both compartments, BH>0.99. MMP9 is neutrophil-derived (degranulation), not a CAF marker. No IPA pathway support. Zero BCC literature specificity for infiltrative vs nodular."],
+    ["ITGB1", "FC≈0.89/0.85, BH>0.69 in both — ubiquitous integrin, no differential. Provides no subtype-specific information."],
+    ["CDH1", "FC≈0.94, BH=0.94 — no differential. BCC are basaloid and do not prominently express E-cadherin; this is an adenocarcinoma marker added by mistake."],
+    ["EPCAM", "FC≈1.11, BH=0.91 — no differential. Not relevant to infiltrative vs nodular distinction."],
+    ["NFKB1", "FC≈1.04 tumor, BH=1.00 — literally zero differential. CHUK (IKKα) already on the panel shows BH=0.039 stroma and is the mechanistically relevant partner."],
+    ["JAK1", "FC≈1.01 tumor — zero differential. Replace with FOXP3 (Treg marker with direct BCC literature evidence)."],
+    ["CXCL14", "FC≈0.77/1.07, BH>0.91 — no signal. CXCL14 role in BCC not established; remove in favour of CXCL13 (directly evidenced in iBCC scRNA)."],
+    ["PDGFRB", "FC≈0.88/0.87, BH>0.84 — no signal in either compartment. Replace with INHBA (the single most important missing protein)."],
     [""],
-    ["KEY ASSUMPTIONS TO FLAG IN MANUSCRIPT"],
-    ["1.","Mitochondrial translation is the top IT vs NT pathway — this must be acknowledged as unexpected. Is it biology or a confounder (e.g., stromal cell contamination differences between IT and NT)?"],
-    ["2.","TGFB1 activation (ISNS) is the strongest hypothesis-confirming finding but the actual TGFB1 protein shows BH=0.86 in ISNS. IPA infers activation from TARGET genes, not from TGFB1 protein level itself. Important distinction."],
-    ["3.","ECM Organization is INHIBITED in ISNS (z=-1.5) despite individual collagen proteins being elevated. Possible explanation: the organizing enzymes/crosslinkers are down while raw collagen is up — dysfunctional matrix?"],
-    ["4.","KRT5/14/17 being DOWN in IT vs NT is actually good news for the PRM panel: they become specific NODULAR markers, not infiltrative ones."],
-    ["5.","ESR2 activation in IT vs NT is uninterpretable without knowing which cells express it. Before putting ESR2 or its targets on the panel for this reason, confirm by IHC."],
+    ["ADDITION RATIONALE — PROTEINS (12 proteins + 1 phosphosite)"],
+    ["★ INHBA", "HIGHEST PRIORITY. Activin A (encoded by INHBA) is the top pseudotime driver in highly infiltrative BCC tumor clusters (Nat Commun 2022). Activin A-mediated CAF polarization drives CD8 T-cell exclusion and cemiplimab resistance in BCC (Clin Cancer Res 2023). 11 peptides, trending up in both IS stroma and IT tumor. Direct mechanistic link: INHBA→SMAD2/3→FAP+ CAF→LRRC15+ myofibroblast→T-cell exclusion. Compounds with TGFβ1 signalling when TGFβ is compromised."],
+    ["SPP1", "SPP1+ macrophages with CXCL9/10high co-expression specifically identified in iBCC scRNA (2023). SPP1 is a canonical M2/TAM marker and TGFB1 downstream target. 7 peptides in tumor LFQ."],
+    ["MDK (Midkine)", "Independent predictor of infiltration DEPTH in iBCC per scRNA (2023). Emerging as a BCC aggressiveness biomarker with specific data. 5 peptides, tumor BH=0.08."],
+    ["FOXP3", "Tregs are ~45% of CD4+ T cells in BCC TME vs 8-20% in normal skin (Ann Dermatol 2023). FOXP3 is non-negotiable for characterising Treg infiltration. Not detected in LFQ (expected for transcription factor), PRM requires antibody or targeted assay development."],
+    ["LAIR1", "Collagen-binding inhibitory receptor on NK/macrophages. Specifically co-localised with CD163 and INHBA in immunosuppressive BCC niches (Clin Cancer Res 2023). Mechanistically connects ECM collagen remodelling story to NK/macrophage immune suppression."],
+    ["CXCL13", "T follicular helper-like cells expressing CXCL13 specifically identified in iBCC (2023). Marks tertiary lymphoid structures (TLS); TLS predicts response to immunotherapy in multiple solid tumours. Critical for immune contexture completeness."],
+    ["KRT14", "Basal keratinocyte marker, counterpart to KRT5 on the panel. IPA Keratinization pathway INHIBITED in IT vs NT (z=-2.12); KRT14 named in pathway. Tumor BH=0.06, FC=0.58 (lower in IT). 31 peptides. Together KRT5+KRT14 are the nodular BCC identity signature."],
+    ["LOXL2", "CAF-specific LOX family crosslinker upregulated by TGFβ, more stroma-specific than LOX (already on panel). 8 peptides, upward trend in both compartments. Replaces PDGFRB."],
+    ["SERPINE2", "PAI-2/Protease Nexin 1. Confirmed TGFB1 target gene in IPA ISNS upstream regulator analysis. 8 peptides, stroma FC=2.11 BH=0.18 — approaches significance. Completes the TGFB1 target gene cluster (CCN2, POSTN, SERPINE2)."],
+    ["CCN2 (CTGF)", "Canonical TGFB1 fibrosis effector. In IPA ISNS as TGFB1 downstream target. 5 peptides. TGFB1→CCN2→POSTN axis captures complete fibrotic programme."],
+    ["WNT5A", "Non-canonical WNT ligand. IPA ISNS TGFB1 and TP63 target. WNT5A-Hedgehog crosstalk is established in BCC invasion. Connects Hedgehog and TGFβ arms of the panel. 3 peptides — borderline detectability, include with caution."],
+    ["SFRP1", "scRNA BCC Nat Commun 2022: SFRP1 marks EMT-associated malignant basal subtype 2 (TNC+SFRP1+CHGA+) enriched in highly invasive BCC clusters. CAF-secreted WNT inhibitor that paradoxically promotes invasion. 4 peptides."],
+    ["COL4A1", "Type IV collagen, basement membrane. In IPA ISNS Collagen Degradation pathway (p=2.1e-7). 14 peptides in both compartments, trending up in IS stroma (FC=2.31 BH=0.19). Basement membrane breakdown is mechanistically upstream of invasion."],
+    ["PTPN23_pS1283 (phospho)", "IS stroma-specific phosphosite in discovery data (2/9 IS, 0 all others). PTPN23 controls endosomal EGFR recycling. Exploratory — sparse detection. Already present in original panel — KEEP as exploratory."],
+    [""],
+    ["KEY ASSUMPTIONS FLAGGED"],
+    ["1.", "INHBA has 11 peptides in our LFQ data but no explicit statistical test was run on it separately — the FC values quoted are from the IPA analysis-ready molecule table. Verify against the raw LFQ matrix before finalising."],
+    ["2.", "FOXP3, CCL17, CCL22, CD274, IDO1, IL10, IL13RA1/2, IL4R are all undetected in LFQ discovery. These are hypothesis-driven entries valid for PRM design but require careful assay development. Label them clearly as 'hypothesis-driven, not detected' in the final publication."],
+    ["3.", "The 5 STAT phosphosites removed were undetected in DIA-NN infini-search. If you wish to keep these as hypothesis-driven targets, that is scientifically valid — but they should be re-labelled as 'hypothesis-driven, not detected in discovery cohort' and the heavy-labelled peptide standards must be purchased and optimised from scratch."],
+    ["4.", "EGFR is on the panel (Tumor FC=0.79, Stroma BH=0.057 approaching significance). IPA identifies EGFR as the top upstream regulator in ITNT. Keep EGFR — the combined LFQ trend + IPA support + MAP2K2_pT394 phospho data create a coherent EGFR→MEK→ERK axis."],
+    ["5.", "TNC is kept despite low FC (1.06 tumor, 1.50 stroma) because scRNA BCC 2022 Nat Commun specifically identifies TNC-expressing CAFs (C01_TNC) as BCC-specific CAFs spatially associated with Tregs and collagen-upregulating fibroblasts. The biology trumps the LFQ numbers here."],
 ]
-for ri,row in enumerate(rows,1):
-    for ci,val in enumerate(row,1):
-        c=ws6.cell(row=ri,column=ci,value=val)
-        if ri==1: c.font=Font(bold=True,size=13,color="1F3864")
-        elif ci==1 and val and val[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZTop": 
-            c.font=Font(bold=True,size=10,color="1F3864")
-            if len(row)>1: c.fill=PatternFill("solid",fgColor="D9E1F2")
-        elif ci==2 and val and "★" in str(val):
-            c.font=Font(bold=True,size=9,color="375623")
-        elif ci==2 and "FLAG" in str(val).upper():
-            c.font=Font(bold=True,size=9,color="FF0000")
-        else: c.font=Font(size=9)
-ws6.column_dimensions["A"].width=12
-ws6.column_dimensions["B"].width=60
-ws6.column_dimensions["C"].width=75
+
+ws3.column_dimensions["A"].width = 20
+ws3.column_dimensions["B"].width = 110
+ws3.row_dimensions[1].height = 28
+for ri, row in enumerate(overview, 1):
+    for ci, val in enumerate(row, 1):
+        c = ws3.cell(row=ri, column=ci, value=str(val))
+        if ri==1:
+            c.font=Font(bold=True,size=14,color="1F3864")
+        elif str(val) in ["SUMMARY","REMOVAL RATIONALE — PHOSPHOSITES (5)","REMOVAL RATIONALE — PROTEINS (8)","ADDITION RATIONALE — PROTEINS (12 proteins + 1 phosphosite)","KEY ASSUMPTIONS FLAGGED"]:
+            c.font=Font(bold=True,size=11,color="1F3864")
+            c.fill=PatternFill("solid",fgColor="D9E1F2")
+        elif ci==1 and val and str(val).startswith("★"):
+            c.font=Font(bold=True,size=10,color="375623")
+            c.fill=PatternFill("solid",fgColor="E2EFDA")
+        elif ci==1 and val and str(val) not in ["","1.","2.","3.","4.","5."]:
+            c.font=Font(bold=True,size=9)
+        else:
+            c.font=Font(size=9)
+        c.alignment=Alignment(wrap_text=True,vertical="top")
+    if ri > 3:
+        ws3.row_dimensions[ri].height = 45
 
 wb.save(OUTPUT)
 print(f"\nSaved: {OUTPUT}")
-print(f"Selected: {len(selected_df)} | Trimmed: {len(trimmed_df)}")
-print("\nCategory coverage:")
-for cat in CATEGORY_MIN:
-    genes=[g for g in selected if cat in assign_categories(g)]
-    print(f"  {cat}: {len(genes)}")
-print("\nTop 15 in panel:")
-print(selected_df[["Gene","Category","TotalScore","Tier_IS_NS","Tier_IT_NT",
-                    "FC_IS_NS","FC_IT_NT","IPA_Pathways_ITNT"]].head(15).to_string(index=False))
+print(f"\nFinal panel breakdown:")
+print(final.groupby(['Process','Change']).size().to_string())
