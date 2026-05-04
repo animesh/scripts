@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
-set "QC_ROOT=L:\promec\TIMSTOF\QC"
-set "DUCKDB_BIN=%QC_ROOT%\duckdb.exe"
+set "QC_ROOT=F:\promec\TIMSTOF\QC"
+set "DUCKDB_BIN=C:\Program Files\DuckDB\duckdb.exe"
 set "DB_FILE=%QC_ROOT%\mqrun.duckdb"
 set "PG_REL=combined\txt\proteinGroups.txt"
 if not exist "%DUCKDB_BIN%" exit /b 1
@@ -41,8 +41,8 @@ if defined SINGLE_RUN (set "LOOP_GLOB=%QC_ROOT%\%SINGLE_RUN%") else (set "LOOP_G
 for /d %%P in ("%LOOP_GLOB%") do call :ingest "%%~fP" "%%~nxP"
 call :count end
 if defined SINGLE_RUN exit /b 0
-echo %DATE% %TIME% Sleeping 3600s
-timeout /t 3600 /nobreak >nul
+echo %DATE% %TIME% Sleeping 900s
+timeout /t 900 /nobreak >nul
 goto :poll_loop
 
 :ingest

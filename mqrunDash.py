@@ -11,7 +11,7 @@ import duckdb, pandas as pd
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, callback
 
-DB = sys.argv[1] if len(sys.argv) > 1 else "L:/promec/TIMSTOF/QC/mqrun.duckdb"
+DB = sys.argv[1] if len(sys.argv) > 1 else "F:/promec/TIMSTOF/QC/mqrun.duckdb"
 
 FONT = "'Inter', 'Helvetica Neue', Arial, sans-serif"
 MONO = "'JetBrains Mono', 'Fira Code', 'Courier New', monospace"
@@ -83,6 +83,79 @@ def load_run(run_id):
     """, [run_id]).df()
     con.close()
     return df
+
+
+def load_profile(gene):
+    """One row per run for a gene/protein search term.
+    Left-joins all runs so missing runs appear as NaN."""
+    con  = duckdb.connect(DB, read_only=True)
+    runs = con.execute("SELECT DISTINCT run_id FROM proteinGroups ORDER BY run_id").df()
+    pat  = f"%{gene}%"
+    df   = con.execute("""
+        WITH target AS (
+            SELECT run_id,
+                   MAX("Intensity") AS "Intensity",
+                   MAX("iBAQ")      AS "iBAQ",
+                   MAX("Score")     AS "Score"
+            FROM proteinGroups
+            WHERE ("Gene names" ILIKE ? OR "Protein names" ILIKE ?)
+              AND "Reverse" IS NULL AND "Potential contaminant" IS NULL
+              AND "Only identified by site" IS NULL
+            GROUP BY run_id
+        ),
+        totals AS (
+            SELECT run_id,
+                   COUNT(*) FILTER (WHERE "Reverse" IS NULL
+                                      AND "Potential contaminant" IS NULL
+                                      AND "Only identified by site" IS NULL
+                                      AND "Intensity" IS NOT NULL
+                                      AND "Intensity" > 0) AS n_total
+            FROM proteinGroups GROUP BY run_id
+        ),
+        ranked AS (
+            SELECT p.run_id,
+                   RANK() OVER (PARTITION BY p.run_id
+                                ORDER BY p."Intensity" DESC NULLS LAST) AS intensity_rank
+            FROM proteinGroups p
+            WHERE p."Reverse" IS NULL AND p."Potential contaminant" IS NULL
+              AND p."Only identified by site" IS NULL
+              AND (p."Gene names" ILIKE ? OR p."Protein names" ILIKE ?)
+        )
+        SELECT t.run_id,
+               t."Intensity", t."iBAQ", t."Score",
+               r.intensity_rank,
+               tt.n_total,
+               ROUND(100.0 * r.intensity_rank / tt.n_total, 1) AS intensity_rank_pct
+        FROM target t
+        JOIN ranked  r  ON r.run_id  = t.run_id
+        JOIN totals  tt ON tt.run_id = t.run_id
+    """, [pat, pat, pat, pat]).df()
+    con.close()
+    result = runs.merge(df, on="run_id", how="left")
+    result["present"] = result["Intensity"].notna()
+    return result
+
+_GENE_LIST_CACHE = None
+
+def get_gene_list():
+    """Top-5000 gene names by occurrence. Cached after first call (stable between runs)."""
+    global _GENE_LIST_CACHE
+    if _GENE_LIST_CACHE is not None:
+        return _GENE_LIST_CACHE
+    con = duckdb.connect(DB, read_only=True)
+    try:
+        df = con.execute("""
+            SELECT "Gene names", COUNT(*) AS n
+            FROM proteinGroups
+            WHERE "Gene names" IS NOT NULL AND "Gene names" != ''
+              AND "Reverse" IS NULL AND "Potential contaminant" IS NULL
+            GROUP BY "Gene names" ORDER BY n DESC LIMIT 5000
+        """).df()
+    except Exception:
+        df = pd.DataFrame(columns=["Gene names"])
+    con.close()
+    _GENE_LIST_CACHE = [{"label": g, "value": g} for g in df["Gene names"]]
+    return _GENE_LIST_CACHE
 
 
 # ── plotly base (transparent = follows page bg) ───────────────────────────────
@@ -274,7 +347,29 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
     ]),
 
     dcc.Store(id="sel-run"),
+    dcc.Store(id="sel-gene"),
     dcc.Interval(id="interval", interval=3600*1000, n_intervals=0),
+
+    html.Hr(style={"border":"none","borderTop":"1px solid #e5e7eb","margin":"8px 28px 0"}),
+
+    html.Div(className="qc-toolbar", style={"marginTop":"0"}, children=[
+        html.Div([
+            html.Div("Gene / Protein search (profile across runs)", className="qc-ctrl-label"),
+            dcc.Dropdown(id="dd-gene",
+                options=[], value=None, clearable=True,
+                placeholder="Type gene name e.g. GAPDH, ACTB ...",
+                style={"width":"420px"}),
+        ]),
+        html.Div(id="profile-missing-badge",
+                 style={"fontSize":"12px","color":"#9ca3af","alignSelf":"flex-end","paddingBottom":"4px"}),
+    ]),
+
+    html.Div(id="profile-section", className="qc-detail", style={"paddingTop":"12px"}, children=[
+        dcc.Graph(id="profile-intensity", config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
+        dcc.Graph(id="profile-ibaq",      config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
+        dcc.Graph(id="profile-score",     config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
+        dcc.Graph(id="profile-rank",      config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
+    ]),
 ])
 
 # ── callbacks ─────────────────────────────────────────────────────────────────
@@ -333,13 +428,8 @@ def update_trend(metric, active, trend_on, _n):
                                  line=dict(color=C_TREND, width=2, dash="dot"),
                                  hoverinfo="skip"))
 
-    short = [re.match(r'^(\d{6,8})', r).group(1)
-             if re.match(r'^(\d{6,8})', r) else r[:8]
-             for r in df["run_id"]]
-
     layout = base(mt=52)
-    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=8, family=MONO, color="#9ca3af"),
-                           tickmode="array", tickvals=list(df["run_id"]), ticktext=short)
+    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"))
     layout["yaxis"]["title"] = dict(text=ytitle, font=dict(size=11))
     layout["bargap"]         = 0.12
     layout["margin"]["b"]    = 80
@@ -427,9 +517,145 @@ def update_score(run_id):
     return fig
 
 
+@callback(Output("dd-gene","options"), Input("interval","n_intervals"))
+def populate_gene_dropdown(_n):
+    return get_gene_list()
+
+
+@callback(Output("sel-gene","data"), Input("dd-gene","value"))
+def store_gene(gene):
+    return gene
+
+
+def _profile_fig(df, col, title_prefix, color, unit_label, log_scale=False):
+    """Shared builder for profile scatter plots."""
+    if df is None or df.empty:
+        return go.Figure()
+    n_total   = len(df)
+    n_present = int(df["present"].sum())
+    n_missing = n_total - n_present
+    miss_pct  = 100 * n_missing / n_total if n_total else 0
+
+    present = df[df["present"]]
+    missing = df[~df["present"]]
+
+    y_vals = np.log10(present[col].clip(lower=1e-6)) if log_scale else present[col]
+    y_lbl  = f"log₁₀({col})" if log_scale else col
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=present["run_id"], y=y_vals,
+        mode="markers+lines",
+        marker=dict(size=5, color=color),
+        line=dict(color=color, width=1.5),
+        name=col,
+        hovertemplate="%{x}<br>" + y_lbl + ": %{y:,.3g}<extra></extra>",
+    ))
+    if not missing.empty:
+        fig.add_trace(go.Scatter(
+            x=missing["run_id"],
+            y=[y_vals.min() * 0.85 if not y_vals.empty else 0] * len(missing),
+            mode="markers",
+            marker=dict(size=6, color="#d1d5db", symbol="x"),
+            name="Missing",
+            hovertemplate="%{x}<br>not detected<extra></extra>",
+        ))
+
+    layout = base(f"{title_prefix}  ·  {n_missing}/{n_total} missing ({miss_pct:.0f}%)", mt=44)
+    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"))
+    layout["yaxis"]["title"] = dict(text=y_lbl, font=dict(size=10))
+    layout["hovermode"] = "closest"
+    fig.update_layout(**layout)
+    return fig
+
+
+
+def _build_rank_fig(df, gene):
+    """Intensity rank within sample (1=highest). Lower rank = more abundant.
+    Right y-axis shows rank percentile (top X%). Missing runs shown as grey x."""
+    present = df[df["present"]].copy()
+    missing = df[~df["present"]]
+    if present.empty:
+        return go.Figure()
+    n_total = len(df)
+    n_missing = n_total - int(df["present"].sum())
+    miss_pct  = 100 * n_missing / n_total if n_total else 0
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=present["run_id"],
+        y=present["intensity_rank"],
+        mode="markers+lines",
+        marker=dict(size=5, color=C_BLUE),
+        line=dict(color=C_BLUE, width=1.5),
+        name="Rank (abs)",
+        customdata=present[["intensity_rank","n_total","intensity_rank_pct"]].values,
+        hovertemplate="%{x}<br>Rank %{customdata[0]:,.0f} / %{customdata[1]:,.0f}  (top %{customdata[2]:.1f}%)<extra></extra>",
+    ))
+    # Rank percentile on secondary y-axis
+    fig.add_trace(go.Scatter(
+        x=present["run_id"],
+        y=present["intensity_rank_pct"],
+        mode="lines",
+        line=dict(color=C_TREND, width=1, dash="dot"),
+        name="Top % (right axis)",
+        yaxis="y2",
+        hoverinfo="skip",
+    ))
+    if not missing.empty:
+        max_rank = present["n_total"].max() if not present.empty else 1
+        fig.add_trace(go.Scatter(
+            x=missing["run_id"],
+            y=[max_rank * 1.05] * len(missing),
+            mode="markers",
+            marker=dict(size=6, color="#d1d5db", symbol="x"),
+            name="Missing",
+            hovertemplate="%{x}<br>not detected<extra></extra>",
+        ))
+    layout = base(f"Intensity rank  ·  {n_missing}/{n_total} missing ({miss_pct:.0f}%)", mt=44)
+    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"))
+    layout["yaxis"].update(
+        title=dict(text="Rank (1 = most abundant)", font=dict(size=10)),
+        autorange="reversed",  # rank 1 at top
+    )
+    layout["yaxis2"] = dict(
+        title=dict(text="Top %", font=dict(size=10, color=C_TREND)),
+        overlaying="y", side="right",
+        tickfont=dict(size=9, family=MONO, color=C_TREND),
+        showgrid=False, zeroline=False,
+        range=[0, 100],
+    )
+    layout["hovermode"] = "closest"
+    fig.update_layout(**layout)
+    return fig
+
+@callback(Output("profile-intensity","figure"),
+          Output("profile-ibaq",     "figure"),
+          Output("profile-score",    "figure"),
+          Output("profile-rank",     "figure"),
+          Output("profile-missing-badge","children"),
+          Input("sel-gene","data"),
+          Input("interval","n_intervals"))
+def update_profile(gene, _n):
+    empty = go.Figure()
+    if not gene:
+        return empty, empty, empty, empty, ""
+    df = load_profile(gene)
+    if df.empty:
+        return empty, empty, empty, empty, f'No results for "{gene}"'
+    n_total   = len(df)
+    n_present = int(df["present"].sum())
+    badge = f"{gene}  ·  detected in {n_present}/{n_total} runs  ({100*n_present/n_total:.0f}%)"
+    fig_int   = _profile_fig(df, "Intensity", "Intensity",   C_BLUE,   "Intensity",      log_scale=True)
+    fig_ibaq  = _profile_fig(df, "iBAQ",      "iBAQ",        C_VIOLET, "iBAQ",           log_scale=True)
+    fig_score = _profile_fig(df, "Score",     "Score",       C_AMBER,  "Andromeda Score", log_scale=False)
+    fig_rank  = _build_rank_fig(df, gene)
+    return fig_int, fig_ibaq, fig_score, fig_rank, badge
+
+
 if __name__ == "__main__":
     SUM = load_summary()
     print(f"DB   : {DB}")
     print(f"Runs : {len(SUM)}")
     print(f"Rows : {SUM['total'].sum():,}")
-    app.run(host='0.0.0.0',debug=False, port=805)
+    app.run(host='0.0.0.0',debug=False, port=8050)
