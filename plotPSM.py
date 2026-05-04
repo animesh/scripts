@@ -1,11 +1,5 @@
-#python plotPSM.py "L:\promec\HF\Lars\2026\260330_Essa\combined\txt\msms.txt" --protein alsS --peptide LTGKPGVVLVTSGPGASNLATGLLTANTEGDPVVALAGNVIR --out "alsS_LTGKPGVVLVTSGPGASNLATGLLTANTEGDPVVALAGNVIR.png" #--protein add_alsS --peptide AHPLEIVK --out alsS_AHPLEIVK.png
-#  Needs Proteins, Sequence, Modified sequence, Raw file, Charge, Fragmentation, Mass analyzer, Masses2/Intensities2 (full spectrum), Masses/Intensities/Matches (annotated ions), Raw precursor m/z = m/z + isotope_index * (1.003355 / charge)  [verified <1.5 mDa error]
-#python plotPSM.py msms.txt [--out output.png]
-#evidence.txt is NOT needed — all required fields are in msms.txt:
-#  Proteins, Sequence, Modified sequence, Raw file, Charge, Fragmentation, Mass analyzer,
-#  Masses2/Intensities2 (full spectrum), Masses/Intensities/Matches (annotated ions).
-#  Raw precursor m/z = m/z + isotope_index * (1.003355 / charge)  [verified <1.5 mDa error]
-#evidence argument kept optional for backwards compatibility but ignored when provided.
+#python plotPSM.py "L:\promec\HF\Lars\2026\260330_Essa\combined\txt\msms.txt" --protein alsS,ilvC,ilvD,kivD,yqhD
+#needs Proteins, Sequence, Modified sequence, Raw file, Charge, Fragmentation, Mass analyzer, Masses2/Intensities2 (full spectrum), Masses/Intensities/Matches (annotated ions), Raw precursor m/z = m/z + isotope_index * (1.003355 / charge)  [verified <1.5 mDa error]
 import argparse
 from pathlib import Path
 import sys
@@ -14,6 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import re
+from typing import Optional
 
 PROTON = 1.007276466812
 H2O = 18.010564684
@@ -49,89 +44,166 @@ def parse_semicolon_list(s):
         return np.array([])
 
 
-def read_peak_file(path: Path, protein: str = None, peptide: str = None):
+def split_proteins(protein_arg: Optional[str] = None) -> list[str]:
+    if not protein_arg:
+        return []
+    proteins = [p.strip() for p in str(protein_arg).split(',') if p.strip()]
+    return proteins
+
+
+def sanitize_filename_part(value: str):
+    value = str(value).strip()
+    value = re.sub(r'[^A-Za-z0-9_.-]+', '_', value)
+    return value.strip('_') or 'entry'
+
+
+def get_sequence_column(df):
+    return 'Sequence' if 'Sequence' in df.columns else find_column(df, ['sequence'])
+
+
+def select_best_row(df):
+    if 'Score' in df.columns:
+        scores = pd.to_numeric(df['Score'], errors='coerce')
+        if scores.notna().any():
+            return df.loc[scores.idxmax()]
+    return df.iloc[0]
+
+
+def protein_matches(proteins, value):
+    value = str(value)
+    return any(p in value for p in proteins)
+
+
+def select_psm_rows(path: Path, proteins: Optional[str] = None, peptide: Optional[str] = None):
+    proteins = split_proteins(proteins)
     for sep in ['\t', ',']:
         try:
             df = pd.read_csv(path, sep=sep, low_memory=False)
         except Exception:
             continue
 
-        # Filter by protein (substring match against Proteins column)
-        if protein and 'Proteins' in df.columns:
-            mask = df['Proteins'].astype(str).str.contains(protein, case=False, na=False)
-            filtered = df[mask]
-            if filtered.empty:
-                sys.exit(f"Error: no rows found matching protein '{protein}'")
-            df = filtered
+        if proteins and 'Proteins' in df.columns:
+            df = df[df['Proteins'].astype(str).apply(lambda v: protein_matches(proteins, v))]
+            if df.empty:
+                sys.exit(f"Error: no rows found matching protein(s) '{','.join(proteins)}'")
 
-        # Filter by peptide sequence (strip underscores, compare sanitized)
+        def score_list(sub_df):
+            if 'Score' in sub_df.columns:
+                return sorted(pd.to_numeric(sub_df['Score'], errors='coerce').dropna().tolist(), reverse=True)
+            return []
+
         if peptide:
             seq_clean = sanitize_sequence(peptide)
-            seq_col = 'Sequence' if 'Sequence' in df.columns else find_column(df, ['sequence'])
-            if seq_col:
-                mask = df[seq_col].astype(str).apply(sanitize_sequence) == seq_clean
-                filtered = df[mask]
-                if filtered.empty:
-                    sys.exit(f"Error: no rows found matching peptide '{peptide}'")
-                df = filtered
+            seq_col = get_sequence_column(df)
+            if seq_col is None:
+                sys.exit('Error: no peptide sequence column found in msms.txt')
+            sub = df[df[seq_col].astype(str).apply(sanitize_sequence) == seq_clean]
+            if sub.empty:
+                sys.exit(f"Error: no rows found matching peptide '{peptide}'")
+            selected_row = select_best_row(sub)
+            matched_protein = ''
+            if proteins and 'Proteins' in selected_row:
+                proteins_in_row = str(selected_row['Proteins'])
+                for prot in proteins:
+                    if prot in proteins_in_row:
+                        matched_protein = prot
+                        break
+            info = {
+                'rows': len(sub),
+                'scores': score_list(sub),
+                'reason': 'best-scored PSM for requested peptide',
+            }
+            return [(selected_row, matched_protein, seq_clean, info)]
 
-        # Pick best-scored row from the (filtered) dataframe
-        if 'Score' in df.columns:
-            selected_row = df.loc[df['Score'].astype(float).idxmax()]
-        else:
-            selected_row = df.iloc[0]
+        if proteins:
+            seq_col = get_sequence_column(df)
+            if seq_col is None:
+                sys.exit('Error: no peptide sequence column found in msms.txt')
+            df = df.copy()
+            df['_seq'] = df[seq_col].astype(str).apply(sanitize_sequence)
+            result = []
+            for protein in proteins:
+                group = df[df['Proteins'].astype(str).apply(lambda v, p=protein: p in str(v))]
+                if group.empty:
+                    continue
+                for peptide_seq, sub in group.groupby('_seq', sort=True):
+                    row = select_best_row(sub)
+                    info = {
+                        'rows': len(sub),
+                        'scores': score_list(sub),
+                        'reason': 'best-scored PSM for this peptide within requested protein',
+                    }
+                    result.append((row, protein, peptide_seq, info))
+            if not result:
+                sys.exit(f"Error: no peptides found for protein(s) '{','.join(proteins)}'")
+            return result
 
-        full_mz = np.array([])
-        full_intensity = np.array([])
-        if 'Masses2' in df.columns and 'Intensities2' in df.columns:
-            full_mz = parse_semicolon_list(selected_row['Masses2'])
-            full_intensity = parse_semicolon_list(selected_row['Intensities2'])
-        elif 'Masses' in df.columns and 'Intensities' in df.columns:
-            full_mz = parse_semicolon_list(selected_row['Masses'])
-            full_intensity = parse_semicolon_list(selected_row['Intensities'])
-
-        ann_mz = np.array([])
-        ann_intensity = np.array([])
-        ann_labels = []
-        if 'Masses' in df.columns and 'Intensities' in df.columns:
-            ann_mz = parse_semicolon_list(selected_row['Masses'])
-            ann_intensity = parse_semicolon_list(selected_row['Intensities'])
-            ann_labels = [x for x in str(selected_row.get('Matches', '')).split(';')
-                          if x.strip() != '' and x.strip().lower() != 'nan']
-            if len(ann_labels) != len(ann_mz):
-                ann_labels = [''] * len(ann_mz)
-
-        if full_mz.size and full_intensity.size:
-            return full_mz, full_intensity, ann_mz, ann_intensity, ann_labels, selected_row
-
-        mz_col = find_column(df, ['mz', 'm/z'])
-        int_col = find_column(df, ['intensity', 'int'])
-        if mz_col and int_col:
-            mz = df[mz_col].astype(float).to_numpy()
-            intensity = df[int_col].astype(float).to_numpy()
-            return mz, intensity, np.array([]), np.array([]), [], selected_row
+        selected_row = select_best_row(df)
+        seq = sanitize_sequence(str(selected_row.get('Sequence', '')))
+        info = {
+            'rows': len(df),
+            'scores': score_list(df),
+            'reason': 'best-scored PSM from entire file',
+        }
+        return [(selected_row, '', seq, info)]
 
     try:
         arr = np.loadtxt(path)
         if arr.ndim == 1 and arr.size >= 2:
             arr = arr.reshape(1, -1)
         if arr.shape[1] >= 2:
-            return arr[:, 0], arr[:, 1], np.array([]), np.array([]), [], None
+            row = None
+            seq = ''
+            return [(pd.Series(), '', seq, {'rows': 0, 'scores': [], 'reason': 'raw two-column file'})]
     except Exception:
         pass
     raise ValueError(f"Could not parse peak file: {path}")
 
 
+def extract_peak_data(row: pd.Series):
+    full_mz = np.array([])
+    full_intensity = np.array([])
+    if row is None or row.empty:
+        return full_mz, full_intensity, np.array([]), np.array([]), []
+
+    if 'Masses2' in row and 'Intensities2' in row:
+        full_mz = parse_semicolon_list(row['Masses2'])
+        full_intensity = parse_semicolon_list(row['Intensities2'])
+    elif 'Masses' in row and 'Intensities' in row:
+        full_mz = parse_semicolon_list(row['Masses'])
+        full_intensity = parse_semicolon_list(row['Intensities'])
+
+    ann_mz = np.array([])
+    ann_intensity = np.array([])
+    ann_labels = []
+    if 'Masses' in row and 'Intensities' in row:
+        ann_mz = parse_semicolon_list(row['Masses'])
+        ann_intensity = parse_semicolon_list(row['Intensities'])
+        ann_labels = [x for x in str(row.get('Matches', '')).split(';')
+                      if x.strip() != '' and x.strip().lower() != 'nan']
+        if len(ann_labels) != len(ann_mz):
+            ann_labels = [''] * len(ann_mz)
+
+    return full_mz, full_intensity, ann_mz, ann_intensity, ann_labels
+
+
 def plot_spectrum(full_mz, full_intensity, ann_mz, ann_intensity, ann_labels,
                  row: pd.Series, peptide: str, outpath: Path, title=None):
-    order_full = np.argsort(full_mz)
-    full_mz = full_mz[order_full]
-    full_intensity = full_intensity[order_full]
+    full_mz = np.asarray(full_mz, dtype=float) if full_mz is not None else np.array([], dtype=float)
+    full_intensity = np.asarray(full_intensity, dtype=float) if full_intensity is not None else np.array([], dtype=float)
+    ann_mz = np.asarray(ann_mz, dtype=float) if ann_mz is not None else np.array([], dtype=float)
+    ann_intensity = np.asarray(ann_intensity, dtype=float) if ann_intensity is not None else np.array([], dtype=float)
+    ann_labels = list(ann_labels) if ann_labels is not None else []
 
-    order_ann = np.argsort(ann_mz)
-    ann_mz = ann_mz[order_ann]
-    ann_intensity = ann_intensity[order_ann]
-    ann_labels = [ann_labels[i] for i in order_ann]
+    if full_mz.size:
+        order_full = np.argsort(full_mz)
+        full_mz = full_mz[order_full]
+        full_intensity = full_intensity[order_full]
+    if ann_mz.size:
+        order_ann = np.argsort(ann_mz)
+        ann_mz = ann_mz[order_ann]
+        ann_intensity = ann_intensity[order_ann]
+        ann_labels = [ann_labels[i] for i in order_ann]
 
     if full_intensity.size and np.max(full_intensity) > 0:
         intensity_norm = full_intensity / np.max(full_intensity) * 100.0
@@ -144,9 +216,16 @@ def plot_spectrum(full_mz, full_intensity, ann_mz, ann_intensity, ann_labels,
 
     fig, ax = plt.subplots(figsize=(14, 6))
     ax.set_facecolor('white')
-    annotated_mask = np.array([np.any(np.isclose(x, ann_mz, atol=1e-4)) for x in full_mz])
-    ax.vlines(full_mz[~annotated_mask], 0, intensity_norm[~annotated_mask], color='grey', linewidth=0.8, alpha=0.7)
-    ax.scatter(full_mz[~annotated_mask], intensity_norm[~annotated_mask], color='grey', s=8, zorder=2)
+    if full_mz.size:
+        annotated_mask = np.array([np.any(np.isclose(x, ann_mz, atol=1e-4)) for x in full_mz], dtype=bool)
+    else:
+        annotated_mask = np.array([], dtype=bool)
+
+    if full_mz.size:
+        ax.vlines(full_mz[~annotated_mask], 0, intensity_norm[~annotated_mask], color='grey', linewidth=0.8, alpha=0.7)
+        ax.scatter(full_mz[~annotated_mask], intensity_norm[~annotated_mask], color='grey', s=8, zorder=2)
+    else:
+        annotated_mask = np.array([], dtype=bool)
 
     b_ion_color = '#D18F3F'
     y_ion_color = '#3D6B8A'
@@ -169,7 +248,10 @@ def plot_spectrum(full_mz, full_intensity, ann_mz, ann_intensity, ann_labels,
 
     ax.set_xlabel('m/z')
     ax.set_ylabel('Relative intensity (%)')
-    ax.set_xlim(full_mz.min() - 20, full_mz.max() + 20)
+    if full_mz.size:
+        ax.set_xlim(full_mz.min() - 20, full_mz.max() + 20)
+    else:
+        ax.set_xlim(0, 1)
     ax.set_ylim(0, 100)
 
     max_raw = np.max(full_intensity) if full_intensity.size else 0.0
@@ -192,7 +274,6 @@ def plot_spectrum(full_mz, full_intensity, ann_mz, ann_intensity, ann_labels,
     ax.tick_params(axis='x', which='both', bottom=True, top=False)
     ax.tick_params(axis='y', which='both', left=True, right=False)
 
-    # Build header — compute raw precursor m/z from msms m/z + isotope index + charge
     header_items = []
     if row is not None:
         if 'Raw file' in row:
@@ -210,7 +291,6 @@ def plot_spectrum(full_mz, full_intensity, ann_mz, ann_intensity, ann_labels,
                 charge_val = row['Charge']
             header_items.append(f"z {charge_val}+")
         header_items.append(f"Score {row.get('Score', '')}")
-        # Compute raw precursor m/z: monoisotopic m/z + isotope_offset
         try:
             mz_mono = float(row['m/z'])
             iso_idx = int(row.get('Isotope index', 0))
@@ -313,11 +393,12 @@ def main():
     parser.add_argument('msms', type=Path)
     parser.add_argument('evidence', type=Path, nargs='?', default=None,
                         help='Optional — not used, kept for backwards compatibility')
-    parser.add_argument('--protein', type=str, default=None,
-                        help='Protein name/id substring to filter rows (e.g. add_alsS)')
+    parser.add_argument('--protein', '--protien', type=str, default=None,
+                        help='Case-sensitive comma-separated protein name/id substrings to filter rows (e.g. alsS,alsV)')
     parser.add_argument('--peptide', type=str, default=None,
                         help='Peptide sequence to filter rows (e.g. AHPLEIVK)')
-    parser.add_argument('--out', type=Path, default=None)
+    parser.add_argument('--out', type=Path, default=None,
+                        help='Output filename or directory. For multiple results, this is treated as a directory.')
     parser.add_argument('--tol', type=float, default=0.5)
     parser.add_argument('--ppm', action='store_true')
     args = parser.parse_args()
@@ -325,24 +406,46 @@ def main():
     if args.evidence:
         print(f"Note: evidence file ignored — all fields sourced from msms.txt")
 
-    full_mz, full_intensity, ann_mz, ann_intensity, ann_labels, msms_row = read_peak_file(
-        args.msms, protein=args.protein, peptide=args.peptide)
+    results = select_psm_rows(args.msms, proteins=args.protein, peptide=args.peptide)
+    msms_prefix = sanitize_filename_part(args.msms.stem)
 
-    seq = args.peptide or ''
-    proteins = args.protein or ''
-    if msms_row is not None:
-        if not seq:
-            seq = sanitize_sequence(str(msms_row.get('Sequence', '')))
-        if not proteins:
-            proteins = str(msms_row.get('Proteins', '')) if pd.notna(msms_row.get('Proteins', '')) else ''
+    single_output_path = None
+    if args.out is not None and len(results) == 1 and args.out.suffix.lower() == '.png':
+        single_output_path = args.out
+    output_dir = None if single_output_path is not None else (
+        args.out if args.out is not None and args.out.suffix.lower() != '.png'
+        else (args.out.parent if args.out is not None else args.msms.parent)
+    )
+    if output_dir is None:
+        output_dir = args.msms.parent
+    if not output_dir.exists():
+        output_dir.mkdir(parents=True, exist_ok=True)
 
-    out = args.out or args.msms.with_suffix('.png')
-    title = proteins or seq
+    for row, protein, seq, info in results:
+        protein_part = sanitize_filename_part(protein or str(row.get('Proteins', '')))
+        peptide_part = sanitize_filename_part(seq or sanitize_sequence(str(row.get('Sequence', ''))))
+        if single_output_path is not None:
+            out_path = single_output_path
+        else:
+            output_name = f"{msms_prefix}_{protein_part}_{peptide_part}.png"
+            out_path = output_dir / output_name
 
-    plot_spectrum(full_mz, full_intensity, ann_mz, ann_intensity, ann_labels,
-                 msms_row, seq, out, title=title)
-    print(f"Saved annotated spectrum to: {out}")
+        title = protein or str(row.get('Proteins', '')) or seq
+        full_mz, full_intensity, ann_mz, ann_intensity, ann_labels = extract_peak_data(row)
 
+        print(f"Processing protein: {protein or '<none>'}")
+        print(f"Processing peptide: {seq or '<none>'}")
+        print(f"  Reason: {info.get('reason', 'selected PSM')}")
+        print(f"  Matched PSM rows: {info.get('rows', 0)}")
+        scores = info.get('scores', [])
+        if scores:
+            print(f"  Scores: {', '.join(str(s) for s in scores)}")
+        else:
+            print(f"  Scores: none")
+
+        plot_spectrum(full_mz, full_intensity, ann_mz, ann_intensity, ann_labels,
+                     row, seq, out_path, title=title)
+        print(f"Saved annotated spectrum to: {out_path}")
 
 if __name__ == '__main__':
     main()
