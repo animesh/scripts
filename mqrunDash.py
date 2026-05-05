@@ -11,7 +11,7 @@ import duckdb, pandas as pd
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, callback
 
-DB = sys.argv[1] if len(sys.argv) > 1 else "F:/promec/TIMSTOF/QC/mqrun.duckdb"
+DB = sys.argv[1] if len(sys.argv) > 1 else "L:/promec/TIMSTOF/QC/mqrun.duckdb"
 
 FONT = "'Inter', 'Helvetica Neue', Arial, sans-serif"
 MONO = "'JetBrains Mono', 'Fira Code', 'Courier New', monospace"
@@ -48,7 +48,12 @@ def parse_date(rid):
     try:    return datetime.strptime(s, "%Y%m%d").date()
     except: return None
 
-def load_summary():
+_SUMMARY_CACHE = None
+
+def load_summary(force=False):
+    global _SUMMARY_CACHE
+    if _SUMMARY_CACHE is not None and not force:
+        return _SUMMARY_CACHE
     con = duckdb.connect(DB, read_only=True)
     q = """
         SELECT run_id,
@@ -70,6 +75,7 @@ def load_summary():
     df = con.execute(q).df()
     con.close()
     df["date"] = df["run_id"].apply(parse_date)
+    _SUMMARY_CACHE = df
     return df
 
 def load_run(run_id):
@@ -85,77 +91,255 @@ def load_run(run_id):
     return df
 
 
-def load_profile(gene):
-    """One row per run for a gene/protein search term.
-    Left-joins all runs so missing runs appear as NaN."""
-    con  = duckdb.connect(DB, read_only=True)
-    runs = con.execute("SELECT DISTINCT run_id FROM proteinGroups ORDER BY run_id").df()
-    pat  = f"%{gene}%"
-    df   = con.execute("""
-        WITH target AS (
-            SELECT run_id,
-                   MAX("Intensity") AS "Intensity",
-                   MAX("iBAQ")      AS "iBAQ",
-                   MAX("Score")     AS "Score"
-            FROM proteinGroups
-            WHERE ("Gene names" ILIKE ? OR "Protein names" ILIKE ?)
-              AND "Reverse" IS NULL AND "Potential contaminant" IS NULL
-              AND "Only identified by site" IS NULL
-            GROUP BY run_id
-        ),
-        totals AS (
-            SELECT run_id,
-                   COUNT(*) FILTER (WHERE "Reverse" IS NULL
-                                      AND "Potential contaminant" IS NULL
-                                      AND "Only identified by site" IS NULL
-                                      AND "Intensity" IS NOT NULL
-                                      AND "Intensity" > 0) AS n_total
-            FROM proteinGroups GROUP BY run_id
-        ),
-        ranked AS (
-            SELECT p.run_id,
-                   RANK() OVER (PARTITION BY p.run_id
-                                ORDER BY p."Intensity" DESC NULLS LAST) AS intensity_rank
-            FROM proteinGroups p
-            WHERE p."Reverse" IS NULL AND p."Potential contaminant" IS NULL
-              AND p."Only identified by site" IS NULL
-              AND (p."Gene names" ILIKE ? OR p."Protein names" ILIKE ?)
-        )
-        SELECT t.run_id,
-               t."Intensity", t."iBAQ", t."Score",
-               r.intensity_rank,
-               tt.n_total,
-               ROUND(100.0 * r.intensity_rank / tt.n_total, 1) AS intensity_rank_pct
-        FROM target t
-        JOIN ranked  r  ON r.run_id  = t.run_id
-        JOIN totals  tt ON tt.run_id = t.run_id
-    """, [pat, pat, pat, pat]).df()
-    con.close()
-    result = runs.merge(df, on="run_id", how="left")
-    result["present"] = result["Intensity"].notna()
-    return result
+# ── In-memory indexes (built once at startup) ─────────────────────────────────
+# All searches are exact-match on lowercased keys → O(1) dict lookup.
+# Three separate indexes so gene / UniProt / peptide never mix.
+#
+#   _GENE_IDX    : gene_name.lower()    -> {run_id: row_dict}
+#   _UNIPROT_IDX : uniprot_id.lower()   -> {run_id: row_dict}
+#   _PEP_IDX     : peptide_seq.upper()  -> {run_id: True}
+#   _PEP_GENE_IDX: peptide_seq.upper()  -> set of canonical gene_names (display)
+#   _PEP_STORE   : gene_name.lower()    -> {run_id: set(peptide_seqs)}
+#   _RUNS_ORDERED: sorted list of all run_ids
 
-_GENE_LIST_CACHE = None
+_GENE_IDX     = {}
+_UNIPROT_IDX  = {}
+_PEP_IDX      = {}
+_PEP_GENE_IDX = {}
+_PEP_STORE    = {}
+_RUNS_ORDERED = []
+_PROFILE_LOADED = False
 
-def get_gene_list():
-    """Top-5000 gene names by occurrence. Cached after first call (stable between runs)."""
-    global _GENE_LIST_CACHE
-    if _GENE_LIST_CACHE is not None:
-        return _GENE_LIST_CACHE
+# Summary tables (built at same time, used for top-N panels)
+_TOP_GENES    = []   # list of dicts: gene, n_runs, med_rank, miss_pct
+_TOP_UNIPROT  = []
+_TOP_PEPTIDES = []   # sorted by fewest missing
+
+
+def _build_profile_store():
+    """One DB query, one Python pass. Builds all indexes."""
+    global _GENE_IDX, _UNIPROT_IDX, _PEP_IDX, _PEP_GENE_IDX, _PEP_STORE
+    global _RUNS_ORDERED, _PROFILE_LOADED
+    global _TOP_GENES, _TOP_UNIPROT, _TOP_PEPTIDES
+
     con = duckdb.connect(DB, read_only=True)
-    try:
-        df = con.execute("""
-            SELECT "Gene names", COUNT(*) AS n
-            FROM proteinGroups
-            WHERE "Gene names" IS NOT NULL AND "Gene names" != ''
-              AND "Reverse" IS NULL AND "Potential contaminant" IS NULL
-            GROUP BY "Gene names" ORDER BY n DESC LIMIT 5000
-        """).df()
-    except Exception:
-        df = pd.DataFrame(columns=["Gene names"])
+    _RUNS_ORDERED = con.execute(
+        'SELECT DISTINCT run_id FROM proteinGroups ORDER BY run_id'
+    ).df()['run_id'].tolist()
+    n_runs = len(_RUNS_ORDERED)
+
+    raw = con.execute("""
+        WITH totals AS (
+            SELECT run_id,
+                   SUM("Intensity") FILTER (
+                       WHERE "Reverse" IS NULL AND "Potential contaminant" IS NULL
+                         AND "Only identified by site" IS NULL AND "Intensity" > 0
+                   ) AS sum_intensity
+            FROM proteinGroups GROUP BY run_id
+        )
+        SELECT p.run_id,
+               COALESCE(p."Protein IDs",       '')  AS protein_ids,
+               COALESCE(p."Gene names",        '')  AS gene_names,
+               COALESCE(p."Protein names",     '')  AS protein_names,
+               COALESCE(p."Peptide sequences", '')  AS pep_seqs,
+               p."Intensity", p."iBAQ", p."Score",
+               t.sum_intensity,
+               CASE WHEN t.sum_intensity > 0
+                    THEN p."Intensity" / t.sum_intensity ELSE NULL END AS frac_intensity,
+               RANK() OVER (
+                   PARTITION BY p.run_id ORDER BY p."Intensity" DESC NULLS LAST
+               ) AS intensity_rank
+        FROM proteinGroups p
+        JOIN totals t ON t.run_id = p.run_id
+        WHERE p."Reverse" IS NULL
+          AND p."Potential contaminant" IS NULL
+          AND p."Only identified by site" IS NULL
+    """).df()
     con.close()
-    _GENE_LIST_CACHE = [{"label": g, "value": g} for g in df["Gene names"]]
-    return _GENE_LIST_CACHE
+
+    gene_idx    = {}
+    uniprot_idx = {}
+    pep_idx     = {}
+    pep_gene    = {}
+    pep_str     = {}
+
+    # accumulators for summary tables
+    gene_runs  = {}   # gene_lower -> list of intensity_rank (present runs only)
+    uprot_runs = {}   # uniprot_lower -> list of intensity_rank
+    pep_runs   = {}   # peptide_upper -> n_present runs
+
+    for _, row in raw.iterrows():
+        run  = row['run_id']
+        rd   = {
+            'gene_names':    row['gene_names'],
+            'protein_names': row['protein_names'],
+            'protein_ids':   row['protein_ids'],
+            'Intensity':     row['Intensity'],
+            'iBAQ':          row['iBAQ'],
+            'Score':         row['Score'],
+            'frac_intensity':row['frac_intensity'],
+            'intensity_rank':row['intensity_rank'],
+            'sum_intensity': row['sum_intensity'],
+        }
+
+        # Gene names (semicolon-separated)
+        genes = [g.strip() for g in str(row['gene_names']).split(';') if g.strip()]
+        for g in genes:
+            k = g.lower()
+            gene_idx.setdefault(k, {})[run] = rd
+            gene_runs.setdefault(k, {'name': g, 'ranks': []})['ranks'].append(
+                row['intensity_rank'] if pd.notna(row['intensity_rank']) else None
+            )
+
+        # UniProt IDs (semicolon-separated; may be compound "P12345;Q99999")
+        uniprots = [u.strip() for u in str(row['protein_ids']).split(';') if u.strip()]
+        for u in uniprots:
+            k = u.lower()
+            uniprot_idx.setdefault(k, {})[run] = rd
+            uprot_runs.setdefault(k, {'name': u, 'gene': row['gene_names'], 'ranks': []})['ranks'].append(
+                row['intensity_rank'] if pd.notna(row['intensity_rank']) else None
+            )
+
+        # Peptide sequences
+        seqs = {s.strip().upper() for s in str(row['pep_seqs']).split(';') if s.strip()}
+        for seq in seqs:
+            pep_idx.setdefault(seq, {})[run] = True
+            pep_runs[seq] = pep_runs.get(seq, 0) + 1
+            for g in genes:
+                pep_gene.setdefault(seq, set()).add(g)
+            for g in genes:
+                pep_str.setdefault(g.lower(), {}).setdefault(run, set()).add(seq)
+
+    _GENE_IDX     = gene_idx
+    _UNIPROT_IDX  = uniprot_idx
+    _PEP_IDX      = pep_idx
+    _PEP_GENE_IDX = pep_gene
+    _PEP_STORE    = pep_str
+    _PROFILE_LOADED = True
+
+    # Build summary tables
+    def _make_profile_rows(idx_runs, n_runs):
+        rows = []
+        for k, v in idx_runs.items():
+            ranks = [r for r in v['ranks'] if r is not None]
+            n_det = len(set(v.get('runs', []))) if 'runs' in v else len(ranks)
+            # count distinct runs detected
+            n_det = len([r for r in v['ranks'] if r is not None])
+            miss  = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
+            med_r = float(np.median(ranks)) if ranks else None
+            rows.append({'key': k, 'name': v['name'],
+                         'n_runs': n_det, 'miss_pct': miss,
+                         'med_rank': med_r})
+        return rows
+
+    gene_rows  = _make_profile_rows(gene_runs,  n_runs)
+    uprot_rows = _make_profile_rows(uprot_runs, n_runs)
+    # also attach gene name to uniprot rows
+    for r in uprot_rows:
+        r['gene'] = uprot_runs[r['key']].get('gene', '')
+
+    _TOP_GENES   = sorted(gene_rows,  key=lambda x: x['miss_pct'])[:50]
+    _TOP_UNIPROT = sorted(uprot_rows, key=lambda x: x['miss_pct'])[:50]
+
+    # Peptide summary: sort by fewest missing (most detected)
+    pep_summary = []
+    for seq, n_det in pep_runs.items():
+        miss = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
+        genes = ', '.join(sorted(_PEP_GENE_IDX.get(seq, set()))[:3])
+        pep_summary.append({'peptide': seq, 'n_runs': n_det,
+                            'miss_pct': miss, 'genes': genes})
+    _TOP_PEPTIDES = sorted(pep_summary, key=lambda x: x['miss_pct'])[:50]
+
+    print(f"Store: {len(gene_idx):,} genes  {len(uniprot_idx):,} UniProts  "
+          f"{len(pep_idx):,} peptides  {n_runs} runs")
+
+
+def _runs_to_df(idx_data):
+    """Convert {run_id: row_dict} to a left-joined profile DataFrame."""
+    rows = []
+    for run_id in _RUNS_ORDERED:
+        if run_id in idx_data:
+            d = dict(idx_data[run_id])
+            d['run_id'] = run_id
+            d['present'] = True
+        else:
+            d = {'run_id': run_id, 'present': False,
+                 'Intensity': None, 'iBAQ': None, 'Score': None,
+                 'frac_intensity': None, 'intensity_rank': None, 'sum_intensity': None}
+        rows.append(d)
+    return pd.DataFrame(rows)
+
+
+def _pep_matrix(gene_key):
+    """Build peptide×run bool matrix from _PEP_STORE for a gene key."""
+    run_peps = _PEP_STORE.get(gene_key, {})
+    if not run_peps:
+        return pd.DataFrame()
+    pep_rows = [{'run_id': r, 'peptide': s}
+                for r, seqs in run_peps.items() for s in seqs]
+    if not pep_rows:
+        return pd.DataFrame()
+    long = pd.DataFrame(pep_rows).drop_duplicates()
+    mat  = long.assign(v=True).pivot_table(
+        index='peptide', columns='run_id', values='v', aggfunc='any', fill_value=False)
+    for r in _RUNS_ORDERED:
+        if r not in mat.columns:
+            mat[r] = False
+    mat = mat[_RUNS_ORDERED]
+    return mat.loc[mat.sum(axis=1).sort_values(ascending=False).index]
+
+
+def load_gene_profile(gene):
+    """Exact case-insensitive gene name lookup. Returns (profile_df, mat_df, label)."""
+    if not _PROFILE_LOADED:
+        _build_profile_store()
+    key = gene.strip().lower()
+    if key not in _GENE_IDX:
+        return pd.DataFrame(), pd.DataFrame(), gene
+    label = _GENE_IDX[key][next(iter(_GENE_IDX[key]))]['gene_names']
+    return _runs_to_df(_GENE_IDX[key]), _pep_matrix(key), label
+
+
+def load_uniprot_profile(uid):
+    """Exact case-insensitive UniProt ID lookup. Returns (profile_df, mat_df, label)."""
+    if not _PROFILE_LOADED:
+        _build_profile_store()
+    key = uid.strip().lower()
+    if key not in _UNIPROT_IDX:
+        return pd.DataFrame(), pd.DataFrame(), uid
+    d0  = _UNIPROT_IDX[key][next(iter(_UNIPROT_IDX[key]))]
+    label = f"{d0['protein_ids']} ({d0['gene_names']})"
+    # pep matrix via first gene
+    g = d0['gene_names'].split(';')[0].strip().lower()
+    return _runs_to_df(_UNIPROT_IDX[key]), _pep_matrix(g), label
+
+
+def load_peptide_profile(seq):
+    """Exact peptide sequence lookup. Returns (profile_df, mat_df, label)."""
+    if not _PROFILE_LOADED:
+        _build_profile_store()
+    key = seq.strip().upper()
+    if key not in _PEP_IDX:
+        return pd.DataFrame(), pd.DataFrame(), seq
+    genes = sorted(_PEP_GENE_IDX.get(key, set()))
+    label = f"{key}  [{', '.join(genes[:3])}]"
+    # merge protein profiles for all genes carrying this peptide
+    merged = {}
+    for g in genes:
+        for run_id, rd in _GENE_IDX.get(g.lower(), {}).items():
+            if run_id not in merged or (
+                rd['Intensity'] and
+                (not merged[run_id]['Intensity'] or rd['Intensity'] > merged[run_id]['Intensity'])
+            ):
+                merged[run_id] = rd
+    profile = _runs_to_df(merged)
+    # single-row matrix: just this peptide
+    presence = {r: True for r in _PEP_IDX[key]}
+    mat = pd.DataFrame(
+        [{r: (r in presence) for r in _RUNS_ORDERED}], index=[key])
+    mat.columns.name = 'run_id'
+    return profile, mat, label
+
 
 
 # ── plotly base (transparent = follows page bg) ───────────────────────────────
@@ -347,18 +531,51 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
     ]),
 
     dcc.Store(id="sel-run"),
-    dcc.Store(id="sel-gene"),
+    dcc.Store(id="sel-search"),   # {"mode": gene|uniprot|peptide, "term": str}
     dcc.Interval(id="interval", interval=3600*1000, n_intervals=0),
 
     html.Hr(style={"border":"none","borderTop":"1px solid #e5e7eb","margin":"8px 28px 0"}),
 
+    html.Div(style={"padding":"12px 28px 0","display":"flex","gap":"16px","alignItems":"flex-start"}, children=[
+        html.Div([
+            html.Div("Top genes by detection", className="qc-ctrl-label", style={"marginBottom":"6px"}),
+            html.Div(id="tbl-genes",  style={"fontSize":"11px","fontFamily":MONO,"lineHeight":"1.7","color":"#374151"}),
+        ], style={"flex":"1","background":"white","border":"1px solid #e5e7eb","borderRadius":"8px","padding":"12px 16px"}),
+        html.Div([
+            html.Div("Top UniProt by detection", className="qc-ctrl-label", style={"marginBottom":"6px"}),
+            html.Div(id="tbl-uniprot",style={"fontSize":"11px","fontFamily":MONO,"lineHeight":"1.7","color":"#374151"}),
+        ], style={"flex":"1","background":"white","border":"1px solid #e5e7eb","borderRadius":"8px","padding":"12px 16px"}),
+        html.Div([
+            html.Div("Most consistent peptides", className="qc-ctrl-label", style={"marginBottom":"6px"}),
+            html.Div(id="tbl-peptides",style={"fontSize":"11px","fontFamily":MONO,"lineHeight":"1.7","color":"#374151"}),
+        ], style={"flex":"1","background":"white","border":"1px solid #e5e7eb","borderRadius":"8px","padding":"12px 16px"}),
+    ]),
+
+
     html.Div(className="qc-toolbar", style={"marginTop":"0"}, children=[
         html.Div([
-            html.Div("Gene / Protein search (profile across runs)", className="qc-ctrl-label"),
-            dcc.Dropdown(id="dd-gene",
-                options=[], value=None, clearable=True,
-                placeholder="Type gene name e.g. GAPDH, ACTB ...",
-                style={"width":"420px"}),
+            html.Div("Gene name (exact, e.g. ACTB)", className="qc-ctrl-label"),
+            dcc.Input(id="inp-gene", type="text", debounce=True,
+                placeholder="ACTB",
+                style={"width":"180px","height":"36px","border":"1.5px solid #e5e7eb",
+                       "borderRadius":"6px","padding":"0 10px","fontSize":"13px",
+                       "fontFamily":MONO,"outline":"none"}),
+        ]),
+        html.Div([
+            html.Div("UniProt ID (exact, e.g. P60709)", className="qc-ctrl-label"),
+            dcc.Input(id="inp-uniprot", type="text", debounce=True,
+                placeholder="P60709",
+                style={"width":"180px","height":"36px","border":"1.5px solid #e5e7eb",
+                       "borderRadius":"6px","padding":"0 10px","fontSize":"13px",
+                       "fontFamily":MONO,"outline":"none"}),
+        ]),
+        html.Div([
+            html.Div("Peptide sequence (exact, e.g. GYSFTTAER)", className="qc-ctrl-label"),
+            dcc.Input(id="inp-peptide", type="text", debounce=True,
+                placeholder="GYSFTTAER",
+                style={"width":"240px","height":"36px","border":"1.5px solid #e5e7eb",
+                       "borderRadius":"6px","padding":"0 10px","fontSize":"13px",
+                       "fontFamily":MONO,"outline":"none"}),
         ]),
         html.Div(id="profile-missing-badge",
                  style={"fontSize":"12px","color":"#9ca3af","alignSelf":"flex-end","paddingBottom":"4px"}),
@@ -368,7 +585,11 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
         dcc.Graph(id="profile-intensity", config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
         dcc.Graph(id="profile-ibaq",      config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
         dcc.Graph(id="profile-score",     config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
-        dcc.Graph(id="profile-rank",      config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
+        dcc.Graph(id="profile-frac",      config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
+    ]),
+
+    html.Div(className="qc-detail", style={"padding":"0 28px 32px"}, children=[
+        dcc.Graph(id="profile-peptides", config={"displayModeBar":False}, style={"width":"100%","height":"340px"}),
     ]),
 ])
 
@@ -376,7 +597,7 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
 
 @callback(Output("cards","children"), Output("header-stats","children"), Input("dd-metric","value"), Input("interval","n_intervals"))
 def update_cards(_, _n):
-    SUM = load_summary()
+    SUM = load_summary(force=True)
     stats = f"{len(SUM)} runs  ·  {SUM['total'].sum():,} protein groups"
     cards = [
         card("Runs ingested",  str(len(SUM))),
@@ -517,14 +738,62 @@ def update_score(run_id):
     return fig
 
 
-@callback(Output("dd-gene","options"), Input("interval","n_intervals"))
-def populate_gene_dropdown(_n):
-    return get_gene_list()
+@callback(Output("tbl-genes","children"),
+          Output("tbl-uniprot","children"),
+          Output("tbl-peptides","children"),
+          Input("interval","n_intervals"))
+def update_top_tables(_n):
+    if not _PROFILE_LOADED:
+        return "loading...", "loading...", "loading..."
+    def _gene_rows():
+        rows = []
+        for r in _TOP_GENES[:15]:
+            rows.append(html.Div([
+                html.Span(f"{r['name']:<12}", style={"color": C_BLUE, "fontWeight":"600",
+                    "cursor":"pointer", "textDecoration":"underline dotted"},
+                    id={"type":"top-gene-link","index":r['name']}),
+                html.Span(f"  {r['n_runs']:>3} runs  miss {r['miss_pct']:4.0f}%"
+                          + (f"  rank {r['med_rank']:6.0f}" if r['med_rank'] else ""),
+                          style={"color":"#6b7280"}),
+            ]))
+        return rows
+    def _uprot_rows():
+        rows = []
+        for r in _TOP_UNIPROT[:15]:
+            rows.append(html.Div([
+                html.Span(f"{r['name']:<12}", style={"color": C_VIOLET, "fontWeight":"600",
+                    "cursor":"pointer", "textDecoration":"underline dotted"},
+                    id={"type":"top-uprot-link","index":r['name']}),
+                html.Span(f"  {r['gene'][:14]:<14}  {r['n_runs']:>3} runs  miss {r['miss_pct']:4.0f}%",
+                          style={"color":"#6b7280"}),
+            ]))
+        return rows
+    def _pep_rows():
+        rows = []
+        for r in _TOP_PEPTIDES[:15]:
+            rows.append(html.Div([
+                html.Span(f"{r['peptide']:<20}", style={"color": C_AMBER, "fontWeight":"600",
+                    "cursor":"pointer", "textDecoration":"underline dotted"},
+                    id={"type":"top-pep-link","index":r['peptide']}),
+                html.Span(f"  {r['n_runs']:>3} runs  miss {r['miss_pct']:4.0f}%  {r['genes'][:20]}",
+                          style={"color":"#6b7280"}),
+            ]))
+        return rows
+    return _gene_rows(), _uprot_rows(), _pep_rows()
 
 
-@callback(Output("sel-gene","data"), Input("dd-gene","value"))
-def store_gene(gene):
-    return gene
+@callback(Output("sel-search","data"),
+          Input("inp-gene",    "value"),
+          Input("inp-uniprot", "value"),
+          Input("inp-peptide", "value"))
+def store_search(gene, uniprot, peptide):
+    # Last non-empty input wins (Dash fires this when any input changes)
+    from dash import ctx
+    tid = ctx.triggered_id if ctx.triggered_id else None
+    if tid == "inp-gene"    and gene:    return {"mode": "gene",    "term": gene.strip()}
+    if tid == "inp-uniprot" and uniprot: return {"mode": "uniprot", "term": uniprot.strip()}
+    if tid == "inp-peptide" and peptide: return {"mode": "peptide", "term": peptide.strip()}
+    return None
 
 
 def _profile_fig(df, col, title_prefix, color, unit_label, log_scale=False):
@@ -570,87 +839,145 @@ def _profile_fig(df, col, title_prefix, color, unit_label, log_scale=False):
 
 
 
-def _build_rank_fig(df, gene):
-    """Intensity rank within sample (1=highest). Lower rank = more abundant.
-    Right y-axis shows rank percentile (top X%). Missing runs shown as grey x."""
+def _build_frac_fig(df, gene):
+    """Fractional intensity = protein_Intensity / total_run_Intensity.
+    Shows true proportional abundance, comparable across runs.
+    Right y-axis shows same value as parts-per-million for readability."""
     present = df[df["present"]].copy()
     missing = df[~df["present"]]
     if present.empty:
         return go.Figure()
-    n_total = len(df)
+    n_total   = len(df)
     n_missing = n_total - int(df["present"].sum())
     miss_pct  = 100 * n_missing / n_total if n_total else 0
 
+    frac = present["frac_intensity"].fillna(0)
+    rank = present["intensity_rank"]
+    # -log10(1/rank) = log10(rank): rank 1 -> 0 (most abundant), rank 1000 -> 3
+    log_rank = np.log10(rank.clip(lower=1))
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=present["run_id"],
-        y=present["intensity_rank"],
+        x=present["run_id"], y=frac * 100,
         mode="markers+lines",
         marker=dict(size=5, color=C_BLUE),
         line=dict(color=C_BLUE, width=1.5),
-        name="Rank (abs)",
-        customdata=present[["intensity_rank","n_total","intensity_rank_pct"]].values,
-        hovertemplate="%{x}<br>Rank %{customdata[0]:,.0f} / %{customdata[1]:,.0f}  (top %{customdata[2]:.1f}%)<extra></extra>",
+        name="% total intensity",
+        customdata=np.stack([rank.values, (frac * 1e6).values], axis=1),
+        hovertemplate="%{x}<br>%{y:.4f}% of run intensity<br>rank %{customdata[0]:.0f}  (%{customdata[1]:.1f} ppm)<extra></extra>",
     ))
-    # Rank percentile on secondary y-axis
+    # -log10(1/rank) on secondary axis — lower = more abundant
     fig.add_trace(go.Scatter(
-        x=present["run_id"],
-        y=present["intensity_rank_pct"],
+        x=present["run_id"], y=log_rank,
         mode="lines",
         line=dict(color=C_TREND, width=1, dash="dot"),
-        name="Top % (right axis)",
+        name="-log10(1/rank) right axis",
         yaxis="y2",
         hoverinfo="skip",
     ))
     if not missing.empty:
-        max_rank = present["n_total"].max() if not present.empty else 1
         fig.add_trace(go.Scatter(
             x=missing["run_id"],
-            y=[max_rank * 1.05] * len(missing),
+            y=[0] * len(missing),
             mode="markers",
             marker=dict(size=6, color="#d1d5db", symbol="x"),
             name="Missing",
             hovertemplate="%{x}<br>not detected<extra></extra>",
         ))
-    layout = base(f"Intensity rank  ·  {n_missing}/{n_total} missing ({miss_pct:.0f}%)", mt=44)
-    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"))
-    layout["yaxis"].update(
-        title=dict(text="Rank (1 = most abundant)", font=dict(size=10)),
-        autorange="reversed",  # rank 1 at top
+    layout = base(
+        f"Fractional intensity  ·  {n_missing}/{n_total} missing ({miss_pct:.0f}%)", mt=44
     )
+    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"))
+    layout["yaxis"].update(title=dict(text="% of total run intensity", font=dict(size=10)))
     layout["yaxis2"] = dict(
-        title=dict(text="Top %", font=dict(size=10, color=C_TREND)),
+        title=dict(text="-log₁₀(1/rank)", font=dict(size=10, color=C_TREND)),
         overlaying="y", side="right",
         tickfont=dict(size=9, family=MONO, color=C_TREND),
         showgrid=False, zeroline=False,
-        range=[0, 100],
+        autorange="reversed",   # rank 1 (most abundant) at top = low log_rank
     )
     layout["hovermode"] = "closest"
     fig.update_layout(**layout)
     return fig
 
+
+def _build_peptide_fig(mat, gene, n_runs_total):
+    """Peptide presence heatmap: rows=unique peptides (sorted by detection frequency),
+    cols=runs (chronological). Blue=detected, light grey=not detected.
+    Title shows total unique peptides and overall missing %.
+    mat is pre-computed by load_profile — no extra DB call needed."""
+    if mat.empty or mat is None:
+        return go.Figure()
+    n_pep   = len(mat)
+    n_runs  = len(mat.columns)
+    # Overall missing fraction across the whole matrix
+    total_cells  = n_pep * n_runs
+    present_cells = int(mat.values.sum())
+    miss_pct = 100 * (total_cells - present_cells) / total_cells if total_cells else 0
+    # Build z matrix (1=present, 0=absent), y=peptide labels, x=run labels
+    z    = mat.values.astype(int).tolist()
+    runs = list(mat.columns)
+    peps = list(mat.index)
+    # Hover: show run_id and peptide
+    hover = [[f"{runs[c]}<br>{peps[r]}<br>{'detected' if mat.iloc[r,c] else 'not detected'}"
+              for c in range(n_runs)] for r in range(n_pep)]
+    fig = go.Figure(go.Heatmap(
+        z=z, x=runs, y=peps,
+        text=hover, hoverinfo="text",
+        colorscale=[[0, "#f3f4f6"], [1, C_BLUE]],
+        showscale=False,
+        xgap=1, ygap=1,
+    ))
+    height = max(300, min(900, 16 * n_pep + 80))
+    layout = base(
+        f"Peptide presence  ·  {n_pep} unique peptides  ·  "
+        f"{miss_pct:.0f}% missing across {n_runs} runs",
+        mt=44
+    )
+    layout["xaxis"].update(
+        tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"),
+        side="bottom"
+    )
+    layout["yaxis"].update(
+        tickfont=dict(size=8, family=MONO, color="#374151"),
+        autorange="reversed",   # most-detected peptide at top
+    )
+    layout["hovermode"] = "closest"
+    layout["margin"]["b"] = 120
+    layout["margin"]["l"] = 160   # room for peptide sequence labels
+    fig.update_layout(**layout)
+    fig.update_layout(height=height)
+    return fig
+
 @callback(Output("profile-intensity","figure"),
           Output("profile-ibaq",     "figure"),
           Output("profile-score",    "figure"),
-          Output("profile-rank",     "figure"),
+          Output("profile-frac",     "figure"),
+          Output("profile-peptides", "figure"),
           Output("profile-missing-badge","children"),
-          Input("sel-gene","data"),
+          Input("sel-search","data"),
           Input("interval","n_intervals"))
-def update_profile(gene, _n):
+def update_profile(search, _n):
     empty = go.Figure()
-    if not gene:
-        return empty, empty, empty, empty, ""
-    df = load_profile(gene)
-    if df.empty:
-        return empty, empty, empty, empty, f'No results for "{gene}"'
+    if not search:
+        return empty, empty, empty, empty, empty, ""
+    mode, term = search.get("mode"), search.get("term", "")
+    if   mode == "gene":    df, mat, label = load_gene_profile(term)
+    elif mode == "uniprot": df, mat, label = load_uniprot_profile(term)
+    elif mode == "peptide": df, mat, label = load_peptide_profile(term)
+    else:
+        return empty, empty, empty, empty, empty, ""
+    if df.empty or not df["present"].any():
+        return empty, empty, empty, empty, empty, f'No results for "{term}"'
     n_total   = len(df)
     n_present = int(df["present"].sum())
-    badge = f"{gene}  ·  detected in {n_present}/{n_total} runs  ({100*n_present/n_total:.0f}%)"
-    fig_int   = _profile_fig(df, "Intensity", "Intensity",   C_BLUE,   "Intensity",      log_scale=True)
-    fig_ibaq  = _profile_fig(df, "iBAQ",      "iBAQ",        C_VIOLET, "iBAQ",           log_scale=True)
-    fig_score = _profile_fig(df, "Score",     "Score",       C_AMBER,  "Andromeda Score", log_scale=False)
-    fig_rank  = _build_rank_fig(df, gene)
-    return fig_int, fig_ibaq, fig_score, fig_rank, badge
+    badge = f"{label}  ·  detected in {n_present}/{n_total} runs  ({100*n_present/n_total:.0f}%)"
+    fig_int  = _profile_fig(df, "Intensity", "Intensity",   C_BLUE,   "Intensity",      log_scale=True)
+    fig_ibaq = _profile_fig(df, "iBAQ",      "iBAQ",        C_VIOLET, "iBAQ",           log_scale=True)
+    fig_scr  = _profile_fig(df, "Score",     "Score",       C_AMBER,  "Andromeda Score", log_scale=False)
+    fig_frac = _build_frac_fig(df, label)
+    fig_pep  = _build_peptide_fig(mat, label, n_total)
+    return fig_int, fig_ibaq, fig_scr, fig_frac, fig_pep, badge
 
 
 if __name__ == "__main__":
@@ -658,4 +985,6 @@ if __name__ == "__main__":
     print(f"DB   : {DB}")
     print(f"Runs : {len(SUM)}")
     print(f"Rows : {SUM['total'].sum():,}")
+    print("Building profile store ...", flush=True)
+    _build_profile_store()
     app.run(host='0.0.0.0',debug=False, port=8050)
