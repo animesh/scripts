@@ -10,6 +10,7 @@ from datetime import datetime
 import duckdb, pandas as pd
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, callback
+from dash.exceptions import PreventUpdate
 
 DB = sys.argv[1] if len(sys.argv) > 1 else "L:/promec/TIMSTOF/QC/mqrun.duckdb"
 
@@ -164,9 +165,12 @@ def _build_profile_store():
     pep_str     = {}
 
     # accumulators for summary tables
-    gene_runs  = {}   # gene_lower -> list of intensity_rank (present runs only)
-    uprot_runs = {}   # uniprot_lower -> list of intensity_rank
-    pep_runs   = {}   # peptide_upper -> n_present runs
+    # Each dict maps key -> {name, ranks: list, seen_runs: set}
+    # seen_runs prevents duplicate rank entries when a gene appears in
+    # multiple protein groups within the same run.
+    gene_runs  = {}   # gene_lower  -> {name, ranks, seen_runs, uniprots}
+    uprot_runs = {}   # uniprot_lower -> {name, gene, ranks, seen_runs}
+    # pep_runs is derived from _PEP_IDX after the loop (counts distinct runs)
 
     for _, row in raw.iterrows():
         run  = row['run_id']
@@ -187,27 +191,30 @@ def _build_profile_store():
         for g in genes:
             k = g.lower()
             gene_idx.setdefault(k, {})[run] = rd
-            gene_runs.setdefault(k, {'name': g, 'ranks': []})['ranks'].append(
-                row['intensity_rank'] if pd.notna(row['intensity_rank']) else None
-            )
+            entry = gene_runs.setdefault(k, {'name': g, 'ranks': [], 'seen_runs': set(), 'uniprots': set()})
+            if run not in entry['seen_runs']:   # one rank entry per run
+                entry['seen_runs'].add(run)
+                if pd.notna(row['intensity_rank']):
+                    entry['ranks'].append(row['intensity_rank'])
+            entry['uniprots'].update(u.strip() for u in str(row['protein_ids']).split(';') if u.strip())
 
-        # UniProt IDs (semicolon-separated; may be compound "P12345;Q99999")
+        # UniProt IDs (semicolon-separated)
         uniprots = [u.strip() for u in str(row['protein_ids']).split(';') if u.strip()]
         for u in uniprots:
             k = u.lower()
             uniprot_idx.setdefault(k, {})[run] = rd
-            uprot_runs.setdefault(k, {'name': u, 'gene': row['gene_names'], 'ranks': []})['ranks'].append(
-                row['intensity_rank'] if pd.notna(row['intensity_rank']) else None
-            )
+            entry = uprot_runs.setdefault(k, {'name': u, 'gene': row['gene_names'], 'ranks': [], 'seen_runs': set()})
+            if run not in entry['seen_runs']:
+                entry['seen_runs'].add(run)
+                if pd.notna(row['intensity_rank']):
+                    entry['ranks'].append(row['intensity_rank'])
 
         # Peptide sequences
         seqs = {s.strip().upper() for s in str(row['pep_seqs']).split(';') if s.strip()}
         for seq in seqs:
-            pep_idx.setdefault(seq, {})[run] = True
-            pep_runs[seq] = pep_runs.get(seq, 0) + 1
+            pep_idx.setdefault(seq, {})[run] = True   # run_id -> True
             for g in genes:
                 pep_gene.setdefault(seq, set()).add(g)
-            for g in genes:
                 pep_str.setdefault(g.lower(), {}).setdefault(run, set()).add(seq)
 
     _GENE_IDX     = gene_idx
@@ -217,37 +224,31 @@ def _build_profile_store():
     _PEP_STORE    = pep_str
     _PROFILE_LOADED = True
 
-    # Build summary tables
-    def _make_profile_rows(idx_runs, n_runs):
-        rows = []
-        for k, v in idx_runs.items():
-            ranks = [r for r in v['ranks'] if r is not None]
-            n_det = len(set(v.get('runs', []))) if 'runs' in v else len(ranks)
-            # count distinct runs detected
-            n_det = len([r for r in v['ranks'] if r is not None])
-            miss  = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
-            med_r = float(np.median(ranks)) if ranks else None
-            rows.append({'key': k, 'name': v['name'],
-                         'n_runs': n_det, 'miss_pct': miss,
-                         'med_rank': med_r})
-        return rows
+    # Build combined gene+uniprot summary table
+    # n_det = distinct runs from seen_runs set (not ranks list length)
+    combined = []
+    for k, v in gene_runs.items():
+        n_det = len(v['seen_runs'])
+        miss  = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
+        ranks = v['ranks']
+        med_r = float(np.median(ranks)) if ranks else float('inf')
+        uids  = sorted(v['uniprots'])[:4]   # up to 4 UniProt IDs
+        combined.append({'gene': v['name'], 'uniprots': uids,
+                         'n_runs': n_det, 'miss_pct': miss, 'med_rank': med_r})
+    # Sort by median rank (lower = more abundant = better), then miss_pct
+    _TOP_GENES   = sorted(combined, key=lambda x: (x['med_rank'], x['miss_pct']))[:50]
+    _TOP_UNIPROT = []   # no longer used separately
 
-    gene_rows  = _make_profile_rows(gene_runs,  n_runs)
-    uprot_rows = _make_profile_rows(uprot_runs, n_runs)
-    # also attach gene name to uniprot rows
-    for r in uprot_rows:
-        r['gene'] = uprot_runs[r['key']].get('gene', '')
-
-    _TOP_GENES   = sorted(gene_rows,  key=lambda x: x['miss_pct'])[:50]
-    _TOP_UNIPROT = sorted(uprot_rows, key=lambda x: x['miss_pct'])[:50]
-
-    # Peptide summary: sort by fewest missing (most detected)
+    # Peptide summary: count distinct run_ids per peptide.
+    # Intersect with valid_runs to guard against any stray keys.
+    valid_runs = set(_RUNS_ORDERED)
     pep_summary = []
-    for seq, n_det in pep_runs.items():
-        miss = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
-        genes = ', '.join(sorted(_PEP_GENE_IDX.get(seq, set()))[:3])
+    for seq, run_dict in pep_idx.items():
+        n_det = len(set(run_dict.keys()) & valid_runs)
+        miss  = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
+        genes_str = ', '.join(sorted(pep_gene.get(seq, set()))[:3])
         pep_summary.append({'peptide': seq, 'n_runs': n_det,
-                            'miss_pct': miss, 'genes': genes})
+                            'miss_pct': miss, 'genes': genes_str})
     _TOP_PEPTIDES = sorted(pep_summary, key=lambda x: x['miss_pct'])[:50]
 
     print(f"Store: {len(gene_idx):,} genes  {len(uniprot_idx):,} UniProts  "
@@ -538,15 +539,11 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
 
     html.Div(style={"padding":"12px 28px 0","display":"flex","gap":"16px","alignItems":"flex-start"}, children=[
         html.Div([
-            html.Div("Top genes by detection", className="qc-ctrl-label", style={"marginBottom":"6px"}),
-            html.Div(id="tbl-genes",  style={"fontSize":"11px","fontFamily":MONO,"lineHeight":"1.7","color":"#374151"}),
-        ], style={"flex":"1","background":"white","border":"1px solid #e5e7eb","borderRadius":"8px","padding":"12px 16px"}),
+            html.Div("Gene [UniProt IDs]  sorted by median rank", className="qc-ctrl-label", style={"marginBottom":"6px"}),
+            html.Div(id="tbl-genes", style={"fontSize":"11px","fontFamily":MONO,"lineHeight":"1.7","color":"#374151"}),
+        ], style={"flex":"2","background":"white","border":"1px solid #e5e7eb","borderRadius":"8px","padding":"12px 16px"}),
         html.Div([
-            html.Div("Top UniProt by detection", className="qc-ctrl-label", style={"marginBottom":"6px"}),
-            html.Div(id="tbl-uniprot",style={"fontSize":"11px","fontFamily":MONO,"lineHeight":"1.7","color":"#374151"}),
-        ], style={"flex":"1","background":"white","border":"1px solid #e5e7eb","borderRadius":"8px","padding":"12px 16px"}),
-        html.Div([
-            html.Div("Most consistent peptides", className="qc-ctrl-label", style={"marginBottom":"6px"}),
+            html.Div("Most consistent peptides  sorted by fewest missing", className="qc-ctrl-label", style={"marginBottom":"6px"}),
             html.Div(id="tbl-peptides",style={"fontSize":"11px","fontFamily":MONO,"lineHeight":"1.7","color":"#374151"}),
         ], style={"flex":"1","background":"white","border":"1px solid #e5e7eb","borderRadius":"8px","padding":"12px 16px"}),
     ]),
@@ -739,61 +736,95 @@ def update_score(run_id):
 
 
 @callback(Output("tbl-genes","children"),
-          Output("tbl-uniprot","children"),
           Output("tbl-peptides","children"),
           Input("interval","n_intervals"))
 def update_top_tables(_n):
     if not _PROFILE_LOADED:
-        return "loading...", "loading...", "loading..."
+        return "loading...", "loading..."
     def _gene_rows():
         rows = []
-        for r in _TOP_GENES[:15]:
+        for r in _TOP_GENES[:20]:
+            uid_str = ";".join(r["uniprots"]) if r["uniprots"] else ""
+            rank_str = f"{r['med_rank']:,.0f}" if r["med_rank"] < float("inf") else "?"
             rows.append(html.Div([
-                html.Span(f"{r['name']:<12}", style={"color": C_BLUE, "fontWeight":"600",
-                    "cursor":"pointer", "textDecoration":"underline dotted"},
-                    id={"type":"top-gene-link","index":r['name']}),
-                html.Span(f"  {r['n_runs']:>3} runs  miss {r['miss_pct']:4.0f}%"
-                          + (f"  rank {r['med_rank']:6.0f}" if r['med_rank'] else ""),
-                          style={"color":"#6b7280"}),
-            ]))
-        return rows
-    def _uprot_rows():
-        rows = []
-        for r in _TOP_UNIPROT[:15]:
-            rows.append(html.Div([
-                html.Span(f"{r['name']:<12}", style={"color": C_VIOLET, "fontWeight":"600",
-                    "cursor":"pointer", "textDecoration":"underline dotted"},
-                    id={"type":"top-uprot-link","index":r['name']}),
-                html.Span(f"  {r['gene'][:14]:<14}  {r['n_runs']:>3} runs  miss {r['miss_pct']:4.0f}%",
-                          style={"color":"#6b7280"}),
+                html.Span(r["gene"], style={"color":C_BLUE,"fontWeight":"600",
+                    "cursor":"pointer","textDecoration":"underline dotted",
+                    "marginRight":"4px"},
+                    id={"type":"top-gene-link","index":r["gene"]}),
+                html.Span(f"[", style={"color":"#9ca3af"}),
+                *[html.Span(u, style={"color":C_VIOLET,"cursor":"pointer",
+                    "textDecoration":"underline dotted","marginRight":"2px"},
+                    id={"type":"top-uprot-link","index":u})
+                  for u in r["uniprots"]],
+                html.Span(f"]", style={"color":"#9ca3af"}),
+                html.Span(
+                    f"  {r['n_runs']} runs  miss {r['miss_pct']:.0f}%  rank {rank_str}",
+                    style={"color":"#6b7280","marginLeft":"6px"}),
             ]))
         return rows
     def _pep_rows():
         rows = []
-        for r in _TOP_PEPTIDES[:15]:
+        for r in _TOP_PEPTIDES[:20]:
             rows.append(html.Div([
-                html.Span(f"{r['peptide']:<20}", style={"color": C_AMBER, "fontWeight":"600",
-                    "cursor":"pointer", "textDecoration":"underline dotted"},
-                    id={"type":"top-pep-link","index":r['peptide']}),
-                html.Span(f"  {r['n_runs']:>3} runs  miss {r['miss_pct']:4.0f}%  {r['genes'][:20]}",
-                          style={"color":"#6b7280"}),
+                html.Span(r["peptide"], style={"color":C_AMBER,"fontWeight":"600",
+                    "cursor":"pointer","textDecoration":"underline dotted",
+                    "marginRight":"6px"},
+                    id={"type":"top-pep-link","index":r["peptide"]}),
+                html.Span(
+                    f"{r['n_runs']} runs  miss {r['miss_pct']:.0f}%  {r['genes'][:24]}",
+                    style={"color":"#6b7280"}),
             ]))
         return rows
-    return _gene_rows(), _uprot_rows(), _pep_rows()
+    return _gene_rows(), _pep_rows()
 
 
-@callback(Output("sel-search","data"),
+from dash import MATCH, ALL
+
+# Click handlers: fill text box AND immediately trigger profile update.
+# Two outputs per callback: text box (visual feedback) + sel-search (triggers profile).
+@callback(Output("inp-gene",   "value", allow_duplicate=True),
+          Output("sel-search", "data",  allow_duplicate=True),
+          Input({"type":"top-gene-link","index":ALL}, "n_clicks"),
+          prevent_initial_call=True)
+def click_gene_link(n_clicks):
+    from dash import ctx
+    if not any(n_clicks): raise PreventUpdate
+    term = ctx.triggered_id["index"]
+    return term, {"mode": "gene", "term": term}
+
+@callback(Output("inp-uniprot","value", allow_duplicate=True),
+          Output("sel-search", "data",  allow_duplicate=True),
+          Input({"type":"top-uprot-link","index":ALL}, "n_clicks"),
+          prevent_initial_call=True)
+def click_uprot_link(n_clicks):
+    from dash import ctx
+    if not any(n_clicks): raise PreventUpdate
+    term = ctx.triggered_id["index"]
+    return term, {"mode": "uniprot", "term": term}
+
+@callback(Output("inp-peptide","value", allow_duplicate=True),
+          Output("sel-search", "data",  allow_duplicate=True),
+          Input({"type":"top-pep-link","index":ALL}, "n_clicks"),
+          prevent_initial_call=True)
+def click_pep_link(n_clicks):
+    from dash import ctx
+    if not any(n_clicks): raise PreventUpdate
+    term = ctx.triggered_id["index"]
+    return term, {"mode": "peptide", "term": term}
+
+# Typed input: debounced, fires on blur/Enter
+@callback(Output("sel-search","data", allow_duplicate=True),
           Input("inp-gene",    "value"),
           Input("inp-uniprot", "value"),
-          Input("inp-peptide", "value"))
+          Input("inp-peptide", "value"),
+          prevent_initial_call=True)
 def store_search(gene, uniprot, peptide):
-    # Last non-empty input wins (Dash fires this when any input changes)
     from dash import ctx
     tid = ctx.triggered_id if ctx.triggered_id else None
     if tid == "inp-gene"    and gene:    return {"mode": "gene",    "term": gene.strip()}
     if tid == "inp-uniprot" and uniprot: return {"mode": "uniprot", "term": uniprot.strip()}
     if tid == "inp-peptide" and peptide: return {"mode": "peptide", "term": peptide.strip()}
-    return None
+    raise PreventUpdate
 
 
 def _profile_fig(df, col, title_prefix, color, unit_label, log_scale=False):
