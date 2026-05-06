@@ -32,12 +32,16 @@ FC = {
 }
 
 METRICS = {
-    "proteins":        ("Proteins identified",     "target"),
-    "median_ibaq":     ("Median iBAQ",              "median_ibaq"),
-    "total_intensity": ("Total Intensity",          "total_intensity"),
-    "median_score":    ("Median Score",             "median_score"),
-    "median_seqcov":   ("Median Seq. Coverage [%]", "median_seqcov"),
-    "median_peptides": ("Median Peptides/Protein",  "median_peptides"),
+    "proteins":        ("Proteins identified",          "target"),
+    "median_ibaq":     ("Median iBAQ",                  "median_ibaq"),
+    "total_intensity": ("Total Intensity",              "total_intensity"),
+    "median_top3":     ("Median Top3 Intensity",        "median_top3"),
+    "median_score":    ("Median Score",                 "median_score"),
+    "median_seqcov":   ("Median Seq. Coverage [%]",     "median_seqcov"),
+    "median_peptides": ("Median Peptides/Protein",      "median_peptides"),
+    "median_uniq_pep": ("Median Unique Peptides",       "median_uniq_pep"),
+    "median_razor_pep":("Median Razor+Unique Peptides", "median_razor_pep"),
+    "median_qval":     ("Median Q-value",               "median_qval"),
 }
 
 # ── data ──────────────────────────────────────────────────────────────────────
@@ -48,6 +52,16 @@ def parse_date(rid):
     s = s if len(s) == 8 else "20" + s
     try:    return datetime.strptime(s, "%Y%m%d").date()
     except: return None
+
+def run_label(rid):
+    """Short display label: YYMMDD_<last_numeric_token>.
+    e.g. 260310_200ngHelaQC_DDA_Slot1-54_1_13108 -> 260310_13108"""
+    parts = rid.split('_')
+    date_part = parts[0] if parts else rid
+    # last purely-numeric token as sample identifier
+    numeric = [p for p in parts[1:] if p.isdigit()]
+    suffix = numeric[-1] if numeric else (parts[-1] if len(parts) > 1 else '')
+    return f"{date_part}_{suffix}" if suffix else date_part
 
 _SUMMARY_CACHE = None
 
@@ -67,9 +81,13 @@ def load_summary(force=False):
             COUNT(*) FILTER (WHERE "Only identified by site"= '+')            AS n_site,
             MEDIAN("iBAQ")                                                     AS median_ibaq,
             SUM("Intensity")                                                   AS total_intensity,
+            MEDIAN("Top3")                                                     AS median_top3,
             MEDIAN("Score")                                                    AS median_score,
+            MEDIAN("Q-value")                                                  AS median_qval,
             MEDIAN("Sequence coverage [%]")                                    AS median_seqcov,
-            MEDIAN("Peptides")                                                 AS median_peptides
+            MEDIAN("Peptides")                                                 AS median_peptides,
+            MEDIAN("Unique peptides")                                          AS median_uniq_pep,
+            MEDIAN("Razor + unique peptides")                                  AS median_razor_pep
         FROM proteinGroups
         GROUP BY run_id ORDER BY run_id
     """
@@ -144,6 +162,12 @@ def _build_profile_store():
                COALESCE(p."Protein names",     '')  AS protein_names,
                COALESCE(p."Peptide sequences", '')  AS pep_seqs,
                p."Intensity", p."iBAQ", p."Score",
+               p."Top3",
+               p."Peptides"                              AS peptides,
+               p."Unique peptides"                       AS unique_peptides,
+               p."Razor + unique peptides"               AS razor_peptides,
+               p."Sequence coverage [%]"                 AS seq_cov,
+               p."Q-value"                               AS q_value,
                t.sum_intensity,
                CASE WHEN t.sum_intensity > 0
                     THEN p."Intensity" / t.sum_intensity ELSE NULL END AS frac_intensity,
@@ -175,15 +199,21 @@ def _build_profile_store():
     for _, row in raw.iterrows():
         run  = row['run_id']
         rd   = {
-            'gene_names':    row['gene_names'],
-            'protein_names': row['protein_names'],
-            'protein_ids':   row['protein_ids'],
-            'Intensity':     row['Intensity'],
-            'iBAQ':          row['iBAQ'],
-            'Score':         row['Score'],
-            'frac_intensity':row['frac_intensity'],
-            'intensity_rank':row['intensity_rank'],
-            'sum_intensity': row['sum_intensity'],
+            'gene_names':     row['gene_names'],
+            'protein_names':  row['protein_names'],
+            'protein_ids':    row['protein_ids'],
+            'Intensity':      row['Intensity'],
+            'iBAQ':           row['iBAQ'],
+            'Score':          row['Score'],
+            'Top3':           row['Top3'],
+            'Peptides':       row['peptides'],
+            'Unique peptides':row['unique_peptides'],
+            'Razor+unique':   row['razor_peptides'],
+            'Seq cov %':      row['seq_cov'],
+            'Q-value':        row['q_value'],
+            'frac_intensity': row['frac_intensity'],
+            'intensity_rank': row['intensity_rank'],
+            'sum_intensity':  row['sum_intensity'],
         }
 
         # Gene names (semicolon-separated)
@@ -196,10 +226,13 @@ def _build_profile_store():
                 entry['seen_runs'].add(run)
                 if pd.notna(row['intensity_rank']):
                     entry['ranks'].append(row['intensity_rank'])
-            entry['uniprots'].update(u.strip() for u in str(row['protein_ids']).split(';') if u.strip())
+            entry['uniprots'].update(
+                u.strip().replace('CON__','') for u in str(row['protein_ids']).split(';')
+                if u.strip() and not u.strip().startswith('CON__'))
 
         # UniProt IDs (semicolon-separated)
-        uniprots = [u.strip() for u in str(row['protein_ids']).split(';') if u.strip()]
+        uniprots = [u.strip() for u in str(row['protein_ids']).split(';')
+                    if u.strip() and not u.strip().startswith('CON__')]
         for u in uniprots:
             k = u.lower()
             uniprot_idx.setdefault(k, {})[run] = rd
@@ -231,12 +264,21 @@ def _build_profile_store():
         n_det = len(v['seen_runs'])
         miss  = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
         ranks = v['ranks']
-        med_r = float(np.median(ranks)) if ranks else float('inf')
-        uids  = sorted(v['uniprots'])[:4]   # up to 4 UniProt IDs
+        if ranks:
+            med_r  = float(np.median(ranks))
+            mean_r = float(np.mean(ranks))
+            min_r  = float(np.min(ranks))
+            max_r  = float(np.max(ranks))
+            mode_r = float(pd.Series(ranks).mode().iloc[0])
+        else:
+            med_r = mean_r = min_r = max_r = mode_r = float('inf')
+        uids = sorted(v['uniprots'])[:6]   # up to 6 UniProt IDs
         combined.append({'gene': v['name'], 'uniprots': uids,
-                         'n_runs': n_det, 'miss_pct': miss, 'med_rank': med_r})
-    # Sort by median rank (lower = more abundant = better), then miss_pct
-    _TOP_GENES   = sorted(combined, key=lambda x: (x['med_rank'], x['miss_pct']))[:50]
+                         'n_runs': n_det, 'miss_pct': miss,
+                         'med_rank': med_r, 'mean_rank': mean_r,
+                         'min_rank': min_r, 'max_rank': max_r, 'mode_rank': mode_r})
+    # Sort by median rank ascending (rank 1 = most abundant)
+    _TOP_GENES   = sorted(combined, key=lambda x: (x['miss_pct'], x['med_rank']))[:50]
     _TOP_UNIPROT = []   # no longer used separately
 
     # Peptide summary: count distinct run_ids per peptide.
@@ -266,6 +308,8 @@ def _runs_to_df(idx_data):
         else:
             d = {'run_id': run_id, 'present': False,
                  'Intensity': None, 'iBAQ': None, 'Score': None,
+                 'Top3': None, 'Peptides': None, 'Unique peptides': None,
+                 'Razor+unique': None, 'Seq cov %': None, 'Q-value': None,
                  'frac_intensity': None, 'intensity_rank': None, 'sum_intensity': None}
         rows.append(d)
     return pd.DataFrame(rows)
@@ -531,6 +575,13 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
         dcc.Graph(id="score-hist", config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
     ]),
 
+    html.Div(id="run-detail", style={
+        "margin":"0 28px 12px","padding":"12px 16px",
+        "background":"white","border":"1px solid #e5e7eb",
+        "borderRadius":"8px","fontSize":"11px","fontFamily":MONO,
+        "color":"#374151","lineHeight":"1.8","display":"none"
+    }),
+
     dcc.Store(id="sel-run"),
     dcc.Store(id="sel-search"),   # {"mode": gene|uniprot|peptide, "term": str}
     dcc.Interval(id="interval", interval=3600*1000, n_intervals=0),
@@ -581,12 +632,20 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
     html.Div(id="profile-section", className="qc-detail", style={"paddingTop":"12px"}, children=[
         dcc.Graph(id="profile-intensity", config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
         dcc.Graph(id="profile-ibaq",      config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
+        dcc.Graph(id="profile-top3",      config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
         dcc.Graph(id="profile-score",     config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
         dcc.Graph(id="profile-frac",      config={"displayModeBar":False}, style={"flex":"1","height":"270px"}),
     ]),
 
+    html.Div(id="profile-extra", className="qc-detail", style={"padding":"0 28px 8px"}, children=[
+        dcc.Graph(id="profile-peptide-cnt", config={"displayModeBar":False}, style={"flex":"1","height":"220px"}),
+        dcc.Graph(id="profile-uniq-pep",    config={"displayModeBar":False}, style={"flex":"1","height":"220px"}),
+        dcc.Graph(id="profile-seqcov",      config={"displayModeBar":False}, style={"flex":"1","height":"220px"}),
+        dcc.Graph(id="profile-qval",        config={"displayModeBar":False}, style={"flex":"1","height":"220px"}),
+    ]),
+
     html.Div(className="qc-detail", style={"padding":"0 28px 32px"}, children=[
-        dcc.Graph(id="profile-peptides", config={"displayModeBar":False}, style={"width":"100%","height":"340px"}),
+        dcc.Graph(id="profile-peptides", config={"displayModeBar":False}, style={"width":"100%","height":"380px"}),
     ]),
 ])
 
@@ -646,8 +705,10 @@ def update_trend(metric, active, trend_on, _n):
                                  line=dict(color=C_TREND, width=2, dash="dot"),
                                  hoverinfo="skip"))
 
+    labels = [run_label(r) for r in df["run_id"]]
     layout = base(mt=52)
-    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"))
+    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"),
+                           tickmode="array", tickvals=list(df["run_id"]), ticktext=labels)
     layout["yaxis"]["title"] = dict(text=ytitle, font=dict(size=11))
     layout["bargap"]         = 0.12
     layout["margin"]["b"]    = 80
@@ -661,11 +722,18 @@ def store_sel(cd, _n):
     return cd["points"][0]["x"]
 
 
-@callback(Output("breakdown","figure"), Input("sel-run","data"))
+@callback(Output("breakdown","figure"),
+          Output("run-detail","children"),
+          Output("run-detail","style"),
+          Input("sel-run","data"))
 def update_breakdown(run_id):
+    base_style = {"margin":"0 28px 12px","padding":"12px 16px",
+                  "background":"white","border":"1px solid #e5e7eb",
+                  "borderRadius":"8px","fontSize":"11px","fontFamily":MONO,
+                  "color":"#374151","lineHeight":"1.8"}
     SUM = load_summary()
     row = SUM[SUM["run_id"] == run_id]
-    if row.empty: return go.Figure()
+    if row.empty: return go.Figure(), "", {**base_style, "display":"none"}
     r      = row.iloc[0]
     total  = r["total"]
     cats   = ["Target", "Reverse", "Contaminant", "Site only"]
@@ -676,13 +744,43 @@ def update_breakdown(run_id):
                            text=pct, textposition="outside",
                            textfont=dict(size=10, family=MONO, color="#374151"),
                            hovertemplate="%{x}: %{y:,}<extra></extra>"))
-    short  = (run_id[:20] + "…") if len(run_id) > 20 else run_id
-    layout = base(f"breakdown  ·  {short}", mt=40)
+    layout = base(f"breakdown  ·  {run_label(run_id)}", mt=40)
     layout["yaxis"]["title"] = dict(text="Count", font=dict(size=10))
     layout["hovermode"]      = "closest"
     layout["margin"]["t"]    = 40
     fig.update_layout(**layout)
-    return fig
+    # Build run metrics detail panel
+    def _fmt(v, fmt=':,.0f'):
+        return format(v, fmt.strip(':')) if pd.notna(v) else 'n/a'
+    detail_cols = [
+        ('Proteins (target)',     r['target']),
+        ('Reverse',               r['n_rev']),
+        ('Contaminant',           r['n_cont']),
+        ('Site only',             r['n_site']),
+        ('Total groups',          r['total']),
+        ('Median iBAQ',           r.get('median_ibaq',   float('nan'))),
+        ('Median Top3',           r.get('median_top3',   float('nan'))),
+        ('Median Score',          r.get('median_score',  float('nan'))),
+        ('Median Q-value',        r.get('median_qval',   float('nan'))),
+        ('Median Seq. cov %',     r.get('median_seqcov', float('nan'))),
+        ('Median peptides/prot',  r.get('median_peptides', float('nan'))),
+        ('Median unique pep',     r.get('median_uniq_pep', float('nan'))),
+        ('Median razor pep',      r.get('median_razor_pep', float('nan'))),
+        ('Total intensity',       r.get('total_intensity', float('nan'))),
+    ]
+    cells = []
+    for label, val in detail_cols:
+        fmt_val = f"{val:,.3g}" if pd.notna(val) else 'n/a'
+        cells.append(html.Span([
+            html.Span(f"{label}: ", style={"color":"#9ca3af"}),
+            html.Span(fmt_val,      style={"color":"#111827","fontWeight":"600","marginRight":"20px"}),
+        ]))
+    detail_children = [
+        html.Div(run_id, style={"fontWeight":"700","color":C_BLUE,
+                                "marginBottom":"6px","fontSize":"12px"}),
+        html.Div(cells, style={"display":"flex","flexWrap":"wrap"}),
+    ]
+    return fig, detail_children, {**base_style, "display":"block"}
 
 
 @callback(Output("ibaq-hist","figure"), Input("sel-run","data"))
@@ -701,8 +799,7 @@ def update_ibaq(run_id):
                   annotation_text=f"med {med:.1f}",
                   annotation_font_size=10, annotation_font_color=C_AMBER,
                   annotation_font_family=MONO)
-    short  = (run_id[:20] + "…") if len(run_id) > 20 else run_id
-    layout = base(f"iBAQ  ·  {short}", mt=40)
+    layout = base(f"iBAQ  ·  {run_label(run_id)}", mt=40)
     layout["xaxis"]["title"] = dict(text="log₁₀(iBAQ)", font=dict(size=10))
     layout["yaxis"]["title"] = dict(text="Proteins",    font=dict(size=10))
     layout["hovermode"]      = "closest"
@@ -725,8 +822,7 @@ def update_score(run_id):
                   annotation_text=f"med {med:.0f}",
                   annotation_font_size=10, annotation_font_color=C_AMBER,
                   annotation_font_family=MONO)
-    short  = (run_id[:20] + "…") if len(run_id) > 20 else run_id
-    layout = base(f"Score  ·  {short}", mt=40)
+    layout = base(f"Score  ·  {run_label(run_id)}", mt=40)
     layout["xaxis"]["title"] = dict(text="Andromeda Score", font=dict(size=10))
     layout["yaxis"]["title"] = dict(text="Proteins",        font=dict(size=10))
     layout["hovermode"]      = "closest"
@@ -758,7 +854,9 @@ def update_top_tables(_n):
                   for u in r["uniprots"]],
                 html.Span(f"]", style={"color":"#9ca3af"}),
                 html.Span(
-                    f"  {r['n_runs']} runs  miss {r['miss_pct']:.0f}%  rank {rank_str}",
+                    f"  {r['n_runs']} runs  miss {r['miss_pct']:.1f}%  "
+                    f"med:{r['med_rank']:.0f} mean:{r['mean_rank']:.0f} "
+                    f"min:{r['min_rank']:.0f} max:{r['max_rank']:.0f}",
                     style={"color":"#6b7280","marginLeft":"6px"}),
             ]))
         return rows
@@ -771,7 +869,7 @@ def update_top_tables(_n):
                     "marginRight":"6px"},
                     id={"type":"top-pep-link","index":r["peptide"]}),
                 html.Span(
-                    f"{r['n_runs']} runs  miss {r['miss_pct']:.0f}%  {r['genes'][:24]}",
+                    f"{r['n_runs']} runs  miss {r['miss_pct']:.1f}%  {r['genes'][:24]}",
                     style={"color":"#6b7280"}),
             ]))
         return rows
@@ -862,7 +960,9 @@ def _profile_fig(df, col, title_prefix, color, unit_label, log_scale=False):
         ))
 
     layout = base(f"{title_prefix}  ·  {n_missing}/{n_total} missing ({miss_pct:.0f}%)", mt=44)
-    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"))
+    labels = [run_label(r) for r in df["run_id"]]
+    layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"),
+                           tickmode="array", tickvals=list(df["run_id"]), ticktext=labels)
     layout["yaxis"]["title"] = dict(text=y_lbl, font=dict(size=10))
     layout["hovermode"] = "closest"
     fig.update_layout(**layout)
@@ -980,35 +1080,47 @@ def _build_peptide_fig(mat, gene, n_runs_total):
     fig.update_layout(height=height)
     return fig
 
-@callback(Output("profile-intensity","figure"),
-          Output("profile-ibaq",     "figure"),
-          Output("profile-score",    "figure"),
-          Output("profile-frac",     "figure"),
-          Output("profile-peptides", "figure"),
+@callback(Output("profile-intensity",  "figure"),
+          Output("profile-ibaq",       "figure"),
+          Output("profile-top3",       "figure"),
+          Output("profile-score",      "figure"),
+          Output("profile-frac",       "figure"),
+          Output("profile-peptides",   "figure"),
+          Output("profile-peptide-cnt","figure"),
+          Output("profile-uniq-pep",   "figure"),
+          Output("profile-seqcov",     "figure"),
+          Output("profile-qval",       "figure"),
           Output("profile-missing-badge","children"),
           Input("sel-search","data"),
           Input("interval","n_intervals"))
 def update_profile(search, _n):
-    empty = go.Figure()
+    e   = go.Figure()
+    emp = tuple(e for _ in range(10))
     if not search:
-        return empty, empty, empty, empty, empty, ""
+        return *emp, ""
     mode, term = search.get("mode"), search.get("term", "")
     if   mode == "gene":    df, mat, label = load_gene_profile(term)
     elif mode == "uniprot": df, mat, label = load_uniprot_profile(term)
     elif mode == "peptide": df, mat, label = load_peptide_profile(term)
     else:
-        return empty, empty, empty, empty, empty, ""
+        return *emp, ""
     if df.empty or not df["present"].any():
-        return empty, empty, empty, empty, empty, f'No results for "{term}"'
+        return *emp, f'No results for "{term}"'
     n_total   = len(df)
     n_present = int(df["present"].sum())
     badge = f"{label}  ·  detected in {n_present}/{n_total} runs  ({100*n_present/n_total:.0f}%)"
-    fig_int  = _profile_fig(df, "Intensity", "Intensity",   C_BLUE,   "Intensity",      log_scale=True)
-    fig_ibaq = _profile_fig(df, "iBAQ",      "iBAQ",        C_VIOLET, "iBAQ",           log_scale=True)
-    fig_scr  = _profile_fig(df, "Score",     "Score",       C_AMBER,  "Andromeda Score", log_scale=False)
+    C_GREEN = "#059669"
+    fig_int  = _profile_fig(df, "Intensity",       "Intensity",           C_BLUE,   "Intensity",       log_scale=True)
+    fig_ibaq = _profile_fig(df, "iBAQ",            "iBAQ",                C_VIOLET, "iBAQ",            log_scale=True)
+    fig_top3 = _profile_fig(df, "Top3",            "Top3 Intensity",      C_GREEN,  "Top3",            log_scale=True)
+    fig_scr  = _profile_fig(df, "Score",           "Andromeda Score",     C_AMBER,  "Score",           log_scale=False)
     fig_frac = _build_frac_fig(df, label)
     fig_pep  = _build_peptide_fig(mat, label, n_total)
-    return fig_int, fig_ibaq, fig_scr, fig_frac, fig_pep, badge
+    fig_pcnt = _profile_fig(df, "Peptides",        "Peptides / protein",  C_BLUE,   "Peptides",        log_scale=False)
+    fig_uniq = _profile_fig(df, "Unique peptides", "Unique peptides",     C_VIOLET, "Unique peptides", log_scale=False)
+    fig_cov  = _profile_fig(df, "Seq cov %",       "Sequence coverage %", C_GREEN,  "Coverage %",      log_scale=False)
+    fig_qval = _profile_fig(df, "Q-value",         "Q-value",             C_AMBER,  "Q-value",         log_scale=True)
+    return fig_int, fig_ibaq, fig_top3, fig_scr, fig_frac, fig_pep, fig_pcnt, fig_uniq, fig_cov, fig_qval, badge
 
 
 if __name__ == "__main__":
