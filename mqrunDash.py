@@ -125,6 +125,7 @@ _GENE_IDX     = {}
 _UNIPROT_IDX  = {}
 _PEP_IDX      = {}
 _PEP_GENE_IDX = {}
+_PEP_UPROT_IDX = {}
 _PEP_STORE    = {}
 _RUNS_ORDERED = []
 _PROFILE_LOADED = False
@@ -139,7 +140,7 @@ _TOP_PEPTIDES = []   # sorted by fewest missing
 
 def _build_profile_store():
     """One DB query, one Python pass. Builds all indexes."""
-    global _GENE_IDX, _UNIPROT_IDX, _PEP_IDX, _PEP_GENE_IDX, _PEP_STORE
+    global _GENE_IDX, _UNIPROT_IDX, _PEP_IDX, _PEP_GENE_IDX, _PEP_UPROT_IDX, _PEP_STORE
     global _RUNS_ORDERED, _PROFILE_LOADED
     global _TOP_GENES, _TOP_UNIPROT, _TOP_PEPTIDES
 
@@ -190,6 +191,7 @@ def _build_profile_store():
     uniprot_idx = {}
     pep_idx     = {}
     pep_gene    = {}
+    pep_uprot   = {}
     pep_str     = {}
 
     # accumulators for summary tables
@@ -252,6 +254,7 @@ def _build_profile_store():
         seqs = {s.strip().upper() for s in str(row['pep_seqs']).split(';') if s.strip()}
         for seq in seqs:
             pep_idx.setdefault(seq, {})[run] = True   # run_id -> True
+            pep_uprot.setdefault(seq, set()).update(uniprots)
             for g in genes:
                 pep_gene.setdefault(seq, set()).add(g)
                 pep_str.setdefault(g.lower(), {}).setdefault(run, set()).add(seq)
@@ -276,6 +279,7 @@ def _build_profile_store():
     _UNIPROT_IDX  = uniprot_idx
     _PEP_IDX      = pep_idx
     _PEP_GENE_IDX = pep_gene
+    _PEP_UPROT_IDX = pep_uprot
     _PEP_STORE    = pep_str
     _PROFILE_LOADED = True
 
@@ -380,10 +384,7 @@ def _pep_matrix(gene_key):
     long = pd.DataFrame(pep_rows).drop_duplicates()
     mat  = long.assign(v=True).pivot_table(
         index='peptide', columns='run_id', values='v', aggfunc='any', fill_value=False)
-    for r in _RUNS_ORDERED:
-        if r not in mat.columns:
-            mat[r] = False
-    mat = mat[_RUNS_ORDERED]
+    mat = mat.reindex(columns=_RUNS_ORDERED, fill_value=False)
     return mat.loc[mat.sum(axis=1).sort_values(ascending=False).index]
 
 
@@ -406,9 +407,10 @@ def load_uniprot_profile(uid):
     if key not in _UNIPROT_IDX:
         return pd.DataFrame(), pd.DataFrame(), uid
     d0  = _UNIPROT_IDX[key][next(iter(_UNIPROT_IDX[key]))]
-    label = f"{d0['protein_ids']} ({d0['gene_names']})"
+    gene_label = d0['gene_names'].split(';')[0].strip()
+    label = f"{uid.strip()} ({gene_label})"
     # pep matrix via first gene
-    g = d0['gene_names'].split(';')[0].strip().lower()
+    g = gene_label.lower()
     return _runs_to_df(_UNIPROT_IDX[key]), _pep_matrix(g), label
 
 
@@ -1045,7 +1047,7 @@ def _build_frac_fig(df, gene):
     frac = present["frac_intensity"].fillna(0)
     rank = present["intensity_rank"]
     # -log10(1/rank) = log10(rank): rank 1 -> 0 (most abundant), rank 1000 -> 3
-    log_rank = np.log10(rank.clip(lower=1))
+    log_rank = np.log10(rank.clip(lower=1)).clip(upper=5)
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
@@ -1081,13 +1083,14 @@ def _build_frac_fig(df, gene):
     labels_f = [run_label(r) for r in present["run_id"]]
     layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"),
                            tickmode="array", tickvals=list(present["run_id"]), ticktext=labels_f)
-    layout["yaxis"].update(title=dict(text="% of total run intensity", font=dict(size=10)))
+    layout["yaxis"].update(title=dict(text="% of total run intensity", font=dict(size=10)),
+                           range=[0, 5])
     layout["yaxis2"] = dict(
         title=dict(text="-log₁₀(1/rank)", font=dict(size=10, color=C_TREND)),
         overlaying="y", side="right",
         tickfont=dict(size=9, family=MONO, color=C_TREND),
         showgrid=False, zeroline=False,
-        autorange="reversed",   # rank 1 (most abundant) at top = low log_rank
+        range=[5, 0],
     )
     layout["hovermode"] = "closest"
     fig.update_layout(**layout)
@@ -1101,30 +1104,28 @@ def _build_peptide_fig(mat, gene, n_runs_total):
     mat is pre-computed by load_profile — no extra DB call needed."""
     if mat.empty or mat is None:
         return go.Figure()
-    n_pep   = len(mat)
-    n_runs  = len(mat.columns)
-    # Overall missing fraction across the whole matrix
-    total_cells  = n_pep * n_runs
+    n_pep_all = len(mat)
+    n_runs    = len(mat.columns)
+    total_cells   = n_pep_all * n_runs
     present_cells = int(mat.values.sum())
     miss_pct = 100 * (total_cells - present_cells) / total_cells if total_cells else 0
-    # Build z matrix (1=present, 0=absent), y=peptide labels, x=run labels
-    z    = mat.values.astype(int).tolist()
-    runs = list(mat.columns)
-    peps = list(mat.index)
-    # Hover: show run_id and peptide
-    hover = [[f"{runs[c]}<br>{peps[r]}<br>{'detected' if mat.iloc[r,c] else 'not detected'}"
+    CLIP     = 100
+    mat_plot = mat.iloc[:CLIP]
+    n_pep    = len(mat_plot)
+    pep_lbl  = f"{n_pep_all}+ (top {CLIP} shown)" if n_pep_all > CLIP else str(n_pep_all)
+    runs = list(mat_plot.columns)
+    peps = list(mat_plot.index)
+    hover = [[f"{runs[c]}<br>{peps[r]}<br>{'detected' if mat_plot.iloc[r,c] else 'not detected'}"
               for c in range(n_runs)] for r in range(n_pep)]
     fig = go.Figure(go.Heatmap(
-        z=z, x=runs, y=peps,
+        z=mat_plot.values.astype(int).tolist(), x=runs, y=peps,
         text=hover, hoverinfo="text",
         colorscale=[[0, "#f3f4f6"], [1, C_BLUE]],
-        showscale=False,
-        xgap=1, ygap=1,
+        showscale=False, xgap=1, ygap=1,
     ))
     height = max(300, min(900, 16 * n_pep + 80))
     layout = base(
-        f"Peptide presence  ·  {n_pep} unique peptides  ·  "
-        f"{miss_pct:.0f}% missing across {n_runs} runs",
+        f"Peptide presence  ·  {pep_lbl} peptides  ·  {miss_pct:.0f}% missing",
         mt=44
     )
     layout["xaxis"].update(
@@ -1180,14 +1181,14 @@ def update_profile(search, _n):
     badge = f"{label}  ·  detected in {n_present}/{n_total} runs  ({100*n_present/n_total:.0f}%)"
     C_GREEN = "#059669"
     gr = _Y_RANGES  # global ranges for fixed-scale comparison
-    fig_int  = _profile_fig(df, "Intensity",       "Intensity",           C_BLUE,   "Intensity",       log_scale=True,  fixed_range=gr.get("Intensity"))
-    fig_ibaq = _profile_fig(df, "iBAQ",            "iBAQ",                C_VIOLET, "iBAQ",            log_scale=True,  fixed_range=gr.get("iBAQ"))
-    fig_top3 = _profile_fig(df, "Top3",            "Top3 Intensity",      C_GREEN,  "Top3",            log_scale=True,  fixed_range=gr.get("Top3"))
+    fig_int  = _profile_fig(df, "Intensity",       "Intensity",           C_BLUE,   "Intensity",       log_scale=True,  fixed_range=[0, 10])
+    fig_ibaq = _profile_fig(df, "iBAQ",            "iBAQ",                C_VIOLET, "iBAQ",            log_scale=True,  fixed_range=[0, 10])
+    fig_top3 = _profile_fig(df, "Top3",            "Top3 Intensity",      C_GREEN,  "Top3",            log_scale=True,  fixed_range=[0, 10])
     fig_scr  = _profile_fig(df, "Score",           "Andromeda Score",     C_AMBER,  "Score",           log_scale=False, fixed_range=gr.get("Score"))
     fig_frac = _build_frac_fig(df, label)
     fig_pep  = _build_peptide_fig(mat, label, n_total)
-    fig_pcnt = _profile_fig(df, "Peptides",        "Peptides / protein",  C_BLUE,   "Peptides",        log_scale=False, fixed_range=gr.get("Peptides"))
-    fig_uniq = _profile_fig(df, "Unique peptides", "Unique peptides",     C_VIOLET, "Unique peptides", log_scale=False, fixed_range=gr.get("Unique peptides"))
+    fig_pcnt = _profile_fig(df, "Peptides",        "Peptides / protein",  C_BLUE,   "Peptides",        log_scale=False, fixed_range=[0, 100])
+    fig_uniq = _profile_fig(df, "Unique peptides", "Unique peptides",     C_VIOLET, "Unique peptides", log_scale=False, fixed_range=[0, 100])
     fig_cov  = _profile_fig(df, "Seq cov %",       "Sequence coverage %", C_GREEN,  "Coverage %",      log_scale=False, fixed_range=gr.get("Seq cov %"))
     fig_qval = _profile_fig(df, "Q-value",         "Q-value",             C_AMBER,  "Q-value",         log_scale=False, fixed_range=[0, 1])
     # Build summary panel: rank stats + static protein properties
@@ -1233,4 +1234,4 @@ if __name__ == "__main__":
     print(f"Rows : {SUM['total'].sum():,}")
     print("Building profile store ...", flush=True)
     _build_profile_store()
-    app.run(host='0.0.0.0',debug=False, port=8050)
+    app.run(host='0.0.0.0', debug=False, port=8050)
