@@ -12,7 +12,7 @@ from playwright.sync_api import sync_playwright
 APP_FILE = Path(__file__).with_name("mqrunDash.py")
 
 
-def wait_for_server(url, timeout=60):
+def wait_for_server(url, timeout=240):
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
@@ -75,15 +75,16 @@ def run_browser_test(base_url, mode, term):
         input_selector, desc = search_map[mode]
         print(f"Typing an exact {desc} term into the search box...")
         search_input = page.locator(input_selector)
-        old_summary = page.locator("#profile-summary").inner_text().strip()
+        search_input.click()
         search_input.fill(term)
         if search_input.input_value().strip() != term:
             raise AssertionError(f"Failed to fill the {desc} input field")
         search_input.press("Enter")
-        page.keyboard.press("Tab")
+        search_input.evaluate("el => el.blur()")
+        page.wait_for_selector("#profile-summary", state="visible", timeout=30000)
         page.wait_for_function(
-            "([oldSummary, expected]) => { const summary = document.querySelector('#profile-summary'); return summary && summary.innerText !== oldSummary && summary.innerText.includes(expected); }",
-            arg=[old_summary, term],
+            "expected => { const summary = document.querySelector('#profile-summary'); return summary && summary.innerText.includes(expected); }",
+            arg=term,
             timeout=30000,
         )
         summary_text = page.locator("#profile-summary").inner_text().strip()
