@@ -127,6 +127,7 @@ _PEP_IDX      = {}
 _PEP_GENE_IDX = {}
 _PEP_UPROT_IDX = {}
 _PEP_STORE    = {}
+_PEP_TO_ROW   = {}   # seq -> (gene_lower, run_id): stable first-row pointer
 _RUNS_ORDERED = []
 _PROFILE_LOADED = False
 _Y_RANGES = {}
@@ -140,7 +141,7 @@ _TOP_PEPTIDES = []   # sorted by fewest missing
 
 def _build_profile_store():
     """One DB query, one Python pass. Builds all indexes."""
-    global _GENE_IDX, _UNIPROT_IDX, _PEP_IDX, _PEP_GENE_IDX, _PEP_UPROT_IDX, _PEP_STORE
+    global _GENE_IDX, _UNIPROT_IDX, _PEP_IDX, _PEP_GENE_IDX, _PEP_UPROT_IDX, _PEP_STORE, _PEP_TO_ROW
     global _RUNS_ORDERED, _PROFILE_LOADED
     global _TOP_GENES, _TOP_UNIPROT, _TOP_PEPTIDES
 
@@ -193,6 +194,7 @@ def _build_profile_store():
     pep_gene    = {}
     pep_uprot   = {}
     pep_str     = {}
+    pep_to_row  = {}   # seq -> (gene_key, run_id, intensity)
 
     # accumulators for summary tables
     # Each dict maps key -> {name, ranks: list, seen_runs: set}
@@ -252,12 +254,22 @@ def _build_profile_store():
 
         # Peptide sequences
         seqs = {s.strip().upper() for s in str(row['pep_seqs']).split(';') if s.strip()}
+        gene_key = genes[0].lower() if genes else ''
         for seq in seqs:
-            pep_idx.setdefault(seq, {})[run] = True   # run_id -> True
+            pep_idx.setdefault(seq, {})[run] = True
+            # _PEP_TO_ROW: first stable row pointer for label generation
+            # Use the row with highest Intensity so label comes from dominant run
+            if seq not in pep_to_row or (
+                    pd.notna(row['Intensity']) and
+                    pd.notna(pep_to_row[seq][2]) and
+                    row['Intensity'] > pep_to_row[seq][2]):
+                pep_to_row[seq] = (gene_key, run, row['Intensity'])
+            if gene_key:
+                pep_str.setdefault(gene_key, {}).setdefault(run, set()).add(seq)
+            # legacy indexes kept for top-table display only
             pep_uprot.setdefault(seq, set()).update(uniprots)
             for g in genes:
                 pep_gene.setdefault(seq, set()).add(g)
-                pep_str.setdefault(g.lower(), {}).setdefault(run, set()).add(seq)
 
     # Post-filter gene→uniprot mapping:
     # Only keep a UniProt ID under a gene key if that ID is the *primary*
@@ -278,9 +290,10 @@ def _build_profile_store():
     _GENE_IDX     = gene_idx
     _UNIPROT_IDX  = uniprot_idx
     _PEP_IDX      = pep_idx
-    _PEP_GENE_IDX = pep_gene
+    _PEP_GENE_IDX  = pep_gene
     _PEP_UPROT_IDX = pep_uprot
-    _PEP_STORE    = pep_str
+    _PEP_STORE     = pep_str
+    _PEP_TO_ROW    = {seq: (gk, rid) for seq, (gk, rid, _) in pep_to_row.items()}
     _PROFILE_LOADED = True
 
     def _rank_stats(ranks):
@@ -320,15 +333,16 @@ def _build_profile_store():
     valid_runs = set(_RUNS_ORDERED)
     pep_summary = []
     for seq, run_dict in pep_idx.items():
-        n_det  = len(set(run_dict.keys()) & valid_runs)
-        miss   = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
-        g_set  = sorted(pep_gene.get(seq, set()))
-        # collect all UniProt IDs for this peptide's genes
-        u_set  = sorted({u for g in g_set
-                         for u in gene_runs.get(g.lower(),{}).get('uniprots',set())})
+        n_det = len(set(run_dict.keys()) & valid_runs)
+        miss  = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
+        # Use pep_to_row for stable single-gene / single-uid attribution
+        gk, rid, _ = pep_to_row.get(seq, ('', '', None))
+        rd0   = gene_idx.get(gk, {}).get(rid, {})
+        gene0 = str(rd0.get('gene_names', '')).split(';')[0].strip()
+        uid0  = next((u.strip() for u in str(rd0.get('protein_ids', '')).split(';')
+                      if u.strip() and not u.strip().startswith('CON__')), '')
         pep_summary.append({'peptide': seq, 'n_runs': n_det, 'miss_pct': miss,
-                            'genes':   ', '.join(g_set[:4]),
-                            'uniprots':' '.join(u_set[:6])})
+                            'gene': gene0, 'uid': uid0})
     _TOP_PEPTIDES = sorted(pep_summary, key=lambda x: x['miss_pct'])[:50]
 
     # Compute global y-ranges across all detected rows for fixed-scale plots
@@ -415,31 +429,53 @@ def load_uniprot_profile(uid):
 
 
 def load_peptide_profile(seq):
-    """Exact peptide sequence lookup. Returns (profile_df, mat_df, label)."""
+    """Peptide lookup using _PEP_IDX for ground-truth presence per run.
+    Label uses the dominant protein group row (highest intensity) via _PEP_TO_ROW,
+    showing the raw gene_names and protein_ids first tokens — no splitting attribution.
+    Returns 4-tuple: (profile_df, mat_df, label, pep_mode=True).
+    """
     if not _PROFILE_LOADED:
         _build_profile_store()
     key = seq.strip().upper()
     if key not in _PEP_IDX:
-        return pd.DataFrame(), pd.DataFrame(), seq
-    genes   = sorted(_PEP_GENE_IDX.get(key, set()))
-    uniprts = sorted(_PEP_UPROT_IDX.get(key, set()))
-    label   = f"{key}  [{', '.join(genes[:5])}]  [{', '.join(uniprts[:6])}]"
-    # merge protein profiles for all genes carrying this peptide
-    merged = {}
-    for g in genes:
-        for run_id, rd in _GENE_IDX.get(g.lower(), {}).items():
-            if run_id not in merged or (
-                rd['Intensity'] and
-                (not merged[run_id]['Intensity'] or rd['Intensity'] > merged[run_id]['Intensity'])
-            ):
-                merged[run_id] = rd
-    profile = _runs_to_df(merged)
-    # single-row matrix: just this peptide
-    presence = {r: True for r in _PEP_IDX[key]}
+        return pd.DataFrame(), pd.DataFrame(), seq, True
+
+    # Ground-truth presence: runs where this peptide was actually detected
+    pep_runs = set(_PEP_IDX[key].keys()) & set(_RUNS_ORDERED)
+
+    # Label: from the dominant row (best intensity) that contains this peptide
+    gene_key, anchor_run = _PEP_TO_ROW.get(key, (None, None))
+    label = key
+    if gene_key and anchor_run:
+        rd0 = _GENE_IDX.get(gene_key, {}).get(anchor_run, {})
+        # First gene token and first non-CON UniProt token only
+        gene0 = str(rd0.get('gene_names', '')).split(';')[0].strip()
+        uid0  = next((u.strip() for u in str(rd0.get('protein_ids', '')).split(';')
+                      if u.strip() and not u.strip().startswith('CON__')), '')
+        if gene0: label += f'  {gene0}'
+        if uid0:  label += f'  [{uid0}]'
+
+    # Build profile df: present only in runs where peptide detected;
+    # metrics from gene_key's _GENE_IDX row for that run (or None if missing)
+    none_row = {k: None for k in ('Intensity','iBAQ','Score','Top3','Peptides',
+                                   'Unique peptides','Razor+unique','Seq cov %',
+                                   'Q-value','Mol weight kDa','Seq length',
+                                   'frac_intensity','intensity_rank','sum_intensity')}
+    g_idx = _GENE_IDX.get(gene_key, {}) if gene_key else {}
+    rows = []
+    for rid in _RUNS_ORDERED:
+        if rid in pep_runs:
+            rd = g_idx.get(rid, none_row)
+            rows.append({**rd, 'run_id': rid, 'present': True})
+        else:
+            rows.append({**none_row, 'run_id': rid, 'present': False})
+    profile = pd.DataFrame(rows)
+
+    # Single-row heatmap from _PEP_IDX (ground truth)
     mat = pd.DataFrame(
-        [{r: (r in presence) for r in _RUNS_ORDERED}], index=[key])
+        [{r: (r in pep_runs) for r in _RUNS_ORDERED}], index=[key])
     mat.columns.name = 'run_id'
-    return profile, mat, label
+    return profile, mat, label, True
 
 
 
@@ -933,8 +969,8 @@ def update_top_tables(_n):
             id={"type":"top-pep-link","index":r["peptide"]}),
         html.Span(
             f"{r['n_runs']} runs  miss {r['miss_pct']:.1f}%"
-            + (f"  [{r['genes']}]"    if r.get('genes')    else "")
-            + (f"  [{r['uniprots']}]" if r.get('uniprots') else ""),
+            + (f"  [{r['gene']}]" if r.get('gene') else "")
+            + (f"  [{r['uid']}]"  if r.get('uid')  else ""),
             style={"color":"#6b7280","fontSize":"10px"}),
     ]) for r in _TOP_PEPTIDES[:20]]
 
@@ -1020,7 +1056,7 @@ def _profile_fig(df, col, title_prefix, color, unit_label, log_scale=False, fixe
             hovertemplate="%{x}<br>not detected<extra></extra>",
         ))
 
-    layout = base(f"{title_prefix}  ·  {n_missing}/{n_total} missing ({miss_pct:.0f}%)", mt=44)
+    layout = base(f"{title_prefix}  ·  {n_missing}/{n_total} missing ({miss_pct:.1f}%)", mt=44)
     labels = [run_label(r) for r in df["run_id"]]
     layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"),
                            tickmode="array", tickvals=list(df["run_id"]), ticktext=labels)
@@ -1114,8 +1150,11 @@ def _build_peptide_fig(mat, gene, n_runs_total):
     n_pep    = len(mat_plot)
     pep_lbl  = f"{n_pep_all}+ (top {CLIP} shown)" if n_pep_all > CLIP else str(n_pep_all)
     runs = list(mat_plot.columns)
-    peps = list(mat_plot.index)
-    hover = [[f"{runs[c]}<br>{peps[r]}<br>{'detected' if mat_plot.iloc[r,c] else 'not detected'}"
+    # Per-peptide miss% on y-axis label
+    pep_row_counts = mat_plot.sum(axis=1)
+    peps = [f"{idx}  {100*(n_runs - int(pep_row_counts[idx]))/n_runs:.1f}% miss"
+            for idx in mat_plot.index]
+    hover = [[f"{runs[c]}<br>{mat_plot.index[r]}<br>{'detected' if mat_plot.iloc[r,c] else 'not detected'}"
               for c in range(n_runs)] for r in range(n_pep)]
     fig = go.Figure(go.Heatmap(
         z=mat_plot.values.astype(int).tolist(), x=runs, y=peps,
@@ -1125,7 +1164,7 @@ def _build_peptide_fig(mat, gene, n_runs_total):
     ))
     height = max(300, min(900, 16 * n_pep + 80))
     layout = base(
-        f"Peptide presence  ·  {pep_lbl} peptides  ·  {miss_pct:.0f}% missing",
+        f"Peptide presence  ·  {pep_lbl} peptides  ·  {miss_pct:.1f}% missing",
         mt=44
     )
     layout["xaxis"].update(
@@ -1138,7 +1177,7 @@ def _build_peptide_fig(mat, gene, n_runs_total):
     )
     layout["hovermode"] = "closest"
     layout["margin"]["b"] = 120
-    layout["margin"]["l"] = 160   # room for peptide sequence labels
+    layout["margin"]["l"] = 220   # room for peptide + miss% labels
     fig.update_layout(**layout)
     fig.update_layout(height=height)
     return fig
@@ -1169,9 +1208,10 @@ def update_profile(search, _n):
     if not search:
         return *emp, "", None, hide
     mode, term = search.get("mode"), search.get("term", "")
+    pep_mode = False
     if   mode == "gene":    df, mat, label = load_gene_profile(term)
     elif mode == "uniprot": df, mat, label = load_uniprot_profile(term)
-    elif mode == "peptide": df, mat, label = load_peptide_profile(term)
+    elif mode == "peptide": df, mat, label, pep_mode = load_peptide_profile(term)
     else:
         return *emp, "", None, hide
     if df.empty or not df["present"].any():
@@ -1191,33 +1231,43 @@ def update_profile(search, _n):
     fig_uniq = _profile_fig(df, "Unique peptides", "Unique peptides",     C_VIOLET, "Unique peptides", log_scale=False, fixed_range=[0, 100])
     fig_cov  = _profile_fig(df, "Seq cov %",       "Sequence coverage %", C_GREEN,  "Coverage %",      log_scale=False, fixed_range=gr.get("Seq cov %"))
     fig_qval = _profile_fig(df, "Q-value",         "Q-value",             C_AMBER,  "Q-value",         log_scale=False, fixed_range=[0, 1])
-    # Build summary panel: rank stats + static protein properties
-    pres = df[df["present"]]
-    ranks = pres["intensity_rank"].dropna()
-    mw   = pres["Mol weight kDa"].dropna()
-    slen = pres["Seq length"].dropna()
-    def _s(v, fmt=",.0f"): return format(float(v), fmt) if pd.notna(v) else "n/a"
-    def _span(lbl, val):
+    # Build summary panel
+    def _sp(lbl, val):
         return html.Span([
             html.Span(f"{lbl}: ", style={"color":"#9ca3af"}),
             html.Span(val, style={"color":"#111827","fontWeight":"600","marginRight":"20px"}),
         ])
+    pres = df[df["present"]]
+    if pep_mode:
+        summ = [
+            html.Div(label, style={"fontWeight":"700","color":C_BLUE,
+                                   "marginBottom":"6px","fontSize":"12px"}),
+            html.Div([
+                _sp("Detected", f"{n_present}/{n_total} ({100*n_present/n_total:.1f}%)"),
+                _sp("Missing",  f"{n_total-n_present}/{n_total} ({100*(n_total-n_present)/n_total:.1f}%)"),
+            ], style={"display":"flex","flexWrap":"wrap"}),
+        ]
+        return fig_int, fig_ibaq, fig_top3, fig_scr, fig_frac, fig_pep, fig_pcnt, fig_uniq, fig_cov, fig_qval, badge, summ, {**base_style, "display":"block"}
+    ranks = pres["intensity_rank"].dropna()
+    mw    = pres["Mol weight kDa"].dropna()
+    slen  = pres["Seq length"].dropna()
+    def _s(v, fmt=",.0f"): return format(float(v), fmt) if pd.notna(v) else "n/a"
     gkey = term.strip().lower()
     gene_entry = _TOP_GENES_MAP.get(gkey, {})
     summary_cells = [
-        _span("Detected",    f"{n_present}/{n_total} runs ({100*n_present/n_total:.1f}%)"),
-        _span("Missing",     f"{n_total-n_present}/{n_total} ({100*(n_total-n_present)/n_total:.1f}%)"),
-        _span("Rank med",  _s(ranks.median())                       if not ranks.empty else "n/a"),
-        _span("Rank mean", _s(ranks.mean())                         if not ranks.empty else "n/a"),
-        _span("Rank min",  _s(ranks.min())                          if not ranks.empty else "n/a"),
-        _span("Rank max",  _s(ranks.max())                          if not ranks.empty else "n/a"),
-        _span("Rank mode", _s(pd.Series(ranks).mode().iloc[0])      if not ranks.empty else "n/a"),
-        _span("MW (kDa)",    _s(mw.median())    if not mw.empty   else "n/a"),
-        _span("Seq length",  _s(slen.median())  if not slen.empty else "n/a"),
-        _span("Median iBAQ", _s(pres["iBAQ"].median())),
-        _span("Median score",_s(pres["Score"].median())),
-        _span("Median cov%", _s(pres["Seq cov %"].median())),
-        _span("Median pep",  _s(pres["Peptides"].median())),
+        _sp("Detected",    f"{n_present}/{n_total} runs ({100*n_present/n_total:.1f}%)"),
+        _sp("Missing",     f"{n_total-n_present}/{n_total} ({100*(n_total-n_present)/n_total:.1f}%)"),
+        _sp("Rank med",  _s(ranks.median())                       if not ranks.empty else "n/a"),
+        _sp("Rank mean", _s(ranks.mean())                         if not ranks.empty else "n/a"),
+        _sp("Rank min",  _s(ranks.min())                          if not ranks.empty else "n/a"),
+        _sp("Rank max",  _s(ranks.max())                          if not ranks.empty else "n/a"),
+        _sp("Rank mode", _s(pd.Series(ranks).mode().iloc[0])      if not ranks.empty else "n/a"),
+        _sp("MW (kDa)",    _s(mw.median())    if not mw.empty   else "n/a"),
+        _sp("Seq length",  _s(slen.median())  if not slen.empty else "n/a"),
+        _sp("Median iBAQ", _s(pres["iBAQ"].median())),
+        _sp("Median score",_s(pres["Score"].median())),
+        _sp("Median cov%", _s(pres["Seq cov %"].median())),
+        _sp("Median pep",  _s(pres["Peptides"].median())),
     ]
     summary_content = [
         html.Div(label, style={"fontWeight":"700","color":C_BLUE,
