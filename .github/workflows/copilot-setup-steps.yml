@@ -1,0 +1,44 @@
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install marimo and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install marimo
+
+      - name: Verify marimo import
+        run: |
+          python -c "import marimo; print('marimo', getattr(marimo, '__version__', 'unknown'))"
+
+      - name: Show marimo CLI help (non-fatal)
+        run: |
+          marimo --help || true
+
+      # Snapshot prevents changes to runner environment from being persisted between setup steps and Copilot's session.
+      # Keep workflow short; Copilot will start after these steps complete.
+      
