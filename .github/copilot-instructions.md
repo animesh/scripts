@@ -4,6 +4,13 @@ Purpose
 
 This file helps GitHub Copilot CLI sessions interact productively with this repository by documenting build/test/lint commands, high-level architecture, and repository-specific conventions.
 
+Startup instruction:
+
+- Before editing anything, make sure to read and understand `copilot_preferences.md`.
+- Use `cmd.exe` quoting for command execution to avoid PowerShell heredoc quoting issues.
+- Prefer command line output shown directly in terminal output when validating script runs.
+
+
 Build, test, and lint commands
 
 - Docker (build the image provided in the repo):
