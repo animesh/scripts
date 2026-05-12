@@ -1,6 +1,4 @@
-"""
-python genPRM.py --msms msms.txt --scans accumulatedMsmsScans.txt --out prm_transitions.tsv --pep 0.01 --top_n 5 --min_score 40
-"""
+#python genPRM.py --msms "L:/promec/TIMSTOF/LARS/2026/260507_sonali/combined/txt/msms.txt"  --scans  "L:/promec/TIMSTOF/LARS/2026/260507_sonali/combined/txt/accumulatedMsmsScans.txt"  --out prm_transitions.tsv --pep 0.01 --top_n 5 --min_score 40
 import argparse, re
 from itertools import zip_longest
 import numpy as np
@@ -22,8 +20,10 @@ MOD_MASS = {
     'Acetyl (Protein N-term)': 42.01057,
 }
 
+SILAC_HEAVY = {'R': 10.008269, 'K': 8.014199}  # Arg10 (13C6,15N4), Lys8 (13C6,15N2)
 
-def parse_modified_sequence(modseq):
+
+def parse_modified_sequence(modseq, is_heavy=False):
     seq, residues, pending, i = modseq.strip('_'), [], 0.0, 0
     while i < len(seq):
         if seq[i] == '(':
@@ -37,29 +37,32 @@ def parse_modified_sequence(modseq):
             i = j + 1
         else:
             aa = seq[i]
-            residues.append((aa, AA_MONO.get(aa, 0.0) + pending))
+            silac = SILAC_HEAVY.get(aa, 0.0) if is_heavy else 0.0
+            residues.append((aa, AA_MONO.get(aa, 0.0) + pending + silac))
             pending = 0.0
             i += 1
     return residues
 
 
-def fragment_mz(residues, ion_type, position, charge=1):
+def fragment_mz(residues, ion_type, position, charge=1, nl=0.0):
     mass = (sum(m for _, m in residues[:position]) if ion_type == 'b'
             else sum(m for _, m in residues[-position:]) + 18.01056)
-    return (mass + charge * PROTON) / charge
+    return (mass + nl + charge * PROTON) / charge
 
+
+NL_MASS = {'-H2O': -18.010565, '-NH3': -17.026549, '+H2O': 18.010565}
 
 ION_RE = re.compile(r'^([by])(\d+)(?:\((\d+)\+\))?$')
 
 def parse_ion_label(label):
     label = label.strip()
-    for nl in ['-H2O', '-NH3', '(ox)', '+H2O']:
-        if label.endswith(nl):
-            label = label[:-len(nl)]; break
+    nl = 0.0
+    for tag, delta in NL_MASS.items():
+        if label.endswith(tag):
+            nl = delta; label = label[:-len(tag)]; break
     m = ION_RE.match(label)
-    if not m: return None, None, None
-    return m.group(1), int(m.group(2)), int(m.group(3)) if m.group(3) else 1
-
+    if not m: return None, None, None, 0.0
+    return m.group(1), int(m.group(2)), int(m.group(3)) if m.group(3) else 1, nl
 
 def main(msms_path, scans_path, out_path, pep_thresh, top_n, min_score):
     msms = pd.read_csv(msms_path, sep='\t', low_memory=False)
@@ -142,10 +145,11 @@ def main(msms_path, scans_path, out_path, pep_thresh, top_n, min_score):
                f"label {'heavy' if label else 'light'} modseq {modseq} "
                f"msms_line {int(psm['msms_line'])} scan {scan_num}")
 
+        residues = parse_modified_sequence(modseq, is_heavy=(label == 1))
+
         for ion_label, ion_intensity in top_ions:
-            itype, pos, fcharge = parse_ion_label(ion_label)
-            residues = parse_modified_sequence(modseq)
-            calc_mz  = round(fragment_mz(residues, itype, pos, fcharge), 5) if itype else ''
+            itype, pos, fcharge, nl = parse_ion_label(ion_label)
+            calc_mz = round(fragment_mz(residues, itype, pos, fcharge, nl), 5) if itype else ''
             rows.append({
                 'Protein':           str(psm['Proteins']),
                 'Peptide':           seq,
