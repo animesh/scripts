@@ -1,4 +1,4 @@
-#python genPRM.py --msms "L:/promec/TIMSTOF/LARS/2026/260507_sonali/combined/txt/msms.txt"  --scans  "L:/promec/TIMSTOF/LARS/2026/260507_sonali/combined/txt/accumulatedMsmsScans.txt"  --out prm_transitions.tsv --pep 0.01 --top_n 5 --min_score 40
+#python genPRM.py --msms  "L:/promec/TIMSTOF/LARS/2026/260507_sonali/combined/txt/msms.txt"  --scans  "L:/promec/TIMSTOF/LARS/2026/260507_sonali/combined/txt/accumulatedMsmsScans.txt" --out prm_relaxed.tsv --pep 0.05 --top_n 5 --min_score 0
 import argparse, re
 from itertools import zip_longest
 import numpy as np
@@ -81,6 +81,13 @@ def main(msms_path, scans_path, out_path, pep_thresh, top_n, min_score):
     msms = msms[msms['Sequence'].notna() & (msms['Sequence'] != '')]
     print(f"After filtering: {len(msms):,} PSMs")
 
+    # Drop charge-1 precursors with m/z > 700: tryptic peptides at those masses
+    # are virtually never singly charged — these are MaxQuant mis-assignments
+    bad_z1 = (msms['Charge'] == 1) & (msms['m/z'] > 700)
+    if bad_z1.sum():
+        print(f"Dropping {bad_z1.sum()} charge-1 mis-assigned precursors (m/z > 700)")
+        msms = msms[~bad_z1]
+
     scan_cols = ['Raw file', 'Scan number', 'Precursor ion mobility', 'Precursor ion mobility width', 'scan_line']
     if rt_scans_col: scan_cols.insert(-1, rt_scans_col)
     scans_im = scans[scan_cols].copy()
@@ -136,8 +143,12 @@ def main(msms_path, scans_path, out_path, pep_thresh, top_n, min_score):
             key=lambda x: (np.nan_to_num(x[0], nan=-1), x[1] if isinstance(x[1], str) else ''),
             reverse=True
         )
+        def _frag_z(lbl):
+            m = re.search(r'(\d+)\+\)', lbl)
+            return int(m.group(1)) if m else 1
         top_ions = [(lbl, inten) for inten, lbl in ion_pairs
-                    if isinstance(lbl, str) and lbl and lbl[0] in ('y', 'b')][:top_n]
+                    if isinstance(lbl, str) and lbl and lbl[0] in ('y', 'b')
+                    and _frag_z(lbl) < charge][:top_n]
         if len(labels_list) > len(top_ions):
             notes.append(f'{len(top_ions)} y/b kept from {len(labels_list)} labels')
 
