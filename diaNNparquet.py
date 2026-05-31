@@ -9,7 +9,7 @@ import argparse
 
 # allow overriding via CLI: `python diaNNparquet.py -f <path>`
 parser = argparse.ArgumentParser(description='Generate DIA-NN histograms and ridge plots from a parquet file')
-parser.add_argument('-f', '--fileP', help='path to parquet file', default=r'F:\promec\TIMSTOF\LARS\2025\250107_Hela_Coli\DDAreport.parquet')
+parser.add_argument('-f', '--fileP', help='path to parquet file', default='/cluster/projects/nn9036k/scrbkup/stevenC/report.infinisearch.parquet')
 parser.add_argument('-c', '--value-col', help="name of numeric column to use (default 'Precursor.Normalised'), e.g. 'Precursor.Quantity'", default='Precursor.Normalised')
 args = parser.parse_args()
 value_col = args.value_col
@@ -17,19 +17,19 @@ value_col = args.value_col
 fileP = args.fileP
 # safe token to put into output filenames
 safe_col = re.sub(r'[^A-Za-z0-9_-]+', '_', value_col)
-mz_parquet = pq.read_table(fileP)
+mz_parquet = pq.read_table('/cluster/projects/nn9036k/scrbkup/stevenC/report.infinisearch.parquet')
 mz_parquet = mz_parquet.to_pandas()
 print(mz_parquet.describe())
-mz_parquet.to_csv(fileP+'.csv')
+mz_parquet.to_csv('/cluster/projects/nn9036k/scrbkup/stevenC/report.infinisearch.csv')
 #mz_parquet2 = pd.read_csv(fileP+'.csv',index_col=0)
 #print(mz_parquet.describe()-mz_parquet2.describe())
 #mzDiff=mz_parquet2['Precursor.Normalised']-mz_parquet['Precursor.Normalised']
 #print(mzDiff.describe())
-pivoted_peptides_by_run = mz_parquet.pivot_table(index=['Precursor.Id', 'Protein.Names'], columns='Run', values=value_col)
+pivoted_peptides_by_run = mz_parquet.pivot_table(index=['Precursor.Id', 'Protein.Names'], columns='Run', values='Precursor.Normalised')
 pivoted_peptides_by_run=pivoted_peptides_by_run.reset_index()
 print(pivoted_peptides_by_run)
 print(pivoted_peptides_by_run.count())
-pivoted_peptides_by_run.to_csv(fileP + f'_{safe_col}_pivot_all.csv', index=False)
+pivoted_peptides_by_run.to_csv('/cluster/projects/nn9036k/scrbkup/stevenC/report.infinisearch_pep.csv', index=False)
 print('Saved full pivot to', fileP + f'_{safe_col}_pivot_all.csv')
 
 peptides_prots_proteotypic = mz_parquet[mz_parquet['Proteotypic'] == 1]
