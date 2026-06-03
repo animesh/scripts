@@ -1,5 +1,5 @@
 #dos2unix scratch.slurm  slurmDIANN.sh
-#bash slurmDIANN.sh /cluster/projects/nn9036k/scrbkup/sonaliDIA2
+#bash slurmDIANN.sh /cluster/projects/nn9036k/scrbkup/barbara
 DATADIR=$1
 SEARCHTEXT=TestFile.d
 CURRENTEPOCTIME=`date +%s`
@@ -9,5 +9,4 @@ for i in $DATADIR/*.d ; do echo $i ; sed "s|$SEARCHTEXT|$i|g" scratch.slurm > $i
 echo $WRITEFILE
 ls -ltrh $DATADIR/*$WRITEFILE.slurm 
 squeue -u ash022
-#rsync -Parv sonaliDIA/*.report.* /nird/projects/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2026/
 
