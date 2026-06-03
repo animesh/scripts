@@ -1,5 +1,5 @@
 #dos2unix scratch.slurm  slurmDIANN.sh
-#bash slurmDIANN.sh /cluster/projects/nn9036k/scrbkup/sonaliDIA2
+#bash slurmDIANN.sh /cluster/projects/nn9036k/scrbkup/barbara
 DATADIR=$1
 SEARCHTEXT=TestFile.d
 CURRENTEPOCTIME=`date +%s`
