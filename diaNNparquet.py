@@ -1,3 +1,4 @@
+#diann.exe --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_DDA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_DDA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_DDA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_nDIA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_nDIA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_nDIA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_DDA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_DDA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_DDA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_nDIA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_nDIA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_nDIA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_DDA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_DDA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_DDA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_nDIA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_nDIA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_nDIA_3ms_R3.raw --lib  --threads 12 --verbose 1 --out Z:\Download\timsread\Fig2A-E_raw\report.export-quant.parquet --qvalue 0.01 --no-rt-window --out-lib Z:\Download\timsread\Fig2A-E_raw\lib.export-quant.parquet --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta Z:\Download\UP000005640_9606_unique_gene.fasta --pre-search --pre-filter --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 2 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:7,0.984016,NQ --var-mod UniMod:1,42.010565,*n --mass-acc 10 --mass-acc-ms1 10 --mass-acc-cal 15 --use-quant --individual-mass-acc --individual-windows --proteoforms --reanalyse --rt-profiling --direct-quant --global-norm --original-mods --dda --export-quant
 #python diaNNparquet.py -f "F:\promec\TIMSTOF\LARS\2025\250107_Hela_Coli\DDAreport.parquet" -c  "Ms1.Area"
 #python diaNNparquet.py -f "F:\promec\TIMSTOF\LARS\2025\250107_Hela_Coli\reportDDA.parquet" -c  "Ms1.Area"
 import pandas as pd
@@ -17,19 +18,19 @@ value_col = args.value_col
 fileP = args.fileP
 # safe token to put into output filenames
 safe_col = re.sub(r'[^A-Za-z0-9_-]+', '_', value_col)
-mz_parquet = pq.read_table(r"Z:\Download\timsread\Fig2A-E_raw\report.parquet")
+mz_parquet = pq.read_table(r"Z:\Download\timsread\Fig2A-E_raw\report.export-quant.parquet")
 mz_parquet = mz_parquet.to_pandas()
 print(mz_parquet.describe())
-mz_parquet.to_csv(r"Z:\Download\timsread\Fig2A-E_raw\report.parquet.csv")
+mz_parquet.to_csv(r"Z:\Download\timsread\Fig2A-E_raw\report.export-quant.parquet.csv")
 #mz_parquet2 = pd.read_csv(fileP+'.csv',index_col=0)
 #print(mz_parquet.describe()-mz_parquet2.describe())
 #mzDiff=mz_parquet2['Precursor.Normalised']-mz_parquet['Precursor.Normalised']
 #print(mzDiff.describe())
-pivoted_peptides_by_run = mz_parquet.pivot_table(index=['Precursor.Id', 'Protein.Names'], columns='Run', values='Precursor.Normalised')
+pivoted_peptides_by_run = mz_parquet.pivot_table(index=['Precursor.Id', 'Protein.Names'], columns='Run', values='Ms1.Area')
 pivoted_peptides_by_run=pivoted_peptides_by_run.reset_index()
 print(pivoted_peptides_by_run)
 print(pivoted_peptides_by_run.count())
-pivoted_peptides_by_run.to_csv(r"Z:\Download\timsread\Fig2A-E_raw\report.parquet.gbpnormalised_pivot_all.csv", index=False)
+pivoted_peptides_by_run.to_csv(r"Z:\Download\timsread\Fig2A-E_raw\report.parquet.gbMs1.Area_pivot_all.csv", index=False)
 print('Saved full pivot to', fileP + f'_{safe_col}_pivot_all.csv')
 
 peptides_prots_proteotypic = mz_parquet[mz_parquet['Proteotypic'] == 1]
