@@ -85,4 +85,4 @@ rtmodel.*
 *.vcf
 *.vcf.gz
 
-.positai
+.posit/assistant
