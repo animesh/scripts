@@ -2,21 +2,19 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-dda_job_index = 0
-dia_job_index = 1
-intensity_col = 'intensity_uncertainty_aware'
+intensity_col = 'intensity_lfq'
 
 # DDA
 dda = pd.read_csv(r"Z:\Download\nDDA\nDDA_quantified_protein_fdr.tsv", sep='\t')  # For testing with local CSV export
-dda = dda[(~dda['is_decoy']) & (dda['intensity_uncertainty_aware'].notna()) & (dda['intensity_uncertainty_aware'] > 0)].copy()
-dda['log2_int'] = np.log2(dda['intensity_uncertainty_aware'])
+dda = dda[(~dda['is_decoy']) & (dda[intensity_col].notna()) & (dda[intensity_col] > 0)].copy()
+dda['log2_int'] = np.log2(dda[intensity_col])
 dda_pivot = dda.pivot_table(index='protein_group_id', columns='file_name', values='log2_int', aggfunc='mean')
 
 
 # DIA
 dia = pd.read_csv(r"Z:\Download\nDDA\nDIA_quantified_protein_fdr.tsv", sep='\t')
-dia = dia[(~dia['is_decoy']) & (dia['intensity_uncertainty_aware'].notna()) & (dia['intensity_uncertainty_aware'] > 0)].copy()
-dia['log2_int'] = np.log2(dia['intensity_uncertainty_aware'])
+dia = dia[(~dia['is_decoy']) & (dia[intensity_col].notna()) & (dia[intensity_col] > 0)].copy()
+dia['log2_int'] = np.log2(dia[intensity_col])
 dia_pivot = dia.pivot_table(index='protein_group_id', columns='file_name', values='log2_int', aggfunc='mean')
 
 
