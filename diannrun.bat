@@ -28,23 +28,23 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 :: BN.retries, BN.done.
 
 :: -- Configuration --------------------------------------------------------------
-set DIANNCMD=F:\DIA-NN\2.2.0\diann.exe
-set DIANNDIR=F:\DIA-NN\2.2.0
-set DATAROOT=F:\
+set DIANNCMD=C:\Program Files\DIA-NN\2.2.0\diann.exe
+set DIANNDIR=C:\Program Files\DIA-NN\2.2.0\
+set DATAROOT=F:\promec\TIMSTOF\Raw
 set NAMETOKEN1=HeLa
 set NAMETOKEN2=DIA
-set SPECLIB=L:\promec\FastaDB\humanMC2V3defaults.predicted.speclib
-set FASTAFILE=L:\promec\FastaDB\UP000005640_9606_1protein1gene.fasta
+set SPECLIB=F:\promec\FastaDB\humanMC2V3defaults.predicted.speclib
+set FASTAFILE=F:\promec\FastaDB\UP000005640_9606_1protein1gene.fasta
 set FASTACONT=camprotR_240512_cRAP_20190401_full_tags.fasta
 :: FASTACONT is resolved relative to DIANNDIR (DIA-NN is launched with that
 :: as its working directory via "start /D", same as the manual session).
-set TMPDIR=F:\HeLaDIA
-set QCROOT=L:\promec\TIMSTOF\QC\DIA
+set TMPDIR=D:\TMPDIR
+set QCROOT=F:\promec\TIMSTOF\QC\DIA
 set LOGFILE=%QCROOT%\diannrun_log.txt
 set POLL_INTERVAL=1800
 set STABILITY_WAIT=60
-set THREADS_PER_JOB=4
-set CPU_COUNT=12
+set THREADS_PER_JOB=8
+set CPU_COUNT=64
 set MAX_RETRIES=3
 set QVALUE=0.01
 set TLIST=%SystemRoot%\System32\tasklist.exe
