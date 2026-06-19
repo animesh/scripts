@@ -43,7 +43,7 @@ set QCROOT=L:\promec\TIMSTOF\QC\DIA
 set LOGFILE=%QCROOT%\diannrun_log.txt
 set POLL_INTERVAL=1800
 set STABILITY_WAIT=60
-set THREADS_PER_JOB=8
+set THREADS_PER_JOB=4
 set CPU_COUNT=12
 set MAX_RETRIES=3
 set QVALUE=0.01
@@ -105,7 +105,9 @@ set ACQUIRING=0 & set RETRYING=0 & set ERRORS=0 & set SKIPPED=0
 
 :: Count live diann.exe processes once per poll (updated locally after each launch)
 set "DN_LIVE=0"
-for /f "tokens=1" %%P in ('%TLIST% /fi "imagename eq diann.exe" /fo csv /nh 2^>nul ^| findstr /i /v /c:"INFO:"') do set /a DN_LIVE+=1
+:: Count lines that contain a comma -- CSV process lines always do; the
+:: 'INFO: No tasks running' line (locale-dependent) never does.
+for /f "tokens=1" %%P in ('%TLIST% /fi "imagename eq diann.exe" /fo csv /nh 2^>nul ^| findstr /c:","') do set /a DN_LIVE+=1
 
 :: Dispatch each acquisition folder whose name contains BOTH tokens (any order)
 for /d %%U in ("%DATAROOT%\*") do (
@@ -128,12 +130,15 @@ for /d %%U in ("%DATAROOT%\*") do (
     )
 )
 
-:: Cleanup pass: remove any copied .d folder whose completion sentinel exists.
-:: This runs every poll so it self-heals if rmdir failed previously (file handles).
+:: Cleanup pass: remove any copied .d folder whose completion sentinel exists
+:: AND whose lockfile is gone (i.e. process confirmed dead). Skipping while a
+:: running.lock exists avoids "Access Denied" from DIA-NN still holding handles.
 for /d %%W in ("!SESSIONDIR!\*.d") do (
     set "WBN=%%~nW"
     if exist "!SESSIONDIR!\!WBN!.done" (
-        if exist "%%~fW" rmdir /s /q "%%~fW" 2>nul
+        if not exist "!SESSIONDIR!\!WBN!.running.lock" (
+            if exist "%%~fW" rmdir /s /q "%%~fW" >nul 2>nul
+        )
     )
 )
 
@@ -196,8 +201,8 @@ exit /b 0
 :: Only proceeds when:
 ::   1. OUT_REPORT (BN.d.report.parquet) exists
 ::   2. diann.exe for this job is confirmed dead
-:: On success: copies report + lib parquet to QCROOT, writes .done sentinel,
-:: deletes the copied .d data and the local parquet copies.
+:: On success: copies ALL job output files (wildcard %MD_BN%.d.*) to QCROOT,
+:: writes .done sentinel, deletes the copied .d raw data and local output copies.
 :: Sets DONE_FLAG=1 on success so caller can update counters.
 :: Arg1: DATADEST (.d folder)   Arg2: basename   Arg3: PID (or "PENDING" or "")
 :MarkDone
@@ -205,7 +210,7 @@ set "MD_D=%~1"
 set "MD_BN=%~2"
 set "MD_PID=%~3"
 set "MD_REPORT=!SESSIONDIR!\%MD_BN%.d.report.parquet"
-set "MD_LIB=!SESSIONDIR!\%MD_BN%.d.report-lib.parquet"
+
 set "DONE_FLAG=0"
 :: Gate 1: output report must exist
 if not exist "!MD_REPORT!" exit /b 0
@@ -223,16 +228,25 @@ if not errorlevel 1 ( call :Log "WaitPID  : %MD_BN% (PID !MD_PID! alive -- defer
 :: Copy results to QC share before deleting local copies
 if not exist "%QCROOT%\" ( call :Log "WARNING  : %MD_BN% QCROOT not reachable -- will retry" & exit /b 0 )
 if not exist "%QCROOT%\%MD_BN%" mkdir "%QCROOT%\%MD_BN%"
-robocopy "!SESSIONDIR!" "%QCROOT%\%MD_BN%" "%MD_BN%.d.report.parquet" "%MD_BN%.d.report-lib.parquet" /R:3 /W:10 /NFL /NDL /NJH /NJS /LOG+:"%QCROOT%\copy_log.txt" >nul
+:: Wildcard catches every DIA-NN output sibling file for this job in one shot
+:: (report.parquet, report-lib.parquet, *_matrix.tsv, UniMod_*.tsv, .quant,
+:: log.txt, manifest.txt, stats.tsv, site_report.parquet, protein_description.tsv,
+:: etc.) -- future-proof against DIA-NN adding/renaming output types.
+:: /NP suppresses live progress/retry console writes that bypass simple >nul
+:: redirection -- this is what was leaking bare "Access is denied." to console.
+robocopy "!SESSIONDIR!" "%QCROOT%\%MD_BN%" "%MD_BN%.d.*" /NP /R:3 /W:10 /NFL /NDL /NJH /NJS /LOG+:"%QCROOT%\copy_log.txt" >nul 2>nul
 if errorlevel 8 ( call :Log "ERROR    : %MD_BN% QC copy failed -- skipping cleanup" & exit /b 0 )
 call :Log "QC copy  : %MD_BN% -> %QCROOT%\%MD_BN%"
 :: Write sentinel so cleanup pass can rmdir the copied .d folder entirely
 echo 1> "!SESSIONDIR!\%MD_BN%.done"
 set "DONE_FLAG=1"
 call :Log "Cleanup  : %MD_BN%"
-rmdir /s /q "%MD_D%" 2>nul
-if exist "!MD_REPORT!" del /q "!MD_REPORT!"
-if exist "!MD_LIB!"    del /q "!MD_LIB!"
+:: >nul 2>nul on rmdir: cmd.exe built-ins (rmdir/del) write "Access is denied"
+:: to STDOUT, not STDERR, so 2>nul alone never suppresses it -- this is the
+:: second independent source of the bare console message.
+rmdir /s /q "%MD_D%" >nul 2>nul
+:: Delete all local copies of this job output now that they are on QCROOT
+del /q "!SESSIONDIR!\%MD_BN%.d.*" >nul 2>nul
 :: Clean up retry counter if it exists
 if exist "!SESSIONDIR!\%MD_BN%.retries" del /q "!SESSIONDIR!\%MD_BN%.retries"
 exit /b 0
@@ -291,7 +305,7 @@ if "!DN_PID!"=="PENDING" (
     call :CheckRetry "!RETRYFILE!" "%BN%"
     if "!RC_GAVE_UP!"=="1" ( set /a ERRORS+=1 & exit /b 0 )
     call :Log "CrashWipe: %BN% (PENDING, no live diann -- retry !RC!/%MAX_RETRIES%)"
-    rmdir /s /q "!DATADEST!" 2>nul
+    rmdir /s /q "!DATADEST!" >nul 2>nul
     if exist "!LOCKFILE!" del /q "!LOCKFILE!"
     set /a RETRYING+=1
     exit /b 0
