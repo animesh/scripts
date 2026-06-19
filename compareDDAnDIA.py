@@ -1,18 +1,27 @@
+#>python compareDDAnDIA.py intensity_IBAQ "Z:\Download\nDDA\nDDA_quantified_protein_fdr.tsv" "Z:\Download\nDDA\nDIA_quantified_protein_fdr.tsv"
+import argparse
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-intensity_col = 'intensity_lfq'
+parser = argparse.ArgumentParser(description='Compare DDA and DIA protein intensities.')
+parser.add_argument('intensity_col', help='Intensity column name to use for log2 transformation')
+parser.add_argument('dda_path', help='Path to the DDA TSV file')
+parser.add_argument('dia_path', help='Path to the DIA TSV file')
+args = parser.parse_args()
+
+intensity_col = args.intensity_col
 
 # DDA
-dda = pd.read_csv(r"Z:\Download\nDDA\nDDA_quantified_protein_fdr.tsv", sep='\t')  # For testing with local CSV export
+dda = pd.read_csv(args.dda_path, sep='\t')
 dda = dda[(~dda['is_decoy']) & (dda[intensity_col].notna()) & (dda[intensity_col] > 0)].copy()
 dda['log2_int'] = np.log2(dda[intensity_col])
 dda_pivot = dda.pivot_table(index='protein_group_id', columns='file_name', values='log2_int', aggfunc='mean')
 
 
 # DIA
-dia = pd.read_csv(r"Z:\Download\nDDA\nDIA_quantified_protein_fdr.tsv", sep='\t')
+dia = pd.read_csv(args.dia_path, sep='\t')
 dia = dia[(~dia['is_decoy']) & (dia[intensity_col].notna()) & (dia[intensity_col] > 0)].copy()
 dia['log2_int'] = np.log2(dia[intensity_col])
 dia_pivot = dia.pivot_table(index='protein_group_id', columns='file_name', values='log2_int', aggfunc='mean')
@@ -34,11 +43,14 @@ dia_samples = sorted(dia_pivot.columns.tolist())
 dda_violin_data = [dda_pivot[col].dropna().values for col in dda_samples]
 dia_violin_data = [dia_pivot[col].dropna().values for col in dia_samples]
 
+dda_label = os.path.splitext(os.path.basename(args.dda_path))[0]
+dia_label = os.path.splitext(os.path.basename(args.dia_path))[0]
+
 fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(max(8, 0.4 * max(len(dda_samples), len(dia_samples)) + 2), 4), dpi=80)
 
 if len(dda_samples) > 0:
     ax1.violinplot(dda_violin_data, showmeans=False, showmedians=True, showextrema=False)
-    ax1.set_title('DDA log2 intensity distributions', fontsize=8)
+    ax1.set_title(f'{dda_label} {intensity_col} log2 intensity distributions', fontsize=8)
     ax1.set_xticks(range(1, len(dda_samples) + 1))
     ax1.set_xticklabels(dda_samples, rotation=45, ha='right', fontsize=6)
     ax1.set_ylabel('log2 intensity', fontsize=7)
@@ -47,7 +59,7 @@ else:
 
 if len(dia_samples) > 0:
     ax2.violinplot(dia_violin_data, showmeans=False, showmedians=True, showextrema=False)
-    ax2.set_title('DIA log2 intensity distributions', fontsize=8)
+    ax2.set_title(f'{dia_label} {intensity_col} log2 intensity distributions', fontsize=8)
     ax2.set_xticks(range(1, len(dia_samples) + 1))
     ax2.set_xticklabels(dia_samples, rotation=45, ha='right', fontsize=6)
 else:
@@ -56,7 +68,7 @@ else:
 ax1.tick_params(axis='both', labelsize=6, length=2)
 ax2.tick_params(axis='both', labelsize=6, length=2)
 fig2.tight_layout()
-fig2.savefig('DDA_DIA_violin_plots.png', dpi=300)
+fig2.savefig(f'{dda_label}_{dia_label}_{intensity_col}_violin_plots.png', dpi=300)
 
 # -----------------------------
 # Build combined panel figure
@@ -126,9 +138,9 @@ for i, dda_file in enumerate(dda_samples):
 
         ax.tick_params(axis='both', labelsize=4.2, length=1)
 
-fig.suptitle('DDAâDIA scatter matrix (log2 intensity, pairwise valid proteins, all points)', fontsize=7)
+fig.suptitle(f'{dda_label} → {dia_label} scatter matrix ({intensity_col} log2 intensity, pairwise valid proteins, all points)', fontsize=7)
 fig.tight_layout(rect=[0, 0, 1, 0.96])
-fig.savefig('DDA_to_DIA_scatter_matrix.png', dpi=300)
+fig.savefig(f'{dda_label}_{dia_label}_{intensity_col}_scatter_matrix.png', dpi=300)
 
 print('Panels:', n_rows * n_cols)
 print('Shared proteins:', len(shared_proteins))
