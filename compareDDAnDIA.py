@@ -1,38 +1,54 @@
 #>python compareDDAnDIA.py intensity_IBAQ "Z:\Download\nDDA\nDDA_quantified_protein_fdr.tsv" "Z:\Download\nDDA\nDIA_quantified_protein_fdr.tsv"
-import argparse
 import os
+import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-parser = argparse.ArgumentParser(description='Compare DDA and DIA protein intensities.')
-parser.add_argument('intensity_col', help='Intensity column name to use for log2 transformation')
-parser.add_argument('dda_path', help='Path to the DDA TSV file')
-parser.add_argument('dia_path', help='Path to the DIA TSV file')
-args = parser.parse_args()
+intensity_col = 'intensity_IBAQ'
+dda_path = r'L:\promec\TIMSTOF\LARS\2026\260518_Sonali\tesorai\sonali1_quantified_protein_fdr.tsv'
+dia_path = r'L:\promec\TIMSTOF\LARS\2026\260518_Sonali\tesorai\sonali2_quantified_protein_fdr.tsv'
 
-intensity_col = args.intensity_col
+cli_args = sys.argv[1:]
+if len(cli_args) >= 1 and cli_args[0].endswith('.json') and len(cli_args) >= 2 and os.path.basename(cli_args[1]).startswith('kernel-'):
+    cli_args = []
+
+if len(cli_args) >= 1:
+    intensity_col = cli_args[0]
+if len(cli_args) >= 2:
+    dda_path = cli_args[1]
+if len(cli_args) >= 3:
+    dia_path = cli_args[2]
+
+
+def extract_uniprot_ids(value):
+    ids = []
+    for item in str(value).split(';'):
+        fields = item.split('|')
+        if len(fields) >= 3 and fields[1]:
+            ids.append(fields[1])
+    return ';;'.join(ids) if ids else np.nan
 
 # DDA
-dda = pd.read_csv(args.dda_path, sep='\t')
+dda = pd.read_csv(dda_path, sep='\t')
 dda = dda[(~dda['is_decoy']) & (dda[intensity_col].notna()) & (dda[intensity_col] > 0)].copy()
+if 'protein_group_id' in dda.columns:
+    dda['Uniprot'] = dda['protein_group_id'].apply(extract_uniprot_ids)
+dda['protein_group_id'] = dda['protein_group_id'] + ';;' + dda['Uniprot'].fillna('')
 dda['log2_int'] = np.log2(dda[intensity_col])
 dda_pivot = dda.pivot_table(index='protein_group_id', columns='file_name', values='log2_int', aggfunc='mean')
-
+dda_pivot.to_csv(f'{os.path.splitext(os.path.basename(dda_path))[0]}_{intensity_col}_pivot.txt', sep='\t')
 
 # DIA
-dia = pd.read_csv(args.dia_path, sep='\t')
+dia = pd.read_csv(dia_path, sep='\t')
 dia = dia[(~dia['is_decoy']) & (dia[intensity_col].notna()) & (dia[intensity_col] > 0)].copy()
+if 'protein_group_id' in dia.columns:
+    dia['Uniprot'] = dia['protein_group_id'].apply(extract_uniprot_ids)
+dia['protein_group_id'] = dia['protein_group_id'] + ';;' + dia['Uniprot'].fillna('')
 dia['log2_int'] = np.log2(dia[intensity_col])
 dia_pivot = dia.pivot_table(index='protein_group_id', columns='file_name', values='log2_int', aggfunc='mean')
+dia_pivot.to_csv(f'{os.path.splitext(os.path.basename(dia_path))[0]}_{intensity_col}_pivot.txt', sep='\t')
 
-
-# -----------------------------
-# Shared proteins and sample names
-# -----------------------------
-shared_proteins = dda_pivot.index.intersection(dia_pivot.index)
-dda_pivot = dda_pivot.loc[shared_proteins]
-dia_pivot = dia_pivot.loc[shared_proteins]
 
 dda_samples = sorted(dda_pivot.columns.tolist())
 dia_samples = sorted(dia_pivot.columns.tolist())
@@ -43,8 +59,8 @@ dia_samples = sorted(dia_pivot.columns.tolist())
 dda_violin_data = [dda_pivot[col].dropna().values for col in dda_samples]
 dia_violin_data = [dia_pivot[col].dropna().values for col in dia_samples]
 
-dda_label = os.path.splitext(os.path.basename(args.dda_path))[0]
-dia_label = os.path.splitext(os.path.basename(args.dia_path))[0]
+dda_label = os.path.splitext(os.path.basename(dda_path))[0]
+dia_label = os.path.splitext(os.path.basename(dia_path))[0]
 
 fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(max(8, 0.4 * max(len(dda_samples), len(dia_samples)) + 2), 4), dpi=80)
 
@@ -75,6 +91,12 @@ fig2.savefig(f'{dda_label}_{dia_label}_{intensity_col}_violin_plots.png', dpi=30
 # Rows = DDA samples (Y axis)
 # Cols = DIA samples (X axis)
 # -----------------------------
+# -----------------------------
+# Shared proteins and sample names
+# -----------------------------
+shared_proteins = dda_pivot.index.intersection(dia_pivot.index)
+dda_pivot = dda_pivot.loc[shared_proteins]
+dia_pivot = dia_pivot.loc[shared_proteins]
 n_rows = len(dda_samples)
 n_cols = len(dia_samples)
 
