@@ -18,9 +18,14 @@ value_col = args.value_col
 fileP = args.fileP
 # safe token to put into output filenames
 safe_col = re.sub(r'[^A-Za-z0-9_-]+', '_', value_col)
-mz_parquet = pq.read_table(r"Z:\Download\timsread\Fig2A-E_raw\report.parquet")
+mz_parquet = pq.read_table(r"L:\promec\TIMSTOF\QC\DIA\260528_200ngHelaQC_DIA_newQC_Slot1-54_1_13749\260528_200ngHelaQC_DIA_newQC_Slot1-54_1_13749.d.report.parquet")
+print(mz_parquet.schema)
 mz_parquet = mz_parquet.to_pandas()
-print(mz_parquet.describe())
+mz_parquet.info()
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
+pd.set_option('display.width', 1000)
+print(mz_parquet.describe(include='all'))
 mz_parquet_columns = mz_parquet.columns.to_frame(name='ColumnName')
 print(mz_parquet_columns)
 mz_parquet_columns.to_csv(r"Z:\Download\timsread\Fig2A-E_raw\report.parquet.columns.csv")
