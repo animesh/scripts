@@ -43,7 +43,7 @@ set QCROOT=F:\promec\TIMSTOF\QC\DIA
 set LOGFILE=%QCROOT%\diannrun_log.txt
 set POLL_INTERVAL=1800
 set STABILITY_WAIT=60
-set THREADS_PER_JOB=4
+set THREADS_PER_JOB=3
 set CPU_COUNT=64
 set MAX_RETRIES=3
 set QVALUE=0.01
@@ -66,9 +66,9 @@ for %%D in ("%DATAROOT%") do set DATAROOT_LEAF=%%~nxD
 for %%L in ("%SPECLIB%")  do set LIB_LEAF=%%~nL
 set "LIB_LEAF=%LIB_LEAF:.=%"
 set SESSIONDIR=%TMPDIR%\!DATAROOT_LEAF!_!LIB_LEAF!
-if not exist "%TMPDIR%"     mkdir "%TMPDIR%"
-if not exist "!SESSIONDIR!" mkdir "!SESSIONDIR!"
-if not exist "%QCROOT%"     mkdir "%QCROOT%"
+if not exist "%TMPDIR%"     mkdir "%TMPDIR%" >nul 2>nul
+if not exist "!SESSIONDIR!" mkdir "!SESSIONDIR!" >nul 2>nul
+if not exist "%QCROOT%"     mkdir "%QCROOT%" >nul 2>nul
 
 :: -- Derive concurrency slots from CPU budget / threads per job -------------------
 set /a MAX_PARALLEL=CPU_COUNT/THREADS_PER_JOB
@@ -85,15 +85,15 @@ echo [%date% %time%] ===== SESSION START  !SESSIONDIR! ===== >> "%LOGFILE%"
 :: running.lock files are stale if the PID they contain is no longer alive.
 :: PENDING locks (PID capture failed at launch) are also cleared -- will re-adopt or retry.
 set "STALE=0"
-for %%J in ("!SESSIONDIR!\*.queued.lock") do ( del /q "%%~fJ" & set /a STALE+=1 )
+for %%J in ("!SESSIONDIR!\*.queued.lock") do ( del /q "%%~fJ" >nul 2>nul & set /a STALE+=1 )
 for %%J in ("!SESSIONDIR!\*.running.lock") do (
     set "ST_PID="
     for /f "usebackq tokens=1" %%P in ("%%~fJ") do set "ST_PID=%%P"
     if "!ST_PID!"=="PENDING" (
-        del /q "%%~fJ" & set /a STALE+=1
+        del /q "%%~fJ" >nul 2>nul & set /a STALE+=1
     ) else if defined ST_PID (
         %TLIST% /fi "pid eq !ST_PID!" /fo csv /nh 2>nul | findstr /i "diann" >nul
-        if errorlevel 1 ( del /q "%%~fJ" & set /a STALE+=1 )
+        if errorlevel 1 ( del /q "%%~fJ" >nul 2>nul & set /a STALE+=1 )
     )
 )
 if !STALE! GTR 0 call :Log "Startup  : !STALE! stale lock file(s) removed"
@@ -227,7 +227,7 @@ if not errorlevel 1 ( call :Log "WaitPID  : %MD_BN% (PID !MD_PID! alive -- defer
 :md_proceed
 :: Copy results to QC share before deleting local copies
 if not exist "%QCROOT%\" ( call :Log "WARNING  : %MD_BN% QCROOT not reachable -- will retry" & exit /b 0 )
-if not exist "%QCROOT%\%MD_BN%" mkdir "%QCROOT%\%MD_BN%"
+if not exist "%QCROOT%\%MD_BN%" mkdir "%QCROOT%\%MD_BN%" >nul 2>nul
 :: Wildcard catches every DIA-NN output sibling file for this job in one shot
 :: (report.parquet, report-lib.parquet, *_matrix.tsv, UniMod_*.tsv, .quant,
 :: log.txt, manifest.txt, stats.tsv, site_report.parquet, protein_description.tsv,
@@ -248,7 +248,7 @@ rmdir /s /q "%MD_D%" >nul 2>nul
 :: Delete all local copies of this job output now that they are on QCROOT
 del /q "!SESSIONDIR!\%MD_BN%.d.*" >nul 2>nul
 :: Clean up retry counter if it exists
-if exist "!SESSIONDIR!\%MD_BN%.retries" del /q "!SESSIONDIR!\%MD_BN%.retries"
+if exist "!SESSIONDIR!\%MD_BN%.retries" del /q "!SESSIONDIR!\%MD_BN%.retries" >nul 2>nul
 exit /b 0
 
 :: :CheckFolder -- per-job state machine. Called for every matching source .d folder.
@@ -270,7 +270,7 @@ if exist "!DONEFILE!" ( set /a DONE+=1 & exit /b 0 )
 :: If a slot is now free, delete the lock and fall through to launch.
 if exist "!QUEUEFILE!" (
     if !DN_LIVE! GEQ %MAX_PARALLEL% ( set /a QUEUED+=1 & exit /b 0 )
-    del /q "!QUEUEFILE!"
+    del /q "!QUEUEFILE!" >nul 2>nul
 )
 
 :: -- STATE: COMPLETING ---------------------------------------------------------------
@@ -306,7 +306,7 @@ if "!DN_PID!"=="PENDING" (
     if "!RC_GAVE_UP!"=="1" ( set /a ERRORS+=1 & exit /b 0 )
     call :Log "CrashWipe: %BN% (PENDING, no live diann -- retry !RC!/%MAX_RETRIES%)"
     rmdir /s /q "!DATADEST!" >nul 2>nul
-    if exist "!LOCKFILE!" del /q "!LOCKFILE!"
+    if exist "!LOCKFILE!" del /q "!LOCKFILE!" >nul 2>nul
     set /a RETRYING+=1
     exit /b 0
 )
@@ -321,7 +321,7 @@ timeout /t 5 /nobreak >nul
 if not errorlevel 1 exit /b 0
 
 :: PID confirmed dead
-del /q "!LOCKFILE!"
+del /q "!LOCKFILE!" >nul 2>nul
 set /a LIVE-=1
 call :MarkDone "!DATADEST!" "%BN%" "!DN_PID!"
 if "!DONE_FLAG!"=="1" ( set /a DONE+=1 & call :Log "Completed: %BN% (PID !DN_PID! exited)" & exit /b 0 )
@@ -383,9 +383,9 @@ if exist "!DATADEST!\analysis.tdf" if exist "!DATADEST!\analysis.tdf_bin" if exi
     )
 )
 if !NEED_COPY! EQU 1 (
-    mkdir "!DATADEST!" 2>nul
+    mkdir "!DATADEST!" >nul 2>nul
     call :Log "Copying  : %BN%"
-    robocopy "%SRC%" "!DATADEST!" analysis.tdf analysis.tdf_bin chromatography-data.sqlite /J /R:1 /W:5 /NP /NFL /NDL /NJH /NJS >nul
+    robocopy "%SRC%" "!DATADEST!" analysis.tdf analysis.tdf_bin chromatography-data.sqlite /J /R:1 /W:5 /NP /NFL /NDL /NJH /NJS >nul 2>nul
     if errorlevel 8 ( set /a ERRORS+=1 & call :Log "ERROR    : %BN% robocopy failed" & exit /b 0 )
     call :Log "Copied   : %BN%"
 )
@@ -399,7 +399,7 @@ if !DN_LIVE! GEQ %MAX_PARALLEL% (
     call :Log "Queued   : %BN% (!DN_LIVE!/%MAX_PARALLEL% slots used)"
     exit /b 0
 )
-if exist "!QUEUEFILE!" del /q "!QUEUEFILE!"
+if exist "!QUEUEFILE!" del /q "!QUEUEFILE!" >nul 2>nul
 
 :: -- Launch -------------------------------------------------------------------------------
 :: /D sets the working directory for the spawned process only (so the relative

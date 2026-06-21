@@ -1,7 +1,7 @@
 """
-diannrunDash.py  —  DIA-NN QC Dashboard
-Run:  python diannrunDash.py [path/to/diannrun.duckdb]
-Default DB: F:/promec/TIMSTOF/QC/DIA/diannrun.duckdb
+mqrunDashDIA.py  —  DIA-NN QC Dashboard
+Run:  python mqrunDashDIA.py [path/to/mqrunDIA.duckdb]
+Default DB: F:/promec/TIMSTOF/QC/DIA/mqrunDIA.duckdb
 Deps: pip install dash plotly duckdb pandas numpy
 Port: 8051 (mqrunDash.py for MaxQuant DDA uses 8050 -- runs alongside it)
 
@@ -17,10 +17,12 @@ COLUMN MAPPING NOTES (vs mqrunDash.py / MaxQuant proteinGroups):
   Razor+unique        -> dropped              (no razor-peptide concept in DIA-NN)
   Seq coverage/MW/Seq length -> dropped (would need a FASTA join, not wired up)
   Reverse/Site-only    -> dropped (decoys pre-filtered at ingestion; no site-only mode)
-  Potential contaminant -> derived from "Protein.Ids" LIKE '%cRAP%'
-                           ASSUMPTION: verify this matches your camprotR cRAP tagging
-                           once real data is ingested -- see check query in comments
-                           near load_summary().
+  Potential contaminant -> derived from "Protein.Names" ILIKE '%cRAP%'
+                           VERIFIED against real data: "Protein.Ids"-based tagging
+                           over-counted by 5 (48 vs ground-truth 43, confirmed via
+                           independent FASTA-digest check) on 231030_..._5576 --
+                           5 protein groups had 'crap' in Protein.Ids but NOT in
+                           Protein.Names. Protein.Names matches ground truth exactly.
   Precursors (NEW)     -> DIA-NN gives this for free, no MaxQuant equivalent
 """
 
@@ -80,13 +82,10 @@ def run_label(rid):
 _SUMMARY_CACHE = None
 
 def load_summary(force=False):
-    """ASSUMPTION CHECK -- run this once against real data to verify the
-    contaminant tagging convention:
-        SELECT "Protein.Ids" FROM proteinGroupsDIA
-        WHERE "Protein.Ids" ILIKE '%cRAP%' LIMIT 20;
-    If this returns 0 rows even though you used the cRAP-tagged FASTA, the
-    tag lives somewhere else (e.g. "Protein.Names") and the filter below
-    needs adjusting.
+    """Contaminant tagging confirmed via real-data verification: "Protein.Names"
+    ILIKE '%cRAP%' matches ground truth (independently confirmed by digesting
+    the cRAP FASTA directly). "Protein.Ids" over-counts by including 5 extra
+    protein groups whose Ids contain 'crap' but whose Names do not.
     """
     global _SUMMARY_CACHE
     if _SUMMARY_CACHE is not None and not force:
@@ -95,9 +94,9 @@ def load_summary(force=False):
     q = """
         SELECT run_id,
             COUNT(*)                                                            AS total,
-            COUNT(*) FILTER (WHERE "Protein.Ids" NOT ILIKE '%cRAP%'
-                               OR "Protein.Ids" IS NULL)                        AS target,
-            COUNT(*) FILTER (WHERE "Protein.Ids" ILIKE '%cRAP%')                AS n_cont,
+            COUNT(*) FILTER (WHERE "Protein.Names" NOT ILIKE '%cRAP%'
+                               OR "Protein.Names" IS NULL)                      AS target,
+            COUNT(*) FILTER (WHERE "Protein.Names" ILIKE '%cRAP%')              AS n_cont,
             MEDIAN("PG.MaxLFQ")                                                  AS median_lfq,
             SUM("PG.MaxLFQ")                                                     AS total_lfq,
             MEDIAN("Genes.MaxLFQ")                                               AS median_genes_lfq,
@@ -170,7 +169,7 @@ def _build_profile_store():
         WITH totals AS (
             SELECT run_id,
                    SUM("PG.MaxLFQ") FILTER (
-                       WHERE "Protein.Ids" NOT ILIKE '%cRAP%' AND "PG.MaxLFQ" > 0
+                       WHERE "Protein.Names" NOT ILIKE '%cRAP%' AND "PG.MaxLFQ" > 0
                    ) AS sum_lfq
             FROM proteinGroupsDIA GROUP BY run_id
         )
@@ -192,7 +191,7 @@ def _build_profile_store():
                ) AS intensity_rank
         FROM proteinGroupsDIA p
         JOIN totals t ON t.run_id = p.run_id
-        WHERE p."Protein.Ids" NOT ILIKE '%cRAP%'
+        WHERE p."Protein.Names" NOT ILIKE '%cRAP%'
     """).df()
     con.close()
 
@@ -827,7 +826,7 @@ def update_breakdown(run_id):
 @callback(Output("lfq-hist","figure"), Input("sel-run","data"))
 def update_lfq_hist(run_id):
     df    = load_run(run_id)
-    clean = df[~df["Protein.Ids"].str.contains('crap', case=False, na=False)]
+    clean = df[~df["Protein.Names"].str.contains('crap', case=False, na=False)]
     lfq   = clean["PG.MaxLFQ"].dropna()
     lfq   = lfq[lfq > 0]
     if lfq.empty: return go.Figure()
@@ -854,7 +853,7 @@ def update_qval_hist(run_id):
     """Replaces mqrunDash.py's Score histogram -- DIA-NN has no Andromeda-style
     score, PG.Q.Value is the closest available per-protein quality signal."""
     df    = load_run(run_id)
-    clean = df[~df["Protein.Ids"].str.contains('crap', case=False, na=False)]
+    clean = df[~df["Protein.Names"].str.contains('crap', case=False, na=False)]
     qval  = clean["PG.Q.Value"].dropna()
     if qval.empty: return go.Figure()
     med = float(qval.median())
