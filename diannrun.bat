@@ -30,7 +30,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 :: -- Configuration --------------------------------------------------------------
 set DIANNCMD=C:\Program Files\DIA-NN\2.2.0\diann.exe
 set DIANNDIR=C:\Program Files\DIA-NN\2.2.0\
-set DATAROOT=F:\TIMSTOF\Raw
+set DATAROOT=F:\promec\TIMSTOF\Raw
 set NAMETOKEN1=HeLa
 set NAMETOKEN2=DIA
 set SPECLIB=F:\promec\FastaDB\humanMC2V3defaults.predicted.speclib
@@ -43,7 +43,7 @@ set QCROOT=F:\promec\TIMSTOF\QC\DIA
 set LOGFILE=%QCROOT%\diannrun_log.txt
 set POLL_INTERVAL=1800
 set STABILITY_WAIT=60
-set THREADS_PER_JOB=3
+set THREADS_PER_JOB=10
 set CPU_COUNT=64
 set MAX_RETRIES=3
 set QVALUE=0.01
