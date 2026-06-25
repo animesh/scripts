@@ -18,7 +18,7 @@ value_col = args.value_col
 fileP = args.fileP
 # safe token to put into output filenames
 safe_col = re.sub(r'[^A-Za-z0-9_-]+', '_', value_col)
-mz_parquet = pq.read_table(r"L:\promec\TIMSTOF\QC\DIA\260528_200ngHelaQC_DIA_newQC_Slot1-54_1_13749\260528_200ngHelaQC_DIA_newQC_Slot1-54_1_13749.d.report.parquet")
+mz_parquet = pq.read_table(r"L:\promec\TIMSTOF\QC\DIA\231030_Hela_peptide_1_1000_dia_Slot2-5_1_5576\231030_Hela_peptide_1_1000_dia_Slot2-5_1_5576.d.report.parquet")
 print(mz_parquet.schema)
 mz_parquet = mz_parquet.to_pandas()
 mz_parquet.info()
@@ -34,10 +34,29 @@ mz_parquet.to_csv(r"Z:\Download\timsread\Fig2A-E_raw\report.export-quant.parquet
 #print(mz_parquet.describe()-mz_parquet2.describe())
 #mzDiff=mz_parquet2['Precursor.Normalised']-mz_parquet['Precursor.Normalised']
 #print(mzDiff.describe())
-pivoted_peptides_by_run = mz_parquet.pivot_table(index=['Precursor.Id', 'Protein.Names'], columns='Run', values='Ms1.Area')
+pivoted_peptides_by_run = mz_parquet.pivot_table(index='Protein.Names', columns='Run', values='PG.MaxLFQ',aggfunc='sum')
 pivoted_peptides_by_run=pivoted_peptides_by_run.reset_index()
 print(pivoted_peptides_by_run)
 print(pivoted_peptides_by_run.count())
+print(pivoted_peptides_by_run[pivoted_peptides_by_run.columns[0]].str.contains('cRAP', case=False, na=False).sum())
+pivoted_peptides_by_run = pivoted_peptides_by_run.assign(**{
+    'Protein.Names': pivoted_peptides_by_run['Protein.Names'].str.split(r'\s*;\s*')
+}).explode('Protein.Names').reset_index(drop=True)
+print(pivoted_peptides_by_run[pivoted_peptides_by_run.columns[0]].str.contains('cRAP', case=False, na=False).sum())
+231030_Hela_peptide_1_1000_dia_Slot2-5_1_5576
+Target: 8.01e+03
+Contaminant: 43
+Total groups: 8.05e+03
+Median PG.MaxLFQ: 1.18e+04
+Median Genes.MaxLFQ: 1.17e+04
+Median PG Q-value: 0.000154
+Median peptides/prot: 6
+Median proteotypic: 6
+Median precursors: 6
+Total PG.MaxLFQ: 3.52e+08
+pivoted_peptides_by_run['231030_Hela_peptide_1_1000_dia_Slot2-5_1_5576'].describe()
+
+
 pivoted_peptides_by_run.to_csv(r"Z:\Download\timsread\Fig2A-E_raw\report.parquet.gbMs1.Area_pivot_all.csv", index=False)
 print('Saved full pivot to', fileP + f'_{safe_col}_pivot_all.csv')
 
