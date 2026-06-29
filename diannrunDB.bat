@@ -1,9 +1,10 @@
 @echo off
 setlocal EnableDelayedExpansion
 :: diannrunDB v2 -- DuckDB ingestion for DIA-NN report.parquet output
-:: Lean precursorsDIA schema: only columns needed for (a) the gene-filtered
-:: on-demand precursor-level heatmap queries in diannrunDash.py, and
-:: (b) Protein.Group for traceability. proteinGroupsDIA's aggregation reads
+:: Lean precursorsDIA schema retained for ad-hoc SQL/backward compatibility.
+:: diannrunDash.py now queries raw parquet directly for precursor-level heatmaps
+:: using read_parquet() and Protein.Group predicates; proteinGroupsDIA remains
+:: the cached protein-group aggregation used by dashboard startup/search. proteinGroupsDIA's aggregation reads
 :: directly from the full parquet via the _src temp table, NOT from
 :: precursorsDIA, so dropping columns here has zero effect on
 :: proteinGroupsDIA's content.

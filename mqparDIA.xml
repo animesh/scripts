@@ -9,6 +9,10 @@
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
          <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
    </fastaFiles>
    <fastaFilesProteogenomics>
@@ -123,9 +127,9 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.7.0.0</maxQuantVersion>
+   <maxQuantVersion>2.8.1.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>4</numThreads>
+   <numThreads>12</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -159,7 +163,7 @@
    <lfqTopNPeptides>0</lfqTopNPeptides>
    <diaJoinPrecChargesForLfq>False</diaJoinPrecChargesForLfq>
    <diaFragChargesForQuant>1</diaFragChargesForQuant>
-   <gridSpacing>0.7</gridSpacing>
+   <gridSpacing>0.1</gridSpacing>
    <proteinGroupingFile></proteinGroupingFile>
    <simplePepCalculation>False</simplePepCalculation>
    <useAndromeda20>False</useAndromeda20>
@@ -167,6 +171,14 @@
    <andromeda20AltModelPath></andromeda20AltModelPath>
    <intensityPredictionFolder></intensityPredictionFolder>
    <encoding>0</encoding>
+   <customTxtFolder></customTxtFolder>
+   <metaproteomics>False</metaproteomics>
+   <metaLcaMode>peptideCentric</metaLcaMode>
+   <metaConsensusModeKo>Majority</metaConsensusModeKo>
+   <metaConsensusModeCog>Majority</metaConsensusModeCog>
+   <metaConsensusModeEc>Majority</metaConsensusModeEc>
+   <metaAnnotationFiles>
+   </metaAnnotationFiles>
    <parameterGroups>
       <parameterGroup>
          <andromeda20AltModelPath></andromeda20AltModelPath>
@@ -286,18 +298,18 @@
          <crossLinker></crossLinker>
          <minMatchXl>3</minMatchXl>
          <minPairedPepLenXl>6</minPairedPepLenXl>
-         <minScoreDipeptide>40</minScoreDipeptide>
+         <minScoreDipeptide>0</minScoreDipeptide>
          <minScoreMonopeptide>0</minScoreMonopeptide>
          <minScorePartialCross>10</minScorePartialCross>
          <crosslinkOnlyIntraProtein>False</crosslinkOnlyIntraProtein>
          <crosslinkIntensityBasedPrecursor>True</crosslinkIntensityBasedPrecursor>
-         <isHybridPrecDetermination>False</isHybridPrecDetermination>
+         <isHybridPrecDetermination>True</isHybridPrecDetermination>
          <topXcross>3</topXcross>
-         <doesSeparateInterIntraProteinCross>False</doesSeparateInterIntraProteinCross>
-         <crosslinkMaxMonoUnsaturated>0</crosslinkMaxMonoUnsaturated>
-         <crosslinkMaxMonoSaturated>0</crosslinkMaxMonoSaturated>
+         <doesSeparateInterIntraProteinCross>True</doesSeparateInterIntraProteinCross>
+         <crosslinkMaxMonoUnsaturated>1</crosslinkMaxMonoUnsaturated>
+         <crosslinkMaxMonoSaturated>1</crosslinkMaxMonoSaturated>
          <crosslinkMaxDiUnsaturated>0</crosslinkMaxDiUnsaturated>
-         <crosslinkMaxDiSaturated>0</crosslinkMaxDiSaturated>
+         <crosslinkMaxDiSaturated>1</crosslinkMaxDiSaturated>
          <crosslinkModifications>
          </crosslinkModifications>
          <crosslinkFastaFiles>
@@ -306,13 +318,15 @@
          </crosslinkSites>
          <crosslinkNetworkFiles>
          </crosslinkNetworkFiles>
-         <crosslinkMode></crosslinkMode>
+         <crosslinkMode>IdentifedProteinsXIdentifiedProteins</crosslinkMode>
          <peakRefinement>False</peakRefinement>
          <peakRefinementCrosslinking>False</peakRefinementCrosslinking>
+         <xlmsThresholdHighIntra>100</xlmsThresholdHighIntra>
          <isobaricSumOverWindow>True</isobaricSumOverWindow>
          <isobaricWeightExponent>0.75</isobaricWeightExponent>
+         <subGroupingTypeCross>0</subGroupingTypeCross>
          <collapseMsmsOnIsotopePatterns>False</collapseMsmsOnIsotopePatterns>
-         <diaLibraryType>2</diaLibraryType>
+         <diaLibraryType>0</diaLibraryType>
          <diaLibraryPaths>
          </diaLibraryPaths>
          <diaEvidencePaths>
@@ -322,13 +336,13 @@
          <diaLabelIndsForLibraryMatch>
             <int>0</int>
          </diaLabelIndsForLibraryMatch>
-         <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
-         <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
+         <diaInitialPrecMassTolPpm>15</diaInitialPrecMassTolPpm>
+         <diaInitialFragMassTolPpm>15</diaInitialFragMassTolPpm>
          <diaCorrThresholdFeatureClustering>0.85</diaCorrThresholdFeatureClustering>
          <diaPrecTolPpmFeatureClustering>2</diaPrecTolPpmFeatureClustering>
          <diaFragTolPpmFeatureClustering>2</diaFragTolPpmFeatureClustering>
          <diaScoreN>12</diaScoreN>
-         <diaScoreNAdditional>5</diaScoreNAdditional>
+         <diaScoreNAdditional>0</diaScoreNAdditional>
          <diaMinScore>1.99</diaMinScore>
          <diaXgBoostBaseScore>0.4</diaXgBoostBaseScore>
          <diaXgBoostSubSample>0.9</diaXgBoostSubSample>
@@ -351,7 +365,7 @@
          <diaMinFragProfileCorrelation>0</diaMinFragProfileCorrelation>
          <diaClassificationModel>1</diaClassificationModel>
          <diaXgBoostMinChildWeight>9</diaXgBoostMinChildWeight>
-         <diaXgBoostMaximumTreeDepth>3</diaXgBoostMaximumTreeDepth>
+         <diaXgBoostMaximumTreeDepth>4</diaXgBoostMaximumTreeDepth>
          <diaXgBoostEstimators>580</diaXgBoostEstimators>
          <diaXgBoostGamma>0.9</diaXgBoostGamma>
          <diaXgBoostMaxDeltaStep>3</diaXgBoostMaxDeltaStep>
@@ -375,6 +389,11 @@
          <diaMaxTrainInstances>500000</diaMaxTrainInstances>
          <diaMaxFragmentCharge>3</diaMaxFragmentCharge>
          <diaAdaptiveMlScoring>False</diaAdaptiveMlScoring>
+         <diaAdaptiveMlScoringAlg>0</diaAdaptiveMlScoringAlg>
+         <diaAdaptiveMlScoringUseIso>False</diaAdaptiveMlScoringUseIso>
+         <diaAdaptiveMlScoringUseRawScore>False</diaAdaptiveMlScoringUseRawScore>
+         <diaAdaptiveMlScoringUseMassError>False</diaAdaptiveMlScoringUseMassError>
+         <diaCollectMlDataForMatching>False</diaCollectMlDataForMatching>
          <diaDynamicScoringMaxInstances>25000</diaDynamicScoringMaxInstances>
          <diaMaxPrecursorMz>0</diaMaxPrecursorMz>
          <diaHardRtFilter>True</diaHardRtFilter>
@@ -396,6 +415,7 @@
          <diaBatchProcessing>True</diaBatchProcessing>
          <diaBatchSize>50</diaBatchSize>
          <diaDecoyMode>3</diaDecoyMode>
+         <diaDecoyKeepMass>False</diaDecoyKeepMass>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
@@ -410,13 +430,13 @@
          <diaPredictCharges>False</diaPredictCharges>
          <diaUseProbScore>True</diaUseProbScore>
          <diaProbScoreP>0.055</diaProbScoreP>
-         <diaProbScoreG>1.2</diaProbScoreG>
+         <diaProbScoreG>0.5</diaProbScoreG>
          <diaProbScoreStep>0.1</diaProbScoreStep>
          <isM2FragTypeOverride>False</isM2FragTypeOverride>
          <ms2FragTypeOverride>0</ms2FragTypeOverride>
          <classicLfqForSingleShots>True</classicLfqForSingleShots>
          <subsamplePeptidesForLfqNorm>True</subsamplePeptidesForLfqNorm>
-         <lfqSubsampleNormConstant>1200</lfqSubsampleNormConstant>
+         <lfqSubsampleNormConstant>400</lfqSubsampleNormConstant>
          <sequenceBasedModifier>False</sequenceBasedModifier>
          <diaRtFromSamplesForExport>True</diaRtFromSamplesForExport>
          <diaCcsFromSamplesForExport>True</diaCcsFromSamplesForExport>
@@ -446,7 +466,7 @@
          <diaSupplementalEvidenceFile></diaSupplementalEvidenceFile>
          <diaNeuralNetNumIter>0</diaNeuralNetNumIter>
          <diaNeuralNetDropout>0</diaNeuralNetDropout>
-         <diaNeuralNetHiddenLayers>0</diaNeuralNetHiddenLayers>
+         <diaNeuralNetHiddenLayers></diaNeuralNetHiddenLayers>
          <diaNeuralNetBatchSize>0</diaNeuralNetBatchSize>
          <diaUseRnnRtModel>True</diaUseRnnRtModel>
          <diaUseRnnCcsModel>True</diaUseRnnCcsModel>
@@ -454,6 +474,19 @@
          <diaUseWaterLosses>False</diaUseWaterLosses>
          <diaUseAmmoniaLosses>False</diaUseAmmoniaLosses>
          <diaUseRtFeaturesInMlScoring>True</diaUseRtFeaturesInMlScoring>
+         <diaCountSamples>False</diaCountSamples>
+         <diaCountSamplesSecondScore>True</diaCountSamplesSecondScore>
+         <diaCountSamplesUpperPercentile>50</diaCountSamplesUpperPercentile>
+         <diaCountSamplesNumLowerPercentiles>5</diaCountSamplesNumLowerPercentiles>
+         <diaSeparateCalibrationPerLib>False</diaSeparateCalibrationPerLib>
+         <diaReadDecoysFromFile>False</diaReadDecoysFromFile>
+         <diaFragCorrelationThreshold>0.3</diaFragCorrelationThreshold>
+         <diaFragIntensityThreshold1>15</diaFragIntensityThreshold1>
+         <diaFragIntensityThreshold2>15</diaFragIntensityThreshold2>
+         <diaFragIntensityThreshold3>15</diaFragIntensityThreshold3>
+         <diaFragIntensityThreshold4>15</diaFragIntensityThreshold4>
+         <diaUseFragCorrelationForRescoring>False</diaUseFragCorrelationForRescoring>
+         <diaDoNotUsePredictedDecoys>True</diaDoNotUsePredictedDecoys>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>

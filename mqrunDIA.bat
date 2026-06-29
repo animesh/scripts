@@ -21,17 +21,17 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 :: BN.done lives in SESSIONDIR (not inside WORKDIR).
 :: This allows full rmdir /s /q WORKDIR on completion.
 :: -- Configuration ------------------------------------------------------------
-set MAXQUANTCMD=F:\MaxQuant_v2.7.0.0\bin\MaxQuantCmd.exe
-set DATAROOT=F:\
+set MAXQUANTCMD=C:\Program Files\MaxQuant_v2.8.1.0\bin\MaxQuantCmd.exe
+set DATAROOT=F:\promec\TIMSTOF\Raw
 set DATAPATTERN=*HeLa*DIA*.d
-set FASTAFILE=F:\HeLaDIA\UP000005640_9606_1protein1gene.fasta
+set FASTAFILE=F:\promec\FastaDB\UP000005640_9606_1protein1gene.fasta
 set PARAMFILE=mqparDIA.xml
 set TMPDIR=F:\TMPDIR
-set QCROOT=F:\HeLaDIA\MQ
+set QCROOT=F:\promec\TIMSTOF\QC\DIA\MQ
 set LOGFILE=%QCROOT%\mqrun_log.txt
 set POLL_INTERVAL=1800
 set STABILITY_WAIT=60
-set CPU_COUNT=12
+set CPU_COUNT=5
 set MAX_RETRIES=3
 set SEARCHTEXT=TestDir
 set SEARCHTEXT2=SequencesFasta

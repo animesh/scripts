@@ -26,7 +26,7 @@ COLUMN MAPPING NOTES (vs mqrunDash.py / MaxQuant proteinGroups):
   Precursors (NEW)     -> DIA-NN gives this for free, no MaxQuant equivalent
 """
 
-import sys, re, numpy as np
+import sys, re, os, numpy as np
 from datetime import datetime
 import duckdb, pandas as pd
 import plotly.graph_objects as go
@@ -34,6 +34,9 @@ from dash import Dash, dcc, html, Input, Output, callback, ALL
 from dash.exceptions import PreventUpdate
 
 DB = sys.argv[1] if len(sys.argv) > 1 else "F:/promec/TIMSTOF/QC/DIA/diannrun.duckdb"
+# Optional second CLI argument for direct precursor-level parquet heatmaps.
+# Defaults to the DB directory, recursively looking for DIA-NN *.d.report.parquet files.
+PARQUET_GLOB = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(DB), "**", "*.d.report.parquet").replace("\\", "/")
 
 FONT = "'Inter', 'Helvetica Neue', Arial, sans-serif"
 MONO = "'JetBrains Mono', 'Fira Code', 'Courier New', monospace"
@@ -143,6 +146,9 @@ _UNIPROT_IDX  = {}
 _PEP_IDX      = {}
 _PEP_STORE    = {}
 _PEP_TO_ROW   = {}
+_GENE_TO_PG    = {}
+_UNIPROT_TO_PG = {}
+_PEP_TO_PG     = {}
 _RUNS_ORDERED = []
 _PROFILE_LOADED = False
 _Y_RANGES = {}
@@ -156,6 +162,7 @@ _TOP_PEPTIDES = []
 def _build_profile_store():
     """One DB query, one Python pass. Builds all indexes."""
     global _GENE_IDX, _UNIPROT_IDX, _PEP_IDX, _PEP_STORE, _PEP_TO_ROW
+    global _GENE_TO_PG, _UNIPROT_TO_PG, _PEP_TO_PG
     global _RUNS_ORDERED, _PROFILE_LOADED
     global _TOP_GENES, _TOP_UNIPROT, _TOP_PEPTIDES, _TOP_GENES_MAP, _Y_RANGES
 
@@ -174,6 +181,7 @@ def _build_profile_store():
             FROM proteinGroupsDIA GROUP BY run_id
         )
         SELECT p.run_id,
+               p."Protein.Group"                       AS protein_group,
                COALESCE(p."Protein.Ids", '')         AS protein_ids,
                COALESCE(p."Genes",       '')          AS gene_names,
                COALESCE(p."Protein.Names", '')        AS protein_names,
@@ -200,6 +208,9 @@ def _build_profile_store():
     pep_idx     = {}
     pep_str     = {}
     pep_to_row  = {}   # seq -> (gene_key, run_id, lfq)
+    gene_to_pg  = {}
+    uniprot_to_pg = {}
+    pep_to_pg = {}
 
     gene_runs  = {}    # gene_lower -> {name, ranks, seen_runs, uniprots}
     uprot_runs = {}    # uniprot_lower -> {name, gene, ranks, seen_runs}
@@ -219,12 +230,14 @@ def _build_profile_store():
             'frac_intensity':        row['frac_intensity'],
             'intensity_rank':        row['intensity_rank'],
             'sum_intensity':         row['sum_lfq'],
+            'protein_group':         row['protein_group'],
         }
 
         genes = [g.strip() for g in str(row['gene_names']).split(';') if g.strip()]
         for g in genes:
             k = g.lower()
             gene_idx.setdefault(k, {})[run] = rd
+            gene_to_pg.setdefault(k, row['protein_group'])
             entry = gene_runs.setdefault(k, {'name': g, 'ranks': [], 'seen_runs': set(), 'uniprots': set()})
             if run not in entry['seen_runs']:
                 entry['seen_runs'].add(run)
@@ -239,6 +252,7 @@ def _build_profile_store():
         for u in uniprots:
             k = u.lower()
             uniprot_idx.setdefault(k, {})[run] = rd
+            uniprot_to_pg.setdefault(k, row['protein_group'])
             entry = uprot_runs.setdefault(k, {'name': u, 'gene': row['gene_names'], 'ranks': [], 'seen_runs': set()})
             if run not in entry['seen_runs']:
                 entry['seen_runs'].add(run)
@@ -249,6 +263,7 @@ def _build_profile_store():
         gene_key = genes[0].lower() if genes else ''
         for seq in seqs:
             pep_idx.setdefault(seq, {})[run] = True
+            pep_to_pg.setdefault(seq, row['protein_group'])
             if seq not in pep_to_row or (
                     pd.notna(row['PG.MaxLFQ']) and
                     pd.notna(pep_to_row[seq][2]) and
@@ -276,48 +291,63 @@ def _build_profile_store():
     _PEP_IDX      = pep_idx
     _PEP_STORE    = pep_str
     _PEP_TO_ROW   = {seq: (gk, rid) for seq, (gk, rid, _) in pep_to_row.items()}
+    _GENE_TO_PG    = gene_to_pg
+    _UNIPROT_TO_PG = uniprot_to_pg
+    _PEP_TO_PG     = pep_to_pg
     _PROFILE_LOADED = True
 
-    def _rank_stats(ranks):
-        if not ranks: return dict(med=float('inf'),mean=float('inf'),mn=float('inf'),mx=float('inf'),mode=float('inf'))
-        s = pd.Series(ranks)
-        return dict(med=float(s.median()), mean=float(s.mean()),
-                    mn=float(s.min()), mx=float(s.max()),
-                    mode=float(s.mode().iloc[0]))
-
-    gene_rows = []
-    for k, v in gene_runs.items():
-        n_det = len(v['seen_runs'])
-        rs    = _rank_stats(v['ranks'])
-        gene_rows.append({'gene': v['name'], 'n_runs': n_det,
-                          'miss_pct': 100.0*(n_runs-n_det)/n_runs if n_runs else 0, **rs})
-
-    uprot_rows = []
-    for k, v in uprot_runs.items():
-        n_det = len(v['seen_runs'])
-        rs    = _rank_stats(v['ranks'])
-        gene0 = str(v['gene']).split(';')[0].strip()
-        uprot_rows.append({'uid': v['name'], 'gene': gene0, 'n_runs': n_det,
-                           'miss_pct': 100.0*(n_runs-n_det)/n_runs if n_runs else 0, **rs})
-
-    _TOP_GENES   = sorted(gene_rows,  key=lambda x: (x['miss_pct'], x['med']))[:50]
-    _TOP_UNIPROT = sorted(uprot_rows, key=lambda x: (x['miss_pct'], x['med']))[:50]
-    _TOP_GENES_MAP = {r['gene'].lower(): r for r in gene_rows}
-
-    valid_runs = set(_RUNS_ORDERED)
-    pep_summary = []
-    for seq, run_dict in pep_idx.items():
-        n_det = len(set(run_dict.keys()) & valid_runs)
-        miss  = 100.0 * (n_runs - n_det) / n_runs if n_runs else 0
-        gk, rid, _ = pep_to_row.get(seq, ('', '', None))
-        rd0   = gene_idx.get(gk, {}).get(rid, {})
-        gene0 = str(rd0.get('gene_names', '')).split(';')[0].strip()
-        uid0  = next((u.strip() for u in str(rd0.get('protein_ids', '')).split(';')
-                      if u.strip() and 'crap' not in u.strip().lower()), '')
-        pep_summary.append({'peptide': seq, 'n_runs': n_det, 'miss_pct': miss,
-                            'gene': gene0, 'uid': uid0})
-    _TOP_PEPTIDES = sorted(pep_summary, key=lambda x: x['miss_pct'])[:50]
-
+    # Top-table summaries are now built by DuckDB GROUP BY queries instead of
+    # Python iterrows/rank-list bookkeeping. Keep UNNEST in an inner CTE; older
+    # DuckDB builds do not like grouping directly on an UNNEST expression.
+    con = duckdb.connect(DB, read_only=True)
+    gene_agg = con.execute("""
+        WITH ranked AS (
+            SELECT unnest(string_split(COALESCE("Genes", ''), ';')) AS gene,
+                   run_id,
+                   RANK() OVER (PARTITION BY run_id ORDER BY "PG.MaxLFQ" DESC NULLS LAST) AS irank
+            FROM proteinGroupsDIA
+            WHERE "Protein.Names" NOT ILIKE '%cRAP%'
+        )
+        SELECT trim(gene) AS gene, COUNT(DISTINCT run_id) AS n_runs,
+               100.0 * (? - COUNT(DISTINCT run_id)) / NULLIF(?, 0) AS miss_pct,
+               MEDIAN(irank) AS med, AVG(irank) AS mean, MIN(irank) AS mn, MAX(irank) AS mx
+        FROM ranked WHERE trim(gene) != ''
+        GROUP BY lower(trim(gene)), trim(gene)
+    """, [n_runs, n_runs]).df()
+    uprot_agg = con.execute("""
+        WITH ranked AS (
+            SELECT unnest(string_split(COALESCE("Protein.Ids", ''), ';')) AS uid,
+                   "Genes" AS genes, run_id,
+                   RANK() OVER (PARTITION BY run_id ORDER BY "PG.MaxLFQ" DESC NULLS LAST) AS irank
+            FROM proteinGroupsDIA
+            WHERE "Protein.Names" NOT ILIKE '%cRAP%'
+        )
+        SELECT trim(uid) AS uid, any_value(split_part(genes, ';', 1)) AS gene,
+               COUNT(DISTINCT run_id) AS n_runs,
+               100.0 * (? - COUNT(DISTINCT run_id)) / NULLIF(?, 0) AS miss_pct,
+               MEDIAN(irank) AS med, AVG(irank) AS mean, MIN(irank) AS mn, MAX(irank) AS mx
+        FROM ranked WHERE trim(uid) != '' AND lower(trim(uid)) NOT LIKE '%crap%'
+        GROUP BY lower(trim(uid)), trim(uid)
+    """, [n_runs, n_runs]).df()
+    pep_agg = con.execute("""
+        WITH exploded AS (
+            SELECT unnest(string_split(COALESCE("Peptide sequences", ''), ';')) AS peptide,
+                   run_id, "Genes" AS genes, "Protein.Ids" AS protein_ids
+            FROM proteinGroupsDIA
+            WHERE "Protein.Names" NOT ILIKE '%cRAP%'
+        )
+        SELECT upper(trim(peptide)) AS peptide, COUNT(DISTINCT run_id) AS n_runs,
+               100.0 * (? - COUNT(DISTINCT run_id)) / NULLIF(?, 0) AS miss_pct,
+               any_value(split_part(genes, ';', 1)) AS gene,
+               any_value(split_part(protein_ids, ';', 1)) AS uid
+        FROM exploded WHERE trim(peptide) != ''
+        GROUP BY upper(trim(peptide))
+    """, [n_runs, n_runs]).df()
+    con.close()
+    _TOP_GENES   = gene_agg.sort_values(['miss_pct','med']).head(50).to_dict('records')
+    _TOP_UNIPROT = uprot_agg.sort_values(['miss_pct','med']).head(50).to_dict('records')
+    _TOP_GENES_MAP = {r['gene'].lower(): r for r in gene_agg.to_dict('records')}
+    _TOP_PEPTIDES = pep_agg.sort_values(['miss_pct']).head(50).to_dict('records')
     range_cols = ["PG.MaxLFQ","Genes.MaxLFQ","Peptides","Proteotypic peptides",
                   "Precursors","frac_intensity"]
     _Y_RANGES = {}
@@ -692,10 +722,92 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
         dcc.Graph(id="profile-precursors",  config={"displayModeBar":False}, style={"flex":"1","height":"220px"}),
     ]),
 
-    html.Div(className="qc-detail", style={"padding":"0 28px 32px"}, children=[
+    html.Div(className="qc-detail", style={"padding":"0 28px 12px"}, children=[
         dcc.Graph(id="profile-peptides", config={"displayModeBar":False}, style={"width":"100%","height":"380px"}),
     ]),
+    html.Div(className="qc-detail", style={"padding":"0 28px 32px", "display":"grid", "gridTemplateColumns":"1fr 1fr", "gap":"12px"}, children=[
+        dcc.Graph(id="prec-rt",   config={"displayModeBar":False}, style={"height":"420px"}),
+        dcc.Graph(id="prec-im",   config={"displayModeBar":False}, style={"height":"420px"}),
+        dcc.Graph(id="prec-qty",  config={"displayModeBar":False}, style={"height":"420px"}),
+        dcc.Graph(id="prec-frag", config={"displayModeBar":False}, style={"height":"420px"}),
+    ]),
 ])
+
+# ── precursor-level heatmaps ───────────────────────────────────────────────────
+def _protein_group_for_search(mode, term):
+    if not term:
+        return None
+    if mode == "gene":
+        return _GENE_TO_PG.get(term.strip().lower())
+    if mode == "uniprot":
+        return _UNIPROT_TO_PG.get(term.strip().lower())
+    if mode == "peptide":
+        return _PEP_TO_PG.get(term.strip().upper())
+    return None
+
+_PRECURSOR_CACHE = {}
+def _load_precursor_long(protein_group, stripped_sequence=None):
+    if not protein_group:
+        return pd.DataFrame()
+    cache_key = (protein_group, (stripped_sequence or '').upper())
+    if cache_key in _PRECURSOR_CACHE:
+        return _PRECURSOR_CACHE[cache_key]
+    frag_sum = "+".join([f'COALESCE("Fr.{i}.Quantity",0)' for i in range(12)])
+    pep_filter = ' AND upper("Stripped.Sequence") = ?' if stripped_sequence else ''
+    params = [PARQUET_GLOB, protein_group]
+    if stripped_sequence:
+        params.append(stripped_sequence.upper())
+    con = duckdb.connect(read_only=False)
+    try:
+        df = con.execute(f"""
+            SELECT "Run" AS run_id,
+                   "Precursor.Id" AS precursor,
+                   AVG("RT") AS RT,
+                   AVG("IM") AS IM,
+                   SUM("Precursor.Quantity") AS "Precursor.Quantity",
+                   SUM({frag_sum}) AS "Frag.Quantity.Sum"
+            FROM read_parquet(?, union_by_name=true)
+            WHERE "Protein.Group" = ? AND "Decoy" = 0 {pep_filter}
+            GROUP BY "Run", "Precursor.Id"
+        """, params).df()
+    finally:
+        con.close()
+    _PRECURSOR_CACHE[cache_key] = df
+    return df
+
+def _precursor_heatmap(long, value_col, title, colorscale, log10=False):
+    if long is None or long.empty:
+        fig = go.Figure()
+        fig.update_layout(**base(title, mt=44))
+        fig.add_annotation(text="no precursor parquet data", x=0.5, y=0.5,
+                           xref="paper", yref="paper", showarrow=False,
+                           font=dict(size=11, family=MONO, color="#9ca3af"))
+        return fig
+    rank = (long.groupby('precursor')
+                .agg(n_det=('run_id','nunique'), med_qty=('Precursor.Quantity','median'))
+                .sort_values(['n_det','med_qty'], ascending=[False, False])
+                .head(100))
+    precursors = rank.index.tolist()
+    mat = (long[long['precursor'].isin(precursors)]
+           .pivot_table(index='precursor', columns='run_id', values=value_col, aggfunc='mean')
+           .reindex(index=precursors, columns=_RUNS_ORDERED))
+    z = mat.where(mat > 0).apply(np.log10) if log10 else mat
+    fig = go.Figure(go.Heatmap(
+        z=z.values,
+        x=list(z.columns),
+        y=[p if len(p) <= 70 else p[:67] + '…' for p in z.index],
+        colorscale=colorscale,
+        colorbar=dict(title='log10' if log10 else value_col),
+        hovertemplate="%{x}<br>%{y}<br>%{z:.4g}<extra></extra>",
+    ))
+    layout = base(title, mt=44)
+    layout['xaxis'].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"))
+    layout['yaxis'].update(autorange='reversed', tickfont=dict(size=7, family=MONO, color="#374151"))
+    layout['margin']['l'] = 230
+    layout['margin']['b'] = 120
+    fig.update_layout(**layout)
+    fig.update_layout(height=max(320, min(900, 100 + 8 * len(z.index))))
+    return fig
 
 # ── callbacks ─────────────────────────────────────────────────────────────────
 
@@ -1118,6 +1230,10 @@ def _build_peptide_fig(mat, label, n_runs_total):
           Output("profile-peptide-cnt","figure"),
           Output("profile-proteotypic","figure"),
           Output("profile-precursors", "figure"),
+          Output("prec-rt",           "figure"),
+          Output("prec-im",           "figure"),
+          Output("prec-qty",          "figure"),
+          Output("prec-frag",         "figure"),
           Output("profile-missing-badge","children"),
           Output("profile-summary",    "children"),
           Output("profile-summary",    "style"),
@@ -1125,7 +1241,7 @@ def _build_peptide_fig(mat, label, n_runs_total):
           Input("interval","n_intervals"))
 def update_profile(search, _n):
     e   = go.Figure()
-    emp = tuple(e for _ in range(8))
+    emp = tuple(e for _ in range(12))
     base_style = {"margin":"0 28px 0","padding":"10px 16px",
                   "background":"white","border":"1px solid #e5e7eb",
                   "borderRadius":"8px","fontSize":"11px","fontFamily":MONO,
@@ -1155,6 +1271,15 @@ def update_profile(search, _n):
     fig_pcnt  = _profile_fig(df, "Peptides",              "Peptides / protein",   C_BLUE,   "Peptides",    log_scale=False, fixed_range=[0, 100])
     fig_proteo= _profile_fig(df, "Proteotypic peptides",  "Proteotypic peptides", C_VIOLET, "Proteotypic", log_scale=False, fixed_range=[0, 100])
     fig_prec  = _profile_fig(df, "Precursors",            "Precursors / protein", C_GREEN,  "Precursors",  log_scale=False, fixed_range=gr.get("Precursors"))
+    protein_group = _protein_group_for_search(mode, term)
+    # Peptide searches should show only precursors belonging to that stripped peptide.
+    # Gene/UniProt searches still show the resolved protein group's top precursors.
+    peptide_filter = term.strip().upper() if mode == "peptide" else None
+    prec_long = _load_precursor_long(protein_group, peptide_filter)
+    fig_rt    = _precursor_heatmap(prec_long, "RT", "Precursor RT", "Viridis", log10=False)
+    fig_im    = _precursor_heatmap(prec_long, "IM", "Precursor IM", "Plasma", log10=False)
+    fig_pqty  = _precursor_heatmap(prec_long, "Precursor.Quantity", "Precursor.Quantity", "Blues", log10=True)
+    fig_frag  = _precursor_heatmap(prec_long, "Frag.Quantity.Sum", "Frag.Quantity.Sum", "Oranges", log10=True)
 
     def _sp(lbl, val):
         return html.Span([
@@ -1172,6 +1297,7 @@ def update_profile(search, _n):
             ], style={"display":"flex","flexWrap":"wrap"}),
         ]
         return (fig_lfq, fig_glfq, fig_frac, fig_qval, fig_pep, fig_pcnt, fig_proteo, fig_prec,
+                fig_rt, fig_im, fig_pqty, fig_frag,
                 badge, summ, {**base_style, "display":"block"})
 
     ranks = pres["intensity_rank"].dropna()
@@ -1197,12 +1323,14 @@ def update_profile(search, _n):
         html.Div(summary_cells, style={"display":"flex","flexWrap":"wrap"}),
     ]
     return (fig_lfq, fig_glfq, fig_frac, fig_qval, fig_pep, fig_pcnt, fig_proteo, fig_prec,
+            fig_rt, fig_im, fig_pqty, fig_frag,
             badge, summary_content, {**base_style, "display":"block"})
 
 
 if __name__ == "__main__":
     SUM = load_summary()
     print(f"DB   : {DB}")
+    print(f"PARQ : {PARQUET_GLOB}")
     print(f"Runs : {len(SUM)}")
     print(f"Rows : {SUM['total'].sum():,}")
     print("Building profile store ...", flush=True)
