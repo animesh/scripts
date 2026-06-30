@@ -1,28 +1,14 @@
 @echo off
 setlocal EnableDelayedExpansion
-:: diannrunDB v2 -- DuckDB ingestion for DIA-NN report.parquet output
-:: Lean precursorsDIA schema retained for ad-hoc SQL/backward compatibility.
-:: diannrunDash.py now queries raw parquet directly for precursor-level heatmaps
-:: using read_parquet() and Protein.Group predicates; proteinGroupsDIA remains
-:: the cached protein-group aggregation used by dashboard startup/search. proteinGroupsDIA's aggregation reads
-:: directly from the full parquet via the _src temp table, NOT from
-:: precursorsDIA, so dropping columns here has zero effect on
-:: proteinGroupsDIA's content.
-::
-:: ASSUMPTION: DIA-NN's "Precursor.Id" already uniquely encodes modified
-:: sequence + charge (the standard DIA-NN convention), so it alone is a safe
-:: row key for the precursor-level heatmaps without also storing
-:: Precursor.Charge separately. If two different charge states of the same
-:: peptide ever collide under one Precursor.Id, that's a sign this
-:: assumption is wrong for your DIA-NN version -- re-add Precursor.Charge
-:: and concatenate it into the key if so.
-::
-:: Frag.Quantity.Sum is computed ONCE at ingestion as the sum of all 12
-:: fragment-ion quantities (Fr.0.Quantity .. Fr.11.Quantity), rather than
-:: storing 12 raw columns. COALESCE guards against any NULL fragment slots
-:: (the -1 sentinel DIA-NN uses for unobserved slots applies to Fr.N.Index/
-:: Fr.N.Id, not Fr.N.Quantity, which is 0 for unobserved slots -- safe to
-:: sum directly).
+:: diannrunDB v3 -- DuckDB ingestion for DIA-NN report.parquet output
+:: Builds ONLY proteinGroupsDIA (one row per run_id + Protein.Group).
+:: diannrunDash.py queries raw parquet directly for precursor-level heatmaps
+:: (RT/IM/Quantity/FragSum) via read_parquet() + Protein.Group predicates, so
+:: there is no longer a precursorsDIA table here -- it was being populated
+:: every run (tens of thousands of rows) but never read by the dashboard.
+:: Removing it cuts ingestion I/O substantially with zero change in dashboard
+:: behaviour, since proteinGroupsDIA's aggregation reads from the _src temp
+:: table (the full parquet), not from precursorsDIA.
 ::
 :: VERIFIED 2026-06-20 against real data:
 :: - PG.MaxLFQ / PG.Q.Value constant per (run, Protein.Group): 0 violations.
@@ -39,16 +25,7 @@ echo Starting diannrunDB: %DATE% %TIME%
 
 :: -- Schema init -------------------------------------------------------------------
 set "INIT_SQL=%QC_ROOT%\diannrunDB_init.sql"
-> "%INIT_SQL%" echo CREATE TABLE IF NOT EXISTS ingested_runs_dia(run_id VARCHAR PRIMARY KEY,n_precursors INTEGER,n_protein_groups INTEGER,ingested_at TIMESTAMP DEFAULT current_timestamp);
->> "%INIT_SQL%" echo CREATE TABLE IF NOT EXISTS precursorsDIA(run_id VARCHAR NOT NULL,
->> "%INIT_SQL%" echo "Protein.Group" VARCHAR,
->> "%INIT_SQL%" echo "Genes" VARCHAR,
->> "%INIT_SQL%" echo "Precursor.Id" VARCHAR,
->> "%INIT_SQL%" echo "RT" DOUBLE,
->> "%INIT_SQL%" echo "IM" DOUBLE,
->> "%INIT_SQL%" echo "Precursor.Quantity" DOUBLE,
->> "%INIT_SQL%" echo "Frag.Quantity.Sum" DOUBLE,
->> "%INIT_SQL%" echo ingested_at TIMESTAMP DEFAULT current_timestamp);
+> "%INIT_SQL%" echo CREATE TABLE IF NOT EXISTS ingested_runs_dia(run_id VARCHAR PRIMARY KEY,n_protein_groups INTEGER,ingested_at TIMESTAMP DEFAULT current_timestamp);
 >> "%INIT_SQL%" echo CREATE TABLE IF NOT EXISTS proteinGroupsDIA(run_id VARCHAR NOT NULL,
 >> "%INIT_SQL%" echo "Protein.Group" VARCHAR NOT NULL,
 >> "%INIT_SQL%" echo "Protein.Ids" VARCHAR,
@@ -105,15 +82,6 @@ set "SQL=%QC_ROOT%\dn_%RUN_NAME%.sql"
 :: read_parquet is already typed -- no TRY_CAST gymnastics needed like the TSV
 :: ingestion in mqrunDB.bat, parquet enforces the schema at write time.
 >> "%SQL%" echo CREATE TEMP TABLE _src AS SELECT * FROM read_parquet('%PARQUET_SL%') WHERE "Decoy"=0;
->> "%SQL%" echo INSERT INTO precursorsDIA(run_id,
->> "%SQL%" echo "Protein.Group","Genes","Precursor.Id","RT","IM",
->> "%SQL%" echo "Precursor.Quantity","Frag.Quantity.Sum",ingested_at)
->> "%SQL%" echo SELECT '%RUN_NAME%',
->> "%SQL%" echo "Protein.Group","Genes","Precursor.Id","RT","IM","Precursor.Quantity",
->> "%SQL%" echo (COALESCE("Fr.0.Quantity",0)+COALESCE("Fr.1.Quantity",0)+COALESCE("Fr.2.Quantity",0)+COALESCE("Fr.3.Quantity",0)
->> "%SQL%" echo +COALESCE("Fr.4.Quantity",0)+COALESCE("Fr.5.Quantity",0)+COALESCE("Fr.6.Quantity",0)+COALESCE("Fr.7.Quantity",0)
->> "%SQL%" echo +COALESCE("Fr.8.Quantity",0)+COALESCE("Fr.9.Quantity",0)+COALESCE("Fr.10.Quantity",0)+COALESCE("Fr.11.Quantity",0)),
->> "%SQL%" echo current_timestamp FROM _src;
 >> "%SQL%" echo INSERT INTO proteinGroupsDIA(run_id,
 >> "%SQL%" echo "Protein.Group","Protein.Ids","Genes","Protein.Names",
 >> "%SQL%" echo "Peptides","Proteotypic peptides","Precursors",
@@ -136,17 +104,17 @@ set "SQL=%QC_ROOT%\dn_%RUN_NAME%.sql"
 >> "%SQL%" echo string_agg(DISTINCT "Stripped.Sequence", ';'),
 >> "%SQL%" echo current_timestamp
 >> "%SQL%" echo FROM _src GROUP BY "Protein.Group";
->> "%SQL%" echo INSERT OR REPLACE INTO ingested_runs_dia VALUES('%RUN_NAME%',(SELECT COUNT(*) FROM precursorsDIA WHERE run_id='%RUN_NAME%'),(SELECT COUNT(*) FROM proteinGroupsDIA WHERE run_id='%RUN_NAME%'),current_timestamp);
+>> "%SQL%" echo INSERT OR REPLACE INTO ingested_runs_dia VALUES('%RUN_NAME%',(SELECT COUNT(*) FROM proteinGroupsDIA WHERE run_id='%RUN_NAME%'),current_timestamp);
 >> "%SQL%" echo COMMIT;
->> "%SQL%" echo COPY(SELECT n_precursors,n_protein_groups FROM ingested_runs_dia WHERE run_id='%RUN_NAME%')TO '%SQL%.csv'(FORMAT CSV,HEADER false);
+>> "%SQL%" echo COPY(SELECT n_protein_groups FROM ingested_runs_dia WHERE run_id='%RUN_NAME%')TO '%SQL%.csv'(FORMAT CSV,HEADER false);
 
 "%DUCKDB_BIN%" "%DB_FILE%" -f "%SQL%"
 set "EX=%ERRORLEVEL%"
-set "RC=0 0"
+set "RC=0"
 if exist "%SQL%.csv" for /f "usebackq delims=" %%R in ("%SQL%.csv") do set "RC=%%R"
 del "%SQL%" "%SQL%.csv" 2>nul
 if "%EX%" NEQ "0" (echo %DATE% %TIME% ERROR %RUN_NAME% & endlocal & exit /b 1)
-echo %DATE% %TIME% DONE %RUN_NAME% (!RC! = precursors,protein_groups)
+echo %DATE% %TIME% DONE %RUN_NAME% (!RC! protein groups)
 endlocal & exit /b 0
 
 :: -- :count -------------------------------------------------------------------------

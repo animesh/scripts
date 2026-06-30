@@ -26,8 +26,7 @@ COLUMN MAPPING NOTES (vs mqrunDash.py / MaxQuant proteinGroups):
   Precursors (NEW)     -> DIA-NN gives this for free, no MaxQuant equivalent
 """
 
-import sys, re, os, numpy as np
-from datetime import datetime
+import sys, os, numpy as np
 import duckdb, pandas as pd
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, callback, ALL
@@ -66,14 +65,6 @@ METRICS = {
 }
 
 # ── data ──────────────────────────────────────────────────────────────────────
-def parse_date(rid):
-    m = re.match(r'^(\d{6,8})_', rid)
-    if not m: return None
-    s = m.group(1)
-    s = s if len(s) == 8 else "20" + s
-    try:    return datetime.strptime(s, "%Y%m%d").date()
-    except: return None
-
 def run_label(rid):
     """Short display label: YYMMDD_<last_numeric_token>."""
     parts = rid.split('_')
@@ -112,7 +103,6 @@ def load_summary(force=False):
     """
     df = con.execute(q).df()
     con.close()
-    df["date"] = df["run_id"].apply(parse_date)
     _SUMMARY_CACHE = df
     return df
 
@@ -146,9 +136,6 @@ _UNIPROT_IDX  = {}
 _PEP_IDX      = {}
 _PEP_STORE    = {}
 _PEP_TO_ROW   = {}
-_GENE_TO_PG    = {}
-_UNIPROT_TO_PG = {}
-_PEP_TO_PG     = {}
 _RUNS_ORDERED = []
 _PROFILE_LOADED = False
 _Y_RANGES = {}
@@ -162,7 +149,6 @@ _TOP_PEPTIDES = []
 def _build_profile_store():
     """One DB query, one Python pass. Builds all indexes."""
     global _GENE_IDX, _UNIPROT_IDX, _PEP_IDX, _PEP_STORE, _PEP_TO_ROW
-    global _GENE_TO_PG, _UNIPROT_TO_PG, _PEP_TO_PG
     global _RUNS_ORDERED, _PROFILE_LOADED
     global _TOP_GENES, _TOP_UNIPROT, _TOP_PEPTIDES, _TOP_GENES_MAP, _Y_RANGES
 
@@ -208,9 +194,6 @@ def _build_profile_store():
     pep_idx     = {}
     pep_str     = {}
     pep_to_row  = {}   # seq -> (gene_key, run_id, lfq)
-    gene_to_pg  = {}
-    uniprot_to_pg = {}
-    pep_to_pg = {}
 
     gene_runs  = {}    # gene_lower -> {name, ranks, seen_runs, uniprots}
     uprot_runs = {}    # uniprot_lower -> {name, gene, ranks, seen_runs}
@@ -237,7 +220,6 @@ def _build_profile_store():
         for g in genes:
             k = g.lower()
             gene_idx.setdefault(k, {})[run] = rd
-            gene_to_pg.setdefault(k, row['protein_group'])
             entry = gene_runs.setdefault(k, {'name': g, 'ranks': [], 'seen_runs': set(), 'uniprots': set()})
             if run not in entry['seen_runs']:
                 entry['seen_runs'].add(run)
@@ -252,7 +234,6 @@ def _build_profile_store():
         for u in uniprots:
             k = u.lower()
             uniprot_idx.setdefault(k, {})[run] = rd
-            uniprot_to_pg.setdefault(k, row['protein_group'])
             entry = uprot_runs.setdefault(k, {'name': u, 'gene': row['gene_names'], 'ranks': [], 'seen_runs': set()})
             if run not in entry['seen_runs']:
                 entry['seen_runs'].add(run)
@@ -263,7 +244,6 @@ def _build_profile_store():
         gene_key = genes[0].lower() if genes else ''
         for seq in seqs:
             pep_idx.setdefault(seq, {})[run] = True
-            pep_to_pg.setdefault(seq, row['protein_group'])
             if seq not in pep_to_row or (
                     pd.notna(row['PG.MaxLFQ']) and
                     pd.notna(pep_to_row[seq][2]) and
@@ -291,9 +271,6 @@ def _build_profile_store():
     _PEP_IDX      = pep_idx
     _PEP_STORE    = pep_str
     _PEP_TO_ROW   = {seq: (gk, rid) for seq, (gk, rid, _) in pep_to_row.items()}
-    _GENE_TO_PG    = gene_to_pg
-    _UNIPROT_TO_PG = uniprot_to_pg
-    _PEP_TO_PG     = pep_to_pg
     _PROFILE_LOADED = True
 
     # Top-table summaries are now built by DuckDB GROUP BY queries instead of
@@ -735,14 +712,23 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
 
 # ── precursor-level heatmaps ───────────────────────────────────────────────────
 def _protein_group_for_search(mode, term):
+    """Resolve a search term to its Protein.Group string, reading directly
+    from the existing _GENE_IDX/_UNIPROT_IDX/_PEP_TO_ROW indexes -- no
+    separate lookup table needed, since every row dict already carries
+    'protein_group'."""
     if not term:
         return None
     if mode == "gene":
-        return _GENE_TO_PG.get(term.strip().lower())
+        d = _GENE_IDX.get(term.strip().lower())
+        return next(iter(d.values()))['protein_group'] if d else None
     if mode == "uniprot":
-        return _UNIPROT_TO_PG.get(term.strip().lower())
+        d = _UNIPROT_IDX.get(term.strip().lower())
+        return next(iter(d.values()))['protein_group'] if d else None
     if mode == "peptide":
-        return _PEP_TO_PG.get(term.strip().upper())
+        gk, rid = _PEP_TO_ROW.get(term.strip().upper(), (None, None))
+        if gk and rid:
+            return _GENE_IDX.get(gk, {}).get(rid, {}).get('protein_group')
+        return None
     return None
 
 _PRECURSOR_CACHE = {}
