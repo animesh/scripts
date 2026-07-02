@@ -1,11 +1,43 @@
 #usage####
-#F:\R-4.3.1\bin\Rscript.exe flashDeConvMZMS1.r F:\IRD\
+#..\R-4.5.0\bin\Rscript.exe  flashDeConvMZMS1.r L:\promec\HF\Lars\2026\Solveig_Janus\test\
 #mzML####
 #generate mzML in windows prompt using cmd
-##for %i in ("L:\promec\HF\Lars\2023\IgG Mus Therese\mzML\deconv\*.raw) do ("F:\OneDrive - NTNU\ProteoWizard 3.0.22155.0ff594f 64-bit\msconvert.exe"  --filter "peakPicking true 1-" %i)
+#wget https://mc-tca-01.s3.us-west-2.amazonaws.com/ProteoWizard/bt83/4071095/pwiz-bin-windows-x86_64-vc145-release-3_0_26181_1c640ef.tar.bz2
+#tar xvjf pwiz-bin-windows-x86_64-vc145-release-3_0_26181_1c640ef.tar.bz2
+#l:
+#cd L:\promec\HF\Lars\2026\Solveig_Janus\test\
+#for %i in ("*.raw") do ("L:\promec\Animesh\Download\pwiz-bin-windows-x86_64-vc145-release-3_0_26181_1c640ef\msconvert.exe" %i)
+#mkdir centroided
+#for %i in (*.raw) do "L:\promec\Animesh\Download\pwiz-bin-windows-x86_64-vc145-release-3_0_26181_1c640ef\msconvert.exe" "%i" --mzML --zlib --filter "peakPicking vendor msLevel=1-" -o centroided
+#for %i in ("*.raw") do start "%~nxi" "L:\promec\Animesh\Download\pwiz-bin-windows-x86_64-vc145-release-3_0_26181_1c640ef\msconvert.exe" "%i" --mzML --zlib --filter "peakPicking vendor msLevel=1-" -o centroided
 #runFLASHDeconv####
-#cd F:\IRD
-#for %i in ("*.mzML") do ("F:\OpenMS-3.0.0\bin\FLASHDeconv.exe"  -in 231006_IRD_10_D22_T4_ddaPD.mzML -out 231006_IRD_10_D22_T4_ddaPD.mzML.fdc.tsv )
+#wget https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/experimental/FVdeploy/OpenMS-3.5.0-pre-FVdeploy-2026-01-29-Win64.exe"
+#for %i in ("*.mzML") do ("F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe"  -in %i -out %i.fdc.tsv ) 
+#for %i in ("*.mzML") do start "%~nxi" "F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe" -in "%i" -out "%i.fdc.tsv"
+#cd centroided
+#1. Default baseline
+#"F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe" -write_ini FLASHDeconv_default.ini 
+#2. Focused subunit/search run
+#SD:min_mass = 10000
+#SD:max_mass = 100000
+#SD:min_charge = 5
+#SD:max_charge = 100
+#SD:min_cos = 0.85
+#SD:min_snr = 0.25
+#ft:min_sample_rate = 0.1
+#3. Intact/high-mass search run
+#SD:min_mass = 50000
+#SD:max_mass = 200000
+#SD:min_charge = 20
+#SD:max_charge = 150
+#SD:min_cos = 0.85
+#SD:min_snr = 0.25
+#for %i in ("*Ig?.mzML") do (
+#    start "%~ni [Standard]" "F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe" -in "%i" -out "%~ni.mzML.fdc.tsv" -out_spec1 "%~ni.ms1.spec.tsv" -out_annotated_mzml "%~ni.annotated.mzML"
+#    start "%~ni [Subunit]" "F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe" -in "%i" -out "%~ni.subunit.fdc.tsv" -out_spec1 "%~ni.subunit.ms1.spec.tsv" -out_annotated_mzml "%~ni.subunit.annotated.mzML" -ini "FLASHDeconv_subunit_10-100kDa.ini"
+#    start "%~ni [Highmass]" "F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe" -in "%i" -out "%~ni.highmass.fdc.tsv" -out_spec1 "%~ni.highmass.ms1.spec.tsv" -out_annotated_mzml "%~ni.highmass.annotated.mzML" -ini "FLASHDeconv_highmass_50-200kDa.ini"
+#    start "%~ni [18-25kDa]" "F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe" -in "%i" -out "%~ni.18-25kDa.fdc.tsv" -out_spec1 "%~ni.18-25kDa.ms1.spec.tsv" -out_annotated_mzml "%~ni.18-25kDa.annotated.mzML" -SD:min_mass 18000 -SD:max_mass 25000 -SD:min_charge 8 -SD:max_charge 40
+#)
 #setup####
 #https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/experimental/feature/FLASHDeconv/
 args = commandArgs(trailingOnly=TRUE)
@@ -14,13 +46,10 @@ print(args)
 if (length(args) != 1) {stop("\n\nNeeds full path of the directory containing REPORTS for example: c:/Users/animeshs/R/bin/Rscript.exe flashDeConvMZMS1.r \"L:/promec/HF/Lars/2023/IgG Mus Therese/mzML/deconv/\"", call.=FALSE)}
 #dataFolder####
 inpD <- args[1]
-#inpD<-"F:/IRD/"
-#getFlashDeConv####
-#download.file("https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/experimental/feature/FLASHDeconv/OpenMS-3.0.0-pre-HEAD-2022-08-16-Win64.exe",paste0(inpD,"OpenMS.zip"))
-#unzip(paste0(inpD,"OpenMS.zip"),exdir = paste0(inpD,"OpenMS"))
+#inpD<-"L:/promec/HF/Lars/2026/Solveig_Janus/test/"
 #merge####
 inpFL<-list.files(pattern="*mzML.fdc.tsv$",path=inpD,full.names=F,recursive=F)
-outF=paste(inpD,"intMZ1",sep = "/")
+outF=paste(inpD,"combine.intMZ1",sep = "/")
 outP=paste(outF,"plot","pdf",sep = ".")
 pdf(outP)
 dfMZ1<-0
@@ -41,8 +70,6 @@ for(inpF in inpFL){
 }
 hist(dfMZ1)
 data<-data.frame(MZ1=dfMZ1)
-#data<-merge(data,`210408_EL500_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv`, by="MZ1",all=T)
-#plot(data$MZ1,data$MZ1210408_EL500_SAX_urt3.raw.intensityThreshold1000.errTolDecimalPlace3.MZ1R.csv)
 for (obj in inpFL) {
     if(exists(obj)){
         print(obj)
