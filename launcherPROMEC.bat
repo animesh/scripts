@@ -33,20 +33,28 @@ REM ------------------------------------------------------------
 REM START DASHBOARD
 REM ------------------------------------------------------------
 echo [%date% %time%] Launching mqrunDash.py >> "%LOGFILE%"
-start "PROMEC DASHBOARD" /d "%BASE%" "%CMD%" /k "%PYTHON%" mqrunDash.py
+start "PROMEC DASHBOARD MQ" /d "%BASE%" "%CMD%" /k "%PYTHON%" mqrunDash.py
+echo [%date% %time%] Launching diannrunDash.py >> "%LOGFILE%"
+start "PROMEC DASHBOARD DIANN" /d "%BASE%" "%CMD%" /k "%PYTHON%" diannrunDash.py
 
 REM ------------------------------------------------------------
-REM START MQRUN
+REM START SEARCH
 REM ------------------------------------------------------------
 echo [%date% %time%] Launching mqrun.bat >> "%LOGFILE%"
 start "PROMEC MQ RUN" /d "%BASE%" "%CMD%" /k mqrun.bat
 ping 127.0.0.1 -n 3 > nul
+echo [%date% %time%] Launching diannrun.bat >> "%LOGFILE%"
+start "PROMEC DIANN RUN" /d "%BASE%" "%CMD%" /k diannrun.bat
+ping 127.0.0.1 -n 3 > nul
 
 REM ------------------------------------------------------------
-REM START MQRUNDB
+REM START DB
 REM ------------------------------------------------------------
 echo [%date% %time%] Launching mqrunDB.bat >> "%LOGFILE%"
-start "PROMEC MQ DB RUN" /d "%BASE%" "%CMD%" /k mqrunDB.bat
+start "PROMEC DBMQ RUN" /d "%BASE%" "%CMD%" /k mqrunDB.bat
+ping 127.0.0.1 -n 3 > nul
+echo [%date% %time%] Launching diannrunDB.bat >> "%LOGFILE%"
+start "PROMEC DBDIANN RUN" /d "%BASE%" "%CMD%" /k diannrunDB.bat
 ping 127.0.0.1 -n 3 > nul
 
 echo [%date% %time%] All jobs launched successfully >> "%LOGFILE%"
