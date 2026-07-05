@@ -26,7 +26,7 @@ COLUMN MAPPING NOTES (vs mqrunDash.py / MaxQuant proteinGroups):
   Precursors (NEW)     -> DIA-NN gives this for free, no MaxQuant equivalent
 """
 
-import sys, os, numpy as np
+import sys, os, re, glob, numpy as np
 import duckdb, pandas as pd
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, callback, ALL
@@ -36,6 +36,9 @@ DB = sys.argv[1] if len(sys.argv) > 1 else "F:/promec/TIMSTOF/QC/DIA/diannrun.du
 # Optional second CLI argument for direct precursor-level parquet heatmaps.
 # Defaults to the DB directory, recursively looking for DIA-NN *.d.report.parquet files.
 PARQUET_GLOB = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(DB), "**", "*.d.report.parquet").replace("\\", "/")
+# Optional third CLI argument for DIA-NN log files.
+# Defaults to the DB directory, recursively looking for *.d.report.log.txt files.
+LOG_GLOB = sys.argv[3] if len(sys.argv) > 3 else os.path.join(os.path.dirname(DB), "**", "*.d.report.log.txt").replace("\\", "/")
 
 FONT = "'Inter', 'Helvetica Neue', Arial, sans-serif"
 MONO = "'JetBrains Mono', 'Fira Code', 'Courier New', monospace"
@@ -47,6 +50,7 @@ C_VIOLET = "#7c3aed"
 C_GREY   = "#6b7280"
 C_TREND  = "#059669"
 C_GREEN  = "#059669"
+C_BLACK  = "#111827"  # black marker for optimised mass accuracy
 
 FC = {
     "target":      C_BLUE,
@@ -62,7 +66,24 @@ METRICS = {
     "median_peptides":    ("Median Peptides/Protein",      "median_peptides"),
     "median_proteotypic": ("Median Proteotypic Peptides",  "median_proteotypic"),
     "median_precursors":  ("Median Precursors/Protein",    "median_precursors"),
+    "log_ms2_scans":      ("MS2 scans",                      "log_ms2_scans"),
+    "log_precursors_in_range": ("Precursors in range",        "log_precursors_in_range"),
+    "log_rt_window":      ("DIA-NN RT window",               "log_rt_window"),
+    "log_im_window":      ("DIA-NN IM window",               "log_im_window"),
+    "log_peak_width":     ("DIA-NN peak width",              "log_peak_width"),
+    "log_scan_window":    ("DIA-NN scan window",             "log_scan_window"),
+    "log_optimised_mass_accuracy": ("Optimised mass accuracy", "log_optimised_mass_accuracy"),
+    "log_ids_001_fdr":    ("IDs at 0.01 FDR",                "log_ids_001_fdr"),
+    "log_peptidoform_precursors_1pct": ("Precursors at 1% peptidoform FDR", "log_peptidoform_precursors_1pct"),
+    "log_global_pg_001":  ("Protein groups global q<=0.01", "log_global_pg_001"),
 }
+
+# Keep the default view clean: only optimised mass accuracy is overlaid on the main protein-count plot.
+# It is shown as black markers only; no connecting line.
+LOG_QC_OVERLAY = [
+    ("Optimised mass ppm", "log_optimised_mass_accuracy", 1.0, C_BLACK),
+]
+SMALL_LOG_METRICS = {"log_rt_window", "log_peak_width", "log_scan_window", "log_optimised_mass_accuracy"}
 
 # ── data ──────────────────────────────────────────────────────────────────────
 def run_label(rid):
@@ -72,6 +93,108 @@ def run_label(rid):
     numeric = [p for p in parts[1:] if p.isdigit()]
     suffix = numeric[-1] if numeric else (parts[-1] if len(parts) > 1 else '')
     return f"{date_part}_{suffix}" if suffix else date_part
+
+_LOG_CACHE = None
+_DB_STATE = None
+
+def _log_run_id(path):
+    name = os.path.basename(path)
+    for suffix in ('.d.report.log.txt', '.report.log.txt', '.log.txt', '.log'):
+        if name.endswith(suffix):
+            return name[:-len(suffix)]
+    return os.path.splitext(name)[0]
+
+def _clean_diann_error_text(line):
+    # Show concise DIA-NN failure messages in the dashboard.
+    # DIA-NN logs can contain temporary working paths such as D:\TMPDIR\...,
+    # while the dashboard itself reads copied results from LOG_GLOB under QC_ROOT.
+    # Keep only the file name so the warning panel is not misleading or overly long.
+    line = re.sub(r'[A-Za-z]:\\[^ |;]+', lambda m: os.path.basename(m.group(0).replace('\\', '/')), line)
+    return line.strip()
+
+def _parse_diann_log_text(text):
+    d = {}
+    error_lines = re.findall(r'^.*ERROR:.*$', text, flags=re.MULTILINE)
+    d['log_has_error'] = bool(error_lines)
+    if error_lines:
+        d['log_error_text'] = ' | '.join(_clean_diann_error_text(e) for e in error_lines[-3:])
+    pats = [
+        (r'(\d+) MS1 and (\d+) MS2 scans in (\d+) \(inferred\) and (\d+) \(encoded\) cycles, (\d+) precursors in range',
+         [('log_ms1_scans', int), ('log_ms2_scans', int), ('log_inferred_cycles', int), ('log_encoded_cycles', int), ('log_precursors_in_range', int)]),
+        (r'Calibrating with mass accuracies (\d+) \(MS1\), (\d+) \(MS2\)',
+         [('log_calib_ms1_accuracy', int), ('log_calib_ms2_accuracy', int)]),
+        (r'RT window set to ([0-9.]+)', [('log_rt_window', float)]),
+        (r'IM window set to ([0-9.]+)', [('log_im_window', float)]),
+        (r'Peak width: ([0-9.]+)', [('log_peak_width', float)]),
+        (r'Scan window radius set to (\d+)', [('log_scan_window', int)]),
+        (r'Recommended MS1 mass accuracy setting: (\d+) ppm', [('log_recommended_ms1_accuracy', int)]),
+        (r'Optimised mass accuracy: (\d+) ppm', [('log_optimised_mass_accuracy', int)]),
+        (r'Training neural networks on (\d+) target and (\d+) decoy PSMs', [('log_nn_target_psms', int), ('log_nn_decoy_psms', int)]),
+        (r'Number of IDs at 0\.01 FDR: (\d+)', [('log_ids_001_fdr', int)]),
+        (r'Precursors at 1% peptidoform FDR: (\d+)', [('log_peptidoform_precursors_1pct', int)]),
+        (r'Number of genes identified at 1% FDR: (\d+) \(precursor-level\), (\d+) \(protein-level\)', [('log_genes_precursor_level_1pct', int), ('log_genes_protein_level_1pct', int)]),
+        (r'Precursors with scored PTMs at 1% FDR: (\d+) out of (\d+) considered', [('log_ptm_scored_1pct', int), ('log_ptm_considered', int)]),
+        (r'Precursors with all scored PTM sites unoccupied at 1% FDR: (\d+)', [('log_ptm_unoccupied_1pct', int)]),
+        (r'Precursors with PTMs localised \(when required\) with > 90% confidence: (\d+) out of (\d+)', [('log_ptm_localised_90pct', int), ('log_ptm_localised_total', int)]),
+        (r'Averaged recommended settings for this experiment: Mass accuracy = (\d+)ppm, MS1 accuracy = (\d+)ppm, Scan window = (\d+)', [('log_avg_mass_accuracy', int), ('log_avg_ms1_accuracy', int), ('log_avg_scan_window', int)]),
+        (r'Protein groups with global q-value <= 0\.01: (\d+)', [('log_global_pg_001', int)]),
+        (r'(\d+) target and (\d+) decoy precursors saved', [('log_saved_target_precursors', int), ('log_saved_decoy_precursors', int)]),
+        (r'(\d+) precursors saved', [('log_saved_total_precursors', int)]),
+    ]
+    for pat, fields in pats:
+        matches = list(re.finditer(pat, text))
+        if not matches:
+            continue
+        m = matches[-1]
+        for i, (name, conv) in enumerate(fields, start=1):
+            d[name] = conv(m.group(i))
+    return d
+
+def load_log_summary(force=False):
+    global _LOG_CACHE
+    if _LOG_CACHE is not None and not force:
+        return _LOG_CACHE
+    rows = []
+    for path in sorted(glob.glob(LOG_GLOB, recursive=True)):
+        try:
+            txt = open(path, 'r', encoding='utf-8', errors='replace').read()
+        except OSError:
+            continue
+        row = {'run_id': _log_run_id(path), 'log_file': path}
+        row.update(_parse_diann_log_text(txt))
+        rows.append(row)
+    _LOG_CACHE = pd.DataFrame(rows)
+    return _LOG_CACHE
+
+
+def load_run_counts():
+    con = duckdb.connect(DB, read_only=True)
+    try:
+        try:
+            df = con.execute("""
+                SELECT run_id, COUNT(*) AS protein_group_rows
+                FROM proteinGroupsDIA
+                GROUP BY run_id
+            """).df()
+        except Exception:
+            df = pd.DataFrame(columns=['run_id', 'protein_group_rows'])
+    finally:
+        con.close()
+    return df
+
+
+def load_failed_log_runs(force=False):
+    logs = load_log_summary(force=force)
+    if logs.empty:
+        return pd.DataFrame()
+    counts = load_run_counts()
+    df = logs.merge(counts, on='run_id', how='left')
+    df['protein_group_rows'] = df['protein_group_rows'].fillna(0).astype(int)
+    has_error = df.get('log_has_error', pd.Series(False, index=df.index)).fillna(False)
+    zero_pg = df.get('log_global_pg_001', pd.Series(np.nan, index=df.index)).fillna(-1).eq(0)
+    zero_saved_total = df.get('log_saved_total_precursors', pd.Series(np.nan, index=df.index)).fillna(-1).eq(0)
+    failed = df['protein_group_rows'].eq(0) & (has_error | zero_pg | zero_saved_total)
+    return df[failed].copy().sort_values('run_id')
 
 _SUMMARY_CACHE = None
 
@@ -103,6 +226,9 @@ def load_summary(force=False):
     """
     df = con.execute(q).df()
     con.close()
+    log_df = load_log_summary(force=force)
+    if not log_df.empty:
+        df = df.merge(log_df, on='run_id', how='left')
     _SUMMARY_CACHE = df
     return df
 
@@ -116,6 +242,43 @@ def load_run(run_id):
     """, [run_id]).df()
     con.close()
     return df
+
+
+def _current_db_state():
+    con = duckdb.connect(DB, read_only=True)
+    try:
+        try:
+            row = con.execute("""
+                SELECT COUNT(*) AS n_rows,
+                       COUNT(DISTINCT run_id) AS n_runs,
+                       MAX(ingested_at) AS max_ingested_at
+                FROM proteinGroupsDIA
+            """).fetchone()
+        except Exception:
+            row = con.execute("""
+                SELECT COUNT(*) AS n_rows,
+                       COUNT(DISTINCT run_id) AS n_runs
+                FROM proteinGroupsDIA
+            """).fetchone()
+    finally:
+        con.close()
+    return row
+
+
+def _refresh_profile_store_if_needed(force=False):
+    global _DB_STATE, _SUMMARY_CACHE, _LOG_CACHE
+    state = _current_db_state()
+    if force or _DB_STATE is None or state != _DB_STATE:
+        _DB_STATE = state
+        _SUMMARY_CACHE = None
+        _LOG_CACHE = None
+        try:
+            _PRECURSOR_CACHE.clear()
+        except NameError:
+            pass
+        _build_profile_store()
+        return True
+    return False
 
 
 # ── In-memory indexes (built once at startup) ─────────────────────────────────
@@ -610,6 +773,13 @@ app.layout = html.Div(style={"minHeight":"100vh"}, children=[
 
     html.Div(id="cards", className="qc-cards"),
 
+    html.Div(id="failed-runs", style={
+        "margin":"0 28px 12px","padding":"12px 16px",
+        "background":"#fffbeb","border":"1px solid #f59e0b",
+        "borderRadius":"8px","fontSize":"11px","fontFamily":MONO,
+        "color":"#92400e","lineHeight":"1.7","display":"none"
+    }),
+
     dcc.Graph(id="trend", config={"displayModeBar":False},
               style={"height":"400px","margin":"0 28px"}),
 
@@ -800,6 +970,7 @@ def _precursor_heatmap(long, value_col, title, colorscale, log10=False):
 @callback(Output("cards","children"), Output("header-stats","children"),
           Input("dd-metric","value"), Input("interval","n_intervals"))
 def update_cards(_, _n):
+    _refresh_profile_store_if_needed()
     SUM = load_summary(force=True)
     stats = f"{len(SUM)} runs  ·  {SUM['total'].sum():,} protein groups"
     cards = [
@@ -808,9 +979,57 @@ def update_cards(_, _n):
         card("Best run",       f"{SUM['target'].max():,}", C_BLUE),
         card("Worst run",      f"{SUM['target'].min():,}", C_RED),
         card("Total groups",   f"{SUM['total'].sum():,}",  C_GREY),
+        card("Log files",      f"{int(SUM['log_file'].notna().sum()):,}" if 'log_file' in SUM else "0", C_GREY),
     ]
     return cards, stats
 
+
+@callback(Output("failed-runs", "children"),
+          Output("failed-runs", "style"),
+          Input("interval", "n_intervals"))
+def update_failed_runs(_n):
+    base_style = {"margin":"0 28px 12px","padding":"12px 16px",
+                  "background":"#fffbeb","border":"1px solid #f59e0b",
+                  "borderRadius":"8px","fontSize":"11px","fontFamily":MONO,
+                  "color":"#92400e","lineHeight":"1.7"}
+    failed = load_failed_log_runs(force=True)
+    if failed.empty:
+        return "", {**base_style, "display":"none"}
+
+    def _sp(lbl, val):
+        return html.Span([
+            html.Span(f"{lbl}: ", style={"color":"#b45309"}),
+            html.Span(str(val), style={"color":"#111827","fontWeight":"600","marginRight":"18px"}),
+        ])
+
+    rows = []
+    for _, r in failed.head(20).iterrows():
+        reason = r.get('log_error_text', '')
+        if not reason:
+            if pd.notna(r.get('log_global_pg_001', float('nan'))) and int(r.get('log_global_pg_001', -1)) == 0:
+                reason = '0 protein groups with global q<=0.01'
+            elif pd.notna(r.get('log_saved_total_precursors', float('nan'))) and int(r.get('log_saved_total_precursors', -1)) == 0:
+                reason = '0 precursors saved'
+            else:
+                reason = 'log exists, but no proteinGroupsDIA rows'
+        rows.append(html.Div([
+            html.Span(r['run_id'], style={"fontWeight":"700","color":"#92400e","marginRight":"18px"}),
+            _sp('PG rows', int(r.get('protein_group_rows', 0))),
+            _sp('Global PG q<=0.01', 'n/a' if pd.isna(r.get('log_global_pg_001', float('nan'))) else int(r.get('log_global_pg_001'))),
+            _sp('Saved precursors', 'n/a' if pd.isna(r.get('log_saved_total_precursors', float('nan'))) else int(r.get('log_saved_total_precursors'))),
+            html.Span(reason, style={"color":"#92400e"}),
+        ], style={"marginTop":"4px"}))
+
+    children = [
+        html.Div(f"DIA-NN failed/log-only runs not shown in the main trend: {len(failed)}",
+                 style={"fontWeight":"700","marginBottom":"6px","color":"#92400e"}),
+        html.Div("These runs have log files but zero proteinGroupsDIA rows, so they cannot appear as normal bars.",
+                 style={"marginBottom":"6px","color":"#92400e"}),
+        *rows,
+    ]
+    if len(failed) > 20:
+        children.append(html.Div(f"... {len(failed)-20} more", style={"marginTop":"4px","color":"#92400e"}))
+    return children, {**base_style, "display":"block"}
 
 @callback(Output("trend","figure"),
           Input("dd-metric","value"),
@@ -818,9 +1037,11 @@ def update_cards(_, _n):
           Input("chk-trend","value"),
           Input("interval","n_intervals"))
 def update_trend(metric, active, trend_on, _n):
+    _refresh_profile_store_if_needed()
     df  = load_summary()
     x   = df["run_id"]
     fig = go.Figure()
+    log_overlay_added = False
 
     if metric == "proteins":
         fig.add_trace(go.Bar(x=x, y=df["target"], name="Target",
@@ -832,18 +1053,47 @@ def update_trend(metric, active, trend_on, _n):
                                  hovertemplate="%{x}<br>Contaminant: %{y:,}<extra></extra>"))
         fig.update_layout(barmode="stack")
         ytitle = "Protein groups per run"
+        for label, col, scale, color in LOG_QC_OVERLAY:
+            if col in df.columns and df[col].notna().any():
+                y = df[col].astype(float) * scale
+                fig.add_trace(go.Scatter(
+                    x=x, y=y, mode="markers", name=label,
+                    yaxis="y2",
+                    marker=dict(size=5, color=color, symbol="circle"),
+                    hovertemplate="%{x}<br>" + label + ": %{y:.3g}<extra></extra>",
+                ))
+                log_overlay_added = True
     else:
         label, col = METRICS[metric]
-        fig.add_trace(go.Scatter(x=x, y=df[col], mode="lines+markers",
+        if col not in df.columns:
+            df[col] = np.nan
+        y = df[col]
+        ytitle = label
+        fixed_y_range = None
+        if col == "log_im_window":
+            y = y.astype(float) * 100.0
+            ytitle = "DIA-NN IM window ×100"
+            fixed_y_range = [0, 20]
+        elif col in SMALL_LOG_METRICS:
+            fixed_y_range = [0, 20]
+        fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers",
                                  line=dict(color=C_BLUE, width=2),
                                  marker=dict(size=4, color=C_BLUE),
                                  name=label,
-                                 hovertemplate="%{x}<br>" + label + ": %{y:,.3g}<extra></extra>"))
-        ytitle = label
+                                 hovertemplate="%{x}<br>" + ytitle + ": %{y:,.3g}<extra></extra>"))
 
     if trend_on and "y" in trend_on and len(df) >= 3:
-        w    = max(3, len(df) // 8)
-        roll = df["target"].rolling(w, center=True, min_periods=1).mean()
+        w = max(3, len(df) // 8)
+        if metric == "proteins":
+            roll = df["target"].rolling(w, center=True, min_periods=1).mean()
+        else:
+            label, col = METRICS[metric]
+            if col not in df.columns:
+                df[col] = np.nan
+            roll_source = df[col]
+            if col == "log_im_window":
+                roll_source = roll_source.astype(float) * 100.0
+            roll = roll_source.rolling(w, center=True, min_periods=1).mean()
         fig.add_trace(go.Scatter(x=x, y=roll, mode="lines",
                                  name=f"{w}-run rolling avg",
                                  line=dict(color=C_TREND, width=2, dash="dot"),
@@ -854,14 +1104,25 @@ def update_trend(metric, active, trend_on, _n):
     layout["xaxis"].update(tickangle=-55, tickfont=dict(size=7, family=MONO, color="#9ca3af"),
                            tickmode="array", tickvals=list(df["run_id"]), ticktext=labels)
     layout["yaxis"]["title"] = dict(text=ytitle, font=dict(size=11))
-    layout["bargap"]         = 0.12
-    layout["margin"]["b"]    = 80
+    if metric != "proteins" and 'fixed_y_range' in locals() and fixed_y_range is not None:
+        layout["yaxis"]["range"] = fixed_y_range
+    if log_overlay_added:
+        layout["yaxis2"] = dict(
+            title=dict(text="Optimised mass ppm", font=dict(size=11, color=C_BLACK)),
+            overlaying="y", side="right", range=[0, 20],
+            tickfont=dict(size=9, family=MONO, color=C_BLACK),
+            showgrid=False, zeroline=False,
+        )
+        layout["legend"].update(orientation="h", yanchor="bottom", y=1.04, xanchor="left", x=0)
+    layout["bargap"] = 0.12
+    layout["margin"]["b"] = 80
+    layout["margin"]["r"] = 70 if log_overlay_added else layout["margin"].get("r", 16)
     fig.update_layout(**layout)
     return fig
 
-
 @callback(Output("sel-run","data"), Input("trend","clickData"), Input("interval","n_intervals"))
 def store_sel(cd, _n):
+    _refresh_profile_store_if_needed()
     if not cd: return load_summary()["run_id"].iloc[-1]
     return cd["points"][0]["x"]
 
@@ -912,7 +1173,34 @@ def update_breakdown(run_id):
         ('Median precursors',     r.get('median_precursors', float('nan'))),
         ('Total PG.MaxLFQ',       r.get('total_lfq', float('nan'))),
     ]
-    cells = [_sp(lbl, _f(val)) for lbl, val in detail_cols]
+    log_cols = [
+        ('MS1 scans',             r.get('log_ms1_scans', float('nan'))),
+        ('MS2 scans',             r.get('log_ms2_scans', float('nan'))),
+        ('Cycles inferred/encoded', f"{_f(r.get('log_inferred_cycles', float('nan')))} / {_f(r.get('log_encoded_cycles', float('nan')))}"),
+        ('Precursors in range',   r.get('log_precursors_in_range', float('nan'))),
+        ('Calib MS1/MS2 ppm',     f"{_f(r.get('log_calib_ms1_accuracy', float('nan')))} / {_f(r.get('log_calib_ms2_accuracy', float('nan')))}"),
+        ('RT window',             r.get('log_rt_window', float('nan'))),
+        ('IM window',             r.get('log_im_window', float('nan'))),
+        ('Peak width',            r.get('log_peak_width', float('nan'))),
+        ('Scan window',           r.get('log_scan_window', float('nan'))),
+        ('Recommended MS1 ppm',   r.get('log_recommended_ms1_accuracy', float('nan'))),
+        ('Optimised mass ppm',    r.get('log_optimised_mass_accuracy', float('nan'))),
+        ('NN target/decoy PSMs',  f"{_f(r.get('log_nn_target_psms', float('nan')))} / {_f(r.get('log_nn_decoy_psms', float('nan')))}"),
+        ('IDs 0.01 FDR',          r.get('log_ids_001_fdr', float('nan'))),
+        ('Peptidoform precursors 1%', r.get('log_peptidoform_precursors_1pct', float('nan'))),
+        ('Genes prec/prot 1%',    f"{_f(r.get('log_genes_precursor_level_1pct', float('nan')))} / {_f(r.get('log_genes_protein_level_1pct', float('nan')))}"),
+        ('PTM scored/considered', f"{_f(r.get('log_ptm_scored_1pct', float('nan')))} / {_f(r.get('log_ptm_considered', float('nan')))}"),
+        ('PTM unoccupied',        r.get('log_ptm_unoccupied_1pct', float('nan'))),
+        ('PTM localised >90%',    f"{_f(r.get('log_ptm_localised_90pct', float('nan')))} / {_f(r.get('log_ptm_localised_total', float('nan')))}"),
+        ('Avg mass/MS1/scan',     f"{_f(r.get('log_avg_mass_accuracy', float('nan')))} / {_f(r.get('log_avg_ms1_accuracy', float('nan')))} / {_f(r.get('log_avg_scan_window', float('nan')))}"),
+        ('Global PG q<=0.01',     r.get('log_global_pg_001', float('nan'))),
+        ('Saved target/decoy prec', f"{_f(r.get('log_saved_target_precursors', float('nan')))} / {_f(r.get('log_saved_decoy_precursors', float('nan')))}"),
+    ]
+    cells = [_sp(lbl, _f(val) if not isinstance(val, str) else val) for lbl, val in detail_cols]
+    if 'log_file' in r.index and pd.notna(r.get('log_file', float('nan'))):
+        cells += [_sp(lbl, _f(val) if not isinstance(val, str) else val) for lbl, val in log_cols]
+    else:
+        cells += [_sp('DIA-NN log', 'not found')]
     detail_children = [
         html.Div(run_id, style={"fontWeight":"700","color":C_BLUE,
                                 "marginBottom":"6px","fontSize":"12px"}),
@@ -976,6 +1264,7 @@ def update_qval_hist(run_id):
           Output("tbl-peptides","children"),
           Input("interval","n_intervals"))
 def update_top_tables(_n):
+    _refresh_profile_store_if_needed()
     if not _PROFILE_LOADED:
         return "loading...", "loading...", "loading..."
 
@@ -1226,6 +1515,7 @@ def _build_peptide_fig(mat, label, n_runs_total):
           Input("sel-search","data"),
           Input("interval","n_intervals"))
 def update_profile(search, _n):
+    _refresh_profile_store_if_needed()
     e   = go.Figure()
     emp = tuple(e for _ in range(12))
     base_style = {"margin":"0 28px 0","padding":"10px 16px",
@@ -1317,8 +1607,10 @@ if __name__ == "__main__":
     SUM = load_summary()
     print(f"DB   : {DB}")
     print(f"PARQ : {PARQUET_GLOB}")
+    print(f"LOGS : {LOG_GLOB}")
     print(f"Runs : {len(SUM)}")
     print(f"Rows : {SUM['total'].sum():,}")
     print("Building profile store ...", flush=True)
     _build_profile_store()
+    _DB_STATE = _current_db_state()
     app.run(host='0.0.0.0', debug=False, port=8051)

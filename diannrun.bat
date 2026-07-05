@@ -1,7 +1,7 @@
 @echo off
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-:: diannrun v1 -- DIA-NN batch watcher for timsTOF HeLa DIA QC runs
+:: diannrun v1.2 -- DIA-NN batch watcher for timsTOF HeLa DIA QC runs
 ::
 :: WHAT IT DOES
 :: ------------
@@ -14,6 +14,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 :: STATE MODEL (per job basename BN)
 :: ----------------------------------
 ::  DONE      SESSIONDIR\BN.done exists
+::  NOHITS    SESSIONDIR\BN.nohits exists (empty report after retry, archived to QCROOT)
 ::  QUEUED    SESSIONDIR\BN.queued.lock exists  (slots full, data already ready)
 ::  RUNNING   SESSIONDIR\BN.running.lock = PID | "PENDING"
 ::  NEW       no lock files at all
@@ -46,6 +47,8 @@ set STABILITY_WAIT=60
 set THREADS_PER_JOB=16
 set CPU_COUNT=64
 set MAX_RETRIES=3
+set EMPTY_RESULT_RETRIES=1
+set DUCKDB_BIN=C:\Program Files\DuckDB\duckdb.exe
 set QVALUE=0.01
 set TLIST=%SystemRoot%\System32\tasklist.exe
 set WMIC=%SystemRoot%\System32\wbem\wmic.exe
@@ -58,6 +61,9 @@ if not exist "%SPECLIB%"   ( echo ERROR: SPECLIB not found: %SPECLIB%      & exi
 if not exist "%FASTAFILE%" ( echo ERROR: FASTA not found: %FASTAFILE%      & exit /b 1 )
 if not exist "%DIANNDIR%\%FASTACONT%" (
     echo WARNING: %FASTACONT% not found under %DIANNDIR% -- DIA-NN will fail at launch
+)
+if not exist "%DUCKDB_BIN%" (
+    echo WARNING: DuckDB not found: %DUCKDB_BIN% -- empty parquet validation will use file-size fallback only
 )
 
 :: -- Derive SESSIONDIR from data root and library leaf names ----------------------
@@ -197,6 +203,104 @@ if !RC! GEQ %MAX_RETRIES% (
 )
 exit /b 0
 
+
+:: :ValidateReport -- classify DIA-NN output report before accepting completion.
+:: Sets VR_ROWS and VR_HAS_ERROR. Uses DuckDB when available; falls back to size.
+:: Arg1: report parquet path   Arg2: basename
+:ValidateReport
+set "VR_REPORT=%~1"
+set "VR_BN=%~2"
+set "VR_ROWS="
+set "VR_HAS_ERROR=0"
+set "VR_LOG=!SESSIONDIR!\%VR_BN%.d.report.log.txt"
+if exist "!VR_LOG!" findstr /i /c:"ERROR:" "!VR_LOG!" >nul 2>nul && set "VR_HAS_ERROR=1"
+
+:: Important: this is intentionally NOT inside an IF (...) block.
+:: The SQL contains parentheses, and cmd.exe parses parentheses before echo runs.
+:: Keeping the SQL echo at top level avoids errors such as "FROM was unexpected at this time".
+if not exist "%DUCKDB_BIN%" goto :vr_file_size_fallback
+set "VR_SQL=!SESSIONDIR!\vr_%VR_BN%.sql"
+set "VR_OUT=!SESSIONDIR!\vr_%VR_BN%.csv"
+set "VR_SL=!VR_REPORT:\=/!"
+> "!VR_SQL!" echo COPY(SELECT COUNT(*) FROM read_parquet('!VR_SL!')) TO '!VR_OUT!' (FORMAT CSV, HEADER false);
+"%DUCKDB_BIN%" -f "!VR_SQL!" >nul 2>nul
+if exist "!VR_OUT!" for /f "usebackq delims=" %%R in ("!VR_OUT!") do set "VR_ROWS=%%R"
+del "!VR_SQL!" "!VR_OUT!" >nul 2>nul
+if defined VR_ROWS exit /b 0
+
+:vr_file_size_fallback
+for %%S in ("!VR_REPORT!") do set "VR_SIZE=%%~zS"
+if not defined VR_SIZE (
+    set "VR_ROWS=0"
+    exit /b 0
+)
+if !VR_SIZE! LSS 8192 (
+    set "VR_ROWS=0"
+) else (
+    set "VR_ROWS=-1"
+)
+exit /b 0
+
+:: :HandleEmptyResult -- retry empty DIA-NN reports once, then archive as no-hits/failed.
+:: Arg1: DATADEST (.d folder)   Arg2: basename
+:HandleEmptyResult
+set "HE_D=%~1"
+set "HE_BN=%~2"
+set "HE_RETRY_FILE=!SESSIONDIR!\%HE_BN%.empty_retries"
+set "HE_RC=0"
+if exist "!HE_RETRY_FILE!" for /f "usebackq tokens=1" %%N in ("!HE_RETRY_FILE!") do set "HE_RC=%%N"
+if !HE_RC! LSS %EMPTY_RESULT_RETRIES% (
+    set /a HE_RC+=1
+    echo !HE_RC!> "!HE_RETRY_FILE!"
+    call :Log "EmptyOut : %HE_BN% (0 report rows -- retry !HE_RC!/%EMPTY_RESULT_RETRIES%)"
+    del /q "!SESSIONDIR!\%HE_BN%.d.*" >nul 2>nul
+    rmdir /s /q "%HE_D%" >nul 2>nul
+    if exist "!SESSIONDIR!\%HE_BN%.running.lock" del /q "!SESSIONDIR!\%HE_BN%.running.lock" >nul 2>nul
+    exit /b 0
+)
+if not exist "%QCROOT%\%HE_BN%" mkdir "%QCROOT%\%HE_BN%" >nul 2>nul
+robocopy "!SESSIONDIR!" "%QCROOT%\%HE_BN%" "%HE_BN%.d.*" /NP /R:3 /W:10 /NFL /NDL /NJH /NJS /LOG+:"%QCROOT%\copy_log.txt" >nul 2>nul
+if errorlevel 8 ( call :Log "ERROR    : %HE_BN% QC copy failed for empty result -- will retry copy" & exit /b 0 )
+echo 1> "!SESSIONDIR!\%HE_BN%.nohits"
+echo Empty DIA-NN report archived after %EMPTY_RESULT_RETRIES% retry attempt(s).> "%QCROOT%\%HE_BN%\%HE_BN%.nohits.txt"
+call :Log "NoHits   : %HE_BN% (0 report rows after %EMPTY_RESULT_RETRIES% retry -- archived for dashboard warning)"
+rmdir /s /q "%HE_D%" >nul 2>nul
+del /q "!SESSIONDIR!\%HE_BN%.d.*" >nul 2>nul
+if exist "!SESSIONDIR!\%HE_BN%.running.lock" del /q "!SESSIONDIR!\%HE_BN%.running.lock" >nul 2>nul
+exit /b 0
+
+:: :AdoptArchivedResult -- if QCROOT already has an archived result for BN,
+:: recreate the SESSIONDIR terminal sentinel so restarts do not relaunch old runs.
+:: Sets ARCHIVE_ADOPTED_STATE to DONE, NOHITS, or empty.
+:: Arg1: basename
+:AdoptArchivedResult
+set "AR_BN=%~1"
+set "ARCHIVE_ADOPTED_STATE="
+set "AR_DIR=%QCROOT%\%AR_BN%"
+set "AR_REPORT=!AR_DIR!\%AR_BN%.d.report.parquet"
+set "AR_NOHITS=!AR_DIR!\%AR_BN%.nohits.txt"
+if not exist "!AR_DIR!" exit /b 0
+if exist "!AR_NOHITS!" (
+    echo 1> "!SESSIONDIR!\%AR_BN%.nohits"
+    set "ARCHIVE_ADOPTED_STATE=NOHITS"
+    call :Log "Adopted  : %AR_BN% (archived nohits result already exists in QCROOT)"
+    exit /b 0
+)
+if exist "!AR_REPORT!" (
+    call :ValidateReport "!AR_REPORT!" "%AR_BN%"
+    if "!VR_ROWS!"=="0" (
+        echo 1> "!SESSIONDIR!\%AR_BN%.nohits"
+        echo Empty archived DIA-NN report adopted as nohits on watcher restart.> "!AR_DIR!\%AR_BN%.nohits.txt"
+        set "ARCHIVE_ADOPTED_STATE=NOHITS"
+        call :Log "Adopted  : %AR_BN% (archived empty report -> nohits sentinel)"
+    ) else (
+        echo 1> "!SESSIONDIR!\%AR_BN%.done"
+        set "ARCHIVE_ADOPTED_STATE=DONE"
+        call :Log "Adopted  : %AR_BN% (archived report already exists in QCROOT, rows=!VR_ROWS!)"
+    )
+)
+exit /b 0
+
 :: :MarkDone -- completion gate and cleanup.
 :: Only proceeds when:
 ::   1. OUT_REPORT (BN.d.report.parquet) exists
@@ -225,6 +329,11 @@ if "!MD_PID!"=="" (
 %TLIST% /fi "pid eq !MD_PID!" /fo csv /nh 2>nul | findstr /i "diann" >nul
 if not errorlevel 1 ( call :Log "WaitPID  : %MD_BN% (PID !MD_PID! alive -- deferring)" & exit /b 0 )
 :md_proceed
+:: Validate the report before accepting the job as done.
+:: Empty reports usually mean DIA-NN could not load the .d/.quant or produced no IDs.
+call :ValidateReport "!MD_REPORT!" "%MD_BN%"
+if "!VR_ROWS!"=="0" ( call :HandleEmptyResult "%MD_D%" "%MD_BN%" & exit /b 0 )
+if "!VR_HAS_ERROR!"=="1" call :Log "WARNING  : %MD_BN% log contains ERROR lines, but report has !VR_ROWS! row(s); copying for review"
 :: Copy results to QC share before deleting local copies
 if not exist "%QCROOT%\" ( call :Log "WARNING  : %MD_BN% QCROOT not reachable -- will retry" & exit /b 0 )
 if not exist "%QCROOT%\%MD_BN%" mkdir "%QCROOT%\%MD_BN%" >nul 2>nul
@@ -260,7 +369,21 @@ set "DATADEST=!SESSIONDIR!\%BN%.d"
 set "LOCKFILE=!SESSIONDIR!\%BN%.running.lock"
 set "QUEUEFILE=!SESSIONDIR!\%BN%.queued.lock"
 set "DONEFILE=!SESSIONDIR!\%BN%.done"
+set "NOHITSFILE=!SESSIONDIR!\%BN%.nohits"
 set "RETRYFILE=!SESSIONDIR!\%BN%.retries"
+
+:: -- STATE: ARCHIVED IN QCROOT -----------------------------------------------------
+:: If the watcher crashed after copying output but before/after local sentinel cleanup,
+:: do not relaunch the same basename just because SESSIONDIR lacks .done/.nohits.
+call :AdoptArchivedResult "%BN%"
+if "!ARCHIVE_ADOPTED_STATE!"=="DONE" ( set /a DONE+=1 & exit /b 0 )
+if "!ARCHIVE_ADOPTED_STATE!"=="NOHITS" ( set /a ERRORS+=1 & exit /b 0 )
+
+:: -- STATE: EMPTY/NO-HITS TERMINAL -------------------------------------------------
+:: This means DIA-NN produced an empty report after the configured retry budget.
+:: Keep the sentinel so the watcher does not retry forever; the dashboard can show
+:: the copied log-only run from QCROOT.
+if exist "!NOHITSFILE!" ( set /a ERRORS+=1 & exit /b 0 )
 
 :: -- STATE: DONE -------------------------------------------------------------------
 if exist "!DONEFILE!" ( set /a DONE+=1 & exit /b 0 )
