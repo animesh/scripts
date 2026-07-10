@@ -1,6 +1,4 @@
-#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\report.gg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\GroupsBigC.txt" "F..promec.TIMSTOF.LARS.2025.250902_Alessandro.250902_Alessandro_" ".d" "LFQvsn" "Rem" "Progression.free.survival..months._2023_taha"
-#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\report.gg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\Groups45GyBigC.txt" "F..promec.TIMSTOF.LARS.2025.250902_Alessandro.250902_Alessandro_" ".d" "LFQvsn" "Rem" "Progression.free.survival..months._2023_taha"
-#"c:\Program Files\r\R-4.5.1\bin\Rscript.exe" diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\report.gg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2025\250902_Alessandro\DIANNv2p2\Groups60GyBigC.txt" "F..promec.TIMSTOF.LARS.2025.250902_Alessandro.250902_Alessandro_" ".d" "LFQvsn" "Rem" "Progression.free.survival..months._2023_taha"
+#"c:\Program Files\R\R-4.5.2\bin\Rscript.exe" diffExprTestCor.r "L:\promec\TIMSTOF\LARS\2026\260518_Sonali\DIANNv2P2.63.260612_140833.64.highacc\report.pg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2026\260518_Sonali\DIANNv2P2.63.260612_140833.64.highacc\Groups.txt" "F..promec.TIMSTOF.LARS.2026.260518_Sonali.260518_Sonali_" ".d" "LFQvsn" "Rem20" "fertilisation_percent"
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
 print("USAGE:<path to>Rscript diffExprTestCor.r <complete path to directory containing proteinGroups.txt> AND <SurvivalUpdates.xlsx file>  \"intensity columns to consider\" \"Group information of samples\" \"Remove samples if any\" \"correlation column\"")
@@ -15,24 +13,23 @@ selThrCor=0.5##correlation-CorTest
 print(paste("Thresholds used - ", thr ,"#count-valid-samples," ,selThr,"#pValue-CorTest,",selThrCor,"#correlation-CorTest"))
 #args####
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/report.gg_matrix.tsv"
+#inpF <-"L:/promec/TIMSTOF/LARS/2026/260518_Sonali/DIANNv2P2.63.260612_140833.64.highacc/report.pg_matrix.tsv"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2025/250902_Alessandro/DIANNv2p2/GroupsBigC.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2026/260518_Sonali/DIANNv2P2.63.260612_140833.64.highacc/Groups.txt"
 selection<-args[3]
-#selection<-"F..promec.TIMSTOF.LARS.2025.250902_Alessandro.250902_Alessandro_"
+#selection<-"F..promec.TIMSTOF.LARS.2026.260518_Sonali.260518_Sonali_"
 sufFix <- args[4]
 #sufFix<-".d"
 transform<-args[5]
 #transform<-"LFQvsn"
 rGroup <- args[6]
-#rGroup<-"Rem"
+#rGroup<-"Rem20"
 scaleF <- args[7]
-#scaleF<-"Progression.free.survival..months._2023_taha"
+#scaleF<-"fertilisation_percent"
 inpD<-dirname(inpF)
 fName<-basename(inpF)
 lName<-basename(inpL)
-hdr<-gsub("[^[:alnum:]]", "",inpD)
-outP=paste(inpF,selection,selThr,selThrCor,hdr,rGroup,lName,"VolcanoTestCor","pdf",sep = ".")
+outP=paste(inpF,selection,selThr,selThrCor,rGroup,lName,"VolcanoTestCor","pdf",sep = ".")
 pdf(outP)
 #label####
 label<-read.table(inpL,stringsAsFactors = FALSE, header = TRUE, quote = "", comment.char = "", sep = "\t")
@@ -55,11 +52,7 @@ print(colnames(data))
 #data = data[!data$Reverse=="+",]
 #data = data[!data$Potential.contaminant=="+",]
 #data = data[!data$Only.identified.by.site=="+",]
-row.names(data)<-paste(row.names(data),data$N.Sequences,data$Genes,data$N.Proteotypic.Sequences,sep = ";;")
-data$rowName<-row.names(data)
-data$geneName<-paste(sapply(strsplit(paste(sapply(strsplit(data$Genes, ";",fixed=T), "[", 1)), "-"), "[", 1))
-data$uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(data$Genes, ";",fixed=T), "[", 1)), " "), "[", 1))
-data[data$geneName=="NA","geneName"]=data[data$geneName=="NA","uniprotID"]
+row.names(data)<-paste(row.names(data),data$Protein.Group,data$Protein.Names,data$First.Protein.Description,data$Genes,data$N.Sequences,data$N.Proteotypic.Sequences,sep = ";;")
 summary(data)
 dim(data)
 #sel####
@@ -80,7 +73,7 @@ boxplot(countTableDAuniGORNAddsMedVSN,las=2)
 #writeCSVcor####
 corFac=data.frame(t(label[,scaleF]))
 names(corFac)<-rownames(label)
-write.csv(as.data.frame(cbind(data$rowName,log2LFQ,corFac)),paste0(inpF,selection,"log2.csv"))
+write.csv(as.data.frame(cbind(rownames(data),log2LFQ,corFac)),paste0(inpF,selection,"log2.csv"))
 #corHClfq####
 log2LFQimpCorr<-cor(log2LFQ,use="pairwise.complete.obs",method="pearson")
 colnames(log2LFQimpCorr)<-colnames(log2LFQ)
@@ -104,14 +97,14 @@ countTableDAuniGORNAddsMedVSN<-(LFQvsn-countTableDAuniGORNAddsMedVSN)
 hist(countTableDAuniGORNAddsMedVSN)
 boxplot(countTableDAuniGORNAddsMedVSN,las=2)
 #test####
-testCor <- function(log2LFQ,corVal,rN,comp){
-  #hist(label[,scaleF])
-  #hist(log2LFQ)
-  #colnames(log2LFQ)
-  d1<-get(transform)
-  #d2<-data.frame(label[,scaleF])
+testCor <- function(comp,corVal,rN){
+  #comp<-"LFQvsn"
+  d1<-get(comp)
+  #hist(d1)
+  #colnames(d1)
+  #corVal<-data.frame(labelR[,scaleF])
   d2<-corVal
-  #rownames(d2)<-rownames(label)
+  #rN<-rownames(labelR)
   rownames(d2)<-rN
   d2<-data.frame(d2[colnames(d1),])
   rownames(d2)<-colnames(d1)
@@ -155,7 +148,6 @@ testCor <- function(log2LFQ,corVal,rN,comp){
     if(sum(is.na(pValNA))==nrow(d1)){pValNA[is.na(pValNA)]=1}
     hist(pValNA)
     dfpValNA<-as.data.frame(ceiling(pValNA))
-    pValNAdm<-cbind(pValNA,d1,row.names(data))
     pValNAminusLog10 = -log10(pValNA+.Machine$double.xmin)
     hist(pValNAminusLog10)
     library(scales)
@@ -166,12 +158,15 @@ testCor <- function(log2LFQ,corVal,rN,comp){
     hist(pValBHna)
     pValBHnaMinusLog10 = -log10(pValBHna+.Machine$double.xmin)
     hist(pValBHnaMinusLog10)
-    corTest.results = data.frame(Uniprot=data$rowName,Protein=data$geneName,PValueMinusLog10=pValNAminusLog10,CorrectedPValueBH=pValBHna,CorTestPval=pValNA,Cor=cValNA,d1,Fasta=row.names(data))
+    rowName<-row.names(d1)
+    geneName<-paste(sapply(strsplit(paste(sapply(strsplit(rowName, ";;",fixed=T), "[", 5)), ";"), "[", 1))
+    uniprotID<-paste(sapply(strsplit(paste(sapply(strsplit(rowName, ";;",fixed=T), "[", 2)), ";"), "[", 1))
+    corTest.results = data.frame(Uniprot=uniprotID,Gene=geneName,PValueMinusLog10=pValNAminusLog10,CorrectedPValueBH=pValBHna,CorTestPval=pValNA,Cor=cValNA,d1,Row=rowName)
     writexl::write_xlsx(corTest.results,paste0(inpF,comp,selThr,selThrCor,rGroup,lName,transform,selection,"CorTestBH.xlsx"))
     write.csv(corTest.results,paste0(inpF,comp,selThr,selThrCor,rGroup,lName,transform,selection,"CorTestBH.csv"),row.names = F)
     corTest.results.return<-corTest.results
     #volcano
-    corTest.results$RowGeneUniProtScorePeps<-data$geneName
+    corTest.results$RowGeneUniProtScorePeps<-geneName
     #corTest.results[is.na(corTest.results)]=selThr
     summary(corTest.results$CorrectedPValueBH)
     summary(corTest.results$Cor)
@@ -187,5 +182,5 @@ testCor <- function(log2LFQ,corVal,rN,comp){
   }
 }
 #compare####
-rtPair=testCor(get(transform),data.frame(labelR[,scaleF]),rownames(labelR),transform)
+rtPair=testCor(transform,data.frame(labelR[,scaleF]),rownames(labelR))
 print(rtPair)
