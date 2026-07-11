@@ -219,7 +219,9 @@ def _(
         if proteins_to_exclude:
             df = df[~df["_protein"].isin(proteins_to_exclude)]
         _has_signal = df[intensity_cols].notna().any(axis=1)
-        zero_intensity_proteins = sorted(set(df.loc[~_has_signal, "_protein"].tolist()))
+        _proteins_with_signal = set(df.loc[_has_signal, "_protein"])
+        _all_proteins = set(df["_protein"])
+        zero_intensity_proteins = sorted(_all_proteins - _proteins_with_signal)
         df = df[_has_signal].copy()
         seq    = df[sequence_col].astype(str).str.upper() if sequence_col else pd.Series("NA", index=df.index)
         mods   = df[mod_col].astype(str).str.strip()     if mod_col    else pd.Series("Unmodified", index=df.index)
