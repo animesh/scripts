@@ -97,7 +97,7 @@ def _(mo, peptide_df, protein_groups_df, pep_err, pg_err):
         _out = mo.callout(mo.md("Upload **peptides.txt** (or **modificationSpecificPeptides.txt**) to begin. **proteinGroups.txt** enables comparison plots."), kind="info")
     else:
         _stats = [
-            mo.stat(label="Rows",    value=f"{len(peptide_df)}: imagines"),
+            mo.stat(label="Rows",    value=f"{len(peptide_df):,}"),
             mo.stat(label="Columns", value=f"{len(peptide_df.columns):,}"),
         ]
         if protein_groups_df is not None:
@@ -560,6 +560,30 @@ def _(mo, samples):
 @app.cell
 def _(mo, ratio_method, rescale_method, minimum_ratio_count, anchor_sample):
     _out = mo.hstack([ratio_method, rescale_method, minimum_ratio_count, anchor_sample], gap=2)
+    _out
+
+
+# ── Export Results ────────────────────────────────────────────────────────────
+@app.cell
+def _(mo, calculated_lfq, ratio_method, rescale_method, minimum_ratio_count, anchor_sample):
+    _out = mo.md("")
+    if calculated_lfq is not None:
+        _anch = str(anchor_sample.value).replace(" ", "")
+        _fname = f"maxLFQmo_ratio-{ratio_method.value}_scale-{rescale_method.value}_min-{minimum_ratio_count.value}_anchor-{_anch}.tsv"
+        _csv = calculated_lfq.to_csv(sep="\t").encode("utf-8")
+        
+        _btn = mo.download(
+            data=_csv,
+            filename=_fname,
+            label="📥 Download LFQ Table (.tsv)",
+            mimetype="text/tab-separated-values"
+        )
+        _out = mo.vstack([
+            mo.md("---"),
+            mo.md("## Export Results"),
+            mo.md(f"Filename will automatically reflect current parameters: `{_fname}`"),
+            _btn
+        ])
     _out
 
 
