@@ -18,7 +18,7 @@ __generated_with = "0.23.9"
 app = marimo.App(width="full", app_title="Inside MaxLFQ")
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     import marimo as mo
     import pandas as pd
@@ -31,7 +31,7 @@ def _():
     return combinations, io, least_squares, mo, np, pd, px
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     # Inside MaxLFQ
@@ -42,21 +42,21 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     peptide_file = mo.ui.file(label="peptides.txt / modificationSpecificPeptides.txt")
     proteingroup_file = mo.ui.file(label="proteinGroups.txt  (optional)")
     return peptide_file, proteingroup_file
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, peptide_file, proteingroup_file):
     _out = mo.hstack([peptide_file, proteingroup_file], gap=4)
     _out
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     def first_col(df, candidates):
         for c in candidates:
@@ -70,7 +70,7 @@ def _():
     return first_col, first_token
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(io, pd):
     def read_uploaded(f):
         name = f.name.lower()
@@ -86,7 +86,7 @@ def _(io, pd):
     return (read_uploaded,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(peptide_file, proteingroup_file, read_uploaded):
     peptide_df = protein_groups_df = pep_err = pg_err = None
     if peptide_file.value:
@@ -102,7 +102,7 @@ def _(peptide_file, proteingroup_file, read_uploaded):
     return pep_err, peptide_df, pg_err, protein_groups_df
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, pep_err, peptide_df, pg_err, protein_groups_df):
     _out = mo.md("")
     if pep_err:
@@ -123,7 +123,7 @@ def _(mo, pep_err, peptide_df, pg_err, protein_groups_df):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(first_col, peptide_df):
     if peptide_df is None:
         protein_col = sequence_col = mod_col = charge_col = intensity_cols = samples = None
@@ -144,7 +144,7 @@ def _(first_col, peptide_df):
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(charge_col, intensity_cols, mo, mod_col, protein_col, sequence_col):
     _out = mo.md("")
     if protein_col is not None:
@@ -153,7 +153,7 @@ def _(charge_col, intensity_cols, mo, mod_col, protein_col, sequence_col):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(peptide_df):
     if peptide_df is None:
         n_decoy = n_contaminant = 0
@@ -168,7 +168,7 @@ def _(peptide_df):
     return n_contaminant, n_decoy
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(first_token, peptide_df, protein_col):
     if peptide_df is None or protein_col is None:
         raw_protein_list = []
@@ -179,7 +179,7 @@ def _(first_token, peptide_df, protein_col):
     return (raw_protein_list,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     charge_col,
     filter_contaminant,
@@ -199,6 +199,7 @@ def _(
 ):
     if peptide_df is None or protein_col is None:
         species_matrix = None
+        zero_intensity_proteins = []
     else:
         df = peptide_df.copy()
         if filter_decoy.value:
@@ -214,10 +215,12 @@ def _(
         if filter_unique_proteins.value and "Unique (Proteins)" in df.columns:
             df = df[df["Unique (Proteins)"].astype(str).str.strip().str.lower() == "yes"]
         df[intensity_cols] = df[intensity_cols].apply(pd.to_numeric, errors="coerce").replace(0, np.nan)
-        df = df[df[intensity_cols].notna().any(axis=1)].copy()
         df["_protein"] = df[protein_col].astype(str).map(first_token)
         if proteins_to_exclude:
             df = df[~df["_protein"].isin(proteins_to_exclude)]
+        _has_signal = df[intensity_cols].notna().any(axis=1)
+        zero_intensity_proteins = sorted(set(df.loc[~_has_signal, "_protein"].tolist()))
+        df = df[_has_signal].copy()
         seq    = df[sequence_col].astype(str).str.upper() if sequence_col else pd.Series("NA", index=df.index)
         mods   = df[mod_col].astype(str).str.strip()     if mod_col    else pd.Series("Unmodified", index=df.index)
         charge = df[charge_col].astype(str).str.strip()  if charge_col else pd.Series("NA", index=df.index)
@@ -225,10 +228,10 @@ def _(
         rename = dict(zip(intensity_cols, samples))
         w = df[["_protein", "_species"] + intensity_cols].rename(columns=rename)
         species_matrix = w.groupby(["_protein", "_species"], sort=True)[samples].first().replace(0, np.nan)
-    return (species_matrix,)
+    return species_matrix, zero_intensity_proteins
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(samples, species_matrix):
     if species_matrix is None:
         raw_intensity_df = None
@@ -238,21 +241,31 @@ def _(samples, species_matrix):
     return (raw_intensity_df,)
 
 
-@app.cell
-def _(mo, species_matrix):
+@app.cell(hide_code=True)
+def _(mo, species_matrix, zero_intensity_proteins):
     _out = mo.md("")
     if species_matrix is not None:
         fill = species_matrix.notna().values.sum()
-        _out = mo.hstack([
+        _items = [mo.hstack([
             mo.stat(label="Proteins", value=f"{species_matrix.index.get_level_values(0).nunique():,}"),
             mo.stat(label="Species",  value=f"{len(species_matrix):,}"),
             mo.stat(label="Fill",     value=f"{100*fill/species_matrix.size:.1f}%"),
-        ])
+        ])]
+        if zero_intensity_proteins:
+            _preview = ", ".join(f"`{p}`" for p in zero_intensity_proteins[:20])
+            if len(zero_intensity_proteins) > 20:
+                _preview += f" ... (+{len(zero_intensity_proteins)-20} more)"
+            _items.append(mo.callout(
+                mo.md(f"**{len(zero_intensity_proteins)} protein(s) have zero intensity across all samples** and are excluded from LFQ calculations. "
+                      f"Use _Include zero-intensity proteins_ in Parameters to add them back to the download with NaN values.\n\n{_preview}"),
+                kind="warn"
+            ))
+        _out = mo.vstack(_items)
     _out
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## Step 1 — Delayed Normalization
@@ -263,7 +276,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(combinations, np, samples, species_matrix):
     if species_matrix is None:
         logX = n_samples = normalization_residuals = None
@@ -282,7 +295,7 @@ def _(combinations, np, samples, species_matrix):
     return n_samples, normalization_residuals
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(least_squares, n_samples, normalization_residuals, np):
     if normalization_residuals is None:
         N_scale_free = H_before = None
@@ -295,7 +308,7 @@ def _(least_squares, n_samples, normalization_residuals, np):
     return H_before, N_scale_free
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(N_scale_free, anchor_sample, normalization_residuals, np, pd, samples):
     if N_scale_free is None:
         N = H_after = normalization_table = None
@@ -316,7 +329,7 @@ def _(N_scale_free, anchor_sample, normalization_residuals, np, pd, samples):
     return H_after, normalization_table
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(H_after, H_before, mo, normalization_table, px):
     _out = mo.md("")
     if normalization_table is not None:
@@ -333,7 +346,7 @@ def _(H_after, H_before, mo, normalization_table, px):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(normalization_table, species_matrix):
     if species_matrix is None or normalization_table is None:
         normalized_species_matrix = None
@@ -345,7 +358,7 @@ def _(normalization_table, species_matrix):
     return (normalized_species_matrix,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## Step 2 — Normalized Intensities (Eq. 1)
@@ -356,7 +369,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, normalization_table, normalized_species_matrix, pd, px, samples):
     _out = mo.md("")
     if normalized_species_matrix is not None and normalization_table is not None:
@@ -371,7 +384,7 @@ def _(mo, normalization_table, normalized_species_matrix, pd, px, samples):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(normalized_species_matrix, species_matrix):
     _src = normalized_species_matrix if normalized_species_matrix is not None else species_matrix
     if _src is None:
@@ -384,7 +397,7 @@ def _(normalized_species_matrix, species_matrix):
     return (protein_list,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, protein_list):
     protein_selector = mo.ui.dropdown(
         options=protein_list or [],
@@ -394,7 +407,7 @@ def _(mo, protein_list):
     return (protein_selector,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, protein_list, protein_selector):
     _out = mo.md("")
     if protein_list:
@@ -403,7 +416,7 @@ def _(mo, protein_list, protein_selector):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, normalized_species_matrix, protein_list, protein_selector, px, species_matrix):
     _out = mo.md("")
     _src = normalized_species_matrix if normalized_species_matrix is not None else species_matrix
@@ -424,7 +437,7 @@ def _(mo, normalized_species_matrix, protein_list, protein_selector, px, species
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## Step 3 — Pairwise Log-Ratios
@@ -435,7 +448,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     combinations,
     minimum_ratio_count,
@@ -465,7 +478,7 @@ def _(
     return (pairwise_ratio_trace,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, pairwise_ratio_trace, px):
     _out = mo.md("")
     if pairwise_ratio_trace is not None and len(pairwise_ratio_trace) > 0:
@@ -478,7 +491,7 @@ def _(mo, pairwise_ratio_trace, px):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## Step 4 — Profile Reconstruction (Eq. 3)
@@ -490,7 +503,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     anchor_sample,
     combinations,
@@ -562,7 +575,7 @@ def _(
     return (calculated_lfq,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(calculated_lfq, mo):
     _out = mo.md("")
     if calculated_lfq is not None:
@@ -579,7 +592,7 @@ def _(calculated_lfq, mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(calculated_lfq, filter_contaminant, filter_decoy, first_token, np, pd, protein_groups_df, samples):
     if protein_groups_df is None or calculated_lfq is None:
         comparison_trace = reference_lfq = None
@@ -616,7 +629,7 @@ def _(calculated_lfq, filter_contaminant, filter_decoy, first_token, np, pd, pro
     return (comparison_trace,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(H_after, H_before, calculated_lfq, comparison_trace, mo, np):
     _out = mo.md("")
     if comparison_trace is not None and calculated_lfq is not None:
@@ -636,7 +649,7 @@ def _(H_after, H_before, calculated_lfq, comparison_trace, mo, np):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(comparison_trace, mo, px):
     _out = mo.md("")
     if comparison_trace is not None and len(comparison_trace) > 0:
@@ -657,7 +670,7 @@ def _(comparison_trace, mo, px):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ---
@@ -666,7 +679,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, samples):
     ratio_method    = mo.ui.dropdown(options=["median", "mean"], value="median", label="Pairwise ratio method")
     rescale_method  = mo.ui.dropdown(options=["max", "sum"],     value="sum",    label="Profile rescaling")
@@ -675,30 +688,31 @@ def _(mo, samples):
     anchor_sample   = mo.ui.dropdown(options=anchor_options, value="All Samples Maximum", label="Scaling anchor")
     filter_decoy           = mo.ui.checkbox(label="Filter Decoy/Reverse",         value=False)
     filter_contaminant     = mo.ui.checkbox(label="Filter Potential Contaminant(s)", value=False)
-    filter_unique_groups   = mo.ui.checkbox(label="Unique (Groups)",                 value=False)
-    filter_unique_proteins = mo.ui.checkbox(label="Unique (Proteins)",               value=False)
-    return anchor_sample, filter_contaminant, filter_decoy, filter_unique_groups, filter_unique_proteins, minimum_ratio_count, ratio_method, rescale_method
+    filter_unique_groups      = mo.ui.checkbox(label="Unique (Groups)",                       value=False)
+    filter_unique_proteins    = mo.ui.checkbox(label="Unique (Proteins)",                     value=False)
+    include_zero_intensity    = mo.ui.checkbox(label="Include zero-intensity proteins in download", value=False)
+    return anchor_sample, filter_contaminant, filter_decoy, filter_unique_groups, filter_unique_proteins, include_zero_intensity, minimum_ratio_count, ratio_method, rescale_method
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     protein_search = mo.ui.text(placeholder="e.g. CON__, REV__, BSA", label="Search proteins to exclude")
     return (protein_search,)
 
 
-@app.cell
-def _(anchor_sample, filter_contaminant, filter_decoy, filter_unique_groups, filter_unique_proteins, minimum_ratio_count, mo, protein_search, ratio_method, rescale_method):
+@app.cell(hide_code=True)
+def _(anchor_sample, filter_contaminant, filter_decoy, filter_unique_groups, filter_unique_proteins, include_zero_intensity, minimum_ratio_count, mo, protein_search, ratio_method, rescale_method):
     _out = mo.vstack([
         mo.hstack([ratio_method, rescale_method, minimum_ratio_count, anchor_sample], gap=2),
         mo.hstack([filter_decoy, filter_contaminant], gap=4),
         mo.hstack([filter_unique_groups, filter_unique_proteins], gap=4),
-        mo.hstack([protein_search], gap=2),
+        mo.hstack([protein_search, include_zero_intensity], gap=4),
     ])
     _out
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo, protein_search, raw_protein_list):
     _q = protein_search.value.strip().lower()
     _matched = [p for p in raw_protein_list if _q in p.lower()] if _q else []
@@ -711,7 +725,7 @@ def _(mo, protein_search, raw_protein_list):
     return matched_proteins, protein_exclusion_select
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(matched_proteins, protein_exclusion_select):
     if protein_exclusion_select is None:
         proteins_to_exclude = set()
@@ -720,7 +734,7 @@ def _(matched_proteins, protein_exclusion_select):
     return (proteins_to_exclude,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(matched_proteins, mo, protein_exclusion_select, protein_search, proteins_to_exclude):
     _out = mo.md("")
     if protein_search.value.strip():
@@ -742,7 +756,7 @@ def _(matched_proteins, mo, protein_exclusion_select, protein_search, proteins_t
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(
     anchor_sample,
     calculated_lfq,
@@ -750,27 +764,35 @@ def _(
     filter_decoy,
     filter_unique_groups,
     filter_unique_proteins,
+    include_zero_intensity,
     minimum_ratio_count,
     mo,
     n_contaminant,
     n_decoy,
+    pd,
     proteins_to_exclude,
     ratio_method,
     raw_intensity_df,
     rescale_method,
+    zero_intensity_proteins,
 ):
     _out = mo.md("")
     if calculated_lfq is not None:
         _anch = str(anchor_sample.value).replace(" ", "")
         _d  = 0 if filter_decoy.value      else n_decoy
         _c  = 0 if filter_contaminant.value else n_contaminant
-        _ug = "yes" if filter_unique_groups.value   else "no"
-        _up = "yes" if filter_unique_proteins.value else "no"
-        _filt = f"_decoy-{_d}_cont-{_c}_excl-{len(proteins_to_exclude)}_ug-{_ug}_up-{_up}"
+        _ug = "yes" if filter_unique_groups.value    else "no"
+        _up = "yes" if filter_unique_proteins.value  else "no"
+        _zi = "yes" if include_zero_intensity.value  else "no"
+        _filt = f"_decoy-{_d}_cont-{_c}_excl-{len(proteins_to_exclude)}_ug-{_ug}_up-{_up}_zi-{_zi}"
         _fname = f"maxLFQmo_ratio-{ratio_method.value}_scale-{rescale_method.value}_min-{minimum_ratio_count.value}_anchor-{_anch}{_filt}.tsv"
-        _export = calculated_lfq.copy()
+        _export = raw_intensity_df.copy() if raw_intensity_df is not None else calculated_lfq.copy()
         if raw_intensity_df is not None:
-            _export = _export.join(raw_intensity_df, how="left")
+            _export = raw_intensity_df.join(calculated_lfq, how="left")
+        if include_zero_intensity.value and zero_intensity_proteins:
+            _zero = pd.DataFrame(index=zero_intensity_proteins, columns=_export.columns, dtype=float)
+            _zero.index.name = _export.index.name
+            _export = pd.concat([_export, _zero])
         _csv = _export.to_csv(sep="\t").encode("utf-8")
         _btn = mo.download(
             data=_csv,
