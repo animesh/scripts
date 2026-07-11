@@ -1,2426 +1,564 @@
-## [tool.marimo.runtime]
-## auto_instantiate = false
-## uv add pandas plotly scipy
-## #animeshs@ubuntu:~/scripts$ uv run marimo edit maxLFQmo.py --host 0.0.0.0 --port 2718
-## http://10.20.93.118:2718?access_token=J8CZerX-fwfcr_CRZUK_Rw
+import marimo as mo
 
-import marimo
-
-__generated_with = "0.23.13"
-app = marimo.App(width="full")
+app = mo.App(width="full", app_title="Inside MaxLFQ")
 
 
 @app.cell
 def _():
     import marimo as mo
-
     import pandas as pd
     import numpy as np
-
     import plotly.express as px
-    import plotly.graph_objects as go
-
+    import io
     from pathlib import Path
     from itertools import combinations
-
     from scipy.optimize import least_squares
-
-
-
-    return Path, combinations, least_squares, mo, np, pd, px
+    return io, combinations, least_squares, mo, np, Path, pd, px
 
 
 @app.cell
 def _(mo):
     mo.md(r"""
     # Inside MaxLFQ
+    Interactive reverse-engineering of MaxQuant LFQ (Cox et al., MCP 2014).
 
-    ## Interactive Reverse Engineering of MaxQuant LFQ
-
-    This notebook is an interactive implementation of the
-    MaxLFQ workflow described by Cox et al.
-
-    ---
-
-    ## Workflow
-
-    Peptide Intensities
-
-    ↓
-
-    Species Construction
-
-    ↓
-
-    Equation 2 Delayed Normalization
-
-    ↓
-
-    Equation 1 Normalized Intensities
-
-    ↓
-
-    Pairwise Peptide Ratios
-
-    ↓
-
-    Equation 3 Protein Profile Reconstruction
-
-    ↓
-
-    LFQ Scaling
-
-    ↓
-
-    Comparison Against proteinGroups.txt
-
-    ---
-
-    This notebook allows users to:
-
-    - Upload MaxQuant outputs
-    - Reconstruct LFQ step-by-step
-    - Explore normalization factors
-    - Inspect pairwise ratio graphs
-    - Compare reconstructed LFQ to proteinGroups LFQ
-    - Investigate reconstruction residuals
+    **Workflow:** peptides.txt → Delayed normalization (Eq. 2) → Pairwise ratios (Eq. 3) → Protein reconstruction → LFQ scaling → Compare vs. proteinGroups
     """)
-    return
 
 
 @app.cell
 def _(mo):
-    mo.md(r"""
-    # Equation 1
+    mo.accordion({
+        "Equations": mo.md(r"""
+        **Eq. 1** Normalized: $I_{p,s}(N) = N_s\, X_{p,s}$
 
-    Normalized peptide intensity
+        **Eq. 2** Normalization: $H(N) = \sum_{p,i,j} \left[\log\frac{I_{p,i}(N)}{I_{p,j}(N)}\right]^2 \to \min$
 
-    $$
-    I_{p,s}(N)
-    =
-    N_s X_{p,s}
-    $$
-
-    where
-
-    - $X_{p,s}$ = observed peptide intensity
-    - $N_s$ = normalization factor
-    - $I_{p,s}(N)$ = normalized peptide intensity
-    """)
-    return
+        **Eq. 3** Profile constraint: $\log I_i - \log I_j = \log r_{ij}$, solved via least-squares
+        """)
+    })
 
 
 @app.cell
 def _(mo):
-    mo.md(r"""
-    # Equation 2
-
-    Delayed normalization objective
-
-    $$
-    H(N)
-    =
-    \sum
-    \left[
-    \log
-    \left(
-    \frac{I_{p,i}(N)}
-     {I_{p,j}(N)}
-    \right)
-    \right]^2
-    $$
-
-    over all shared peptide species and sample pairs.
-    """)
-    return
+    peptide_file = mo.ui.file(label="peptides.txt")
+    proteingroup_file = mo.ui.file(label="proteinGroups.txt")
+    return peptide_file, proteingroup_file
 
 
 @app.cell
-def _(mo):
-    mo.md(r"""
-    # Equation 3
+def _(mo, peptide_file, proteingroup_file):
+    mo.hstack([peptide_file, proteingroup_file], gap=4)
 
-    Protein profile reconstruction
-
-    $$
-    \log I_i
-    -
-    \log I_j
-    =
-    \log(r_{ij})
-    $$
-
-    where
-
-    $$
-    r_{ij}
-    $$
-
-    is the representative peptide ratio
-    between samples.
-    """)
-    return
-
-
-@app.cell
-def _(mo):
-
-    peptide_path_widget = mo.ui.text(
-        value="peptides.txt",
-        label="Peptides file",
-    )
-
-    protein_groups_path_widget = mo.ui.text(
-        value="proteinGroups.txt",
-        label="ProteinGroups file",
-    )
-
-    _path_selector_view = mo.vstack(
-        [
-            peptide_path_widget,
-            protein_groups_path_widget,
-        ]
-    )
-
-    _path_selector_view
-
-    return (
-        peptide_path_widget,
-        protein_groups_path_widget,
-    )
-
-
-@app.cell
-def _(mo, peptide_df, protein_groups_df):
-    mo.md(f"""
-    # Debug
-
-    Peptide loaded:
-    {peptide_df is not None}
-
-    ProteinGroups loaded:
-    {protein_groups_df is not None}
-
-    Peptide rows:
-    {0 if peptide_df is None else len(peptide_df)}
-
-    ProteinGroups rows:
-    {0 if protein_groups_df is None else len(protein_groups_df)}
-    """)
-    return
-
-
-@app.cell
-def _(mo):
-
-    species_mode = mo.ui.dropdown(
-        options=[
-            "ModifiedSequence+Charge",
-            "ModifiedSequence",
-            "Sequence+Charge",
-            "Sequence",
-        ],
-        value="ModifiedSequence+Charge",
-        label="Species Definition",
-    )
-
-    aggregation_mode = mo.ui.dropdown(
-        options=[
-            "max",
-            "sum",
-        ],
-        value="max",
-        label="Species Aggregation",
-    )
-
-    ratio_method = mo.ui.dropdown(
-        options=[
-            "median",
-            "mean",
-        ],
-        value="median",
-        label="Ratio Method",
-    )
-
-    rescale_method = mo.ui.dropdown(
-        options=[
-            "max",
-            "sum",
-        ],
-        value="max",
-        label="Protein Rescaling",
-    )
-
-    min_ratio_count = mo.ui.number(
-        start=1,
-        stop=50,
-        value=1,
-        label="Minimum Shared Species",
-    )
-
-    mo.vstack(
-        [
-            species_mode,
-            aggregation_mode,
-            ratio_method,
-            rescale_method,
-            min_ratio_count,
-        ]
-    )
-    return aggregation_mode, rescale_method, species_mode
-
-@app.cell
-def _(
-    mo,
-    species_mode,
-    aggregation_mode,
-    ratio_method,
-    rescale_method,
-):
-
-    _settings_view = mo.md(
-        f"""
-# Current Settings
-
-Species Mode
-
-`{species_mode.value}`
-
-Aggregation Mode
-
-`{aggregation_mode.value}`
-
-Ratio Method
-
-`{ratio_method.value}`
-
-Rescale Method
-
-`{rescale_method.value}`
-"""
-    )
-
-    _settings_view
-
-    return
 
 @app.cell
 def _():
-    def first_existing_column(
-        df,
-        candidates,
-    ):
-        for col in candidates:
-            if col in df.columns:
-                return col
+    def first_col(df, candidates):
+        for c in candidates:
+            if c in df.columns:
+                return c
         return None
 
+    def first_token(v):
+        return str(v).split(";")[0].strip()
 
-    def first_token(value):
-        return str(value).split(";")[0].strip()
-
-    return first_existing_column, first_token
-
-
-@app.cell
-def _(Path, pd):
-
-    def read_table(path):
-
-        path = Path(path)
-
-        suffix = path.suffix.lower()
-
-        if suffix in [".txt", ".tsv"]:
-            return pd.read_csv(
-                path,
-                sep="\t",
-                low_memory=False,
-            )
-
-        if suffix == ".csv":
-            return pd.read_csv(
-                path,
-                low_memory=False,
-            )
-
-        if suffix == ".xlsx":
-            return pd.read_excel(
-                path,
-                engine="openpyxl",
-            )
-
-        if suffix == ".xls":
-            return pd.read_excel(
-                path,
-                engine="xlrd",
-            )
-
-        return pd.read_csv(
-            path,
-            sep=None,
-            engine="python",
-        )
-
-    return (read_table,)
+    return first_col, first_token
 
 
 @app.cell
-def _(
-    peptide_path_widget,
-    protein_groups_path_widget,
-    read_table,
-):
+def _(pd, io):
+    def read_uploaded_table(uploaded_file):
+        name = uploaded_file.name.lower()
+        content_stream = io.BytesIO(uploaded_file.contents)
+        
+        if name.endswith((".txt", ".tsv")):
+            return pd.read_csv(content_stream, sep="\t", low_memory=False)
+        if name.endswith(".csv"):
+            return pd.read_csv(content_stream, low_memory=False)
+        if name.endswith(".xlsx"):
+            return pd.read_excel(content_stream, engine="openpyxl")
+        return pd.read_csv(content_stream, sep=None, engine="python")
+    return (read_uploaded_table,)
 
+
+@app.cell
+def _(peptide_file, proteingroup_file, read_uploaded_table):
     peptide_df = None
     protein_groups_df = None
+    _pep_err = None
+    _pg_err = None
+    
+    if peptide_file.value:
+        try:
+            peptide_df = read_uploaded_table(peptide_file.value[0])
+        except Exception as e:
+            _pep_err = str(e)
+            
+    if proteingroup_file.value:
+        try:
+            protein_groups_df = read_uploaded_table(proteingroup_file.value[0])
+        except Exception as e:
+            _pg_err = str(e)
+            
+    load_errors = {"peptide": _pep_err, "pg": _pg_err}
+    return load_errors, peptide_df, protein_groups_df
 
-    try:
-
-        peptide_df = read_table(
-            peptide_path_widget.value
-        )
-
-    except Exception as e:
-
-        print(
-            "PEPTIDE LOAD ERROR:",
-            e,
-        )
-
-    try:
-
-        protein_groups_df = read_table(
-            protein_groups_path_widget.value
-        )
-
-    except Exception as e:
-
-        print(
-            "PROTEINGROUPS LOAD ERROR:",
-            e,
-        )
-
-    return (
-        peptide_df,
-        protein_groups_df,
-    )
 
 @app.cell
-def _(mo, peptide_df):
+def _(peptide_df, first_col):
     if peptide_df is None:
-
-        mo.md(
-            """
-    ## Input Data
-
-    Upload a peptide table.
-    """
-        )
-
+        protein_col = modified_sequence_col = sequence_col = modifications_col = charge_col = intensity_cols = samples = None
     else:
-
-        mo.vstack(
-            [
-                mo.md(
-                    f"""
-    ## Peptide Table
-
-    Rows
-
-    **{len(peptide_df):,}**
-
-    Columns
-
-    **{len(peptide_df.columns):,}**
-    """
-                ),
-                mo.ui.table(
-                    peptide_df.head(20)
-                ),
-            ]
-        )
-    return
+        protein_col = first_col(peptide_df, ["Leading razor protein", "Razor protein", "Proteins", "Protein IDs"])
+        modified_sequence_col = first_col(peptide_df, ["Modified sequence", "Modified Sequence"])
+        sequence_col = first_col(peptide_df, ["Sequence", "Peptide sequence", "Peptide"])
+        modifications_col = first_col(peptide_df, ["Modifications", "Modification"])
+        charge_col = first_col(peptide_df, ["Charge", "Charges", "z"])
+        intensity_cols = [c for c in peptide_df.columns if str(c).startswith("Intensity ")]
+        samples = [c.replace("Intensity ", "", 1) for c in intensity_cols]
+    return charge_col, intensity_cols, modifications_col, modified_sequence_col, protein_col, samples, sequence_col
 
 
 @app.cell
-def _(first_existing_column, peptide_df):
-
-    if peptide_df is None:
-
-        protein_col = None
-        modified_sequence_col = None
-        sequence_col = None
-        modifications_col = None
-        charge_col = None
-        intensity_cols = []
-        samples = []
-
-    else:
-
-        protein_col = (
-            first_existing_column(
-                peptide_df,
-                [
-                    "Leading razor protein",
-                    "Razor",
-                    "Razor protein",
-                    "Proteins",
-                    "Protein",
-                    "Protein IDs",
-                ],
-            )
-        )
-
-        modified_sequence_col = (
-            first_existing_column(
-                peptide_df,
-                [
-                    "Modified sequence",
-                    "Modified Sequence",
-                    "Modified peptide sequence",
-                ],
-            )
-        )
-
-        sequence_col = (
-            first_existing_column(
-                peptide_df,
-                [
-                    "Sequence",
-                    "Peptide sequence",
-                    "Peptide",
-                ],
-            )
-        )
-
-        modifications_col = (
-            first_existing_column(
-                peptide_df,
-                [
-                    "Modifications",
-                    "Modification",
-                ],
-            )
-        )
-
-        charge_col = (
-            first_existing_column(
-                peptide_df,
-                [
-                    "Charge",
-                    "Charges",
-                    "z",
-                ],
-            )
-        )
-
-        intensity_cols = [
-            c
-            for c in peptide_df.columns
-            if str(c).startswith(
-                "Intensity "
-            )
-        ]
-
-        samples = [
-            c.replace(
-                "Intensity ",
-                "",
-                1,
-            )
-            for c in intensity_cols
-        ]
-    return (
-        charge_col,
-        intensity_cols,
-        modifications_col,
-        modified_sequence_col,
-        protein_col,
-        samples,
-        sequence_col,
+def _(mo, samples):
+    # Dynamic settings widgets generated reactively once files are processed
+    species_mode = mo.ui.dropdown(
+        options=["ModifiedSequence+Charge", "ModifiedSequence", "Sequence+Charge", "Sequence"],
+        value="ModifiedSequence+Charge", label="Peptide species",
     )
+    aggregation_mode = mo.ui.dropdown(options=["max", "sum"], value="max", label="Aggregation Method")
+    ratio_method = mo.ui.dropdown(options=["median", "mean"], value="median", label="Ratio method")
+    rescale_method = mo.ui.dropdown(options=["max", "sum"], value="max", label="Rescaling Profile")
+    
+    # Dynamic Anchor Selection Dropdown
+    anchor_sample = mo.ui.dropdown(
+        options=["All Samples Average"] + (samples if samples else []),
+        value="All Samples Average",
+        label="Scaling Anchor Target"
+    )
+    
+    minimum_ratio_count = mo.ui.number(start=1, stop=50, value=1, label="Min shared peptides")
+    return aggregation_mode, minimum_ratio_count, ratio_method, rescale_method, species_mode, anchor_sample
 
 
 @app.cell
-def _(
-    charge_col,
-    intensity_cols,
-    mo,
-    modifications_col,
-    modified_sequence_col,
-    protein_col,
-    sequence_col,
-):
-    mo.md(f"""
-    # Auto Detection
-
-    Protein column
-
-    `{protein_col}`
-
-    Modified sequence column
-
-    `{modified_sequence_col}`
-
-    Sequence column
-
-    `{sequence_col}`
-
-    Modifications column
-
-    `{modifications_col}`
-
-    Charge column
-
-    `{charge_col}`
-
-    Intensity columns
-
-    `{len(intensity_cols)}`
-    """)
-    return
+def _(mo, species_mode, aggregation_mode, ratio_method, rescale_method, anchor_sample, minimum_ratio_count, samples):
+    if samples is None:
+        _out = mo.md("")
+    else:
+        _out = mo.vstack([
+            mo.md("### Parameter Adjustments"),
+            mo.hstack([species_mode, aggregation_mode, ratio_method, rescale_method, anchor_sample, minimum_ratio_count], gap=2)
+        ])
+    _out
 
 
 @app.cell
-def _(intensity_cols, mo, peptide_df, samples):
-    mo.md(f"""
-    # Data Check
-
-    Rows
-
-    {0 if peptide_df is None else len(peptide_df)}
-
-    Intensity columns
-
-    {len(intensity_cols)}
-
-    Samples
-
-    {samples}
-    """)
-    return
+def _(mo, peptide_df, protein_groups_df, load_errors):
+    if load_errors.get("peptide"):
+        _out = mo.callout(mo.md(f"**Error loading peptides.txt:** {load_errors['peptide']}"), kind="danger")
+    elif peptide_df is None:
+        _out = mo.callout(mo.md("Upload **peptides.txt** above to begin. **proteinGroups.txt** is optional (enables comparison plots)."), kind="info")
+    else:
+        _stats = [
+            mo.stat(label="Peptide rows", value=f"{len(peptide_df):,} lines"),
+            mo.stat(label="Peptide columns", value=f"{len(peptide_df.columns):,}"),
+        ]
+        if protein_groups_df is not None:
+            _stats.append(mo.stat(label="ProteinGroup rows", value=f"{len(protein_groups_df):,}"))
+        if load_errors.get("pg"):
+            _stats.append(mo.callout(mo.md(f"proteinGroups error: {load_errors['pg']}"), kind="warn"))
+        _out = mo.hstack(_stats)
+    _out
 
 
 @app.cell
-def _(first_token, intensity_cols, np, pd, peptide_df, protein_col):
+def _(mo, protein_col, modified_sequence_col, sequence_col, charge_col, intensity_cols):
+    _txt = "" if protein_col is None else f"**Detected columns:** protein=`{protein_col}` | mod-seq=`{modified_sequence_col}` | seq=`{sequence_col}` | charge=`{charge_col}` | **{len(intensity_cols or [])} raw intensity tracks parsed**"
+    mo.md(_txt)
 
-    if peptide_df is None:
 
+@app.cell
+def _(peptide_df, protein_col, intensity_cols, first_token, pd, np):
+    if peptide_df is None or protein_col is None:
         clean = None
-
     else:
-
         clean = peptide_df.copy()
-
-        for flag_col in [
-            "Reverse",
-            "Potential contaminant",
-            "Contaminant",
-        ]:
-
-            if flag_col in clean.columns:
-
-                clean = clean[
-                    clean[flag_col]
-                    .astype(str)
-                    .str.strip()
-                    != "+"
-                ]
-
-        if len(intensity_cols) > 0:
-
-            clean[intensity_cols] = (
-                clean[intensity_cols]
-                .apply(
-                    pd.to_numeric,
-                    errors="coerce",
-                )
-                .replace(
-                    0,
-                    np.nan,
-                )
-            )
-
-            clean = clean[
-                clean[intensity_cols]
-                .notna()
-                .any(axis=1)
-            ].copy()
-
-        clean["_protein"] = (
-            clean[protein_col]
-            .astype(str)
-            .map(first_token)
-        )
+        for _flag in ["Reverse", "Potential contaminant", "Contaminant"]:
+            if _flag in clean.columns:
+                clean = clean[clean[_flag].astype(str).str.strip() != "+"]
+        clean[intensity_cols] = clean[intensity_cols].apply(pd.to_numeric, errors="coerce").replace(0, np.nan)
+        clean = clean[clean[intensity_cols].notna().any(axis=1)].copy()
+        clean["_protein"] = clean[protein_col].astype(str).map(first_token)
     return (clean,)
 
 
 @app.cell
-def _(clean, mo):
-
+def _(clean, species_mode, modified_sequence_col, sequence_col, modifications_col, charge_col, pd):
     if clean is None:
-
-        mo.md(
-            """
-    ## Clean Table
-
-    Waiting for peptide data.
-    """
-        )
-
-    else:
-
-        mo.vstack(
-            [
-                mo.md(
-                    f"""
-    ## Clean Table
-
-    Rows remaining after filtering
-
-    **{len(clean):,}**
-    """
-                ),
-                mo.ui.table(
-                    clean.head(20)
-                ),
-            ]
-        )
-    return
-
-
-@app.cell
-def _(
-    charge_col,
-    clean,
-    modifications_col,
-    modified_sequence_col,
-    pd,
-    sequence_col,
-    species_mode,
-):
-
-    if clean is None:
-
         species_df = None
-
     else:
-
         species_df = clean.copy()
-
-        if modified_sequence_col is not None:
-
-            modseq = (
-                species_df[
-                    modified_sequence_col
-                ]
-                .astype(str)
-            )
-
-        elif (
-            sequence_col is not None
-            and modifications_col is not None
-        ):
-
-            modseq = (
-                species_df[
-                    sequence_col
-                ].astype(str)
-                + "|mods="
-                + species_df[
-                    modifications_col
-                ].astype(str)
-            )
-
-        elif sequence_col is not None:
-
-            modseq = (
-                species_df[
-                    sequence_col
-                ].astype(str)
-            )
-
+        if modified_sequence_col:
+            modseq = species_df[modified_sequence_col].astype(str)
+        elif sequence_col and modifications_col:
+            modseq = species_df[sequence_col].astype(str) + "|" + species_df[modifications_col].astype(str)
+        elif sequence_col:
+            modseq = species_df[sequence_col].astype(str)
         else:
-
-            modseq = pd.Series(
-                "UNKNOWN",
-                index=species_df.index,
-            )
-
-        if charge_col is not None:
-
-            charge = (
-                species_df[
-                    charge_col
-                ]
-                .astype(str)
-                .str.strip()
-            )
-
+            modseq = pd.Series("UNKNOWN", index=species_df.index)
+        charge = species_df[charge_col].astype(str).str.strip() if charge_col else pd.Series("NA", index=species_df.index)
+        if species_mode.value in ("ModifiedSequence+Charge", "Sequence+Charge"):
+            species_df["_species"] = modseq + "|z=" + charge
         else:
-
-            charge = pd.Series(
-                "NA",
-                index=species_df.index,
-            )
-
-        mode = (
-            species_mode.value
-        )
-
-        if mode == "Sequence":
-
-            species_df["_species"] = (
-                modseq
-            )
-
-        elif mode == "ModifiedSequence":
-
-            species_df["_species"] = (
-                modseq
-            )
-
-        elif mode == "Sequence+Charge":
-
-            species_df["_species"] = (
-                modseq
-                + "|z="
-                + charge
-            )
-
-        else:
-
-            species_df["_species"] = (
-                modseq
-                + "|z="
-                + charge
-            )
+            species_df["_species"] = modseq
     return (species_df,)
 
 
 @app.cell
-def _(mo, species_df):
-    mo.md(f"""
-    # Species Debug
-
-    species_df exists:
-
-    {species_df is not None}
-
-    species rows:
-
-    {0 if species_df is None else len(species_df)}
-
-    unique proteins:
-
-    {0 if species_df is None else species_df['_protein'].nunique()}
-
-    unique species:
-
-    {0 if species_df is None else species_df['_species'].nunique()}
-    """)
-    return
-
-
-@app.cell
-def _(mo, species_matrix):
-    mo.md(f"""
-    # Species Matrix Debug
-
-    Exists:
-
-    {species_matrix is not None}
-
-    Rows:
-
-    {0 if species_matrix is None else len(species_matrix)}
-
-    Columns:
-
-    {0 if species_matrix is None else len(species_matrix.columns)}
-    """)
-    return
-
-
-@app.cell
-def _(aggregation_mode, intensity_cols, np, samples, species_df):
-
+def _(species_df, samples, intensity_cols, aggregation_mode, np):
     if species_df is None:
-
-        working = None
         species_matrix = None
-
     else:
-
-        rename_map = {
-            old: sample
-            for old, sample
-            in zip(
-                intensity_cols,
-                samples,
-            )
-        }
-
-        working = (
-            species_df[
-                ["_protein", "_species"]
-                + intensity_cols
-            ]
-            .rename(
-                columns=rename_map
-            )
-            .copy()
-        )
-
-        if (
-            aggregation_mode.value
-            == "max"
-        ):
-
-            species_matrix = (
-                working
-                .groupby(
-                    [
-                        "_protein",
-                        "_species",
-                    ],
-                    sort=True,
-                )[samples]
-                .max()
-            )
-
-        else:
-
-            species_matrix = (
-                working
-                .groupby(
-                    [
-                        "_protein",
-                        "_species",
-                    ],
-                    sort=True,
-                )[samples]
-                .sum(
-                    min_count=1
-                )
-            )
-
-        species_matrix = (
-            species_matrix
-            .replace(
-                0,
-                np.nan,
-            )
-        )
+        _rename = dict(zip(intensity_cols, samples))
+        _w = species_df[["_protein", "_species"] + intensity_cols].rename(columns=_rename)
+        _grp = _w.groupby(["_protein", "_species"], sort=True)[samples]
+        species_matrix = (_grp.max() if aggregation_mode.value == "max" else _grp.sum(min_count=1)).replace(0, np.nan)
     return (species_matrix,)
 
 
 @app.cell
 def _(mo, species_matrix):
-
     if species_matrix is None:
-
-        view = mo.md(
-            """
-## Species Matrix
-
-Waiting for data.
-"""
-        )
-
+        _out = mo.md("")
     else:
+        _fill = species_matrix.notna().values.sum()
+        _out = mo.hstack([
+            mo.stat(label="Proteins", value=f"{species_matrix.index.get_level_values(0).nunique():,}"),
+            mo.stat(label="Species Matrix Rows", value=f"{len(species_matrix):,}"),
+            mo.stat(label="Matrix Sparsity Fill", value=f"{100*_fill/species_matrix.size:.1f}%"),
+        ])
+    _out
 
-        proteins = (
-            species_matrix
-            .index
-            .get_level_values(0)
-            .nunique()
-        )
-
-        species_count = (
-            len(
-                species_matrix
-            )
-        )
-
-        view = mo.vstack(
-            [
-                mo.md(
-                    f"""
-# Species Matrix
-
-Proteins
-
-**{proteins:,}**
-
-Protein-Species Rows
-
-**{species_count:,}**
-"""
-                ),
-                mo.ui.table(
-                    species_matrix
-                    .head(25)
-                ),
-            ]
-        )
-
-    view
-
-    return
 
 @app.cell
-def _(species_matrix):
-
+def _(np, species_matrix, samples, combinations, least_squares):
     if species_matrix is None:
-
-        species_summary = None
-
+        logX = n_samples = normalization_residuals = None
     else:
+        logX = np.log(species_matrix.values.astype(float))
+        n_samples = len(samples)
+        _pairs = list(combinations(range(n_samples), 2))
 
-        species_summary = (
-            species_matrix
-            .reset_index()
-            .groupby(
-                "_protein"
-            )
-            .agg(
-                species_count=(
-                    "_species",
-                    "nunique",
-                )
-            )
-            .sort_values(
-                "species_count",
-                ascending=False,
-            )
-            .reset_index()
-        )
-    return (species_summary,)
-
-
-@app.cell
-def _(mo, species_summary):
-
-    if species_summary is not None:
-
-        mo.vstack(
-            [
-                mo.md(
-                    """
-    ## Species Per Protein
-    """
-                ),
-                mo.ui.table(
-                    species_summary
-                    .head(50)
-                ),
-            ]
-        )
-    return
-
-
-@app.cell
-def _(np, species_matrix):
-
-    if species_matrix is None:
-
-        matrix_values = None
-        matrix_stats = None
-
-    else:
-
-        matrix_values = (
-            species_matrix
-            .values
-            .astype(float)
-        )
-
-        finite_mask = (
-            np.isfinite(
-                matrix_values
-            )
-        )
-
-        matrix_stats = {
-            "rows":
-                species_matrix.shape[0],
-            "cols":
-                species_matrix.shape[1],
-            "finite":
-                int(
-                    finite_mask.sum()
-                ),
-            "missing":
-                int(
-                    (~finite_mask).sum()
-                ),
-        }
-    return (matrix_stats,)
-
-
-@app.cell
-def _(matrix_stats, mo):
-
-    if matrix_stats is not None:
-
-        mo.md(
-            f"""
-    ## Matrix Diagnostics
-
-    Rows
-
-    **{matrix_stats['rows']:,}**
-
-    Columns
-
-    **{matrix_stats['cols']:,}**
-
-    Finite Values
-
-    **{matrix_stats['finite']:,}**
-
-    Missing Values
-
-    **{matrix_stats['missing']:,}**
-    """
-        )
-    return
-
-
-@app.cell
-def _(combinations, np, samples, species_matrix):
-
-    if species_matrix is None:
-
-        logX = None
-        n_samples = None
-        sample_pairs = None
-
-    else:
-
-        logX = np.log(
-            species_matrix
-            .values
-            .astype(float)
-        )
-
-        n_samples = (
-            len(samples)
-        )
-
-        sample_pairs = list(
-            combinations(
-                range(
-                    n_samples
-                ),
-                2,
-            )
-        )
-    return logX, n_samples, sample_pairs
-
-
-@app.cell
-def _(logX, np, sample_pairs):
-
-    if logX is None:
-
-        normalization_residuals = None
-
-    else:
-
-        def normalization_residuals(
-            logN,
-        ):
-
+        def normalization_residuals(logN):
             blocks = []
+            for _a, _b in _pairs:
+                _ok = np.isfinite(logX[:, _a]) & np.isfinite(logX[:, _b])
+                if _ok.any():
+                    blocks.append(logX[_ok, _a] + logN[_a] - logX[_ok, _b] - logN[_b])
+            return np.concatenate(blocks) if blocks else np.array([0.0])
 
-            for a, b in sample_pairs:
-
-                ok = (
-                    np.isfinite(
-                        logX[:, a]
-                    )
-                    &
-                    np.isfinite(
-                        logX[:, b]
-                    )
-                )
-
-                if ok.any():
-
-                    blocks.append(
-                        logX[
-                            ok,
-                            a,
-                        ]
-                        + logN[a]
-                        - logX[
-                            ok,
-                            b,
-                        ]
-                        - logN[b]
-                    )
-
-            if not blocks:
-
-                return np.array(
-                    [0.0]
-                )
-
-            return np.concatenate(
-                blocks
-            )
-    return (normalization_residuals,)
+    return logX, n_samples, normalization_residuals
 
 
 @app.cell
-def _(least_squares, n_samples, normalization_residuals, np):
-
-    if (
-        normalization_residuals
-        is None
-    ):
-
-        H_before = None
-        fit = None
-        N_scale_free = None
-
+def _(np, n_samples, normalization_residuals, least_squares):
+    if normalization_residuals is None:
+        N_scale_free = H_before = None
     else:
-
-        res_before = (
-            normalization_residuals(
-                np.zeros(
-                    n_samples
-                )
-            )
-        )
-
-        H_before = float(
-            np.sum(
-                res_before ** 2
-            )
-        )
-
-        solver = (
-            "lm"
-            if len(
-                res_before
-            )
-            >= n_samples
-            else "trf"
-        )
-
-        fit = (
-            least_squares(
-                normalization_residuals,
-                np.zeros(
-                    n_samples
-                ),
-                method=solver,
-                max_nfev=2000,
-            )
-        )
-
-        N_scale_free = (
-            np.exp(
-                fit.x
-            )
-        )
+        _res0 = normalization_residuals(np.zeros(n_samples))
+        H_before = float(np.sum(_res0 ** 2))
+        _method = "lm" if len(_res0) >= n_samples else "trf"
+        _fit = least_squares(normalization_residuals, np.zeros(n_samples), method=_method, max_nfev=2000)
+        N_scale_free = np.exp(_fit.x)
     return H_before, N_scale_free
 
 
 @app.cell
-def _(N_scale_free, normalization_residuals, np, pd, samples):
-
+def _(np, pd, samples, N_scale_free, normalization_residuals):
     if N_scale_free is None:
-
-        H_after = None
-        normalization_table = None
-
+        N = H_after = normalization_table = None
     else:
-
-        anchor_idx = 0
-
-        N = (
-            N_scale_free
-            /
-            N_scale_free[
-                anchor_idx
-            ]
-        )
-
-        res_after = (
-            normalization_residuals(
-                np.log(N)
-            )
-        )
-
-        H_after = float(
-            np.sum(
-                res_after ** 2
-            )
-        )
-
-        normalization_table = (
-            pd.DataFrame(
-                {
-                    "Sample":
-                        samples,
-                    "N":
-                        N,
-                    "log2_N":
-                        np.log2(N),
-                }
-            )
-        )
-    return H_after, normalization_table
+        N = N_scale_free / N_scale_free[0]
+        H_after = float(np.sum(normalization_residuals(np.log(N)) ** 2))
+        normalization_table = pd.DataFrame({"Sample": samples, "N": N, "log2_N": np.log2(N)})
+    return H_after, N, normalization_table
 
 
 @app.cell
-def _(H_after, H_before, mo, normalization_table):
-
-    if (
-        normalization_table
-        is not None
-    ):
-
-        mo.vstack(
-            [
-                mo.md(
-                    f"""
-    # Equation 2
-
-    H Before
-
-    **{H_before:,.6f}**
-
-    H After
-
-    **{H_after:,.6f}**
-    """
-                ),
-                mo.ui.table(
-                    normalization_table
-                ),
-            ]
-        )
-    return
-
-
-@app.cell
-def _(normalization_table, px):
-
-    if (
-        normalization_table
-        is None
-    ):
-
-        fig_N = None
-
+def _(mo, H_before, H_after, normalization_table, px):
+    if normalization_table is None:
+        _out = mo.md("")
     else:
-
-        fig_N = px.bar(
-            normalization_table,
-            x="Sample",
-            y="log2_N",
-            title=
-            "Normalization Factors",
-        )
-    return (fig_N,)
-
-
-@app.cell
-def _(fig_N):
-
-    if fig_N is not None:
-        fig_N
-    return
+        _reduction = f"{100*(1-H_after/H_before):.1f}%" if H_before and H_before > 0 else "n/a"
+        _out = mo.vstack([
+            mo.md("## Normalization (Eq. 2)"),
+            mo.hstack([
+                mo.stat(label="H before", value=f"{H_before:,.0f}"),
+                mo.stat(label="H after", value=f"{H_after:,.0f}"),
+                mo.stat(label="Objective Residual Reduction", value=_reduction),
+            ]),
+            px.bar(normalization_table, x="Sample", y="log2_N", title="log2 Normalization Factors"),
+        ])
+    _out
 
 
 @app.cell
-def _(normalization_table, species_matrix):
-
-    if (
-        species_matrix is None
-        or normalization_table is None
-    ):
-
+def _(species_matrix, normalization_table, np):
+    if species_matrix is None or normalization_table is None:
         normalized_species_matrix = None
-
     else:
-
-        normalized_species_matrix = (
-            species_matrix.copy()
-        )
-
-        for _, _norm_row in (
-            normalization_table.iterrows()
-        ):
-
-            _norm_sample = _norm_row["Sample"]
-
-            normalized_species_matrix[
-                _norm_sample
-            ] = (
-                normalized_species_matrix[
-                    _norm_sample
-                ]
-                * _norm_row["N"]
-            )
+        normalized_species_matrix = species_matrix.copy()
+        _nlookup = dict(zip(normalization_table["Sample"], normalization_table["N"]))
+        for _s in normalized_species_matrix.columns:
+            normalized_species_matrix[_s] = normalized_species_matrix[_s] * _nlookup.get(_s, 1.0)
     return (normalized_species_matrix,)
 
 
 @app.cell
-def _(normalization_table, normalized_species_matrix, pd, species_matrix):
-
-    if (
-        species_matrix is None
-        or normalized_species_matrix is None
-    ):
-
-        raw_to_norm_trace = None
-
+def _(mo, normalized_species_matrix, normalization_table, samples, px, pd):
+    if normalized_species_matrix is None or normalization_table is None:
+        _out = mo.md("")
     else:
-
-        lookup = dict(
-            zip(
-                normalization_table["Sample"],
-                normalization_table["N"],
-            )
-        )
-
-        rows = []
-
-        preview = species_matrix.head(
-            100
-        )
-
-        for (
-            protein,
-            species,
-        ), _trace_row in preview.iterrows():
-
-            for _trace_sample in (
-                species_matrix.columns
-            ):
-                rows.append(
-                    {
-                        "Protein": protein,
-                        "Species": species,
-                        "Sample": _trace_sample,
-                        "Raw_Intensity":
-                            _trace_row[_trace_sample],
-                        "N":
-                            lookup[_trace_sample],
-                        "Normalized_Intensity":
-                            normalized_species_matrix.loc[
-                                (
-                                    protein,
-                                    species,
-                                ),
-                                _trace_sample,
-                            ],
-                    }
-                )
-
-        raw_to_norm_trace = (
-            pd.DataFrame(rows)
-        )
-    return (raw_to_norm_trace,)
-
-
-@app.cell
-def _(mo, raw_to_norm_trace):
-
-    if raw_to_norm_trace is not None:
-
-        mo.vstack(
-            [
-                mo.md(
-                    """
-    # Equation 1 Results
-
-    Raw intensities
-    multiplied by
-    normalization factors.
-    """
-                ),
-                mo.ui.table(
-                    raw_to_norm_trace
-                    .head(50)
-                ),
-            ]
-        )
-    return
+        _nlookup = dict(zip(normalization_table["Sample"], normalization_table["N"]))
+        _rows = [{"Sample": _s,
+                  "Raw": normalized_species_matrix[_s].sum(skipna=True) / _nlookup.get(_s, 1.0),
+                  "Normalized": normalized_species_matrix[_s].sum(skipna=True)}
+                 for _s in samples if _s in normalized_species_matrix.columns]
+        _out = mo.vstack([
+            mo.md("## Raw vs Normalized Totals (Eq. 1)"),
+            px.bar(pd.DataFrame(_rows), x="Sample", y=["Raw", "Normalized"], barmode="group"),
+        ])
+    _out
 
 
 @app.cell
 def _(normalized_species_matrix):
-
-    if (
-        normalized_species_matrix
-        is None
-    ):
-
-        protein_list = []
-
+    if normalized_species_matrix is None:
+        protein_list = None
     else:
-
-        protein_list = (
-            normalized_species_matrix
-            .reset_index()["_protein"]
-            .drop_duplicates()
-            .sort_values()
-            .tolist()
-        )
+        protein_list = (normalized_species_matrix.reset_index()["_protein"]
+                        .drop_duplicates().sort_values().tolist())
     return (protein_list,)
 
 
 @app.cell
 def _(mo, protein_list):
-
-    if len(protein_list) == 0:
-
-        protein_selector = None
-
-    else:
-
-        protein_selector = (
-            mo.ui.dropdown(
-                options=protein_list,
-                value=protein_list[0],
-                label="Protein",
-            )
-        )
-
-        protein_selector
+    protein_selector = mo.ui.dropdown(
+        options=protein_list or [],
+        value=(protein_list[0] if protein_list else None),
+        label="Select protein to trace",
+    )
     return (protein_selector,)
 
 
 @app.cell
-def _(normalized_species_matrix, protein_selector):
+def _(mo, protein_selector, protein_list):
+    _out = mo.md("") if not protein_list else mo.vstack([mo.md("## Individual Protein Profile Tracker"), protein_selector])
+    _out
 
-    if (
-        protein_selector is None
-        or normalized_species_matrix is None
-    ):
 
-        selected_protein = None
-        protein_matrix = None
-
+@app.cell
+def _(mo, protein_selector, normalized_species_matrix, protein_list, px):
+    if not protein_list or normalized_species_matrix is None or protein_selector.value is None:
+        _out = mo.md("")
     else:
-
-        selected_protein = (
-            protein_selector.value
-        )
-
-        protein_matrix = (
-            normalized_species_matrix
-            .loc[selected_protein]
-            .copy()
-        )
-    return protein_matrix, selected_protein
-
-
-@app.cell
-def _(mo, protein_matrix, selected_protein):
-
-    if (
-        selected_protein is not None
-        and protein_matrix is not None
-    ):
-
-        mo.vstack(
-            [
-                mo.md(
-                    f"""
-    # Protein Explorer
-
-    Selected Protein
-
-    `{selected_protein}`
-    """
-                ),
-                mo.ui.table(
-                    protein_matrix
-                ),
-            ]
-        )
-    return
+        _prot = protein_selector.value
+        _psm = normalized_species_matrix.loc[_prot].copy()
+        _long = (_psm.reset_index()
+                  .melt(id_vars="_species", var_name="Sample", value_name="Intensity")
+                  .dropna(subset=["Intensity"]))
+        _out = mo.vstack([
+            px.bar(_long, x="Sample", y="Intensity", color="_species", log_y=True,
+                   title=f"{_prot} - Normalized Species Intensities"),
+            mo.md(f"**{_prot}** - {len(_psm)} species detected"),
+            _psm,
+        ])
+    _out
 
 
 @app.cell
-def _(
-    combinations,
-    normalized_species_matrix,
-    np,
-    pd,
-    ratio_method,
-    samples,
-):
+def _(np, pd, samples, normalized_species_matrix, combinations, ratio_method, minimum_ratio_count):
     if normalized_species_matrix is None:
-
         pairwise_ratio_trace = None
-
     else:
-
-        _pairwise_rows = []
-
-        _sample_count = len(samples)
-
-        for (
-            _protein_name,
-            _protein_frame,
-        ) in normalized_species_matrix.groupby(
-            level=0,
-            sort=True,
-        ):
-
-            _matrix_values = (
-                _protein_frame
-                .values
-                .astype(float)
-            )
-
-            _log_matrix_values = np.log2(
-                _matrix_values
-            )
-
-            _species_names = [
-                _idx[1]
-                for _idx
-                in _protein_frame.index
-            ]
-
-            for _j_idx, _k_idx in combinations(
-                range(_sample_count),
-                2,
-            ):
-
-                _valid_mask = (
-                    np.isfinite(
-                        _log_matrix_values[:, _j_idx]
-                    )
-                    &
-                    np.isfinite(
-                        _log_matrix_values[:, _k_idx]
-                    )
-                )
-
-                _shared_count = int(
-                    _valid_mask.sum()
-                )
-
-                if _shared_count < 1:
+        _rows = []
+        _ns = len(samples)
+        for _protein, _pdf in normalized_species_matrix.groupby(level=0, sort=True):
+            _logm = np.log2(_pdf.values.astype(float))
+            for _j, _k in combinations(range(_ns), 2):
+                _ok = np.isfinite(_logm[:, _j]) & np.isfinite(_logm[:, _k])
+                _nsh = int(_ok.sum())
+                if _nsh < minimum_ratio_count.value:
                     continue
-
-                _ratio_values = (
-                    _log_matrix_values[
-                        _valid_mask,
-                        _j_idx,
-                    ]
-                    -
-                    _log_matrix_values[
-                        _valid_mask,
-                        _k_idx,
-                    ]
-                )
-                if ratio_method.value == "median":
-
-                    _log2_ratio = float(
-                        np.median(
-                            _ratio_values
-                        )
-                    )
-
-                else:
-
-                    _log2_ratio = float(
-                        np.mean(
-                            _ratio_values
-                        )
-                    )
-
-                _pairwise_rows.append(
-                    {
-                        "Protein":
-                            _protein_name,
-                        "Sample_A":
-                            samples[_j_idx],
-                        "Sample_B":
-                            samples[_k_idx],
-                        "Shared_Species_Count":
-                            _shared_count,
-                        "Shared_Species":
-                            ";".join(
-                                np.array(
-                                    _species_names
-                                )[
-                                    _valid_mask
-                                ]
-                            ),
-                        "log2_ratio_A_over_B":
-                            _log2_ratio,
-                        "ratio_A_over_B":
-                            2 ** _log2_ratio,
-                    }
-                )
-
-        pairwise_ratio_trace = (
-            pd.DataFrame(
-                _pairwise_rows
-            )
-        )
+                _r = float(np.median(_logm[_ok, _j] - _logm[_ok, _k]) if ratio_method.value == "median"
+                           else np.mean(_logm[_ok, _j] - _logm[_ok, _k]))
+                _rows.append({"Protein": _protein, "Sample_A": samples[_j], "Sample_B": samples[_k],
+                              "Shared_Species": _nsh, "log2_ratio_A_over_B": _r})
+        pairwise_ratio_trace = pd.DataFrame(_rows)
     return (pairwise_ratio_trace,)
 
 
 @app.cell
-def _(mo, pairwise_ratio_trace):
-
-    if pairwise_ratio_trace is not None:
-
-        mo.vstack(
-            [
-                mo.md(
-                    """
-    # Pairwise Ratios
-    """
-                ),
-                mo.ui.table(
-                    pairwise_ratio_trace
-                    .head(50)
-                ),
-            ]
-        )
-    return
+def _(mo, pairwise_ratio_trace, px):
+    if pairwise_ratio_trace is None or len(pairwise_ratio_trace) == 0:
+        _out = mo.md("")
+    else:
+        _out = mo.vstack([
+            mo.md("## Pairwise Ratios (Eq. 3 inputs)"),
+            mo.stat(label="Reconstructed Protein-pair ratios", value=f"{len(pairwise_ratio_trace):,}"),
+            px.histogram(pairwise_ratio_trace, x="Shared_Species", title="Shared Peptides Distribution per Sample Pair"),
+        ])
+    _out
 
 
 @app.cell
-def _(
-    combinations,
-    normalized_species_matrix,
-    np,
-    pd,
-    ratio_method,
-    rescale_method,
-    samples,
-):
+def _(np, pd, samples, normalized_species_matrix, rescale_method, anchor_sample, combinations, minimum_ratio_count):
     if normalized_species_matrix is None:
-
-        protein_profile_trace = None
         calculated_lfq = None
-
     else:
-
-        _profile_rows = []
-        _lfq_rows = []
-
-        _sample_count_lfq = (
-            len(samples)
-        )
-
-        for (
-            _protein_name_lfq,
-            _protein_frame_lfq,
-        ) in normalized_species_matrix.groupby(
-            level=0,
-            sort=True,
-        ):
-
-            _protein_matrix = (
-                _protein_frame_lfq
-                .values
-                .astype(float)
-            )
-
-            _protein_log_matrix = (
-                np.log2(
-                    _protein_matrix
-                )
-            )
-
-            _ratio_matrix_lfq = np.full(
-                (
-                    _sample_count_lfq,
-                    _sample_count_lfq,
-                ),
-                np.nan,
-            )
-
-            for (
-                _sample_a,
-                _sample_b,
-            ) in combinations(
-                range(
-                    _sample_count_lfq
-                ),
-                2,
-            ):
-
-                _shared_mask = (
-                    np.isfinite(
-                        _protein_log_matrix[
-                            :,
-                            _sample_a,
-                        ]
-                    )
-                    &
-                    np.isfinite(
-                        _protein_log_matrix[
-                            :,
-                            _sample_b,
-                        ]
-                    )
-                )
-
-                if (
-                    _shared_mask.sum()
-                    < 1
-                ):
+        _calc_rows = []
+        _ns = len(samples)
+        for _protein, _pdf in normalized_species_matrix.groupby(level=0, sort=True):
+            _mat = _pdf.values.astype(float)
+            _logm = np.log2(_mat)
+            _ratio_mat = np.full((_ns, _ns), np.nan)
+            for _j, _k in combinations(range(_ns), 2):
+                _ok = np.isfinite(_logm[:, _j]) & np.isfinite(_logm[:, _k])
+                if _ok.sum() < minimum_ratio_count.value:
                     continue
-
-                _ratio_input = (
-                    _protein_log_matrix[
-                        _shared_mask,
-                        _sample_a,
-                    ]
-                    -
-                    _protein_log_matrix[
-                        _shared_mask,
-                        _sample_b,
-                    ]
-                )
-
-                if ratio_method.value == "median":
-
-                    _ratio_matrix_lfq[
-                        _sample_a,
-                        _sample_b,
-                    ] = float(
-                        np.median(
-                            _ratio_input
-                        )
-                    )
-
-                else:
-
-                    _ratio_matrix_lfq[
-                        _sample_a,
-                        _sample_b,
-                    ] = float(
-                        np.mean(
-                            _ratio_input
-                        )
-                    )
-
-
-                _ratio_matrix_lfq[
-                    _sample_b,
-                    _sample_a,
-                ] = (
-                    -_ratio_matrix_lfq[
-                        _sample_a,
-                        _sample_b,
-                    ]
-                )
-
-            _output_profile = np.full(
-                _sample_count_lfq,
-                np.nan,
-            )
-
-            _valid_sample_idx = (
-                np.where(
-                    np.isfinite(
-                        _ratio_matrix_lfq
-                    ).any(axis=0)
-                )[0]
-            )
-
-            if len(
-                _valid_sample_idx
-            ) > 1:
-
-                _equations = []
-                _equation_values = []
-
-                for (
-                    _eq_a,
-                    _eq_b,
-                ) in combinations(
-                    range(
-                        len(
-                            _valid_sample_idx
-                        )
-                    ),
-                    2,
-                ):
-
-                    _ratio_value = (
-                        _ratio_matrix_lfq[
-                            _valid_sample_idx[
-                                _eq_a
-                            ],
-                            _valid_sample_idx[
-                                _eq_b
-                            ],
-                        ]
-                    )
-
-                    if np.isfinite(
-                        _ratio_value
-                    ):
-
-                        _eq_row = np.zeros(
-                            len(
-                                _valid_sample_idx
-                            )
-                        )
-
-                        _eq_row[
-                            _eq_a
-                        ] = 1.0
-
-                        _eq_row[
-                            _eq_b
-                        ] = -1.0
-
-                        _equations.append(
-                            _eq_row
-                        )
-
-                        _equation_values.append(
-                            _ratio_value
-                        )
-
-                if len(
-                    _equations
-                ) > 0:
-
-                    _solution, *_unused = (
-                        np.linalg.lstsq(
-                            np.asarray(
-                                _equations
-                            ),
-                            np.asarray(
-                                _equation_values
-                            ),
-                            rcond=None,
-                        )
-                    )
-
-                    _relative_profile = (
-                        2.0 ** _solution
-                    )
-
-                    _component_matrix = (
-                        _protein_matrix[
-                            :,
-                            _valid_sample_idx,
-                        ]
-                    )
-
-                    if (
-                        rescale_method.value
-                        == "max"
-                    ):
-
-                        _anchor_vector = (
-                            np.nanmax(
-                                _component_matrix,
-                                axis=0,
-                            )
-                        )
-
-                    else:
-
-                        _anchor_vector = (
-                            np.nansum(
-                                _component_matrix,
-                                axis=0,
-                            )
-                        )
-
-                    _active_mask = (
-                        np.isfinite(
-                            _relative_profile
-                        )
-                        &
-                        np.isfinite(
-                            _anchor_vector
-                        )
-                        &
-                        (
-                            _relative_profile
-                            > 0
-                        )
-                        &
-                        (
-                            _anchor_vector
-                            > 0
-                        )
-                    )
-
-                    if (
-                        _active_mask.any()
-                    ):
-
-                        _scale_factor = (
-                            np.nansum(
-                                _anchor_vector[
-                                    _active_mask
-                                ]
-                            )
-                            /
-                            np.nansum(
-                                _relative_profile[
-                                    _active_mask
-                                ]
-                            )
-                        )
-
-                        _final_profile = (
-                            _relative_profile
-                            * _scale_factor
-                        )
-
-                        _output_profile[
-                            _valid_sample_idx
-                        ] = (
-                            _final_profile
-                        )
-
-            _lfq_row = {
-                "Protein":
-                    _protein_name_lfq
-            }
-
-            for (
-                _sample_name_lfq,
-                _sample_value_lfq,
-            ) in zip(
-                samples,
-                _output_profile,
-            ):
-
-                _lfq_row[
-                    "LFQ intensity "
-                    + _sample_name_lfq
-                ] = (
-                    _sample_value_lfq
-                    if (
-                        np.isfinite(
-                            _sample_value_lfq
-                        )
-                        and _sample_value_lfq > 0
-                    )
-                    else np.nan
-                )
-
-            _lfq_rows.append(
-                _lfq_row
-            )
-
-        protein_profile_trace = (
-            pd.DataFrame(
-                _profile_rows
-            )
-        )
-
-        calculated_lfq = (
-            pd.DataFrame(
-                _lfq_rows
-            )
-            .set_index(
-                "Protein"
-            )
-        )
-    return calculated_lfq, protein_profile_trace
+                _r = float(np.median(_logm[_ok, _j] - _logm[_ok, _k]))
+                _ratio_mat[_j, _k] = _r
+                _ratio_mat[_k, _j] = -_r
+            _valid = np.where(np.isfinite(_ratio_mat).any(axis=0))[0]
+            _out_v = np.full(_ns, np.nan)
+            if len(_valid) > 1:
+                _rls, _vls = [], []
+                for _a, _b in combinations(range(len(_valid)), 2):
+                    _rv = _ratio_mat[_valid[_a], _valid[_b]]
+                    if np.isfinite(_rv):
+                        _eq = np.zeros(len(_valid))
+                        _eq[_a] = 1.0; _eq[_b] = -1.0
+                        _rls.append(_eq); _vls.append(_rv)
+                if _rls:
+                    _sol, *_ = np.linalg.lstsq(np.asarray(_rls), np.asarray(_vls), rcond=None)
+                    _rel = 2.0 ** _sol
+                    
+                    # Target scaling anchor based on the selected dynamic dropdown choice
+                    if anchor_sample.value != "All Samples Average" and anchor_sample.value in samples:
+                        _idx = samples.index(anchor_sample.value)
+                        if _idx in _valid:
+                            _v_idx = np.where(_valid == _idx)[0][0]
+                            _rel = _rel / _rel[_v_idx]
+                    
+                    _comp = _mat[:, _valid]
+                    _anch = np.nanmax(_comp, axis=0) if rescale_method.value == "max" else np.nansum(_comp, axis=0)
+                    _active = np.isfinite(_rel) & np.isfinite(_anch) & (_rel > 0) & (_anch > 0)
+                    if _active.any():
+                        _scale = np.nansum(_anch[_active]) / np.nansum(_rel[_active])
+                        _out_v[_valid] = _rel * _scale
+            _crow = {"Protein": _protein}
+            for _s, _v in zip(samples, _out_v):
+                _crow["LFQ intensity " + _s] = _v if (np.isfinite(_v) and _v > 0) else np.nan
+            _calc_rows.append(_crow)
+        calculated_lfq = pd.DataFrame(_calc_rows).set_index("Protein")
+    return (calculated_lfq,)
 
 
 @app.cell
-def _(mo, protein_profile_trace):
-
-    if protein_profile_trace is not None:
-
-        mo.vstack(
-            [
-                mo.md(
-                    """
-    # Equation 3 Reconstruction
-    """
-                ),
-                mo.ui.table(
-                    protein_profile_trace
-                    .head(50)
-                ),
-            ]
-        )
-    return
-
-
-@app.cell
-def _(calculated_lfq, mo):
-
-    if calculated_lfq is not None:
-
-        mo.vstack(
-            [
-                mo.md(
-                    """
-    # Calculated LFQ
-    """
-                ),
-                mo.ui.table(
-                    calculated_lfq
-                    .head(50)
-                ),
-            ]
-        )
-    return
-
-
-@app.cell
-def _(calculated_lfq, first_token, np, pd, protein_groups_df):
-
-    if (
-        protein_groups_df is None
-        or calculated_lfq is None
-    ):
-
-        reference_lfq = None
-        comparison_trace = None
-        shared_samples = []
-
+def _(mo, calculated_lfq):
+    if calculated_lfq is None:
+        _out = mo.md("")
     else:
+        _filled = calculated_lfq.notna().values.sum()
+        _out = mo.vstack([
+            mo.md("## Calculated LFQ Data Output"),
+            mo.hstack([
+                mo.stat(label="Proteins Quantified", value=f"{len(calculated_lfq):,}"),
+                mo.stat(label="Valid LFQ Values", value=f"{_filled:,}"),
+                mo.stat(label="Fill Rate", value=f"{100*_filled/calculated_lfq.size:.1f}%"),
+            ]),
+            calculated_lfq.head(20),
+        ])
+    _out
 
-        _pg = (
-            protein_groups_df.copy()
-        )
 
-        for _flag_col in [
-            "Reverse",
-            "Potential contaminant",
-            "Contaminant",
-        ]:
-
-            if _flag_col in _pg.columns:
-
-                _pg = _pg[
-                    _pg[_flag_col]
-                    .astype(str)
-                    .str.strip()
-                    != "+"
-                ]
-
-        if (
-            "Majority protein IDs"
-            in _pg.columns
-        ):
-
-            _pg["_protein"] = (
-                _pg[
-                    "Majority protein IDs"
-                ]
-                .map(first_token)
-            )
-
-        elif (
-            "Protein IDs"
-            in _pg.columns
-        ):
-
-            _pg["_protein"] = (
-                _pg[
-                    "Protein IDs"
-                ]
-                .map(first_token)
-            )
-
-        _lfq_cols = [
-            _c
-            for _c
-            in _pg.columns
-            if str(_c).startswith(
-                "LFQ intensity "
-            )
-        ]
-
+@app.cell
+def _(protein_groups_df, calculated_lfq, first_token, pd, np, samples):
+    if protein_groups_df is None or calculated_lfq is None:
+        comparison_trace = reference_lfq = None
+    else:
+        _pg = protein_groups_df.copy()
+        for _flag in ["Reverse", "Potential contaminant", "Contaminant"]:
+            if _flag in _pg.columns:
+                _pg = _pg[_pg[_flag].astype(str).str.strip() != "+"]
+        _pid_col = "Majority protein IDs" if "Majority protein IDs" in _pg.columns else "Protein IDs"
+        _pg["_protein"] = _pg[_pid_col].map(first_token)
+        _lfq_cols = [c for c in _pg.columns if str(c).startswith("LFQ intensity ")]
         reference_lfq = (
-            _pg[
-                ["_protein"]
-                + _lfq_cols
-            ]
-            .copy()
-            .set_index("_protein")
+            _pg[["_protein"] + _lfq_cols].set_index("_protein")
+            .apply(pd.to_numeric, errors="coerce").replace(0, np.nan)
         )
-
-        reference_lfq = (
-            reference_lfq
-            .apply(
-                pd.to_numeric,
-                errors="coerce",
-            )
-            .replace(0, np.nan)
-        )
-
-        reference_lfq.columns = [
-            _c.replace(
-                "LFQ intensity ",
-                "",
-                1,
-            )
-            for _c
-            in reference_lfq.columns
-        ]
-
-        _calc_samples = [
-            _c.replace(
-                "LFQ intensity ",
-                "",
-                1,
-            )
-            for _c
-            in calculated_lfq.columns
-        ]
-
-        shared_samples = [
-            _s
-            for _s
-            in _calc_samples
-            if _s in reference_lfq.columns
-        ]
-
-        _common_proteins = (
-            calculated_lfq.index
-            .intersection(
-                reference_lfq.index
-            )
-        )
-
-        _comparison_rows = []
-
-        for _protein_name in (
-            _common_proteins
-        ):
-
-            for _sample_name in (
-                shared_samples
-            ):
-
-                _calc_col = (
-                    "LFQ intensity "
-                    + _sample_name
-                )
-
-                _calc = (
-                    calculated_lfq.loc[
-                        _protein_name,
-                        _calc_col,
-                    ]
-                )
-
-                _ref = (
-                    reference_lfq.loc[
-                        _protein_name,
-                        _sample_name,
-                    ]
-                )
-
-                if (
-                    pd.notna(_calc)
-                    and pd.notna(_ref)
-                    and _calc > 0
-                    and _ref > 0
-                ):
-
-                    _log2_diff = float(
-                        np.log2(
-                            _calc / _ref
-                        )
-                    )
-
-                else:
-
-                    _log2_diff = np.nan
-
-                _comparison_rows.append(
-                    {
-                        "Protein":
-                            _protein_name,
-                        "Sample":
-                            _sample_name,
-                        "Calculated_LFQ":
-                            _calc,
-                        "ProteinGroups_LFQ":
-                            _ref,
-                        "Log2_Calc_over_PG":
-                            _log2_diff,
-                    }
-                )
-
-        comparison_trace = (
-            pd.DataFrame(
-                _comparison_rows
-            )
-        )
-    return (comparison_trace,)
+        reference_lfq.columns = [c.replace("LFQ intensity ", "", 1) for c in reference_lfq.columns]
+        _common = calculated_lfq.index.intersection(reference_lfq.index)
+        _shared_samp = [s for s in samples if s in reference_lfq.columns]
+        _rows = []
+        for _prot in _common:
+            for _s in _shared_samp:
+                _calc_col = "LFQ intensity " + _s
+                _calc = calculated_lfq.loc[_prot, _calc_col] if _calc_col in calculated_lfq.columns else np.nan
+                _ref = reference_lfq.loc[_prot, _s]
+                _d = float(np.log2(_calc / _ref)) if (pd.notna(_calc) and pd.notna(_ref) and _calc > 0 and _ref > 0) else np.nan
+                _rows.append({"Protein": _prot, "Sample": _s,
+                               "Calculated_LFQ": _calc, "ProteinGroups_LFQ": _ref, "Log2_Calc_over_PG": _d})
+        comparison_trace = pd.DataFrame(_rows)
+    return comparison_trace, reference_lfq
 
 
 @app.cell
-def _(comparison_trace, np, pd):
-
-    if comparison_trace is None:
-
-        summary_table = None
-
+def _(mo, comparison_trace, calculated_lfq, H_before, H_after, np):
+    if comparison_trace is None or calculated_lfq is None or "Log2_Calc_over_PG" not in comparison_trace.columns:
+        _out = mo.md("")
     else:
-
-        _valid = (
-            comparison_trace[
-                "Log2_Calc_over_PG"
-            ]
-            .dropna()
-            .values
-        )
-
-        summary_table = (
-            pd.DataFrame(
-                [
-                    {
-                        "Compared_Cells":
-                            int(
-                                len(_valid)
-                            ),
-                        "Median_Log2_Diff":
-                            float(
-                                np.median(
-                                    _valid
-                                )
-                            )
-                            if len(_valid)
-                            else np.nan,
-                        "Mean_Log2_Diff":
-                            float(
-                                np.mean(
-                                    _valid
-                                )
-                            )
-                            if len(_valid)
-                            else np.nan,
-                        "MAE_Log2":
-                            float(
-                                np.mean(
-                                    np.abs(
-                                        _valid
-                                    )
-                                )
-                            )
-                            if len(_valid)
-                            else np.nan,
-                    }
-                ]
-            )
-        )
-    return (summary_table,)
+        _valid = comparison_trace["Log2_Calc_over_PG"].dropna().values
+        _out = mo.vstack([
+            mo.md("## Validation vs. MaxQuant proteinGroups Reference"),
+            mo.hstack([
+                mo.stat(label="Proteins Calculated", value=f"{len(calculated_lfq):,}"),
+                mo.stat(label="Intersecting Proteins", value=f"{comparison_trace['Protein'].nunique():,}"),
+                mo.stat(label="Compared Elements", value=f"{len(_valid):,}"),
+                mo.stat(label="Median Log2 Residual", value=f"{float(np.median(_valid)):.3f}" if len(_valid) else "n/a"),
+                mo.stat(label="Mean Absolute Error (MAE)", value=f"{float(np.mean(np.abs(_valid))):.3f}" if len(_valid) else "n/a"),
+            ]),
+        ])
+    _out
 
 
 @app.cell
-def _(comparison_trace, mo):
-
-    if comparison_trace is not None:
-
-        mo.vstack(
-            [
-                mo.md(
-                    """
-    # LFQ Comparison
-    """
-                ),
-                mo.ui.table(
-                    comparison_trace
-                    .head(100)
-                ),
-            ]
-        )
-    return
-
-
-@app.cell
-def _(mo, summary_table):
-
-    if summary_table is not None:
-
-        mo.vstack(
-            [
-                mo.md(
-                    """
-    # Summary
-    """
-                ),
-                mo.ui.table(
-                    summary_table
-                ),
-            ]
-        )
-    return
-
-
-@app.cell
-def _(comparison_trace, px):
-
-    if (
-        comparison_trace is None
-        or len(
-            comparison_trace
-        ) == 0
-    ):
-
-        residual_histogram = None
-
+def _(mo, comparison_trace, px):
+    if comparison_trace is None or len(comparison_trace) == 0 or "Log2_Calc_over_PG" not in comparison_trace.columns:
+        _out = mo.md("")
     else:
-
-        residual_histogram = (
-            px.histogram(
-                comparison_trace,
-                x="Log2_Calc_over_PG",
-                nbins=50,
-                title=
-                "Residual Distribution",
-            )
-        )
-    return (residual_histogram,)
-
-
-@app.cell
-def _(residual_histogram):
-
-    if residual_histogram is not None:
-        residual_histogram
-    return
+        _valid = comparison_trace.dropna(subset=["Calculated_LFQ", "ProteinGroups_LFQ"])
+        _bias = comparison_trace.groupby("Sample").agg(mean_log2_diff=("Log2_Calc_over_PG", "mean")).reset_index()
+        _out = mo.ui.tabs({
+            "Scatter Profile": px.scatter(_valid, x="Calculated_LFQ", y="ProteinGroups_LFQ",
+                                  hover_data=["Protein", "Sample"], opacity=0.5,
+                                  title="Calculated Intensity Correlation Curve", log_x=True, log_y=True),
+            "Residual Variance": px.histogram(_valid, x="Log2_Calc_over_PG", nbins=60,
+                                       title="Residual Errors Distribution (log2 Calculated / MaxQuant Reference)"),
+            "Sample Normalization Bias": px.bar(_bias, x="Sample", y="mean_log2_diff", title="Mean Variance by Sample Group"),
+            "Top Discrepancy Outliers": comparison_trace.sort_values("Log2_Calc_over_PG",
+                                                          key=lambda x: x.abs(), ascending=False).head(50),
+        })
+    _out
 
 
 @app.cell
 def _(mo):
-    mo.md(r"""
-    # Notebook Complete
-
-    Implemented
-
-    - Peptide loading
-    - Species construction
-    - Species matrix
-    - Equation 2 normalization
-    - Equation 1 normalization
-    - Pairwise ratios
-    - Equation 3 reconstruction
-    - LFQ calculation
-    - proteinGroups comparison
-    - Residual diagnostics
+    mo.md("""---
+    **System Architecture:** Reactive variables binding | dynamic downstream re-scaling matrices | inline parsing engines.
     """)
-    return
 
 
 if __name__ == "__main__":
