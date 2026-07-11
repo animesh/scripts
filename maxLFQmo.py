@@ -184,6 +184,8 @@ def _(
     charge_col,
     filter_contaminant,
     filter_decoy,
+    filter_unique_groups,
+    filter_unique_proteins,
     first_token,
     intensity_cols,
     mod_col,
@@ -207,6 +209,10 @@ def _(
             for flag in ["Potential contaminant", "Contaminant"]:
                 if flag in df.columns:
                     df = df[df[flag].astype(str).str.strip() != "+"]
+        if filter_unique_groups.value and "Unique (Groups)" in df.columns:
+            df = df[df["Unique (Groups)"].astype(str).str.strip().str.lower() == "yes"]
+        if filter_unique_proteins.value and "Unique (Proteins)" in df.columns:
+            df = df[df["Unique (Proteins)"].astype(str).str.strip().str.lower() == "yes"]
         df[intensity_cols] = df[intensity_cols].apply(pd.to_numeric, errors="coerce").replace(0, np.nan)
         df = df[df[intensity_cols].notna().any(axis=1)].copy()
         df["_protein"] = df[protein_col].astype(str).map(first_token)
@@ -220,6 +226,16 @@ def _(
         w = df[["_protein", "_species"] + intensity_cols].rename(columns=rename)
         species_matrix = w.groupby(["_protein", "_species"], sort=True)[samples].first().replace(0, np.nan)
     return (species_matrix,)
+
+
+@app.cell
+def _(samples, species_matrix):
+    if species_matrix is None:
+        raw_intensity_df = None
+    else:
+        raw_intensity_df = species_matrix.groupby(level=0).sum(min_count=1)
+        raw_intensity_df.columns = ["Raw intensity " + s for s in samples]
+    return (raw_intensity_df,)
 
 
 @app.cell
@@ -657,9 +673,11 @@ def _(mo, samples):
     minimum_ratio_count = mo.ui.number(start=1, stop=50, value=1, label="Min shared species")
     anchor_options  = ["All Samples Average", "All Samples Median", "All Samples Maximum"] + (samples if samples else [])
     anchor_sample   = mo.ui.dropdown(options=anchor_options, value="All Samples Maximum", label="Scaling anchor")
-    filter_decoy        = mo.ui.checkbox(label="Filter Decoy/Reverse", value=False)
-    filter_contaminant  = mo.ui.checkbox(label="Filter Potential Contaminant(s)", value=False)
-    return anchor_sample, filter_contaminant, filter_decoy, minimum_ratio_count, ratio_method, rescale_method
+    filter_decoy           = mo.ui.checkbox(label="Filter Decoy/Reverse",         value=False)
+    filter_contaminant     = mo.ui.checkbox(label="Filter Potential Contaminant(s)", value=False)
+    filter_unique_groups   = mo.ui.checkbox(label="Unique (Groups)",                 value=False)
+    filter_unique_proteins = mo.ui.checkbox(label="Unique (Proteins)",               value=False)
+    return anchor_sample, filter_contaminant, filter_decoy, filter_unique_groups, filter_unique_proteins, minimum_ratio_count, ratio_method, rescale_method
 
 
 @app.cell
@@ -669,10 +687,11 @@ def _(mo):
 
 
 @app.cell
-def _(anchor_sample, filter_contaminant, filter_decoy, minimum_ratio_count, mo, protein_search, ratio_method, rescale_method):
+def _(anchor_sample, filter_contaminant, filter_decoy, filter_unique_groups, filter_unique_proteins, minimum_ratio_count, mo, protein_search, ratio_method, rescale_method):
     _out = mo.vstack([
         mo.hstack([ratio_method, rescale_method, minimum_ratio_count, anchor_sample], gap=2),
         mo.hstack([filter_decoy, filter_contaminant], gap=4),
+        mo.hstack([filter_unique_groups, filter_unique_proteins], gap=4),
         mo.hstack([protein_search], gap=2),
     ])
     _out
@@ -729,23 +748,30 @@ def _(
     calculated_lfq,
     filter_contaminant,
     filter_decoy,
+    filter_unique_groups,
+    filter_unique_proteins,
     minimum_ratio_count,
     mo,
     n_contaminant,
     n_decoy,
     proteins_to_exclude,
     ratio_method,
+    raw_intensity_df,
     rescale_method,
 ):
     _out = mo.md("")
     if calculated_lfq is not None:
         _anch = str(anchor_sample.value).replace(" ", "")
-        _d = 0 if filter_decoy.value else n_decoy
-        _c = 0 if filter_contaminant.value else n_contaminant
-        _filt = f"_decoy-{_d}_cont-{_c}_excl-{len(proteins_to_exclude)}"
+        _d  = 0 if filter_decoy.value      else n_decoy
+        _c  = 0 if filter_contaminant.value else n_contaminant
+        _ug = "yes" if filter_unique_groups.value   else "no"
+        _up = "yes" if filter_unique_proteins.value else "no"
+        _filt = f"_decoy-{_d}_cont-{_c}_excl-{len(proteins_to_exclude)}_ug-{_ug}_up-{_up}"
         _fname = f"maxLFQmo_ratio-{ratio_method.value}_scale-{rescale_method.value}_min-{minimum_ratio_count.value}_anchor-{_anch}{_filt}.tsv"
-        _csv = calculated_lfq.to_csv(sep="\t").encode("utf-8")
-
+        _export = calculated_lfq.copy()
+        if raw_intensity_df is not None:
+            _export = _export.join(raw_intensity_df, how="left")
+        _csv = _export.to_csv(sep="\t").encode("utf-8")
         _btn = mo.download(
             data=_csv,
             filename=_fname,
