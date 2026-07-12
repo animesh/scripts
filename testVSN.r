@@ -236,7 +236,6 @@ for(i in 1:N){
   
 }
 
-cat("\n=========================\n")
 
 cat("Across",N,"simulations\n\n")
 

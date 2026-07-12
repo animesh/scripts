@@ -1,883 +1,360 @@
-import pandas as pd
-import numpy as np
-from itertools import combinations
+#  uv run evidenceIntSum.py $HOME/promec/promec/Animesh/Download/BSA/evidence.txt $HOME/promec/promec/Animesh/Download/BSA/proteinGroups.txt 
+# Usage:
+#   python evidenceIntSum.py evidence.txt proteinGroups.txt
+#   python evidenceIntSum.py evidence.txt proteinGroups.txt mqpar.xml
+#
+# This script keeps the corrected maxLFQsimple logic:
+#   1. MULTI-SECPEP rows are summed per species/protein/sample.
+#   2. All other evidence rows are maxed per species/protein/sample.
+#   3. Pairwise ratios accept one shared peptide species: min_ratio_count = 1.
+#   4. Protein profile rescaling uses nanmax of normalized peptide species, not nansum.
+#
+# It then scans normalization anchor conventions:
+#   geomean
+#   each sample set to N = 1
+#   mqpar first experiment set to N = 1, if mqpar.xml is supplied
 
-
-# ============================================================
-# Input files
-# ============================================================
-
-# This can be:
-# 1. evidence.txt from MaxQuant
-# 2. a custom peptide-species table with modified sequences, charges, proteins, and intensities
-peptide_species_file = r"F:\BSA\txt\evidence.txt"
-
-# Actual MaxQuant proteinGroups output for comparison
-protein_groups_file = r"F:\BSA\txt\proteinGroups.txt"
-
+import sys
+import os
+import warnings
 from pathlib import Path
-import matplotlib.pyplot as plt
+from itertools import combinations
+import xml.etree.ElementTree as ET
 
-protein_groups_path = Path(protein_groups_file)
-output_dir = protein_groups_path.parent / "maxlfq_repl_outputs"
-output_dir.mkdir(parents=True, exist_ok=True)
+import numpy as np
+import pandas as pd
+from scipy.optimize import least_squares
 
-out_calculated_lfq = output_dir / "calculated_lfq_from_peptide_species.csv"
-out_summary = output_dir / "calculated_lfq_vs_proteinGroups_summary.tsv"
-out_sample_bias = output_dir / "calculated_lfq_vs_proteinGroups_by_sample.tsv"
-out_cellwise = output_dir / "calculated_lfq_vs_proteinGroups_cellwise.tsv"
-out_normalization = output_dir / "calculated_lfq_normalization_factors.tsv"
-out_peptide_species_matrix = output_dir / "peptide_species_intensity_matrix.csv"
+warnings.filterwarnings("ignore")
 
-out_plot_scatter = output_dir / "plot_log2_calculated_vs_proteinGroups.png"
-out_plot_residual_hist = output_dir / "plot_log2_residual_histogram.png"
-out_plot_sample_bias = output_dir / "plot_sample_median_bias.png"
-out_plot_sample_sums = output_dir / "plot_sample_sum_comparison.png"
+# -----------------------------
+# Inputs
+# -----------------------------
+if len(sys.argv) < 3:
+    raise SystemExit("Usage: python evidenceIntSum.py evidence.txt proteinGroups.txt [mqpar.xml]")
 
-# ============================================================
-# User-adjustable options
-# ============================================================
+evidence_file = sys.argv[1]
+protein_groups_file = sys.argv[2]
+mqpar_file = sys.argv[3] if len(sys.argv) > 3 else None
 
-# Minimum number of shared peptide species required to define a ratio
-# MaxLFQ commonly uses 2, but testing 1 can be useful for sparse data.
-min_ratio_count = 1
+outdir = Path(evidence_file).resolve().parent / "maxLFQ_anchor_scan_fixed_outputs"
+outdir.mkdir(parents=True, exist_ok=True)
 
-# Pairwise peptide-to-protein ratio aggregation.
-# The MaxLFQ paper uses pairwise peptide ratios and takes robust ratio information.
-# Median is usually the safest approximation.
-pairwise_ratio_aggregation = "median"  # "median" or "mean"
+# -----------------------------
+# Load evidence
+# -----------------------------
+ev = pd.read_csv(evidence_file, sep="\t", low_memory=False)
 
-# Peptide species intensity aggregation when multiple rows map to same
-# protein + modified sequence + charge + sample.
-# For evidence.txt, "sum" is usually the most natural first test.
-peptide_species_aggregation = "sum"  # "sum" or "max"
+allowed_types = {
+    "MULTI-MSMS",
+    "MULTI-MATCH",
+    "MULTI-SECPEP",
+    "MSMS",
+    "MULTI-MATCH-MSMS",
+    "ISO-MSMS",
+}
+if "Type" in ev.columns:
+    ev = ev[ev["Type"].isin(allowed_types)].copy()
 
-# Which rows to use from evidence-like input.
-# These are simple, explicit filters for tracing/debugging.
-remove_reverse = True
-remove_contaminants = True
-require_nonzero_intensity = True
+for c in ["Reverse", "Potential contaminant", "Contaminant"]:
+    if c in ev.columns:
+        ev = ev[ev[c].astype(str).str.strip() != "+"].copy()
 
-# If True, only rows with Type containing "MSMS" are used.
-# Start with False for baseline.
-use_only_msms_type_rows = False
+ev["Intensity"] = pd.to_numeric(ev["Intensity"], errors="coerce")
+ev_noint = ev[~(ev["Intensity"] > 0)].copy()
+ev = ev[ev["Intensity"] > 0].copy()
 
-# If True, only rows with MS/MS count > 0 are used.
-# Start with False for baseline.
-use_only_msms_count_positive_rows = False
+required = ["Leading razor protein", "Modified sequence", "Charge", "Experiment", "Intensity"]
+missing = [c for c in required if c not in ev.columns]
+if missing:
+    raise ValueError(f"Missing required evidence columns: {missing}")
 
+ev["_razor"] = ev["Leading razor protein"].astype(str).str.split(";").str[0].str.strip()
+ev["_species"] = ev["Modified sequence"].astype(str) + "_z" + ev["Charge"].astype(str)
 
-# ============================================================
-# Small utility functions
-# ============================================================
+ev["Experiment"] = ev["Experiment"].astype(str)
 
-def first_existing_column(df, candidates):
-    """
-    Return the first column from candidates that exists in df.
-    """
-    for c in candidates:
-        if c in df.columns:
-            return c
-    return None
+# Only zero-pad if all experiment names are purely numeric.
+# Do not pad mixed names like "251203_bsa" or "20251125_HF_QC_BSA_01",
+# because that breaks matching to proteinGroups.txt LFQ columns.
+_exps = ev["Experiment"].dropna().astype(str).unique().tolist()
 
+if all(x.isdigit() for x in _exps):
+    _zlen = max(len(x) for x in _exps)
+    ev["Experiment"] = ev["Experiment"].str.zfill(_zlen)
 
-def safe_first_protein(series):
-    """
-    Convert semicolon-separated protein IDs to the first protein ID.
-    This is used to match proteinGroups Majority protein IDs convention.
-    """
-    return series.astype(str).str.split(";").str[0].str.strip()
+samples = sorted(ev["Experiment"].unique())
 
+# -----------------------------
+# Build species × sample matrix using corrected SECPEP split
+# -----------------------------
+# MULTI-SECPEP rows are summed.
+# All other rows are maxed.
+# Final intensity = SECPEP_sum + non_SECPEP_max.
+sec = ev[ev["Type"] == "MULTI-SECPEP"].copy() if "Type" in ev.columns else ev.iloc[0:0].copy()
+rest = ev[ev["Type"] != "MULTI-SECPEP"].copy() if "Type" in ev.columns else ev.copy()
 
-def log2_ratio(a, b):
-    """
-    Safe log2(a / b).
-    """
-    return np.log2(a / b)
+agg_sec = sec.groupby(["_species", "_razor", "Experiment"], dropna=False)["Intensity"].sum()
+agg_rest = rest.groupby(["_species", "_razor", "Experiment"], dropna=False)["Intensity"].max()
 
-
-# ============================================================
-# Step 0. Load peptide/evidence input
-# ============================================================
-
-peptides_raw = pd.read_csv(peptide_species_file, sep="\t", low_memory=False)
-
-# Convert common numeric columns if present
-for c in ["Intensity", "Charge", "Score", "Delta score", "PEP", "MS/MS count"]:
-    if c in peptides_raw.columns:
-        peptides_raw[c] = pd.to_numeric(peptides_raw[c], errors="coerce")
-
-# Detect whether input is long evidence-like format or wide peptide table format.
-# Long format has one "Intensity" column and one "Experiment" or "Raw file" column.
-# Wide format has columns like "Intensity sample1", "Intensity sample2", ...
-wide_intensity_cols = [c for c in peptides_raw.columns if c.startswith("Intensity ")]
-has_long_intensity = "Intensity" in peptides_raw.columns
-has_experiment = "Experiment" in peptides_raw.columns
-
-input_is_long = has_long_intensity and has_experiment
-input_is_wide = len(wide_intensity_cols) > 0
-
-if not input_is_long and not input_is_wide:
-    raise ValueError(
-        "Input must be either evidence-like long format with columns "
-        "'Intensity' and 'Experiment', or wide format with columns starting "
-        "with 'Intensity '."
-    )
-
-
-# ============================================================
-# Step 0a. Apply basic filters
-# ============================================================
-
-peptides = peptides_raw.copy()
-
-if remove_reverse and "Reverse" in peptides.columns:
-    peptides = peptides[~peptides["Reverse"].astype(str).eq("+")].copy()
-
-if remove_contaminants and "Potential contaminant" in peptides.columns:
-    peptides = peptides[~peptides["Potential contaminant"].astype(str).eq("+")].copy()
-
-if input_is_long:
-    peptides["Intensity"] = pd.to_numeric(peptides["Intensity"], errors="coerce")
-    if require_nonzero_intensity:
-        peptides["Intensity"] = peptides["Intensity"].replace(0, np.nan)
-        peptides = peptides[peptides["Intensity"].notna()].copy()
-
-if input_is_wide:
-    peptides[wide_intensity_cols] = peptides[wide_intensity_cols].apply(
-        pd.to_numeric,
-        errors="coerce",
-    )
-    peptides[wide_intensity_cols] = peptides[wide_intensity_cols].replace(0, np.nan)
-    if require_nonzero_intensity:
-        peptides = peptides[peptides[wide_intensity_cols].notna().any(axis=1)].copy()
-
-if use_only_msms_type_rows and "Type" in peptides.columns:
-    peptides = peptides[
-        peptides["Type"].astype(str).str.contains("MSMS", case=False, na=False)
-    ].copy()
-
-if use_only_msms_count_positive_rows and "MS/MS count" in peptides.columns:
-    peptides = peptides[
-        pd.to_numeric(peptides["MS/MS count"], errors="coerce").fillna(0).gt(0)
-    ].copy()
-
-
-# ============================================================
-# Step 0b. Define protein key and peptide species key
-# ============================================================
-
-# Protein key:
-# Prefer Leading razor protein for evidence.txt.
-# Otherwise use Razor, Proteins, or Majority protein IDs if present.
-protein_col = first_existing_column(
-    peptides,
-    [
-        "Leading razor protein",
-        "Razor",
-        "Proteins",
-        "Majority protein IDs",
-        "Protein",
-    ],
+combined = (
+    pd.concat([agg_sec.rename("secpep_sum"), agg_rest.rename("rest_max")], axis=1)
+    .fillna(0)
 )
+combined["Intensity"] = combined["secpep_sum"] + combined["rest_max"]
+combined = combined.replace(0, np.nan)["Intensity"]
 
-if protein_col is None:
-    raise ValueError(
-        "Could not find a protein column. Expected one of: "
-        "Leading razor protein, Razor, Proteins, Majority protein IDs, Protein."
-    )
+wide = combined.unstack("Experiment").reindex(columns=samples).replace(0, np.nan)
+wide.to_csv(outdir / "species_matrix_corrected.csv")
 
-peptides["_protein"] = safe_first_protein(peptides[protein_col])
+# -----------------------------
+# Estimate raw N_j via paper Eq. 2 residuals
+# H(N) = sum_p sum_A<B [log(N_A * I_pA) - log(N_B * I_pB)]^2
+# Raw solution is scale-free. Anchors are applied afterwards.
+# -----------------------------
+logX = np.log(wide.values.astype(float))
+pairs = list(combinations(range(len(samples)), 2))
 
-# Modified peptide sequence:
-# Prefer "Modified sequence" if available because it contains modification state.
-# Otherwise use Sequence + Modifications.
-modified_sequence_col = first_existing_column(
-    peptides,
-    [
-        "Modified sequence",
-        "Modified Sequence",
-        "Modified peptide sequence",
-    ],
-)
+def residuals(logN):
+    out = []
+    for a, b in pairs:
+        ok = np.isfinite(logX[:, a]) & np.isfinite(logX[:, b])
+        if ok.any():
+            out.append((logX[ok, a] + logN[a]) - (logX[ok, b] + logN[b]))
+    return np.concatenate(out) if out else np.array([0.0])
 
-sequence_col = first_existing_column(peptides, ["Sequence", "Peptide sequence"])
+fit = least_squares(residuals, np.zeros(len(samples)), method="lm", max_nfev=2000)
+N_raw = np.exp(fit.x)
 
-modifications_col = first_existing_column(peptides, ["Modifications", "Modification"])
+# -----------------------------
+# Anchor variants
+# -----------------------------
+def anchor_geomean(N):
+    return N / np.exp(np.mean(np.log(N)))
 
-if modified_sequence_col is not None:
-    peptides["_modified_sequence"] = peptides[modified_sequence_col].astype(str)
-elif sequence_col is not None and modifications_col is not None:
-    peptides["_modified_sequence"] = (
-        peptides[sequence_col].astype(str)
-        + "|mods="
-        + peptides[modifications_col].astype(str)
-    )
-elif sequence_col is not None:
-    peptides["_modified_sequence"] = peptides[sequence_col].astype(str)
-else:
-    raise ValueError(
-        "Could not find modified sequence information. Expected 'Modified sequence' "
-        "or at least 'Sequence'."
-    )
+def anchor_sample(N, sample):
+    return N / N[samples.index(sample)]
 
-# Charge:
-# This script expects charge-specific rows.
-# If the input has collapsed Charges like "2;3", this is not truly charge-specific.
-charge_col = first_existing_column(peptides, ["Charge", "Charges"])
+def mqpar_first_experiment(path):
+    if path is None:
+        return None
+    root = ET.parse(path).getroot()
+    exps = [el.text for el in root.findall(".//experiments/string")]
+    if not exps:
+        return None
+    anchor = str(exps[0]).strip()
+    zlen = max(len(s) for s in samples)
+    anchor = anchor.zfill(zlen) if anchor.isdigit() else anchor
+    return anchor
 
-if charge_col is None:
-    raise ValueError("Could not find a charge column. Expected 'Charge' or 'Charges'.")
+anchor_variants = []
+anchor_variants.append(("geomean", "", anchor_geomean(N_raw)))
+for s in samples:
+    anchor_variants.append(("anchor_" + s, s, anchor_sample(N_raw, s)))
 
-peptides["_charge"] = peptides[charge_col].astype(str).str.strip()
-
-# Peptide species according to the paper:
-# peptide species = sequence + modification state + charge
-peptides["_species"] = peptides["_modified_sequence"] + "|z=" + peptides["_charge"]
-
-
-# ============================================================
-# Step 0c. Build peptide species intensity matrix
-# ============================================================
-
-if input_is_long:
-    # evidence-like input:
-    # rows are evidence features, so pivot to:
-    # index = protein + peptide species
-    # columns = samples
-    # values = intensity
-    peptides["_sample"] = peptides["Experiment"].astype(str)
-
-    if peptide_species_aggregation == "sum":
-        peptide_matrix = peptides.pivot_table(
-            index=["_protein", "_species"],
-            columns="_sample",
-            values="Intensity",
-            aggfunc="sum",
-        )
-    elif peptide_species_aggregation == "max":
-        peptide_matrix = peptides.pivot_table(
-            index=["_protein", "_species"],
-            columns="_sample",
-            values="Intensity",
-            aggfunc="max",
-        )
+mq_anchor = mqpar_first_experiment(mqpar_file)
+if mq_anchor is not None:
+    if mq_anchor in samples:
+        anchor_variants.append(("mqpar_first_experiment", mq_anchor, anchor_sample(N_raw, mq_anchor)))
     else:
-        raise ValueError("peptide_species_aggregation must be 'sum' or 'max'.")
+        print(f"WARNING: mqpar first experiment {mq_anchor!r} not found in samples {samples}; skipping mqpar anchor")
 
-else:
-    # wide peptide table:
-    # rows are already peptide rows with sample intensity columns.
-    samples = [c.replace("Intensity ", "") for c in wide_intensity_cols]
+# Remove duplicate N variants while retaining labels.
+seen = set()
+unique_anchor_variants = []
+for name, anchor, N in anchor_variants:
+    key = tuple(np.round(N, 12))
+    if key not in seen:
+        seen.add(key)
+        unique_anchor_variants.append((name, anchor, N))
+anchor_variants = unique_anchor_variants
 
-    tmp = peptides[["_protein", "_species"] + wide_intensity_cols].copy()
-    tmp = tmp.rename(columns={c: c.replace("Intensity ", "") for c in wide_intensity_cols})
+# -----------------------------
+# Correct MaxLFQ per-protein function
+# -----------------------------
+def maxlfq_correct(mat):
+    # mat rows = peptide species for one protein, columns = samples, values = normalized intensities.
+    mat = mat.astype(float).copy()
+    mat[mat == 0] = np.nan
+    logP = np.log2(mat)
+    ns = logP.shape[1]
+    profile = np.full(ns, np.nan)
 
-    if peptide_species_aggregation == "sum":
-        peptide_matrix = tmp.groupby(["_protein", "_species"], sort=True)[samples].sum(
-            min_count=1
-        )
-    elif peptide_species_aggregation == "max":
-        peptide_matrix = tmp.groupby(["_protein", "_species"], sort=True)[samples].max()
-    else:
-        raise ValueError("peptide_species_aggregation must be 'sum' or 'max'.")
+    # Correct protein-specific rescaling target: nanmax per sample.
+    nm = np.full(ns, np.nan)
+    for j in range(ns):
+        col = mat[:, j]
+        finite = np.isfinite(col)
+        if finite.any():
+            nm[j] = np.nanmax(col)
 
-# Make sure sample order is stable
-samples = list(peptide_matrix.columns)
-peptide_matrix = peptide_matrix.apply(pd.to_numeric, errors="coerce")
-peptide_matrix = peptide_matrix.replace(0, np.nan)
-
-peptide_matrix.to_csv(out_peptide_species_matrix)
-
-print("Peptide species rows:", peptide_matrix.shape[0])
-print("Proteins:", peptide_matrix.index.get_level_values(0).nunique())
-print("Samples:", samples)
-
-
-# ============================================================
-# Step 1. Eq. 1 from paper: delayed normalization
-# ============================================================
-#
-# Paper idea:
-#
-#   I_{P,A}(N) = sum_k N_run(k) * XIC_k
-#
-# In this simplified peptide-species table:
-#
-#   normalized_intensity[p, sample] = N[sample] * raw_intensity[p, sample]
-#
-# We first estimate N in Step 2, then apply Eq. 1 below.
-
-
-# ============================================================
-# Step 2. Eq. 2 from paper: estimate normalization factors
-# ============================================================
-#
-# Paper objective:
-#
-#   H(N) = sum_P sum_(A,B) | log(I_{P,A}(N) / I_{P,B}(N)) |^2
-#
-# Since:
-#
-#   log(I_{P,A}(N) / I_{P,B}(N))
-#   = log(raw_{P,A}) - log(raw_{P,B}) + log(N_A) - log(N_B)
-#
-# We estimate log(N) from all shared peptide-species pairs.
-# The absolute scale of N is arbitrary, so we force geometric mean N = 1.
-
-def estimate_normalization_factors(matrix):
-    """
-    Estimate sample normalization factors using the Eq. 2 logic.
-
-    Input:
-        matrix: rows = peptide species, columns = samples, values = raw intensities
-
-    Output:
-        N: array of multiplicative normalization factors for samples
-    """
-    X = matrix.values.astype(float)
-    X[X == 0] = np.nan
-    logX = np.log(X)
-
-    n_samples = X.shape[1]
-
-    # Each sample pair contributes one equation:
-    #
-    #   logN_A - logN_B approx -mean(logRaw_A - logRaw_B)
-    #
-    # This is a compact least-squares version of Eq. 2.
-    rows = []
-    values = []
-
-    for a, b in combinations(range(n_samples), 2):
-        shared = np.isfinite(logX[:, a]) & np.isfinite(logX[:, b])
-
-        if not shared.any():
+    # Pairwise median log2 ratios. min_ratio_count = 1.
+    rat = np.full((ns, ns), np.nan)
+    for j, k in combinations(range(ns), 2):
+        shared = np.isfinite(logP[:, j]) & np.isfinite(logP[:, k])
+        if shared.sum() < 1:
             continue
+        m = float(np.median((logP[:, j] - logP[:, k])[shared]))
+        rat[j, k] = m
+        rat[k, j] = -m
 
-        row = np.zeros(n_samples)
-        row[a] = 1.0
-        row[b] = -1.0
-
-        # Right-hand side that makes average normalized log ratio close to zero.
-        target = -np.nanmean(logX[shared, a] - logX[shared, b])
-
-        rows.append(row)
-        values.append(target)
-
-    if len(rows) == 0:
-        return np.ones(n_samples)
-
-    A = np.asarray(rows)
-    b = np.asarray(values)
-
-    # Add a tiny centering equation to remove the arbitrary scale degree of freedom.
-    A_aug = np.vstack([A, np.ones(n_samples) * 1e-8])
-    b_aug = np.concatenate([b, [0.0]])
-
-    logN, *_ = np.linalg.lstsq(A_aug, b_aug, rcond=None)
-
-    # Force geometric mean N = 1.
-    logN = logN - np.mean(logN)
-    N = np.exp(logN)
-    N = N / np.exp(np.mean(np.log(N)))
-
-    return N
-
-
-N = estimate_normalization_factors(peptide_matrix)
-
-normalization_df = pd.DataFrame({
-    "sample": samples,
-    "N": N,
-    "log2_N": np.log2(N),
-})
-
-normalization_df.to_csv(out_normalization, sep="\t", index=False)
-
-print("\nNormalization factors")
-print(normalization_df.to_string(index=False))
-
-
-# Apply Eq. 1
-normalized_peptide_matrix = peptide_matrix.copy()
-
-for j, sample in enumerate(samples):
-    normalized_peptide_matrix[sample] = normalized_peptide_matrix[sample] * N[j]
-
-
-# ============================================================
-# Step 3. Eq. 3 from paper: solve protein profile
-# ============================================================
-#
-# For one protein:
-#
-#   pairwise peptide ratio r_{j,k}
-#     = median over peptide species p of intensity[p,j] / intensity[p,k]
-#
-# Eq. 3 minimizes:
-#
-#   sum_(j,k) (log r_{j,k} - log I_j + log I_k)^2
-#
-# Let:
-#
-#   x_j = log I_j
-#
-# Then every valid pair gives:
-#
-#   x_j - x_k = log r_{j,k}
-#
-# We solve this least-squares system for the relative protein profile.
-# The result is relative only; absolute scale is fixed in Step 4.
-
-def connected_components_from_ratio_matrix(ratio_matrix):
-    """
-    Find connected sample components from valid pairwise ratios.
-    """
-    n = ratio_matrix.shape[0]
-    adjacency = np.isfinite(ratio_matrix)
-
-    labels = np.full(n, -1, dtype=int)
-    component_id = 0
-
-    for start in range(n):
-        if labels[start] != -1:
-            continue
-
-        if not adjacency[start].any():
-            continue
-
-        stack = [start]
-        labels[start] = component_id
-
-        while stack:
-            node = stack.pop()
-
-            for neighbor in np.where(adjacency[node])[0]:
-                if labels[neighbor] == -1:
-                    labels[neighbor] = component_id
-                    stack.append(neighbor)
-
-        component_id += 1
-
-    return labels
-
-
-def pairwise_protein_log_ratios(protein_matrix):
-    """
-    Compute pairwise protein log-ratios from shared peptide species.
-
-    Input:
-        protein_matrix: rows = peptide species for one protein,
-                        columns = samples,
-                        values = normalized peptide intensities
-
-    Output:
-        ratio_matrix[j,k] = log ratio sample j / sample k
-    """
-    X = protein_matrix.astype(float).copy()
-    X[X == 0] = np.nan
-    logX = np.log(X)
-
-    n_samples = X.shape[1]
-
-    ratio_matrix = np.full((n_samples, n_samples), np.nan)
-    count_matrix = np.zeros((n_samples, n_samples), dtype=int)
-
-    for j, k in combinations(range(n_samples), 2):
-        shared = np.isfinite(logX[:, j]) & np.isfinite(logX[:, k])
-        n_shared = int(shared.sum())
-
-        if n_shared < min_ratio_count:
-            continue
-
-        peptide_log_ratios = logX[shared, j] - logX[shared, k]
-
-        if pairwise_ratio_aggregation == "median":
-            log_ratio = np.nanmedian(peptide_log_ratios)
-        elif pairwise_ratio_aggregation == "mean":
-            log_ratio = np.nanmean(peptide_log_ratios)
-        else:
-            raise ValueError("pairwise_ratio_aggregation must be 'median' or 'mean'.")
-
-        ratio_matrix[j, k] = log_ratio
-        ratio_matrix[k, j] = -log_ratio
-
-        count_matrix[j, k] = n_shared
-        count_matrix[k, j] = n_shared
-
-    return ratio_matrix, count_matrix
-
-
-def solve_eq3_relative_profile(log_ratio_submatrix):
-    """
-    Solve Eq. 3 for one connected component.
-
-    Eq. 3:
-        minimize sum (log r_jk - log I_j + log I_k)^2
-
-    Linearized:
-        x_j - x_k = log r_jk
-        where x_j = log I_j
-    """
-    n = log_ratio_submatrix.shape[0]
+    has_r = np.any(np.isfinite(rat), axis=1)
+    if not has_r.any():
+        return profile
 
     rows = []
-    values = []
+    vals = []
+    for j, k in combinations(range(ns), 2):
+        if np.isfinite(rat[j, k]) and has_r[j] and has_r[k]:
+            row = np.zeros(ns)
+            row[j] = 1.0
+            row[k] = -1.0
+            rows.append(row)
+            vals.append(rat[j, k])
 
-    for j, k in combinations(range(n), 2):
-        if not np.isfinite(log_ratio_submatrix[j, k]):
-            continue
+    if not rows:
+        profile[has_r] = nm[has_r]
+        return profile
 
-        row = np.zeros(n)
-        row[j] = 1.0
-        row[k] = -1.0
+    sol, *_ = np.linalg.lstsq(np.array(rows), np.array(vals), rcond=None)
+    p = 2.0 ** sol
+    p[~has_r] = np.nan
 
-        rows.append(row)
-        values.append(log_ratio_submatrix[j, k])
+    active = has_r & np.isfinite(p) & (p > 0) & np.isfinite(nm) & (nm > 0)
+    if active.any():
+        p *= np.nansum(nm[active]) / np.nansum(p[active])
 
-    if len(rows) == 0:
-        return np.full(n, np.nan)
-
-    A = np.asarray(rows)
-    b = np.asarray(values)
-
-    x, *_ = np.linalg.lstsq(A, b, rcond=None)
-
-    # Convert log profile to linear relative intensities.
-    profile = np.exp(x)
-
+    p[~has_r] = np.nan
+    profile = p
     return profile
 
 
-# ============================================================
-# Step 4. Anchor/rescale protein profile
-# ============================================================
-#
-# After Eq. 3, the profile has only relative scale.
-#
-# The paper describes rescaling the profile to cumulative peptide intensity.
-#
-# Here:
-#
-#   scale = sum(peptide species intensities across component samples)
-#           / sum(relative profile across component samples)
-#
-# Then:
-#
-#   LFQ_j = relative_profile_j * scale
+def calculate_lfq(N):
+    wide_norm_reset = wide.multiply(N, axis="columns").reset_index()
+    records = []
+    for prot, grp in wide_norm_reset.groupby("_razor", sort=True):
+        mat = grp[samples].values.astype(float)
+        mat[mat == 0] = np.nan
+        prof = maxlfq_correct(mat)
+        rec = {"Protein": prot}
+        for s, v in zip(samples, prof):
+            rec["LFQ intensity " + s] = float(v) if np.isfinite(v) and v > 0 else np.nan
+        records.append(rec)
+    return pd.DataFrame(records).set_index("Protein")
 
-def anchor_profile(relative_profile, anchor_vector):
-    """
-    Scale relative profile to cumulative peptide species intensity.
+# -----------------------------
+# Load proteinGroups LFQ
+# -----------------------------
+pg = pd.read_csv(protein_groups_file, sep="\t", low_memory=False)
+for c in ["Reverse", "Potential contaminant", "Contaminant"]:
+    if c in pg.columns:
+        pg = pg[pg[c].astype(str).str.strip() != "+"].copy()
 
-    relative_profile:
-        output from Eq. 3 for a connected component
+pg = pg.set_index("Majority protein IDs")
+pg_lfq = pg[[c for c in pg.columns if c.startswith("LFQ intensity ")]].apply(pd.to_numeric, errors="coerce").replace(0, np.nan)
+pg_lfq.columns = pg_lfq.columns.str.removeprefix("LFQ intensity ")
+pg_lfq.index = [str(i).split(";")[0].strip() for i in pg_lfq.index]
+shared_samples = [s for s in samples if s in pg_lfq.columns]
 
-    anchor_vector:
-        summed normalized peptide species intensities for the same samples
-    """
-    relative_profile = np.asarray(relative_profile, dtype=float)
-    anchor_vector = np.asarray(anchor_vector, dtype=float)
+# -----------------------------
+# Evaluate each anchor
+# -----------------------------
+def evaluate(calc, variant_name, anchor_sample):
+    common = calc.index.intersection(pg_lfq.index)
+    all_diffs = []
+    sample_rows = []
+    cell_rows = []
 
-    valid = (
-        np.isfinite(relative_profile)
-        & (relative_profile > 0)
-        & np.isfinite(anchor_vector)
-        & (anchor_vector > 0)
-    )
+    for s in shared_samples:
+        calc_col = "LFQ intensity " + s
+        c = calc.loc[common, calc_col]
+        m = pg_lfq.loc[common, s]
+        ok = c.notna() & m.notna() & (c > 0) & (m > 0)
+        diffs = np.log2(c[ok].astype(float).values / m[ok].astype(float).values)
+        all_diffs.extend(diffs.tolist())
 
-    anchored = np.full_like(relative_profile, np.nan, dtype=float)
+        for prot, cv, mv, dv in zip(c.index[ok], c[ok].astype(float), m[ok].astype(float), diffs):
+            cell_rows.append({
+                "variant": variant_name,
+                "anchor_sample": anchor_sample,
+                "Protein": prot,
+                "sample": s,
+                "calculated_lfq": float(cv),
+                "proteinGroups_lfq": float(mv),
+                "log2_calc_over_actual": float(dv),
+                "calc_over_actual": float(cv / mv),
+            })
 
-    if not valid.any():
-        return anchored
-
-    scale = np.nansum(anchor_vector[valid]) / np.nansum(relative_profile[valid])
-    anchored[valid] = relative_profile[valid] * scale
-
-    return anchored
-
-
-def maxlfq_one_protein(protein_norm_matrix):
-    """
-    Calculate LFQ profile for one protein from normalized peptide species matrix.
-    """
-    log_ratio_matrix, count_matrix = pairwise_protein_log_ratios(protein_norm_matrix)
-
-    labels = connected_components_from_ratio_matrix(log_ratio_matrix)
-
-    output_profile = np.full(protein_norm_matrix.shape[1], np.nan)
-
-    for component_id in sorted(set(labels)):
-        if component_id < 0:
-            continue
-
-        sample_idx = np.where(labels == component_id)[0]
-
-        sub_ratios = log_ratio_matrix[np.ix_(sample_idx, sample_idx)]
-
-        relative_profile = solve_eq3_relative_profile(sub_ratios)
-
-        # Anchor vector is the summed normalized peptide species intensity
-        # per sample for this protein and component.
-        anchor_vector = np.nansum(protein_norm_matrix[:, sample_idx], axis=0)
-
-        anchored_profile = anchor_profile(relative_profile, anchor_vector)
-
-        output_profile[sample_idx] = anchored_profile
-
-    return output_profile
-
-
-# ============================================================
-# Step 5. Run protein-by-protein LFQ reconstruction
-# ============================================================
-
-records = []
-
-for protein, protein_df in normalized_peptide_matrix.groupby(level=0, sort=True):
-    protein_matrix = protein_df.values.astype(float)
-
-    lfq_profile = maxlfq_one_protein(protein_matrix)
-
-    row = {"Protein": protein}
-
-    for sample, value in zip(samples, lfq_profile):
-        row["LFQ intensity " + sample] = value if np.isfinite(value) and value > 0 else np.nan
-
-    records.append(row)
-
-calculated_lfq = pd.DataFrame(records).set_index("Protein")
-calculated_lfq = calculated_lfq.apply(pd.to_numeric, errors="coerce")
-calculated_lfq.to_csv(out_calculated_lfq)
-
-print("\nCalculated LFQ matrix written to:")
-print(out_calculated_lfq)
-
-
-# ============================================================
-# Step 6. Load actual proteinGroups.txt LFQ
-# ============================================================
-
-protein_groups = pd.read_csv(protein_groups_file, sep="\t", low_memory=False)
-
-protein_groups["Protein"] = safe_first_protein(protein_groups["Majority protein IDs"])
-protein_groups = protein_groups.set_index("Protein")
-
-actual_lfq_cols = [c for c in protein_groups.columns if c.startswith("LFQ intensity ")]
-actual_lfq = protein_groups[actual_lfq_cols].apply(pd.to_numeric, errors="coerce")
-actual_lfq = actual_lfq.replace(0, np.nan)
-
-# ============================================================
-# Step 7. Compare calculated LFQ to proteinGroups LFQ
-# ============================================================
-
-common_proteins = calculated_lfq.index.intersection(actual_lfq.index)
-common_cols = [c for c in calculated_lfq.columns if c in actual_lfq.columns]
-
-if len(common_cols) == 0:
-    raise ValueError(
-        "No matching LFQ sample columns between calculated LFQ and proteinGroups.txt. "
-        "Check sample names."
-    )
-
-all_log2_diffs = []
-sample_rows = []
-cellwise_rows = []
-
-for col in common_cols:
-    sample_name = col.replace("LFQ intensity ", "")
-
-    calc = calculated_lfq.loc[common_proteins, col]
-    actual = actual_lfq.loc[common_proteins, col]
-
-    valid = (
-        calc.notna()
-        & actual.notna()
-        & (calc > 0)
-        & (actual > 0)
-    )
-
-    valid_proteins = calc.index[valid]
-
-    diffs = np.log2(calc[valid].astype(float).values / actual[valid].astype(float).values)
-
-    all_log2_diffs.extend(diffs.tolist())
-
-    for protein, calc_value, actual_value, diff_value in zip(
-        valid_proteins,
-        calc[valid].astype(float).values,
-        actual[valid].astype(float).values,
-        diffs,
-    ):
-        cellwise_rows.append({
-            "Protein": protein,
-            "sample": sample_name,
-            "calculated_lfq": float(calc_value),
-            "proteinGroups_lfq": float(actual_value),
-            "log2_calculated_over_proteinGroups": float(diff_value),
-            "calculated_over_proteinGroups": float(calc_value / actual_value),
+        sample_rows.append({
+            "variant": variant_name,
+            "anchor_sample": anchor_sample,
+            "sample": s,
+            "n": int(ok.sum()),
+            "median_log2_calc_over_actual": float(np.median(diffs)) if len(diffs) else np.nan,
+            "mean_log2_calc_over_actual": float(np.mean(diffs)) if len(diffs) else np.nan,
+            "mae_log2": float(np.mean(np.abs(diffs))) if len(diffs) else np.nan,
+            "sum_calculated": float(c.sum(skipna=True)),
+            "sum_actual": float(m.sum(skipna=True)),
+            "calc_over_actual_total_sample": float(c.sum(skipna=True) / m.sum(skipna=True)) if m.sum(skipna=True) > 0 else np.nan,
+            "log2_sum_calc_over_actual": float(np.log2(c.sum(skipna=True) / m.sum(skipna=True))) if m.sum(skipna=True) > 0 else np.nan,
         })
 
-    sample_rows.append({
-        "sample": sample_name,
-        "n_shared_values": int(valid.sum()),
-        "median_log2_calc_over_actual": float(np.median(diffs)) if len(diffs) else np.nan,
-        "mean_log2_calc_over_actual": float(np.mean(diffs)) if len(diffs) else np.nan,
-        "mae_log2": float(np.mean(np.abs(diffs))) if len(diffs) else np.nan,
-        "sum_calculated": float(calc.sum(skipna=True)),
-        "sum_actual": float(actual.sum(skipna=True)),
-        "log2_sum_calculated_over_actual": float(
-            np.log2(calc.sum(skipna=True) / actual.sum(skipna=True))
-        ) if actual.sum(skipna=True) > 0 else np.nan,
-    })
+    sample_df = pd.DataFrame(sample_rows)
+    calc_total = calc.loc[common, ["LFQ intensity " + s for s in shared_samples]].sum(axis=0, skipna=True).sum()
+    actual_total = pg_lfq.loc[common, shared_samples].sum(axis=0, skipna=True).sum()
 
-cellwise_comparison = pd.DataFrame(cellwise_rows)
-sample_comparison = pd.DataFrame(sample_rows)
+    summary = {
+        "variant": variant_name,
+        "anchor_sample": anchor_sample,
+        "common_proteins": int(len(common)),
+        "shared_values": int(len(all_diffs)),
+        "median_log2_calc_over_actual": float(np.median(all_diffs)) if len(all_diffs) else np.nan,
+        "bias_mean_log2_calc_over_actual": float(np.mean(all_diffs)) if len(all_diffs) else np.nan,
+        "mae_log2": float(np.mean(np.abs(all_diffs))) if len(all_diffs) else np.nan,
+        "sample_median_range": float(sample_df["median_log2_calc_over_actual"].max() - sample_df["median_log2_calc_over_actual"].min()) if len(sample_df) else np.nan,
+        "sum_calculated": float(calc_total),
+        "sum_actual": float(actual_total),
+        "calc_over_actual_total": float(calc_total / actual_total) if actual_total > 0 else np.nan,
+        "log2_calc_over_actual_total": float(np.log2(calc_total / actual_total)) if actual_total > 0 else np.nan,
+    }
+    return summary, sample_df, pd.DataFrame(cell_rows)
 
-cellwise_comparison.to_csv(out_cellwise, sep="\t", index=False)
-sample_comparison.to_csv(out_sample_bias, sep="\t", index=False)
+summary_rows = []
+sample_tables = []
+cell_tables = []
+N_rows = []
 
-calc_total = calculated_lfq.loc[common_proteins, common_cols].sum(axis=0, skipna=True).sum()
-actual_total = actual_lfq.loc[common_proteins, common_cols].sum(axis=0, skipna=True).sum()
+for variant_name, anchor_sample, N in anchor_variants:
+    calc = calculate_lfq(N)
+    calc.to_csv(outdir / f"calculated_lfq_{variant_name}.csv")
+    summary, sample_df, cell_df = evaluate(calc, variant_name, anchor_sample)
+    summary_rows.append(summary)
+    sample_tables.append(sample_df)
+    cell_tables.append(cell_df)
+    for s, v in zip(samples, N):
+        N_rows.append({
+            "variant": variant_name,
+            "anchor_sample": anchor_sample,
+            "sample": s,
+            "N": float(v),
+            "log2_N": float(np.log2(v)),
+        })
 
-summary = pd.DataFrame([{
-    "peptide_species_file": peptide_species_file,
-    "protein_groups_file": protein_groups_file,
-    "input_is_long": input_is_long,
-    "input_is_wide": input_is_wide,
-    "peptide_species_aggregation": peptide_species_aggregation,
-    "pairwise_ratio_aggregation": pairwise_ratio_aggregation,
-    "min_ratio_count": min_ratio_count,
-    "remove_reverse": remove_reverse,
-    "remove_contaminants": remove_contaminants,
-    "use_only_msms_type_rows": use_only_msms_type_rows,
-    "use_only_msms_count_positive_rows": use_only_msms_count_positive_rows,
-    "peptide_species_rows": int(peptide_matrix.shape[0]),
-    "proteins_calculated": int(calculated_lfq.shape[0]),
-    "common_proteins": int(len(common_proteins)),
-    "shared_lfq_values": int(len(all_log2_diffs)),
-    "median_log2_calc_over_actual": float(np.median(all_log2_diffs)) if len(all_log2_diffs) else np.nan,
-    "mean_log2_calc_over_actual": float(np.mean(all_log2_diffs)) if len(all_log2_diffs) else np.nan,
-    "mae_log2": float(np.mean(np.abs(all_log2_diffs))) if len(all_log2_diffs) else np.nan,
-    "sample_median_range": float(
-        sample_comparison["median_log2_calc_over_actual"].max()
-        - sample_comparison["median_log2_calc_over_actual"].min()
-    ) if len(sample_comparison) else np.nan,
-    "sum_calculated": float(calc_total),
-    "sum_actual": float(actual_total),
-    "calc_over_actual_total": float(calc_total / actual_total) if actual_total > 0 else np.nan,
-    "actual_over_calc_total": float(actual_total / calc_total) if calc_total > 0 else np.nan,
-    "log2_calc_over_actual_total": float(np.log2(calc_total / actual_total)) if actual_total > 0 else np.nan,
-}])
+summary_df = pd.DataFrame(summary_rows).sort_values(["mae_log2", "median_log2_calc_over_actual"], na_position="last")
+sample_df = pd.concat(sample_tables, ignore_index=True)
+cell_df = pd.concat(cell_tables, ignore_index=True)
+N_df = pd.DataFrame(N_rows)
 
-summary.to_csv(out_summary, sep="\t", index=False)
+summary_df.to_csv(outdir / "anchor_scan_fixed_summary.tsv", sep="\t", index=False)
+sample_df.to_csv(outdir / "anchor_scan_fixed_by_sample.tsv", sep="\t", index=False)
+cell_df.to_csv(outdir / "anchor_scan_fixed_cellwise.tsv", sep="\t", index=False)
+N_df.to_csv(outdir / "anchor_scan_fixed_normalization_factors.tsv", sep="\t", index=False)
 
-
-# ============================================================
-# Step 8. Make diagnostic plots
-# ============================================================
-
-if len(cellwise_comparison) > 0:
-    x = np.log2(cellwise_comparison["proteinGroups_lfq"].astype(float).values)
-    y = np.log2(cellwise_comparison["calculated_lfq"].astype(float).values)
-
-    finite = np.isfinite(x) & np.isfinite(y)
-
-    min_axis = min(np.min(x[finite]), np.min(y[finite]))
-    max_axis = max(np.max(x[finite]), np.max(y[finite]))
-
-    plt.figure(figsize=(6, 6))
-    plt.scatter(x[finite], y[finite], alpha=0.7)
-    plt.plot([min_axis, max_axis], [min_axis, max_axis], linewidth=1)
-    plt.xlabel("log2 proteinGroups LFQ")
-    plt.ylabel("log2 calculated LFQ")
-    plt.title("Calculated LFQ vs proteinGroups LFQ")
-    plt.tight_layout()
-    plt.savefig(out_plot_scatter, dpi=180)
-    plt.close()
-
-    plt.figure(figsize=(7, 4))
-    plt.hist(
-        cellwise_comparison["log2_calculated_over_proteinGroups"].dropna().values,
-        bins=30,
-    )
-    plt.axvline(0, linewidth=1)
-    plt.xlabel("log2(calculated LFQ / proteinGroups LFQ)")
-    plt.ylabel("Count")
-    plt.title("LFQ residual distribution")
-    plt.tight_layout()
-    plt.savefig(out_plot_residual_hist, dpi=180)
-    plt.close()
-
-if len(sample_comparison) > 0:
-    plt.figure(figsize=(8, 4))
-    plt.bar(
-        sample_comparison["sample"],
-        sample_comparison["median_log2_calc_over_actual"],
-    )
-    plt.axhline(0, linewidth=1)
-    plt.xticks(rotation=45, ha="right")
-    plt.ylabel("Median log2(calculated / proteinGroups)")
-    plt.title("Per-sample median LFQ bias")
-    plt.tight_layout()
-    plt.savefig(out_plot_sample_bias, dpi=180)
-    plt.close()
-
-    x_pos = np.arange(len(sample_comparison))
-    width = 0.4
-
-    plt.figure(figsize=(8, 4))
-    plt.bar(
-        x_pos - width / 2,
-        sample_comparison["sum_actual"],
-        width,
-        label="proteinGroups",
-    )
-    plt.bar(
-        x_pos + width / 2,
-        sample_comparison["sum_calculated"],
-        width,
-        label="calculated",
-    )
-    plt.xticks(x_pos, sample_comparison["sample"], rotation=45, ha="right")
-    plt.ylabel("LFQ sum")
-    plt.title("LFQ total intensity by sample")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(out_plot_sample_sums, dpi=180)
-    plt.close()
-
-
-# ============================================================
-# Step 9. Print absolute output paths
-# ============================================================
-
-print("\nSample-level comparison")
-print(sample_comparison.to_string(index=False))
-
-print("\nOverall comparison")
-print(summary.to_string(index=False))
-
-print("\nWrote output directory")
-print(output_dir.resolve())
-
-print("\nWrote tables")
-for path in [
-    out_peptide_species_matrix,
-    out_normalization,
-    out_calculated_lfq,
-    out_cellwise,
-    out_sample_bias,
-    out_summary,
-]:
-    print(path.resolve())
-
-print("\nWrote plots")
-for path in [
-    out_plot_scatter,
-    out_plot_residual_hist,
-    out_plot_sample_bias,
-    out_plot_sample_sums,
-]:
-    print(path.resolve())
+print("\nSamples:")
+print(samples)
+print("\nShared samples:")
+print(shared_samples)
+print("\nAnchor scan summary:")
+print(summary_df.to_string(index=False))
+print("\nWrote outputs to:")
+print(outdir.resolve())
