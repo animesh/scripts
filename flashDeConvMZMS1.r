@@ -1,5 +1,5 @@
 #usage####
-#..\R-4.5.0\bin\Rscript.exe  flashDeConvMZMS1.r L:\promec\HF\Lars\2026\Solveig_Janus\test\
+#..\R-4.5.0\bin\Rscript.exe  flashDeConvMZMS1.r L:\promec\HF\Lars\2026\Solveig_Janus\test\redo\
 #mzML####
 #generate mzML in windows prompt using cmd
 #wget https://mc-tca-01.s3.us-west-2.amazonaws.com/ProteoWizard/bt83/4071095/pwiz-bin-windows-x86_64-vc145-release-3_0_26181_1c640ef.tar.bz2
@@ -32,7 +32,8 @@
 #SD:max_charge = 150
 #SD:min_cos = 0.85
 #SD:min_snr = 0.25
-#for %i in ("*Ig?.mzML") do (
+#cd L:\promec\HF\Lars\2026\Solveig_Janus\test\redo
+#for %i in ("*.mzML") do (
 #    start "%~ni [Standard]" "F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe" -in "%i" -out "%~ni.mzML.fdc.tsv" -out_spec1 "%~ni.ms1.spec.tsv" -out_annotated_mzml "%~ni.annotated.mzML"
 #    start "%~ni [Subunit]" "F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe" -in "%i" -out "%~ni.subunit.fdc.tsv" -out_spec1 "%~ni.subunit.ms1.spec.tsv" -out_annotated_mzml "%~ni.subunit.annotated.mzML" -ini "FLASHDeconv_subunit_10-100kDa.ini"
 #    start "%~ni [Highmass]" "F:\OpenMS-3.5.0-pre-FVdeploy-2026-01-29\bin\FLASHDeconv.exe" -in "%i" -out "%~ni.highmass.fdc.tsv" -out_spec1 "%~ni.highmass.ms1.spec.tsv" -out_annotated_mzml "%~ni.highmass.annotated.mzML" -ini "FLASHDeconv_highmass_50-200kDa.ini"
@@ -46,7 +47,7 @@ print(args)
 if (length(args) != 1) {stop("\n\nNeeds full path of the directory containing REPORTS for example: c:/Users/animeshs/R/bin/Rscript.exe flashDeConvMZMS1.r \"L:/promec/HF/Lars/2023/IgG Mus Therese/mzML/deconv/\"", call.=FALSE)}
 #dataFolder####
 inpD <- args[1]
-#inpD<-"L:/promec/HF/Lars/2026/Solveig_Janus/test/"
+#inpD<-"L:/promec/HF/Lars/2026/Solveig_Janus/test/redo/"
 #merge####
 inpFL<-list.files(pattern="*mzML.fdc.tsv$",path=inpD,full.names=F,recursive=F)
 outF=paste(inpD,"combine.intMZ1",sep = "/")
