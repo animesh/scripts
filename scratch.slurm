@@ -1,13 +1,14 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=TestFile.d.MC2V3
-##SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=20
-#SBATCH --mem-per-cpu=8G
-#SBATCH --time=160:00:00
+#SBATCH --account=nn9036k --job-name=resultsTKvep
+#SBATCH --time=240:00:00
+#SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=32
+#SBATCH --mem-per-cpu=16G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=TestFile.d.MC2V3.log
-cd /cluster/projects/nn9036k/diann-2.6.0/ 
+#SBATCH --output=resultsTKvep.log
+WORKDIR=$PWD
+cd ${WORKDIR}
 export PATH=$PATH:$PWD
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
 echo " the name of the job is: $SLURM_JOB_NAME"
@@ -17,26 +18,79 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-module purge
-module load GCCcore/14.3.0
-module --ignore_cache load dotNET-Core/8.0.411
-#wget https://github.com/vdemichev/DiaNN/releases/download/2.0/DIA-NN-2.6.0-Academia-Linux.zip
-#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz
-#gunzip UP000005640_9606.fasta.gz
-#mv UP000005640_9606.fasta promec/promec/FastaDB/UP000005640_9606_1protein1gene.fasta
-#unzip DIA-NN-2.6.0-Academia-Linux.zip
-#chmod 755 diann-linux
-#cp ../diann-2.5.0/camprotR_240512_cRAP_20190401_full_tags.fasta .
-#grep "^>" promec/promec/FastaDB/UP000005640_9606_1protein1gene.fasta | wc
-#  20663  226312 2078446
-#unzip DIA-NN-2.6.0-Academia-Linux.zip
-#cp -rf diann-2.6.0 /cluster/projects/nn9036k/.
-#cp -rf /cluster/projects/nn9036k/diann-2.3.0/*.fasta /cluster/projects/nn9036k/diann-2.6.0/
-#rsync -Parv /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/FastaDB/humanMC2V3.2p6.predicted.speclib  /cluster/projects/nn9036k/diann-2.6.0/
-#diann.exe --lib  --threads 24 --verbose 1 --out  --qvalue 0.01 --matrices --out-lib L:\promec\FastaDB\humanMC2V3.2p6.parquet --gen-spec-lib --predictor --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta L:\promec\FastaDB\UP000005640_9606_1protein1gene.fasta --fasta-search --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --rt-profiling --original-mods
-#diann.exe --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_nDIA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_nDIA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_nDIA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_nDIA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_nDIA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_nDIA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_nDIA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_nDIA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_nDIA_3ms_R1.raw --lib L:\promec\FastaDB\humanMC2V3.2p6.predicted.speclib --threads 9 --verbose 1 --out F:\\nDDA\report.DIA9.2p6.parquet --qvalue 0.01 --matrices --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta L:\promec\FastaDB\UP000005640_9606_1protein1gene.fasta --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --window 10 --mass-acc 10 --mass-acc-ms1 10 --peptidoforms --reanalyse --rt-profiling --direct-quant --original-mods --export-quant
-./diann-linux --f  --threads 80 --verbose 1 --out TestFile.d.dia.report.parquet --qvalue 0.01 --no-rt-window --out-lib TestFile.dia.lib.parquet 
- --lib /cluster/projects/nn9036k/diann-2.6.0/humanMC2V3.2p6.predicted.speclib --threads 80 --verbose 1 --out TestFile.d.report.DIA.2p6.parquet --qvalue 0.01 --matrices --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta /cluster/projects/nn9036k/diann-2.6.0/UP000005640_9606_1protein1gene.fasta --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --window 10 --mass-acc 10 --mass-acc-ms1 10 --peptidoforms --reanalyse --rt-profiling --direct-quant --original-mods --export-quant --dda
-#diann.exe --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_DDA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_DDA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_100ng_DDA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_DDA_3ms_R1.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_DDA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ng_DDA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_DDA_3ms_R2.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_DDA_3ms_R3.raw --f Z:\Download\timsread\Fig2A-E_raw\250128_Hela_1ug_DDA_3ms_R1.raw --lib L:\promec\FastaDB\humanMC2V3.2p6.predicted.speclib --threads 9 --verbose 1 --out F:\\nDDA\report.DDA9.2p6.parquet --qvalue 0.01 --matrices --out-lib F:\\nDDA\report.DDA9.2p6-lib.parquet --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta L:\promec\FastaDB\UP000005640_9606_1protein1gene.fasta --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --window 10 --mass-acc 10 --mass-acc-ms1 10 --peptidoforms --reanalyse --rt-profiling --direct-quant --original-mods --export-quant --dda
-#dos2unix scratch.slurm 
-#sbatch scratch.slurm 
+#export http_proxy=proxy.saga:3128
+#export https_proxy=proxy.saga:3128
+module load Java/17
+java --version
+#module load Miniconda3/22.11.1-1
+#conda config --prepend channels bioconda
+#conda config --show channels
+#mamba install python=3.11 nf-core nextflow
+#pip install nf-core
+#nf-core --version
+#nf-core, version 3.3.2
+#export GITHUB_TOKEN="ghp_your_actual_token_here"
+#nf-core pipelines download sarek   --revision 3.9.0   --container-system singularity   --container-cache-utilisation amend   --outdir ./sarek_download   --compress none --force
+#nf-core create
+#cd nf-core-spritz/
+#git checkout dev
+#git remote add origin https://github.com/animesh/spritz_nf.git
+#git push --all origin
+#ln -s /cluster/projects/nn9036k/scripts/TK9/*.gz .
+#git show afe994d381dd5414f6a3fad8966910246b9c3ed4
+#vim samples.csv
+#conda activate nf-core
+#nextflow  self-update
+/cluster/home/ash022/scripts/nextflow -v
+#nextflow version 26.04.6.12646
+#nextflow run hello
+#nextflow pull nf-core/sarek
+#https://nf-co.re/sarek/3.4.0/docs/usage  -r <pipeline version eg 3.4> for Reproducibility
+#nf-core/rnaseq  --outdir hg38varall --input samples.csv   -profile singularity -resume
+#rm -rf  ~/.nextflow
+#export GITHUB_TOKEN="ghp_your_actual_token_here"
+#
+#openjdk 17.0.4 2022-07-19
+/cluster/home/ash022/scripts/nextflow run https://github.com/nf-core/sarek --revision 3.9.0 --input /cluster/projects/nn9036k/TK/sra/fastq/samples.csv --outdir resultsTKvep -profile singularity --tools haplotypecaller,vep --max_memory '512.GB' --max_cpus 32 -resume 
+#cd /cluster/projects/nn9036k/scripts
+#cat /cluster/projects/nn9036k/TK/sra/fastq/ena_fastq_urls.txt
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/070/SRR31089070/SRR31089070_1.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/070/SRR31089070/SRR31089070_2.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/071/SRR31089071/SRR31089071_1.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/071/SRR31089071/SRR31089071_2.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/072/SRR31089072/SRR31089072_1.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/072/SRR31089072/SRR31089072_2.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/073/SRR31089073/SRR31089073_1.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/073/SRR31089073/SRR31089073_2.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/074/SRR31089074/SRR31089074_1.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/074/SRR31089074/SRR31089074_2.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/075/SRR31089075/SRR31089075_1.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/075/SRR31089075/SRR31089075_2.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/076/SRR31089076/SRR31089076_1.fastq.gz
+#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/076/SRR31089076/SRR31089076_2.fastq.gz
+#wget -i /cluster/projects/nn9036k/TK/sra/fastq/ena_fastq_urls.txt
+#rsync -Parv   login.nird-lmd.sigma2.no:PD/Animesh/TK/*.f*q*.gz TK/.
+#rename "R1.fastq.gz" "_1.fq.gz" *.fastq.gz
+#rename "R2.fastq.gz" "_2.fq.gz" *.fastq.gz
+#ls -ltrh TK/*.fq.gz | wc
+#ls -1 TK/*_1.fq.gz | awk -F '_' '{print $1$2$5}' | sed 's/TK\///g' > S1
+#ls -1 TK/*_1.fq.gz | awk -F '_' '{print $1}' | sed 's/TK\///g' > S2
+#printf 'lane_%s\n' {1..30} > S3
+#ls -1 $PWD/TK/*1.fq.gz  > S4
+#ls -1 $PWD/TK/*2.fq.gz  > S5
+#echo "patient,sample,lane,fastq_1,fastq_2" > samples.csv
+#paste -d ',' S? >> samples.csv
+#cat /cluster/projects/nn9036k/TK/sra/fastq/samples.csv 
+#patient,sample,fastq_1,fastq_2,lane
+#TK18,SRR31089070,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089070_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089070_2.fastq.gz,NA
+#TK16,SRR31089071,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089071_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089071_2.fastq.gz,NA
+#TK14,SRR31089072,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089072_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089072_2.fastq.gz,NA
+#TK13,SRR31089073,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089073_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089073_2.fastq.gz,NA
+#TK12,SRR31089074,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089074_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089074_2.fastq.gz,NA
+#TK10,SRR31089075,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089075_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089075_2.fastq.gz,NA
+#TK9,SRR31089076,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089076_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089076_2.fastq.gz,NA
+#cd /cluster/projects/nn9036k/TK/sra/fastq 
+#dos2unix scratch.slurm /cluster/projects/nn9036k/TK/sra/fastq/samples.csv
+#sbatch scratch.slurm  
+#tail -f resultsTKvep.log
+
