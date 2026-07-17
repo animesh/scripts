@@ -1,9 +1,9 @@
 #!/bin/sh
 #SBATCH --account=nn9036k --job-name=resultsTKvep
-#SBATCH --time=240:00:00
-#SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=32
-#SBATCH --mem-per-cpu=16G
+#SBATCH --time=160:00:00
+##SBATCH --partition=bigmem
+#SBATCH --ntasks=1 --cpus-per-task=20
+#SBATCH --mem-per-cpu=8G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
 #SBATCH --output=resultsTKvep.log
@@ -18,19 +18,23 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-#export http_proxy=proxy.saga:3128
-#export https_proxy=proxy.saga:3128
-module load Java/17
-java --version
+#https://documentation.sigma2.no/getting_started/data_transfer.html#proxy-setup-required-on-all-sigma2-systems
+export http_proxy=http://proxy.saga:3128/
+export https_proxy=http://proxy.saga:3128/
+curl -I https://s3.nird.sigma2.no
 #module load Miniconda3/22.11.1-1
 #conda config --prepend channels bioconda
 #conda config --show channels
 #mamba install python=3.11 nf-core nextflow
+module load Java/21
+java --version
 #pip install nf-core
 #nf-core --version
 #nf-core, version 3.3.2
 #export GITHUB_TOKEN="ghp_your_actual_token_here"
-#nf-core pipelines download sarek   --revision 3.9.0   --container-system singularity   --container-cache-utilisation amend   --outdir ./sarek_download   --compress none --force
+export NXF_SINGULARITY_CACHEDIR="/cluster/projects/nn9036k/scrbkup/work/singularity"
+#singularity pull  --name "$NXF_SINGULARITY_CACHEDIR/community-cr-prod.seqera.io-docker-registry-v2-blobs-sha256-92-927ff9bb80d65b425cbe752db6648a84043feff6e8ca90e60f9ff6ddbe8938d5-data.img" https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/92/927ff9bb80d65b425cbe752db6648a84043feff6e8ca90e60f9ff6ddbe8938d5/data
+  #nf-core pipelines download sarek   --revision 3.9.0   --container-system singularity   --container-cache-utilisation amend   --outdir ./sarek_download   --compress none --force
 #nf-core create
 #cd nf-core-spritz/
 #git checkout dev
@@ -51,7 +55,7 @@ java --version
 #export GITHUB_TOKEN="ghp_your_actual_token_here"
 #
 #openjdk 17.0.4 2022-07-19
-/cluster/home/ash022/scripts/nextflow run https://github.com/nf-core/sarek --revision 3.9.0 --input /cluster/projects/nn9036k/TK/sra/fastq/samples.csv --outdir resultsTKvep -profile singularity --tools haplotypecaller,vep --max_memory '512.GB' --max_cpus 32 -resume 
+/cluster/home/ash022/scripts/nextflow run https://github.com/nf-core/sarek --revision 3.9.0 --input /cluster/projects/nn9036k/TK/sra/fastq/samples.csv --outdir resultsTKvep -profile singularity --tools haplotypecaller,vep --max_memory '160.GB' --max_cpus 80 -resume 
 #cd /cluster/projects/nn9036k/scripts
 #cat /cluster/projects/nn9036k/TK/sra/fastq/ena_fastq_urls.txt
 #https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/070/SRR31089070/SRR31089070_1.fastq.gz
