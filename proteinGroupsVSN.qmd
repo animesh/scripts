@@ -1,0 +1,580 @@
+---
+title: "Variance Stabilizing Normalization (VSN) Dashboard"
+format:
+  html:
+    theme: cosmo
+    toc: false
+    page-layout: full
+server: shiny
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| context: setup
+library(shiny)
+library(vsn)
+library(DT)
+library(ggplot2)
+library(hexbin)
+
+options(shiny.maxRequestSize = 500 * 1024^2)
+```
+
+```{r}
+#| context: setup
+read_input <- function(path, filename) {
+  sep <- if (grepl("\\.csv$", filename, ignore.case = TRUE)) "," else "\t"
+  read.table(
+    path,
+    sep = sep,
+    header = TRUE,
+    quote = "",
+    comment.char = "",
+    stringsAsFactors = FALSE,
+    check.names = FALSE,
+    fileEncoding = "UTF-8-BOM"
+  )
+}
+
+find_intensity_columns <- function(df, prefix) {
+  if (!nzchar(trimws(prefix))) return(character(0))
+  names(df)[startsWith(names(df), prefix)]
+}
+
+build_matrix <- function(df, cols) {
+  x <- as.matrix(df[, cols, drop = FALSE])
+  storage.mode(x) <- "double"
+  x[!is.finite(x) | x <= 0] <- NA_real_
+  x
+}
+
+safe_filename_part <- function(value, fallback = "value") {
+  value <- trimws(value)
+  value <- gsub("[^[:alnum:]_-]+", "-", value)
+  value <- gsub("^-+|-+$", "", value)
+  if (!nzchar(value)) fallback else value
+}
+
+number_tag <- function(value) {
+  value <- format(value, scientific = TRUE, trim = TRUE, digits = 15)
+  value <- gsub("\\+", "", value)
+  gsub("\\.", "p", value)
+}
+
+make_parameter_suffix <- function(input) {
+  paste0(
+    "vsn_calib-", safe_filename_part(input$calib),
+    "_lts-", number_tag(input$lts_quantile),
+    "_subsample-", input$subsample,
+    "_minpoints-", input$min_data_points,
+    "_factr-", number_tag(input$factr),
+    "_pgtol-", number_tag(input$pgtol),
+    "_maxit-", input$maxit,
+    "_trace-", input$trace,
+    "_ltsiter-", input$cvg_niter,
+    "_cvgeps-", number_tag(input$cvg_eps)
+  )
+}
+
+unique_result_names <- function(df_names, intensity_cols, timestamp) {
+  base_vsn <- paste0("vsn_", intensity_cols)
+  base_pow2 <- paste0("pow2_", intensity_cols)
+  collision <- any(c(base_vsn, base_pow2) %in% df_names)
+
+  if (collision) {
+    list(
+      vsn = paste0(base_vsn, "_", timestamp),
+      pow2 = paste0(base_pow2, "_", timestamp),
+      timestamped = TRUE
+    )
+  } else {
+    list(vsn = base_vsn, pow2 = base_pow2, timestamped = FALSE)
+  }
+}
+```
+
+```{css}
+.sidebar-panel {
+  background: #f8f9fa;
+  border-radius: 14px;
+  padding: 1rem;
+}
+.sidebar-panel .btn {
+  width: 100%;
+  margin-bottom: 0.45rem;
+}
+.sidebar-panel .form-group {
+  margin-bottom: 0.8rem;
+}
+.parameter-heading {
+  margin-top: 1.2rem;
+  margin-bottom: 0.7rem;
+  font-weight: 600;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.sidebar-column {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+.main-panel {
+  min-width: 0;
+  align-self: start;
+}
+.main-panel > h2:first-child {
+  margin-top: 0;
+}
+.summary-card {
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+}
+.summary-card pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .sidebar-column {
+    position: static;
+    max-height: none;
+  }
+}
+```
+
+::: {.dashboard-grid}
+::: {.sidebar-column}
+
+```{r}
+div(
+  class = "sidebar-panel",
+  h3("Options"),
+  tags$p(
+    "proteinGroups.txt, report.tsv, or CSV. Example ",
+    tags$a(
+      "proteinGroups.txt",
+      href = "https://zenodo.org/records/14557756/files/proteinGroups.txt?download=1",
+      target = "_blank"
+    ),
+    ", details in ",
+    tags$a(
+      "post",
+      href = "https://fuzzylife.substack.com/p/proteomics-data-processing-with-maxquant",
+      target = "_blank"
+    )),
+  fileInput(
+    "file",
+    "Upload",
+    accept = c(".txt", ".tsv", ".csv")
+  ),
+  textInput("pattern", "Intensity column prefix", value = "LFQ"),
+  actionButton("run", "Run VSN Normalization", class = "btn-success"),
+  uiOutput("download_ui"),
+  tags$hr(),
+  tags$div(class = "parameter-heading", "VSN parameters"),
+  selectInput(
+    "calib",
+    "Calibration mode",
+    choices = c("affine", "none"),
+    selected = "affine"
+  ),
+  numericInput(
+    "lts_quantile",
+    "LTS quantile",
+    value = 0.9,
+    min = 0.5,
+    max = 1,
+    step = 0.01
+  ),
+  numericInput(
+    "subsample",
+    "Subsample rows (0 = all)",
+    value = 0,
+    min = 0,
+    step = 1000
+  ),
+  numericInput(
+    "min_data_points",
+    "Minimum data points per stratum",
+    value = 0,
+    min = 0,
+    step = 1
+  ),
+  checkboxInput("verbose", "Print fitting progress", value = TRUE),
+  tags$div(class = "parameter-heading", "Optimizer parameters"),
+  numericInput(
+    "factr",
+    "L-BFGS-B factr",
+    value = 5e7,
+    min = 1,
+    step = 1e6
+  ),
+  numericInput(
+    "pgtol",
+    "Projected-gradient tolerance",
+    value = 2e-4,
+    min = 0,
+    step = 1e-5
+  ),
+  numericInput(
+    "maxit",
+    "Maximum optimizer iterations",
+    value = 60000,
+    min = 1,
+    step = 1000
+  ),
+  numericInput(
+    "trace",
+    "Optimizer trace level",
+    value = 0,
+    min = 0,
+    step = 1
+  ),
+  tags$div(class = "parameter-heading", "LTS convergence"),
+  numericInput(
+    "cvg_niter",
+    "Maximum LTS iterations",
+    value = 7,
+    min = 1,
+    step = 1
+  ),
+  numericInput(
+    "cvg_eps",
+    "LTS convergence epsilon",
+    value = 0,
+    min = 0,
+    step = 1e-4
+  )
+)
+```
+
+:::
+::: {.main-panel}
+
+::: {.summary-card}
+```{r}
+uiOutput("summary")
+```
+:::
+
+::: {.panel-tabset}
+
+## Diagnostics
+
+```{r}
+plotOutput("meansd", height = "500px")
+plotOutput("meansd2", height = "500px")
+uiOutput("meansd_explainer")
+```
+
+## Raw Mean-SD
+
+```{r}
+plotOutput("raw_meansd", height = "500px")
+plotOutput("raw_meansd2", height = "500px")
+uiOutput("raw_meansd_explainer")
+```
+
+## Preview
+
+```{r}
+DT::dataTableOutput("table")
+```
+
+## Regression
+
+```{r}
+selectInput("sample", "Sample", choices = NULL)
+plotOutput("regression", height = "550px")
+```
+
+## Histograms
+
+```{r}
+fluidRow(
+  column(6, plotOutput("raw_histogram", height = "520px")),
+  column(6, plotOutput("vsn_histogram", height = "520px"))
+)
+```
+
+## Box plots
+
+```{r}
+fluidRow(
+  column(6, plotOutput("raw_boxplot", height = "620px")),
+  column(6, plotOutput("vsn_boxplot", height = "620px"))
+)
+```
+
+:::
+:::
+:::
+
+```{r}
+#| context: server
+rawData <- reactive({
+  req(input$file)
+  read_input(input$file$datapath, input$file$name)
+})
+
+observe({
+  req(rawData())
+  cols <- find_intensity_columns(rawData(), input$pattern)
+  updateSelectInput(
+    session,
+    "sample",
+    choices = cols,
+    selected = if (length(cols)) cols[[1]] else character(0)
+  )
+})
+
+vsnData <- eventReactive(input$run, {
+  df <- rawData()
+  intensity_cols <- find_intensity_columns(df, input$pattern)
+
+  validate(
+    need(length(intensity_cols) > 0, "No matching intensity columns found."),
+    need(input$lts_quantile >= 0.5 && input$lts_quantile <= 1,
+         "LTS quantile must be between 0.5 and 1."),
+    need(input$subsample >= 0, "Subsample must be zero or greater."),
+    need(input$min_data_points >= 0,
+         "Minimum data points per stratum must be zero or greater."),
+    need(input$factr > 0, "factr must be greater than zero."),
+    need(input$pgtol >= 0, "pgtol must be zero or greater."),
+    need(input$maxit >= 1, "Maximum iterations must be at least one."),
+    need(input$cvg_niter >= 1, "Maximum LTS iterations must be at least one."),
+    need(input$cvg_eps >= 0, "LTS convergence epsilon must be zero or greater.")
+  )
+
+  raw_matrix <- build_matrix(df, intensity_cols)
+  all_na_rows <- rowSums(is.finite(raw_matrix)) == 0L
+  validate(need(any(!all_na_rows), "All selected intensity values are missing."))
+
+  optimpar <- list(
+    factr = as.numeric(input$factr),
+    pgtol = as.numeric(input$pgtol),
+    maxit = as.integer(input$maxit),
+    trace = as.integer(input$trace),
+    cvg.niter = as.integer(input$cvg_niter),
+    cvg.eps = as.numeric(input$cvg_eps)
+  )
+
+  normalized_matrix <- vsn::justvsn(
+    raw_matrix,
+    lts.quantile = as.numeric(input$lts_quantile),
+    subsample = as.integer(input$subsample),
+    verbose = isTRUE(input$verbose),
+    calib = input$calib,
+    minDataPointsPerStratum = as.integer(input$min_data_points),
+    optimpar = optimpar
+  )
+
+  timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+  result_names <- unique_result_names(
+    names(df),
+    intensity_cols,
+    timestamp
+  )
+  colnames(normalized_matrix) <- result_names$vsn
+
+  pow2_matrix <- 2^normalized_matrix
+  colnames(pow2_matrix) <- result_names$pow2
+
+  export_table <- cbind(
+    df,
+    as.data.frame(normalized_matrix, check.names = FALSE),
+    as.data.frame(pow2_matrix, check.names = FALSE)
+  )
+
+  showNotification(
+    paste0("Successfully normalized ", length(intensity_cols), " columns."),
+    type = "message",
+    duration = 5
+  )
+
+  list(
+    raw = raw_matrix,
+    vsn = normalized_matrix,
+    pow2 = pow2_matrix,
+    export = export_table,
+    intensity_columns = intensity_cols,
+    vsn_columns = result_names$vsn,
+    pow2_columns = result_names$pow2,
+    timestamped = result_names$timestamped,
+    all_na_rows = sum(all_na_rows)
+  )
+})
+
+output$download_ui <- renderUI({
+  req(vsnData())
+  downloadButton("download", "Download VSN Normalized Data")
+})
+
+output$download <- downloadHandler(
+  filename = function() {
+    req(input$file)
+    uploaded_stem <- tools::file_path_sans_ext(input$file$name)
+    prefix <- safe_filename_part(input$pattern, "intensity")
+    paste0(
+      uploaded_stem,
+      "_",
+      prefix,
+      "_",
+      make_parameter_suffix(input),
+      ".txt"
+    )
+  },
+  content = function(file) {
+    write.table(
+      vsnData()$export,
+      file = file,
+      sep = "\t",
+      quote = FALSE,
+      row.names = FALSE,
+      na = ""
+    )
+  }
+)
+
+output$summary <- renderUI({
+  req(rawData())
+  df <- rawData()
+  intensity_cols <- find_intensity_columns(df, input$pattern)
+  lines <- list(tags$div(
+    paste0("Rows: ", nrow(df), " | Columns: ", ncol(df),
+           " | Matched intensity columns: ", length(intensity_cols))
+  ))
+  if (!is.null(vsnData())) {
+    lines <- c(lines, list(tags$div(
+      tags$strong(paste0("All-NA rows excluded from fitting: ", vsnData()$all_na_rows)),
+      paste0(" | Timestamped result columns: ", vsnData()$timestamped)
+    )))
+  }
+  do.call(tags$div, c(list(style = "font-family: monospace;"), lines))
+})
+```
+
+```{r}
+#| context: server
+output$meansd <- renderPlot({
+  req(vsnData())
+  z <- vsn::meanSdPlot(vsnData()$vsn, plot = FALSE)
+  print(z$gg + ggplot2::theme_bw())
+})
+output$meansd2 <- renderPlot({
+  req(vsnData())
+  z <- vsn::meanSdPlot(vsnData()$vsn, ranks = FALSE, plot = FALSE)
+  print(z$gg + ggplot2::theme_bw())
+})
+output$raw_meansd <- renderPlot({
+  req(vsnData())
+  z <- vsn::meanSdPlot(log2(vsnData()$raw), plot = FALSE)
+  print(z$gg + ggplot2::theme_bw())
+})
+output$raw_meansd2 <- renderPlot({
+  req(vsnData())
+  z <- vsn::meanSdPlot(log2(vsnData()$raw), ranks = FALSE, plot = FALSE)
+  print(z$gg + ggplot2::theme_bw())
+})
+output$meansd_explainer <- renderUI({
+  req(vsnData())
+  tags$div(class="alert alert-info",
+    tags$p(tags$strong(paste0("All-NA rows excluded from fitting: ", vsnData()$all_na_rows, ". ")),
+      "The empty lower-rank region also reflects sparse rows with too few finite values to estimate a row standard deviation."))
+})
+output$raw_meansd_explainer <- renderUI({
+  req(vsnData())
+  tags$div(class="alert alert-warning", tags$strong("Raw-data mean-SD plots"),
+    tags$p("These plots use log2(raw intensity) before VSN. Compare the running median with the transformed Diagnostics tab."),
+    tags$p(tags$strong(paste0("All-NA rows excluded from fitting: ", vsnData()$all_na_rows, "."))))
+})
+
+sample_median_stats <- function(x) {
+  medians <- apply(x, 2L, median, na.rm=TRUE)
+  medians <- medians[is.finite(medians)]
+  list(medians=medians, mad=mad(medians, center=median(medians)))
+}
+output$raw_histogram <- renderPlot({
+  req(vsnData()); x <- log2(vsnData()$raw); st <- sample_median_stats(x)
+  v <- as.numeric(x); v <- v[is.finite(v)]
+  hist(v, breaks=60, col="#E69F00", border="white", xlab="log2(raw intensity)", ylab="Frequency",
+       main=paste0("Raw log2 intensity distribution\nMAD of sample medians = ", format(st$mad,digits=4)))
+  abline(v=st$medians,col="#8C5200",lty=3); abline(v=median(st$medians),col="black",lwd=2)
+})
+output$vsn_histogram <- renderPlot({
+  req(vsnData()); x <- vsnData()$vsn; st <- sample_median_stats(x)
+  v <- as.numeric(x); v <- v[is.finite(v)]
+  hist(v, breaks=60, col="#0072B2", border="white", xlab="VSN-transformed intensity", ylab="Frequency",
+       main=paste0("VSN-transformed distribution\nMAD of sample medians = ", format(st$mad,digits=4)))
+  abline(v=st$medians,col="#003F66",lty=3); abline(v=median(st$medians),col="black",lwd=2)
+})
+output$raw_boxplot <- renderPlot({
+  req(vsnData()); x <- log2(vsnData()$raw); st <- sample_median_stats(x)
+  boxplot(x,las=2,outline=FALSE,col="#E69F00",border="#8C5200",ylab="log2(raw intensity)",
+          main=paste0("Raw log2 intensities by sample\nMAD of sample medians = ",format(st$mad,digits=4)))
+  points(seq_along(st$medians),st$medians,pch=21,bg="white",col="black")
+})
+output$vsn_boxplot <- renderPlot({
+  req(vsnData()); x <- vsnData()$vsn; st <- sample_median_stats(x)
+  boxplot(x,las=2,outline=FALSE,col="#0072B2",border="#003F66",ylab="VSN-transformed intensity",
+          main=paste0("VSN-transformed intensities by sample\nMAD of sample medians = ",format(st$mad,digits=4)))
+  points(seq_along(st$medians),st$medians,pch=21,bg="white",col="black")
+})
+
+output$regression <- renderPlot({
+  req(vsnData(), input$sample)
+  idx <- match(input$sample, colnames(vsnData()$raw))
+  validate(need(!is.na(idx), "Please choose a sample."))
+
+  x <- log2(vsnData()$raw[, idx])
+  y <- vsnData()$vsn[, idx]
+  keep <- complete.cases(x, y)
+  x <- x[keep]
+  y <- y[keep]
+  validate(need(length(x) > 5, "Not enough valid observations."))
+
+  fit <- lm(y ~ x)
+  fit_summary <- summary(fit)
+  plot(
+    x,
+    y,
+    pch = 19,
+    cex = 0.5,
+    xlab = paste0("log2(", colnames(vsnData()$raw)[idx], ")"),
+    ylab = vsnData()$vsn_columns[idx],
+    main = paste("VSN vs log2:", input$sample)
+  )
+  abline(fit, col = "blue", lwd = 2)
+  legend(
+    "topleft",
+    bty = "n",
+    legend = c(
+      paste0("R² = ", round(fit_summary$r.squared, 4)),
+      paste0("Intercept = ", round(coef(fit)[1], 4)),
+      paste0("Slope = ", round(coef(fit)[2], 4))
+    )
+  )
+})
+
+output$table <- DT::renderDataTable({
+  req(vsnData())
+  DT::datatable(
+    vsnData()$export,
+    options = list(pageLength = 20, scrollX = TRUE),
+    rownames = FALSE
+  )
+})
+```
