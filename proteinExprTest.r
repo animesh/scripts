@@ -1,4 +1,4 @@
-#..\R-4.5.0\bin\Rscript.exe proteinExprTest.r "L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/report.pg_matrix.tsv" "L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/GroupsRem.txt" "Test" "Rem" 1 7 5 "ILE" "ILEIGG"  0.1 0.5 0.1
+#..\..\R-4.5.0\bin\Rscript.exe proteinExprTest.r "L:\promec\TIMSTOF\LARS\2026\260623_AndrewS\DIANNv2P2.14.260703_140432.SILAC.32.highacc\report.pg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2026\260623_AndrewS\DIANNv2P2.14.260703_140432.SILAC.32.highacc\Groups.txt" "Bio" "Inc2" 1 7 "DVL_ILE" "IGG_ILE"  0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -7,36 +7,34 @@
 args = commandArgs(trailingOnly=TRUE)
 print(paste("supplied argument(s):", length(args)))
 print(args)
-if (length(args) != 12) {stop("\n\nNeeds NINE arguments, the full path of proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file and Intensity columns to include and control-group and thresholds like FDR-threshold, log2Median-FC-threshold, coefficient-of-variation-threshold; for example:
+if (length(args) != 11) {stop("\n\nNeeds 11 arguments, the full path of proteinGroups.txt AND Groups.txt files followed by the name of GROUP-to-compare and data-to-REMOVE columns in Groups.txt file and Intensity columns to include and control-group and thresholds like FDR-threshold, log2Median-FC-threshold, coefficient-of-variation-threshold; for example:
 
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF<-"L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/report.pg_matrix.tsv"
+#inpF<-"L:/promec/TIMSTOF/LARS/2026/260623_AndrewS/DIANNv2P2.14.260703_140432.SILAC.32.highacc/report.pg_matrix.tsv"
 #inpFD<- gsub("[^[:alnum:]]+", ".", dirname(inpF))
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2026/260219_AndrewS/DIANNv2P2.12.260302_120100.SILAC.24.highacc/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2026/260623_AndrewS/DIANNv2P2.14.260703_140432.SILAC.32.highacc/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Test"
+#lGroup<-"Bio"
 rGroup <- args[4]
-#rGroup<-"Rem"
+#rGroup<-"Inc1"
 proteinC <- args[5]
 #proteinC<-"1"
 selection <- args[6]
 #selection<-"7"
-cName <- args[7]
-#cName<-"5"
-sample <- args[8]
-#sample<-"IGG"
-control <- args[9]
-#control<-"DUOIGG"
-selThr <- args[10]
+sample <- args[7]
+#sample<-"DVL_DUO"
+control <- args[8]
+#control<-"IGG_DUO"
+selThr <- args[9]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
-selThrFC <- args[11]
+selThrFC <- args[10]
 selThrFC <- as.numeric(selThrFC)
 #selThrFC=0.5#log2-MedianDifference
-cvThr <- args[12]
+cvThr <- args[11]
 cvThr <- as.numeric(cvThr)
 #cvThr=0.1#threshold for coefficient-of-variation
 inpD<-dirname(inpF)
@@ -54,7 +52,7 @@ summary(data)
 dim(data)
 ##int####
 intdata<-data[,as.numeric(unlist(strsplit(selection," "))):ncol(data)]
-colnames(intdata)<-sapply(strsplit(colnames(intdata),"_",fixed=T), "[", as.integer(cName))
+colnames(intdata)<-(\(n) { p <- 0; while(length(unique(substr(n, 1, p + 1))) == 1) p <- p + 1; s <- 0; while(length(unique(substr(n, nchar(n) - s, nchar(n)))) == 1) s <- s + 1; substr(n, p + 1, nchar(n) - s) })(colnames(intdata))
 log2Int<-as.matrix(log2(intdata))
 log2Int[log2Int==-Inf]=NA
 dim(log2Int)
@@ -85,7 +83,6 @@ boxplot(countTableDAuniGORNAddsMedVSN,las=2)
 label<-read.table(inpL,header=T,sep="\t",row.names=1)#, colClasses=c(rep("factor",3)))
 label["pair2test"]<-label[lGroup]
 if(rGroup %in% colnames(label)){label["removed"]<-label[rGroup]} else{label["removed"]=NA}
-row.names(label)<-sapply(strsplit(row.names(label),"_",fixed=T), "[", 1)
 print(label)
 #anno####
 annoFactor<-label[lGroup]
