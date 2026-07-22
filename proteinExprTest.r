@@ -1,4 +1,4 @@
-#..\..\R-4.5.0\bin\Rscript.exe proteinExprTest.r "L:\promec\TIMSTOF\LARS\2026\260623_AndrewS\DIANNv2P2.14.260703_140432.SILAC.32.highacc\report.pg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2026\260623_AndrewS\DIANNv2P2.14.260703_140432.SILAC.32.highacc\Groups.txt" "Bio" "Inc2" 1 7 "DVL_ILE" "IGG_ILE"  0.1 0.5 0.1
+#..\..\R-4.5.0\bin\Rscript.exe proteinExprTest.r "L:\promec\TIMSTOF\LARS\2026\260623_AndrewS\DIANNv2P2.14.260703_140432.SILAC.32.highacc\report.pg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2026\260623_AndrewS\DIANNv2P2.14.260703_140432.SILAC.32.highacc\Groups.txt" "Bio" "Inc3" 1 7 "DVL_DUO" "IGG_DUO"  0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
