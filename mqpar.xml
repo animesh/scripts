@@ -2,13 +2,56 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>SequencesFasta</fastaFilePath>
+         <fastaFilePath>/cluster/home/ash022/scripts/TK12.exploratory_proteogenomics.fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/home/ash022/scripts/TK13.exploratory_proteogenomics.fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/home/ash022/scripts/TK14.exploratory_proteogenomics.fasta</fastaFilePath>
+         <identifierParseRule>>(.*)</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/home/ash022/FastaDB/uniprotkb_proteome_UP000005640_2026_06_25.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
          <variationParseRule></variationParseRule>
          <modificationParseRule></modificationParseRule>
          <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
    </fastaFiles>
    <fastaFilesProteogenomics>
@@ -35,19 +78,19 @@
    <minScoreUnmodifiedPeptides>0</minScoreUnmodifiedPeptides>
    <minScoreModifiedPeptides>40</minScoreModifiedPeptides>
    <secondPeptide>True</secondPeptide>
-   <matchBetweenRuns>False</matchBetweenRuns>
-   <matchUnidentifiedFeatures>False</matchUnidentifiedFeatures>
+   <matchBetweenRuns>True</matchBetweenRuns>
+   <matchUnidentifiedFeatures>True</matchUnidentifiedFeatures>
    <matchBetweenRunsFdr>False</matchBetweenRunsFdr>
-   <dependentPeptides>False</dependentPeptides>
-   <dependentPeptideFdr>0</dependentPeptideFdr>
-   <dependentPeptideMassBin>0</dependentPeptideMassBin>
+   <dependentPeptides>True</dependentPeptides>
+   <dependentPeptideFdr>0.01</dependentPeptideFdr>
+   <dependentPeptideMassBin>0.0065</dependentPeptideMassBin>
    <dependentPeptidesBetweenRuns>False</dependentPeptidesBetweenRuns>
    <dependentPeptidesWithinExperiment>False</dependentPeptidesWithinExperiment>
    <dependentPeptidesWithinParameterGroup>False</dependentPeptidesWithinParameterGroup>
    <dependentPeptidesRestrictFractions>False</dependentPeptidesRestrictFractions>
    <dependentPeptidesFractionDifference>0</dependentPeptidesFractionDifference>
    <ibaq>True</ibaq>
-   <top3>True</top3>
+   <top3>False</top3>
    <independentEnzymes>False</independentEnzymes>
    <useDeltaScore>False</useDeltaScore>
    <splitProteinGroupsByTaxonomy>False</splitProteinGroupsByTaxonomy>
@@ -57,22 +100,22 @@
    <ibaqLogFit>True</ibaqLogFit>
    <ibaqChargeNormalization>True</ibaqChargeNormalization>
    <razorProteinFdr>True</razorProteinFdr>
-   <deNovoSequencing>False</deNovoSequencing>
-   <deNovoVarMods>False</deNovoVarMods>
-   <deNovoCompleteSequence>False</deNovoCompleteSequence>
-   <deNovoCalibratedMasses>False</deNovoCalibratedMasses>
-   <deNovoMaxIterations>0</deNovoMaxIterations>
-   <deNovoProteaseReward>0</deNovoProteaseReward>
-   <deNovoProteaseRewardTof>0</deNovoProteaseRewardTof>
-   <deNovoAgPenalty>0</deNovoAgPenalty>
-   <deNovoGgPenalty>0</deNovoGgPenalty>
+   <deNovoSequencing>True</deNovoSequencing>
+   <deNovoVarMods>True</deNovoVarMods>
+   <deNovoCompleteSequence>True</deNovoCompleteSequence>
+   <deNovoCalibratedMasses>True</deNovoCalibratedMasses>
+   <deNovoMaxIterations>750000</deNovoMaxIterations>
+   <deNovoProteaseReward>2</deNovoProteaseReward>
+   <deNovoProteaseRewardTof>2</deNovoProteaseRewardTof>
+   <deNovoAgPenalty>0.5</deNovoAgPenalty>
+   <deNovoGgPenalty>0.5</deNovoGgPenalty>
    <deNovoUseComplementScore>True</deNovoUseComplementScore>
    <deNovoUseProteaseScore>True</deNovoUseProteaseScore>
    <deNovoUseWaterLossScore>True</deNovoUseWaterLossScore>
    <deNovoUseAmmoniaLossScore>True</deNovoUseAmmoniaLossScore>
    <deNovoUseA2Score>True</deNovoUseA2Score>
-   <deNovoMassClusterTolDa>0</deNovoMassClusterTolDa>
-   <deNovoScalingFactor>0</deNovoScalingFactor>
+   <deNovoMassClusterTolDa>0.035</deNovoMassClusterTolDa>
+   <deNovoScalingFactor>1</deNovoScalingFactor>
    <massDifferenceSearch>False</massDifferenceSearch>
    <isotopeCalc>False</isotopeCalc>
    <minPeptideLength>7</minPeptideLength>
@@ -95,10 +138,10 @@
       <string>Acetyl (Protein N-term)</string>
       <string>Deamidation (NQ)</string>
    </restrictMods>
-   <matchingTimeWindow>0</matchingTimeWindow>
-   <matchingIonMobilityWindow>0</matchingIonMobilityWindow>
-   <alignmentTimeWindow>0</alignmentTimeWindow>
-   <alignmentIonMobilityWindow>0</alignmentIonMobilityWindow>
+   <matchingTimeWindow>1</matchingTimeWindow>
+   <matchingIonMobilityWindow>0.05</matchingIonMobilityWindow>
+   <alignmentTimeWindow>20</alignmentTimeWindow>
+   <alignmentIonMobilityWindow>1</alignmentIonMobilityWindow>
    <numberOfCandidatesMsms>15</numberOfCandidatesMsms>
    <compositionPrediction>0</compositionPrediction>
    <quantMode>2</quantMode>
@@ -124,9 +167,9 @@
    <variationMode>none</variationMode>
    <useSeriesReporters>False</useSeriesReporters>
    <name>session1</name>
-   <maxQuantVersion>2.7.0.0</maxQuantVersion>
+   <maxQuantVersion>2.8.1.0</maxQuantVersion>
    <pluginFolder></pluginFolder>
-   <numThreads>8</numThreads>
+   <numThreads>40</numThreads>
    <emailAddress></emailAddress>
    <smtpHost></smtpHost>
    <emailFromAddress></emailFromAddress>
@@ -140,27 +183,93 @@
    <showIsotopeMassDifferences>False</showIsotopeMassDifferences>
    <profilePerformance>False</profilePerformance>
    <filePaths>
-      <string>TestDir</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK12_CTR3_20200324013720.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK13_CTR1.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK13_CTR2.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK13_CTR3.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK14_CTR1.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK14_CTR2.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK14_CTR3.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK12_CTR1.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK12_CTR1_20200323190746.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK12_CTR2.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK12_CTR2_20200323222228.raw</string>
+      <string>/cluster/home/ash022/scripts/pgtk/ftp.pride.ebi.ac.uk/pride/data/archive/2024/11/PXD033510/200313_SIRI_TK12_CTR3.raw</string>
    </filePaths>
    <experiments>
-      <string>TestDir</string>
+      <string>2_CTR3_20200324013720</string>
+      <string>3_CTR1</string>
+      <string>3_CTR2</string>
+      <string>3_CTR3</string>
+      <string>4_CTR1</string>
+      <string>4_CTR2</string>
+      <string>4_CTR3</string>
+      <string>2_CTR1</string>
+      <string>2_CTR1_20200323190746</string>
+      <string>2_CTR2</string>
+      <string>2_CTR2_20200323222228</string>
+      <string>2_CTR3</string>
    </experiments>
    <fractions>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
+      <short>32767</short>
       <short>32767</short>
    </fractions>
    <ptms>
       <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
+      <boolean>False</boolean>
    </ptms>
    <paramGroupIndices>
       <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
+      <int>0</int>
    </paramGroupIndices>
    <referenceChannel>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
+      <string></string>
       <string></string>
    </referenceChannel>
    <lfqTopNPeptides>0</lfqTopNPeptides>
    <diaJoinPrecChargesForLfq>False</diaJoinPrecChargesForLfq>
    <diaFragChargesForQuant>1</diaFragChargesForQuant>
-   <gridSpacing>0.7</gridSpacing>
+   <gridSpacing>0.1</gridSpacing>
    <proteinGroupingFile></proteinGroupingFile>
    <simplePepCalculation>False</simplePepCalculation>
    <useAndromeda20>False</useAndromeda20>
@@ -168,13 +277,21 @@
    <andromeda20AltModelPath></andromeda20AltModelPath>
    <intensityPredictionFolder></intensityPredictionFolder>
    <encoding>0</encoding>
+   <customTxtFolder></customTxtFolder>
+   <metaproteomics>False</metaproteomics>
+   <metaLcaMode>peptideCentric</metaLcaMode>
+   <metaConsensusModeKo>Majority</metaConsensusModeKo>
+   <metaConsensusModeCog>Majority</metaConsensusModeCog>
+   <metaConsensusModeEc>Majority</metaConsensusModeEc>
+   <metaAnnotationFiles>
+   </metaAnnotationFiles>
    <parameterGroups>
       <parameterGroup>
          <andromeda20AltModelPath></andromeda20AltModelPath>
          <andromeda20DefaultModel>False</andromeda20DefaultModel>
          <useAndromeda20>False</useAndromeda20>
-         <msInstrument>4</msInstrument>
-         <maxCharge>4</maxCharge>
+         <msInstrument>0</msInstrument>
+         <maxCharge>7</maxCharge>
          <minPeakLen>2</minPeakLen>
          <diaMinPeakLen>1</diaMinPeakLen>
          <useMs1Centroids>False</useMs1Centroids>
@@ -184,23 +301,23 @@
          <minTime>NaN</minTime>
          <maxTime>NaN</maxTime>
          <matchType>MatchFromAndTo</matchType>
-         <intensityDetermination>1</intensityDetermination>
-         <centroidMatchTol>10</centroidMatchTol>
+         <intensityDetermination>0</intensityDetermination>
+         <centroidMatchTol>8</centroidMatchTol>
          <centroidMatchTolInPpm>True</centroidMatchTolInPpm>
          <centroidHalfWidth>35</centroidHalfWidth>
          <centroidHalfWidthInPpm>True</centroidHalfWidthInPpm>
-         <valleyFactor>1.1</valleyFactor>
+         <valleyFactor>1.4</valleyFactor>
          <isotopeValleyFactor>1.2</isotopeValleyFactor>
-         <advancedPeakSplitting>True</advancedPeakSplitting>
-         <intensityThresholdMs1Dda>30</intensityThresholdMs1Dda>
+         <advancedPeakSplitting>False</advancedPeakSplitting>
+         <intensityThresholdMs1Dda>0</intensityThresholdMs1Dda>
          <intensityThresholdMs1Dia>0</intensityThresholdMs1Dia>
          <intensityThresholdMs2>0</intensityThresholdMs2>
          <labelMods>
             <string></string>
          </labelMods>
-         <lcmsRunType>TIMS-DDA</lcmsRunType>
+         <lcmsRunType>Standard</lcmsRunType>
          <reQuantify>False</reQuantify>
-         <lfqMode>0</lfqMode>
+         <lfqMode>1</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
          <lfqAvEdgesPerNode>6</lfqAvEdgesPerNode>
@@ -212,7 +329,7 @@
          <fastLfq>True</fastLfq>
          <lfqRestrictFeatures>False</lfqRestrictFeatures>
          <lfqMinRatioCount>1</lfqMinRatioCount>
-         <lfqMinRatioCountDia>2</lfqMinRatioCountDia>
+         <lfqMinRatioCountDia>1</lfqMinRatioCountDia>
          <lfqPrioritizeMs1Dia>True</lfqPrioritizeMs1Dia>
          <lfqLamdaLimit>20</lfqLamdaLimit>
          <lfqMaxIter>10</lfqMaxIter>
@@ -257,16 +374,16 @@
          </additionalVariableModificationProteins>
          <doMassFiltering>True</doMassFiltering>
          <firstSearchTol>20</firstSearchTol>
-         <mainSearchTol>10</mainSearchTol>
+         <mainSearchTol>4.5</mainSearchTol>
          <searchTolInPpm>True</searchTolInPpm>
-         <isotopeMatchTol>0.005</isotopeMatchTol>
-         <isotopeMatchTolInPpm>False</isotopeMatchTolInPpm>
+         <isotopeMatchTol>2</isotopeMatchTol>
+         <isotopeMatchTolInPpm>True</isotopeMatchTolInPpm>
          <isotopeTimeCorrelation>0.6</isotopeTimeCorrelation>
          <theorIsotopeCorrelation>0.6</theorIsotopeCorrelation>
-         <checkMassDeficit>False</checkMassDeficit>
+         <checkMassDeficit>True</checkMassDeficit>
          <recalibrationInPpm>True</recalibrationInPpm>
-         <intensityDependentCalibration>True</intensityDependentCalibration>
-         <minScoreForCalibration>40</minScoreForCalibration>
+         <intensityDependentCalibration>False</intensityDependentCalibration>
+         <minScoreForCalibration>70</minScoreForCalibration>
          <matchLibraryFile>False</matchLibraryFile>
          <libraryFile></libraryFile>
          <matchLibraryMassTolPpm>0</matchLibraryMassTolPpm>
@@ -277,10 +394,10 @@
          <filterPif>False</filterPif>
          <reporterFraction>NaN</reporterFraction>
          <reporterBasePeakRatio>NaN</reporterBasePeakRatio>
-         <timsHalfWidth>5</timsHalfWidth>
-         <timsStep>2</timsStep>
-         <timsResolution>35000</timsResolution>
-         <timsMinMsmsIntensity>1.5</timsMinMsmsIntensity>
+         <timsHalfWidth>0</timsHalfWidth>
+         <timsStep>0</timsStep>
+         <timsResolution>0</timsResolution>
+         <timsMinMsmsIntensity>0</timsMinMsmsIntensity>
          <timsRemovePrecursor>True</timsRemovePrecursor>
          <timsIsobaricLabels>False</timsIsobaricLabels>
          <timsCollapseMsms>True</timsCollapseMsms>
@@ -288,18 +405,18 @@
          <crossLinker></crossLinker>
          <minMatchXl>3</minMatchXl>
          <minPairedPepLenXl>6</minPairedPepLenXl>
-         <minScoreDipeptide>40</minScoreDipeptide>
+         <minScoreDipeptide>0</minScoreDipeptide>
          <minScoreMonopeptide>0</minScoreMonopeptide>
          <minScorePartialCross>10</minScorePartialCross>
          <crosslinkOnlyIntraProtein>False</crosslinkOnlyIntraProtein>
          <crosslinkIntensityBasedPrecursor>True</crosslinkIntensityBasedPrecursor>
-         <isHybridPrecDetermination>False</isHybridPrecDetermination>
+         <isHybridPrecDetermination>True</isHybridPrecDetermination>
          <topXcross>3</topXcross>
-         <doesSeparateInterIntraProteinCross>False</doesSeparateInterIntraProteinCross>
-         <crosslinkMaxMonoUnsaturated>0</crosslinkMaxMonoUnsaturated>
-         <crosslinkMaxMonoSaturated>0</crosslinkMaxMonoSaturated>
+         <doesSeparateInterIntraProteinCross>True</doesSeparateInterIntraProteinCross>
+         <crosslinkMaxMonoUnsaturated>1</crosslinkMaxMonoUnsaturated>
+         <crosslinkMaxMonoSaturated>1</crosslinkMaxMonoSaturated>
          <crosslinkMaxDiUnsaturated>0</crosslinkMaxDiUnsaturated>
-         <crosslinkMaxDiSaturated>0</crosslinkMaxDiSaturated>
+         <crosslinkMaxDiSaturated>1</crosslinkMaxDiSaturated>
          <crosslinkModifications>
          </crosslinkModifications>
          <crosslinkFastaFiles>
@@ -308,11 +425,13 @@
          </crosslinkSites>
          <crosslinkNetworkFiles>
          </crosslinkNetworkFiles>
-         <crosslinkMode></crosslinkMode>
+         <crosslinkMode>IdentifedProteinsXIdentifiedProteins</crosslinkMode>
          <peakRefinement>False</peakRefinement>
          <peakRefinementCrosslinking>False</peakRefinementCrosslinking>
+         <xlmsThresholdHighIntra>100</xlmsThresholdHighIntra>
          <isobaricSumOverWindow>True</isobaricSumOverWindow>
          <isobaricWeightExponent>0.75</isobaricWeightExponent>
+         <subGroupingTypeCross>0</subGroupingTypeCross>
          <collapseMsmsOnIsotopePatterns>False</collapseMsmsOnIsotopePatterns>
          <diaLibraryType>0</diaLibraryType>
          <diaLibraryPaths>
@@ -323,13 +442,13 @@
          </diaMsmsPaths>
          <diaLabelIndsForLibraryMatch>
          </diaLabelIndsForLibraryMatch>
-         <diaInitialPrecMassTolPpm>20</diaInitialPrecMassTolPpm>
-         <diaInitialFragMassTolPpm>25</diaInitialFragMassTolPpm>
+         <diaInitialPrecMassTolPpm>10</diaInitialPrecMassTolPpm>
+         <diaInitialFragMassTolPpm>15</diaInitialFragMassTolPpm>
          <diaCorrThresholdFeatureClustering>0.85</diaCorrThresholdFeatureClustering>
          <diaPrecTolPpmFeatureClustering>2</diaPrecTolPpmFeatureClustering>
          <diaFragTolPpmFeatureClustering>2</diaFragTolPpmFeatureClustering>
          <diaScoreN>12</diaScoreN>
-         <diaScoreNAdditional>5</diaScoreNAdditional>
+         <diaScoreNAdditional>0</diaScoreNAdditional>
          <diaMinScore>1.99</diaMinScore>
          <diaXgBoostBaseScore>0.4</diaXgBoostBaseScore>
          <diaXgBoostSubSample>0.9</diaXgBoostSubSample>
@@ -343,7 +462,7 @@
          <lfqUsePeptideCorrelation>True</lfqUsePeptideCorrelation>
          <lfqTopNCorrelatingPeptides>100</lfqTopNCorrelatingPeptides>
          <lfqPeptideCorrelation>0</lfqPeptideCorrelation>
-         <diaMinMsmsIntensityForQuant>30</diaMinMsmsIntensityForQuant>
+         <diaMinMsmsIntensityForQuant>0</diaMinMsmsIntensityForQuant>
          <diaTopMsmsIntensityQuantileForQuant>0.85</diaTopMsmsIntensityQuantileForQuant>
          <diaMinFragmentOverlapScore>0</diaMinFragmentOverlapScore>
          <diaMinPrecursorScore>0</diaMinPrecursorScore>
@@ -352,7 +471,7 @@
          <diaMinFragProfileCorrelation>0</diaMinFragProfileCorrelation>
          <diaClassificationModel>1</diaClassificationModel>
          <diaXgBoostMinChildWeight>9</diaXgBoostMinChildWeight>
-         <diaXgBoostMaximumTreeDepth>3</diaXgBoostMaximumTreeDepth>
+         <diaXgBoostMaximumTreeDepth>4</diaXgBoostMaximumTreeDepth>
          <diaXgBoostEstimators>580</diaXgBoostEstimators>
          <diaXgBoostGamma>0.9</diaXgBoostGamma>
          <diaXgBoostMaxDeltaStep>3</diaXgBoostMaxDeltaStep>
@@ -376,13 +495,18 @@
          <diaMaxTrainInstances>500000</diaMaxTrainInstances>
          <diaMaxFragmentCharge>3</diaMaxFragmentCharge>
          <diaAdaptiveMlScoring>False</diaAdaptiveMlScoring>
+         <diaAdaptiveMlScoringAlg>0</diaAdaptiveMlScoringAlg>
+         <diaAdaptiveMlScoringUseIso>False</diaAdaptiveMlScoringUseIso>
+         <diaAdaptiveMlScoringUseRawScore>False</diaAdaptiveMlScoringUseRawScore>
+         <diaAdaptiveMlScoringUseMassError>False</diaAdaptiveMlScoringUseMassError>
+         <diaCollectMlDataForMatching>False</diaCollectMlDataForMatching>
          <diaDynamicScoringMaxInstances>25000</diaDynamicScoringMaxInstances>
          <diaMaxPrecursorMz>0</diaMaxPrecursorMz>
          <diaHardRtFilter>True</diaHardRtFilter>
          <diaHardCcsFilter>True</diaHardCcsFilter>
          <diaConvertLibraryCharge2Fragments>False</diaConvertLibraryCharge2Fragments>
-         <diaChargeNormalizationLibrary>False</diaChargeNormalizationLibrary>
-         <diaChargeNormalizationSample>False</diaChargeNormalizationSample>
+         <diaChargeNormalizationLibrary>True</diaChargeNormalizationLibrary>
+         <diaChargeNormalizationSample>True</diaChargeNormalizationSample>
          <diaDeleteIntermediateResults>True</diaDeleteIntermediateResults>
          <diaDeleteRawFilesAfterSearch>False</diaDeleteRawFilesAfterSearch>
          <diaScoreWeightScanIndex>-1</diaScoreWeightScanIndex>
@@ -397,6 +521,7 @@
          <diaBatchProcessing>True</diaBatchProcessing>
          <diaBatchSize>0</diaBatchSize>
          <diaDecoyMode>0</diaDecoyMode>
+         <diaDecoyKeepMass>False</diaDecoyKeepMass>
          <diaFirstBatch>-1</diaFirstBatch>
          <diaLastBatch>-1</diaLastBatch>
          <diaOnlyPreprocess>False</diaOnlyPreprocess>
@@ -411,13 +536,13 @@
          <diaPredictCharges>False</diaPredictCharges>
          <diaUseProbScore>True</diaUseProbScore>
          <diaProbScoreP>0.055</diaProbScoreP>
-         <diaProbScoreG>1.2</diaProbScoreG>
+         <diaProbScoreG>0.5</diaProbScoreG>
          <diaProbScoreStep>0.1</diaProbScoreStep>
          <isM2FragTypeOverride>False</isM2FragTypeOverride>
          <ms2FragTypeOverride>0</ms2FragTypeOverride>
          <classicLfqForSingleShots>True</classicLfqForSingleShots>
          <subsamplePeptidesForLfqNorm>True</subsamplePeptidesForLfqNorm>
-         <lfqSubsampleNormConstant>1200</lfqSubsampleNormConstant>
+         <lfqSubsampleNormConstant>400</lfqSubsampleNormConstant>
          <sequenceBasedModifier>False</sequenceBasedModifier>
          <diaRtFromSamplesForExport>True</diaRtFromSamplesForExport>
          <diaCcsFromSamplesForExport>True</diaCcsFromSamplesForExport>
@@ -447,7 +572,7 @@
          <diaSupplementalEvidenceFile></diaSupplementalEvidenceFile>
          <diaNeuralNetNumIter>0</diaNeuralNetNumIter>
          <diaNeuralNetDropout>0</diaNeuralNetDropout>
-         <diaNeuralNetHiddenLayers>0</diaNeuralNetHiddenLayers>
+         <diaNeuralNetHiddenLayers></diaNeuralNetHiddenLayers>
          <diaNeuralNetBatchSize>0</diaNeuralNetBatchSize>
          <diaUseRnnRtModel>True</diaUseRnnRtModel>
          <diaUseRnnCcsModel>False</diaUseRnnCcsModel>
@@ -455,6 +580,19 @@
          <diaUseWaterLosses>False</diaUseWaterLosses>
          <diaUseAmmoniaLosses>False</diaUseAmmoniaLosses>
          <diaUseRtFeaturesInMlScoring>True</diaUseRtFeaturesInMlScoring>
+         <diaCountSamples>False</diaCountSamples>
+         <diaCountSamplesSecondScore>True</diaCountSamplesSecondScore>
+         <diaCountSamplesUpperPercentile>50</diaCountSamplesUpperPercentile>
+         <diaCountSamplesNumLowerPercentiles>5</diaCountSamplesNumLowerPercentiles>
+         <diaSeparateCalibrationPerLib>False</diaSeparateCalibrationPerLib>
+         <diaReadDecoysFromFile>False</diaReadDecoysFromFile>
+         <diaFragCorrelationThreshold>0.3</diaFragCorrelationThreshold>
+         <diaFragIntensityThreshold1>0</diaFragIntensityThreshold1>
+         <diaFragIntensityThreshold2>0</diaFragIntensityThreshold2>
+         <diaFragIntensityThreshold3>0</diaFragIntensityThreshold3>
+         <diaFragIntensityThreshold4>0</diaFragIntensityThreshold4>
+         <diaUseFragCorrelationForRescoring>False</diaUseFragCorrelationForRescoring>
+         <diaDoNotUsePredictedDecoys>True</diaDoNotUsePredictedDecoys>
       </parameterGroup>
    </parameterGroups>
    <msmsParamsArray>
