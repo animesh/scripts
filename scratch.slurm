@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH --account=nn9036k --job-name=resultsTKvep
-#SBATCH --time=1:00:00
+#SBATCH --time=8:00:00
 ##SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=20
 #SBATCH --mem-per-cpu=8G
@@ -18,78 +18,41 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-#export JAVA_TOOL_OPTIONS="-Dhttp.keepAlive=false -Dhttps.keepAlive=false"
-#export NXF_OPTS="-Dhttp.keepAlive=false -Dhttps.keepAlive=false"
-export http_proxy="http://proxy.saga:3128"
-export https_proxy="http://proxy.saga:3128"
-export HTTP_PROXY="http://proxy.saga:3128"
-export HTTPS_PROXY="http://proxy.saga:3128"
-#export NXF_OPTS="-Dhttp.proxyHost=proxy.saga -Dhttp.proxyPort=3128 -Dhttps.proxyHost=proxy.saga -Dhttps.proxyPort=3128 -Dhttp.keepAlive=false -Dhttps.keepAlive=false"
-#curl -I https://s3.nird.sigma2.no
-#export GITHUB_TOKEN="ghp_your_actual_token_here"
-curl -I --proxy http://proxy.saga:3128 "https://registry.nextflow.io/api/v1/plugins/nf-fgbio/1.0.0/download/nf-fgbio-1.0.0.zip" 2>curl_output.log | grep -i location
-module load Java/21
-java --version
-#export NXF_OPTS="-Dhttp.proxyHost=proxy.saga -Dhttp.proxyPort=3128 -Dhttps.proxyHost=proxy.saga -Dhttps.proxyPort=3128"
-#module load Miniconda3/22.11.1-1
-#conda config --prepend channels bioconda
-#conda config --show channels
-#mamba install python=3.11 nf-core nextflow
-#pip install nf-core
-#nf-core --version
-#nf-core, version 3.3.2
-#nf-core pipelines download sarek   --revision 3.9.0   --container-system singularity   --container-cache-utilisation amend   --outdir ./sarek_download   --compress none --force
-#nf-core create
-#cd nf-core-spritz/
-#git checkout dev
-#git remote add origin https://github.com/animesh/spritz_nf.git
-#git push --all origin
-#ln -s /cluster/projects/nn9036k/scripts/TK9/*.gz .
-#git show afe994d381dd5414f6a3fad8966910246b9c3ed4
-#vim samples.csv
-#conda activate nf-core
-#nextflow  self-update
-/cluster/home/ash022/scripts/nextflow -v
-#nextflow version 26.04.6.12646
-#nextflow run hello
-#nextflow pull nf-core/sarek
-#https://nf-co.re/sarek/3.4.0/docs/usage  -r <pipeline version eg 3.4> for Reproducibility
-#nf-core/rnaseq  --outdir hg38varall --input samples.csv   -profile singularity -resume
-#rm -rf  ~/.nextflow
-#
-#openjdk 17.0.4 2022-07-19
-/cluster/home/ash022/scripts/nextflow run nf-core/sarek --revision 3.9.0 --input /cluster/projects/nn9036k/TK/sra/fastq/samples.csv --outdir resultsTKvep -profile singularity --tools haplotypecaller,vep --max_memory '160.GB' --max_cpus 40 -resume 
-#cd /cluster/projects/nn9036k/scripts
-#cat /cluster/projects/nn9036k/TK/sra/fastq/ena_fastq_urls.txt
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/070/SRR31089070/SRR31089070_1.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/070/SRR31089070/SRR31089070_2.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/071/SRR31089071/SRR31089071_1.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/071/SRR31089071/SRR31089071_2.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/072/SRR31089072/SRR31089072_1.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/072/SRR31089072/SRR31089072_2.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/073/SRR31089073/SRR31089073_1.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/073/SRR31089073/SRR31089073_2.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/074/SRR31089074/SRR31089074_1.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/074/SRR31089074/SRR31089074_2.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/075/SRR31089075/SRR31089075_1.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/075/SRR31089075/SRR31089075_2.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/076/SRR31089076/SRR31089076_1.fastq.gz
-#https://ftp.sra.ebi.ac.uk/vol1/fastq/SRR310/076/SRR31089076/SRR31089076_2.fastq.gz
-#comm -23 <(zcat /cluster/projects/nn9036k/TK/sra/fastq/SRR31089072_2.fastq.gz | sed -n '2~4p' | cut -d' ' -f1 | sort) <(zcat /cluster/work/users/ash022/work/8e/b08e2ffcbd40ac3c566393a3a0f9f8/SRR31089072_2.fastq.gz | sed -n '2~4p' | cut -d' ' -f1 | sort)
-#wget -i /cluster/projects/nn9036k/TK/sra/fastq/ena_fastq_urls.txt
-#rsync -Parv   login.nird-lmd.sigma2.no:PD/Animesh/TK/*.f*q*.gz TK/.
-#rename "R1.fastq.gz" "_1.fq.gz" *.fastq.gz
-#rename "R2.fastq.gz" "_2.fq.gz" *.fastq.gz
-#ls -ltrh TK/*.fq.gz | wc
-#ls -1 TK/*_1.fq.gz | awk -F '_' '{print $1$2$5}' | sed 's/TK\///g' > S1
-#ls -1 TK/*_1.fq.gz | awk -F '_' '{print $1}' | sed 's/TK\///g' > S2
-#printf 'lane_%s\n' {1..30} > S3
-#ls -1 $PWD/TK/*1.fq.gz  > S4
-#ls -1 $PWD/TK/*2.fq.gz  > S5
-#echo "patient,sample,lane,fastq_1,fastq_2" > samples.csv
-#paste -d ',' S? >> samples.csv
-#cat /cluster/projects/nn9036k/TK/sra/fastq/samples.csv 
-#patient,sample,fastq_1,fastq_2,lane
+module load parallel/20250922-GCCcore-14.3.0
+export LOCAL_DIR="/cluster/projects/nn9036k/TK/sra/fastq"
+export WORK_DIR="/cluster/work/users/ash022/work"
+
+compare_file() {
+  filepath="$1"
+  fname=$(basename "$filepath")
+
+  for match in $(ls -l "$WORK_DIR"/*/*/"$fname" 2>/dev/null | grep -v "^l" | awk '{print $NF}'); do
+    if [ -f "$match" ]; then
+      echo "=================================================="
+      echo "Local file: $filepath"
+      echo "Work  file: $match"
+      echo "--------------------------------------------------"
+      
+      c_local=$(zcat "$filepath" | wc -l | awk '{print $1/4}')
+      c_work=$(zcat "$match" | wc -l | awk '{print $1/4}')
+      echo "Read counts -> Local: $c_local | Work: $c_work"
+
+      if cmp -s <(zcat "$filepath" | sed -n '2~4p') <(zcat "$match" | sed -n '2~4p'); then
+        echo "Status: Sequences are IDENTICAL"
+      else
+        echo "Status: Sequences DIVERGE"
+        echo "First sequence difference:"
+        diff -u <(zcat "$filepath" | sed -n '2~4p') <(zcat "$match" | sed -n '2~4p') | head -n 10
+      fi
+      echo ""
+    fi
+  done
+}
+
+export -f compare_file
+
+# Adjust -j (jobs) based on available CPU/IO limits
+parallel -k -j 20 compare_file ::: "$LOCAL_DIR"/SRR*.fastq.gz 2>&1 | tee compare_sequences.log
 #TK18,SRR31089070,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089070_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089070_2.fastq.gz,NA
 #TK16,SRR31089071,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089071_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089071_2.fastq.gz,NA
 #TK14,SRR31089072,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089072_1.fastq.gz,/cluster/projects/nn9036k/TK/sra/fastq/SRR31089072_2.fastq.gz,NA
@@ -101,4 +64,46 @@ java --version
 #dos2unix scratch.slurm /cluster/projects/nn9036k/TK/sra/fastq/samples.csv
 #sbatch scratch.slurm  
 #tail -f resultsTKvep.log
+#cat compare_sequences.log 
+#==================================================
+#Local file: /cluster/projects/nn9036k/TK/sra/fastq/SRR31089072_1.fastq.gz
+#Work  file: /cluster/work/users/ash022/work/5c/26f30888ef82ed00b8e528cf145b83/SRR31089072_1.fastq.gz
+#--------------------------------------------------
+#Read counts -> Local: 79039664 | Work: 79039664
+#Status: Sequences are IDENTICAL
+#
+#==================================================
+#Local file: /cluster/projects/nn9036k/TK/sra/fastq/SRR31089072_2.fastq.gz
+#Work  file: /cluster/work/users/ash022/work/5c/26f30888ef82ed00b8e528cf145b83/SRR31089072_2.fastq.gz
+#--------------------------------------------------
+#Read counts -> Local: 79039664 | Work: 79039664
+#Status: Sequences are IDENTICAL
+#
+#==================================================
+#Local file: /cluster/projects/nn9036k/TK/sra/fastq/SRR31089073_1.fastq.gz
+#Work  file: /cluster/work/users/ash022/work/2a/0b09fb80afdeddb63479c841be4acd/SRR31089073_1.fastq.gz
+#--------------------------------------------------
+#Read counts -> Local: 87082496 | Work: 87082496
+#Status: Sequences are IDENTICAL
+#
+#==================================================
+#Local file: /cluster/projects/nn9036k/TK/sra/fastq/SRR31089073_2.fastq.gz
+#Work  file: /cluster/work/users/ash022/work/2a/0b09fb80afdeddb63479c841be4acd/SRR31089073_2.fastq.gz
+#--------------------------------------------------
+#Read counts -> Local: 87082496 | Work: 87082496
+#Status: Sequences are IDENTICAL
+#
+#==================================================
+#Local file: /cluster/projects/nn9036k/TK/sra/fastq/SRR31089074_1.fastq.gz
+#Work  file: /cluster/work/users/ash022/work/6d/f85587b387c9b53cb4fdaa4938ad71/SRR31089074_1.fastq.gz
+#--------------------------------------------------
+#Read counts -> Local: 64016952 | Work: 64016952
+#Status: Sequences are IDENTICAL
+#
+#==================================================
+#Local file: /cluster/projects/nn9036k/TK/sra/fastq/SRR31089074_2.fastq.gz
+#Work  file: /cluster/work/users/ash022/work/6d/f85587b387c9b53cb4fdaa4938ad71/SRR31089074_2.fastq.gz
+#--------------------------------------------------
+#Read counts -> Local: 64016952 | Work: 64016952
+#Status: Sequences are IDENTICAL
 
