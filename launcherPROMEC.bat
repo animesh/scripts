@@ -14,7 +14,7 @@ set "LOGFILE=%BASE%\logPROMEC.txt"
 REM ------------------------------------------------------------
 REM CONCURRENCY GUARD: Check if the dashboard is already running
 REM ------------------------------------------------------------
-tasklist /V /FI "WINDOWTITLE eq PROMEC DASHBOARD" 2>nul | findstr /I "PROMEC" >nul
+tasklist /V /FI "WINDOWTITLE eq PROMEC DASHBOARD MQ" 2>nul | findstr /I "PROMEC" >nul
 if %ERRORLEVEL% equ 0 (
     echo [%date% %time%] RDP/Logon detected, but PROMEC scripts are already running in another session. Exiting launcher safely. >> "%LOGFILE%"
     exit
@@ -30,32 +30,38 @@ echo =========================================================== >> "%LOGFILE%"
 echo [%date% %time%] PROMEC launcher started (New Session initialized) >> "%LOGFILE%"
 
 REM ------------------------------------------------------------
-REM START DASHBOARD
-REM ------------------------------------------------------------
-echo [%date% %time%] Launching mqrunDash.py >> "%LOGFILE%"
-start "PROMEC DASHBOARD MQ" /d "%BASE%" "%CMD%" /k "%PYTHON%" mqrunDash.py
-echo [%date% %time%] Launching diannrunDash.py >> "%LOGFILE%"
-start "PROMEC DASHBOARD DIANN" /d "%BASE%" "%CMD%" /k "%PYTHON%" diannrunDash.py
-
-REM ------------------------------------------------------------
-REM START SEARCH
+REM STEP 1: START SEARCH SCRIPTS
 REM ------------------------------------------------------------
 echo [%date% %time%] Launching mqrun.bat >> "%LOGFILE%"
 start "PROMEC MQ RUN" /d "%BASE%" "%CMD%" /k mqrun.bat
 ping 127.0.0.1 -n 3 > nul
+
 echo [%date% %time%] Launching diannrun.bat >> "%LOGFILE%"
 start "PROMEC DIANN RUN" /d "%BASE%" "%CMD%" /k diannrun.bat
 ping 127.0.0.1 -n 3 > nul
 
 REM ------------------------------------------------------------
-REM START DB
+REM STEP 2: START DATABASE SCRIPTS
 REM ------------------------------------------------------------
 echo [%date% %time%] Launching mqrunDB.bat >> "%LOGFILE%"
 start "PROMEC DBMQ RUN" /d "%BASE%" "%CMD%" /k mqrunDB.bat
 ping 127.0.0.1 -n 3 > nul
+
 echo [%date% %time%] Launching diannrunDB.bat >> "%LOGFILE%"
 start "PROMEC DBDIANN RUN" /d "%BASE%" "%CMD%" /k diannrunDB.bat
+
+REM Buffer delay to allow initial DuckDB file access/indexing to complete
+ping 127.0.0.1 -n 8 > nul
+
+REM ------------------------------------------------------------
+REM STEP 3: START DASHBOARD APP SCRIPTS
+REM ------------------------------------------------------------
+echo [%date% %time%] Launching mqrunDash.py >> "%LOGFILE%"
+start "PROMEC DASHBOARD MQ" /d "%BASE%" "%CMD%" /k "%PYTHON%" mqrunDash.py
 ping 127.0.0.1 -n 3 > nul
+
+echo [%date% %time%] Launching diannrunDash.py >> "%LOGFILE%"
+start "PROMEC DASHBOARD DIANN" /d "%BASE%" "%CMD%" /k "%PYTHON%" diannrunDash.py
 
 echo [%date% %time%] All jobs launched successfully >> "%LOGFILE%"
 echo =========================================================== >> "%LOGFILE%"
