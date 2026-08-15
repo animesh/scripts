@@ -213,11 +213,11 @@ while true; do
             "$SCRIPTS_DIR"/fp.manifest.txt > "$man_final"
 
         # run FragPipe
-        echo "RUN: $FRAGPIPE_BIN --headless --threads 20 --ram 80 --workflow $SCRIPTS_DIR/fp.dl.workflow.txt --manifest $man_final --workdir ${j}.FPv22hum"
+        echo "RUN: $FRAGPIPE_BIN --headless --threads 20 --ram 80 --workflow $SCRIPTS_DIR/fp.dl.workflow.txt --manifest $man_final --workdir ${j}.FPv24hum"
         "$FRAGPIPE_BIN" --headless --threads 20 --ram 80 \
             --workflow "$SCRIPTS_DIR"/fp.dl.workflow.txt \
             --manifest "$man_final" \
-            --workdir "${j}.FPv22hum"
+            --workdir "${j}.FPv24hum"
         frag_rc=$?
         rm -f "$man_final"
 
@@ -247,7 +247,7 @@ while true; do
 
         # run AA_stat (optional)
         k2=${k/-/_}
-        pep="$j.FPv22hum/$k2/$k.pepXML"
+        pep="$j.FPv24hum/$k2/$k.pepXML"
         aa_rc=0
         if [ "$aa_available" -eq 1 ]; then
             echo "RUN: $AA_STAT_BIN -n 22 --mzml ${k}_calibrated.mzML --pepxml $pep --dir ${j}.AA_stat_v2p5p6hum"
