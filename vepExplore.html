@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEP Variant Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.1/plotly.min.js"></script>
+<style>
+  :root {
+    --bg: #070C18;
+    --card: #0E1525;
+    --border: #1D2D4A;
+    --text: #E2E8F0;
+    --muted: #64748B;
+    --green: #10B981;
+    --purple: #818CF8;
+    --amber: #F59E0B;
+    --cyan: #22D3EE;
+    --red: #F87171;
+    --pink: #F472B6;
+    --mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 13px; min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 32px; height: 32px; border-radius: 6px;
+    background: linear-gradient(135deg, var(--green), var(--cyan));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-weight: 700; font-size: 14px; color: #000;
+  }
+  .logo-text { font-weight: 600; font-size: 15px; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .badge { background: #1D2D4A; border: 1px solid var(--border); border-radius: 20px;
+    padding: 3px 10px; font-size: 11px; font-family: var(--mono); color: var(--cyan); }
+
+  /* UPLOAD BAR */
+  .upload-bar {
+    background: #0B1526; border-bottom: 1px solid var(--border);
+    padding: 10px 24px; display: flex; align-items: center; gap: 12px;
+  }
+  .upload-label {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    background: var(--card); border: 1px dashed var(--border); border-radius: 6px;
+    padding: 6px 14px; font-size: 12px; color: var(--muted); transition: all .2s;
+  }
+  .upload-label:hover { border-color: var(--green); color: var(--green); }
+  .upload-label input { display: none; }
+  .upload-status { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+  /* FILTERS */
+  .filters {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 8px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .filter-group { display: flex; align-items: center; gap: 6px; }
+  .filter-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  select {
+    background: #0B1526; border: 1px solid var(--border); color: var(--text);
+    border-radius: 4px; padding: 4px 8px; font-size: 12px; font-family: var(--mono);
+    cursor: pointer; outline: none;
+  }
+  select:focus { border-color: var(--green); }
+  .btn-reset {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 11px;
+    transition: all .2s;
+  }
+  .btn-reset:hover { border-color: var(--amber); color: var(--amber); }
+  .filter-count { font-family: var(--mono); font-size: 11px;
+    color: var(--green); margin-left: auto; }
+
+  /* POSITION RULER - signature element */
+  .ruler-wrap {
+    padding: 12px 24px 0; background: var(--bg);
+  }
+  .ruler-label { font-size: 10px; color: var(--muted); font-family: var(--mono);
+    margin-bottom: 4px; display: flex; justify-content: space-between; }
+  #ruler-canvas { width: 100%; height: 48px; display: block; border-radius: 4px;
+    border: 1px solid var(--border); cursor: crosshair; }
+  #ruler-tooltip { position: fixed; background: #1D2D4A; border: 1px solid var(--cyan);
+    padding: 6px 10px; border-radius: 4px; font-family: var(--mono); font-size: 11px;
+    color: var(--text); pointer-events: none; display: none; z-index: 100; white-space: nowrap; }
+
+  /* KPI STRIP */
+  .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px;
+    background: var(--border); border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border); }
+  .kpi { background: var(--card); padding: 12px 16px; }
+  .kpi-val { font-family: var(--mono); font-size: 22px; font-weight: 700;
+    color: var(--green); line-height: 1; }
+  .kpi-val.warn { color: var(--amber); }
+  .kpi-val.info { color: var(--cyan); }
+  .kpi-val.purple { color: var(--purple); }
+  .kpi-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .5px; margin-top: 4px; }
+
+  /* CHARTS GRID */
+  .charts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
+    background: var(--border); }
+  .chart-card { background: var(--card); padding: 0; }
+  .chart-card.wide { grid-column: span 2; }
+  .chart-card.full { grid-column: span 3; }
+  .chart-hdr { padding: 12px 16px 0; display: flex; align-items: baseline; gap: 8px; }
+  .chart-title { font-size: 12px; font-weight: 600; color: var(--text); }
+  .chart-sub { font-size: 10px; color: var(--muted); }
+  .chart-inner { padding: 4px; }
+
+  /* HEATMAP / SHARED VARIANTS */
+  #heatmap-wrap { overflow-x: auto; }
+
+  /* DATA TABLE */
+  .table-wrap { overflow: auto; max-height: 320px; }
+  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+  thead th { background: #0B1526; position: sticky; top: 0; z-index: 2;
+    padding: 8px 10px; text-align: left; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .4px; font-size: 10px;
+    border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid #0E1525; }
+  tbody tr:hover { background: #111D33; }
+  tbody td { padding: 6px 10px; color: var(--text); }
+  .tag { display: inline-block; border-radius: 3px; padding: 1px 5px; font-size: 10px; }
+  .tag-snp  { background: #0D2E1A; color: var(--green); }
+  .tag-ins  { background: #1A1A0D; color: var(--amber); }
+  .tag-del  { background: #2E0D0D; color: var(--red); }
+  .tag-exon { background: #0D1A2E; color: var(--cyan); }
+  .tag-intr { background: #1A0D2E; color: var(--purple); }
+  .tag-intg { background: #1A1A1A; color: var(--muted); }
+  .tag-up   { background: #2E1A0D; color: var(--amber); }
+
+  footer { padding: 12px 24px; border-top: 1px solid var(--border);
+    font-size: 10px; color: var(--muted); font-family: var(--mono);
+    display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<div id="ruler-tooltip"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">VEP</div>
+    <div>
+      <div class="logo-text">Variant Effect Dashboard</div>
+      <div class="logo-sub">ENSEMBL VEP v88 &middot; GRCh38</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge" id="hdr-chrom">chrY</span>
+    <span class="badge" id="hdr-assembly">GRCh38.p12</span>
+  </div>
+</header>
+
+<div class="upload-bar">
+  <span style="font-size:11px;color:var(--muted);">Add files:</span>
+  <label class="upload-label">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    Load VEP files
+    <input type="file" id="file-input" multiple accept=".vep,.txt,.tsv,.Y,.X,.vcf">
+  </label>
+  <span class="upload-status" id="upload-status">19 samples preloaded from chrY experiment</span>
+</div>
+
+<div class="filters">
+  <div class="filter-group">
+    <span class="filter-label">Sample</span>
+    <select id="f-sample"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Region</span>
+    <select id="f-region"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Var Type</span>
+    <select id="f-vartype"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Consequence</span>
+    <select id="f-conseq"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Impact</span>
+    <select id="f-impact"><option value="">All</option></select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Chrom</span>
+    <select id="f-chrom"><option value="">All</option></select>
+  </div>
+  <button class="btn-reset" onclick="resetFilters()">Reset</button>
+  <span class="filter-count" id="filter-count"></span>
+</div>
+
+<div class="ruler-wrap">
+  <div class="ruler-label">
+    <span>Genomic Position (chrY) &mdash; each tick = variant, colored by region</span>
+    <span id="ruler-range"></span>
+  </div>
+  <canvas id="ruler-canvas" height="48"></canvas>
+</div>
+
+<div class="kpi-strip">
+  <div class="kpi"><div class="kpi-val" id="kpi-variants">0</div><div class="kpi-lbl">Unique Variants</div></div>
+  <div class="kpi"><div class="kpi-val info" id="kpi-samples">0</div><div class="kpi-lbl">Samples</div></div>
+  <div class="kpi"><div class="kpi-val purple" id="kpi-snp">0</div><div class="kpi-lbl">SNPs</div></div>
+  <div class="kpi"><div class="kpi-val" id="kpi-ins" style="color:var(--amber)">0</div><div class="kpi-lbl">Insertions</div></div>
+  <div class="kpi"><div class="kpi-val" id="kpi-genic">0</div><div class="kpi-lbl">Genic</div></div>
+  <div class="kpi"><div class="kpi-val warn" id="kpi-shared">0</div><div class="kpi-lbl">Shared (2+ samples)</div></div>
+</div>
+
+<div class="charts">
+  <!-- Row 1 -->
+  <div class="chart-card wide">
+    <div class="chart-hdr"><span class="chart-title">Variants per Sample</span><span class="chart-sub">by genomic region</span></div>
+    <div class="chart-inner"><div id="ch-sample" style="height:260px"></div></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-hdr"><span class="chart-title">Variant Type</span><span class="chart-sub">SNP / INS / DEL</span></div>
+    <div class="chart-inner"><div id="ch-vartype" style="height:260px"></div></div>
+  </div>
+
+  <!-- Row 2 -->
+  <div class="chart-card">
+    <div class="chart-hdr"><span class="chart-title">Genomic Region</span><span class="chart-sub">distribution</span></div>
+    <div class="chart-inner"><div id="ch-region" style="height:240px"></div></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-hdr"><span class="chart-title">Top Consequences</span><span class="chart-sub">VEP annotation</span></div>
+    <div class="chart-inner"><div id="ch-conseq" style="height:240px"></div></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-hdr"><span class="chart-title">Variant Sharing</span><span class="chart-sub">how many samples carry each variant</span></div>
+    <div class="chart-inner"><div id="ch-sharing" style="height:240px"></div></div>
+  </div>
+
+  <!-- Row 3: heatmap -->
+  <div class="chart-card full">
+    <div class="chart-hdr"><span class="chart-title">Sample x Variant Presence Matrix</span><span class="chart-sub">shared variants reveal phylogenetic structure (Y-chr haplogroups)</span></div>
+    <div class="chart-inner" id="heatmap-wrap"><div id="ch-heatmap" style="height:340px"></div></div>
+  </div>
+
+  <!-- Row 4: table -->
+  <div class="chart-card full">
+    <div class="chart-hdr"><span class="chart-title">Variant Table</span><span class="chart-sub">filtered records</span></div>
+    <div class="chart-inner">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Sample</th><th>Variant ID</th><th>Chrom</th><th>Position</th>
+            <th>Ref</th><th>Alt</th><th>Type</th><th>Region</th>
+            <th>Gene</th><th>Consequence</th><th>Impact</th>
+          </tr></thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gene x Sample non-synonymous table (outside grid) -->
+<div style="background:var(--border);height:1px"></div>
+<div style="background:var(--card);padding:0" class="chart-card full" style="border-top:1px solid var(--border)">
+    <div class="chart-hdr" style="padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span class="chart-title">Gene &times; Sample: Non-synonymous Mutation Counts</span>
+      <span class="chart-sub">missense / stop / frameshift / splice variants per gene per sample</span>
+      <span id="nonsyn-note" style="font-size:10px;font-family:var(--mono);margin-left:auto"></span>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:8px">
+        <span style="font-size:11px;color:var(--muted)">Show:</span>
+        <select id="nonsyn-mode" style="font-size:11px">
+          <option value="nonsyn">Non-synonymous only</option>
+          <option value="genic">All genic variants</option>
+          <option value="exonic">Genic exonic</option>
+        </select>
+      </div>
+    </div>
+    <div style="overflow:auto;max-height:400px">
+      <table id="nonsyn-table" style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px">
+        <thead id="nonsyn-thead"></thead>
+        <tbody id="nonsyn-tbody"></tbody>
+      </table>
+    </div>
+    <div style="padding:6px 16px;font-size:10px;color:var(--muted);font-family:var(--mono)" id="nonsyn-legend">
+      Cell color: white = 0, green gradient = 1+. Hover for variant IDs.
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>VEP Variant Dashboard &middot; ENSEMBL v88 &middot; GRCh38</span>
+  <span id="footer-note"></span>
+</footer>
+
+<script>
+const RAW = [{"s": "SRR2185898", "v": "chrY_3071360_C/G", "c": "chrY", "p": 3071360, "r": "C", "a": "G", "t": "SNP", "g": "ENSG00000231535", "rg": "Intronic", "co": "intron_variant,non_coding_transcript_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_10757346_C/A", "c": "chrY", "p": 10757346, "r": "C", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185898", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_2790295_C/T", "c": "chrY", "p": 2790295, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_2790302_A/G", "c": "chrY", "p": 2790302, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_2790313_G/A", "c": "chrY", "p": 2790313, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_2790323_A/G", "c": "chrY", "p": 2790323, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_10801969_T/G", "c": "chrY", "p": 10801969, "r": "T", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_10801974_T/A", "c": "chrY", "p": 10801974, "r": "T", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_10964194_C/T", "c": "chrY", "p": 10964194, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_11006443_A/G", "c": "chrY", "p": 11006443, "r": "A", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_11006448_A/C", "c": "chrY", "p": 11006448, "r": "A", "a": "C", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185899", "v": "chrY_17192979_T/C", "c": "chrY", "p": 17192979, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000228518", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_3294101_T/C", "c": "chrY", "p": 3294101, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_3294104_A/C", "c": "chrY", "p": 3294104, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_10860257_T/A", "c": "chrY", "p": 10860257, "r": "T", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_10950402_C/T", "c": "chrY", "p": 10950402, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_11302781_A/G", "c": "chrY", "p": 11302781, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000258567", "rg": "Upstream", "co": "upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_11305299_A/T", "c": "chrY", "p": 11305299, "r": "A", "a": "T", "t": "SNP", "g": "ENSG00000258567", "rg": "Upstream", "co": "upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_11305303_A/C", "c": "chrY", "p": 11305303, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000258567", "rg": "Upstream", "co": "upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_11329820_G/T", "c": "chrY", "p": 11329820, "r": "G", "a": "T", "t": "SNP", "g": "ENSG00000258991", "rg": "Upstream", "co": "upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_11329841_T/A", "c": "chrY", "p": 11329841, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000258991", "rg": "Upstream", "co": "upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_11329847_G/T", "c": "chrY", "p": 11329847, "r": "G", "a": "T", "t": "SNP", "g": "ENSG00000258991", "rg": "Upstream", "co": "upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_11329849_T/C", "c": "chrY", "p": 11329849, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000258991", "rg": "Upstream", "co": "upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185902", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_2929830_T/C", "c": "chrY", "p": 2929830, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000229163,ENSG00000129824,ENSG00000278847", "rg": "Exonic", "co": "downstream_gene_variant,intron_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_10812265_C/G", "c": "chrY", "p": 10812265, "r": "C", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_13095406_A/G", "c": "chrY", "p": 13095406, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_13095435_A/G", "c": "chrY", "p": 13095435, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_13095442_-/GT", "c": "chrY", "p": 13095441, "r": "-", "a": "GT", "t": "INS", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_13286688_A/C", "c": "chrY", "p": 13286688, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185904", "v": "chrY_13287544_A/T", "c": "chrY", "p": 13287544, "r": "A", "a": "T", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_5336323_G/C", "c": "chrY", "p": 5336323, "r": "G", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_13287017_G/A", "c": "chrY", "p": 13287017, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_17192979_T/C", "c": "chrY", "p": 17192979, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000228518", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185908", "v": "chrY_17193014_T/C", "c": "chrY", "p": 17193014, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000228518", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_6901236_C/T", "c": "chrY", "p": 6901236, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_13287017_G/A", "c": "chrY", "p": 13287017, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_13287539_G/T", "c": "chrY", "p": 13287539, "r": "G", "a": "T", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185912", "v": "chrY_13287544_A/C", "c": "chrY", "p": 13287544, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_13095406_A/G", "c": "chrY", "p": 13095406, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_13095435_A/G", "c": "chrY", "p": 13095435, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_13287017_G/A", "c": "chrY", "p": 13287017, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185918", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_5338106_A/T", "c": "chrY", "p": 5338106, "r": "A", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_6901236_C/T", "c": "chrY", "p": 6901236, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185919", "v": "chrY_17192979_T/C", "c": "chrY", "p": 17192979, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000228518", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_5338971_G/T", "c": "chrY", "p": 5338971, "r": "G", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Intronic", "co": "intron_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_13287017_G/A", "c": "chrY", "p": 13287017, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185920", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_5338971_G/T", "c": "chrY", "p": 5338971, "r": "G", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Intronic", "co": "intron_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_10868321_C/T", "c": "chrY", "p": 10868321, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_10868350_A/C", "c": "chrY", "p": 10868350, "r": "A", "a": "C", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_13095406_A/G", "c": "chrY", "p": 13095406, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_13095435_A/G", "c": "chrY", "p": 13095435, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_13095442_-/GT", "c": "chrY", "p": 13095441, "r": "-", "a": "GT", "t": "INS", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_14639745_T/C", "c": "chrY", "p": 14639745, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000226555,ENSG00000165246", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_14639750_A/G", "c": "chrY", "p": 14639750, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000226555,ENSG00000165246", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_14639778_C/G", "c": "chrY", "p": 14639778, "r": "C", "a": "G", "t": "SNP", "g": "ENSG00000226555,ENSG00000165246", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185923", "v": "chrY_21131033_A/G", "c": "chrY", "p": 21131033, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237427", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_2929830_T/C", "c": "chrY", "p": 2929830, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000229163,ENSG00000129824,ENSG00000278847", "rg": "Exonic", "co": "downstream_gene_variant,intron_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_3294101_T/C", "c": "chrY", "p": 3294101, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_5338418_T/C", "c": "chrY", "p": 5338418, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_13095406_A/G", "c": "chrY", "p": 13095406, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_13095435_A/G", "c": "chrY", "p": 13095435, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_13095442_-/GT", "c": "chrY", "p": 13095441, "r": "-", "a": "GT", "t": "INS", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185925", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_2790295_C/T", "c": "chrY", "p": 2790295, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_2790302_A/G", "c": "chrY", "p": 2790302, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_2790313_G/A", "c": "chrY", "p": 2790313, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_2790323_A/G", "c": "chrY", "p": 2790323, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_5338449_A/G", "c": "chrY", "p": 5338449, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_5338462_T/C", "c": "chrY", "p": 5338462, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_5338464_G/A", "c": "chrY", "p": 5338464, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_10950412_C/T", "c": "chrY", "p": 10950412, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_10999900_A/T", "c": "chrY", "p": 10999900, "r": "A", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_10999946_T/A", "c": "chrY", "p": 10999946, "r": "T", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_11539263_C/A", "c": "chrY", "p": 11539263, "r": "C", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13095406_A/G", "c": "chrY", "p": 13095406, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13095435_A/G", "c": "chrY", "p": 13095435, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13095442_-/GT", "c": "chrY", "p": 13095441, "r": "-", "a": "GT", "t": "INS", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13095445_G/A", "c": "chrY", "p": 13095445, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13286695_G/C", "c": "chrY", "p": 13286695, "r": "G", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185927", "v": "chrY_13287541_A/T", "c": "chrY", "p": 13287541, "r": "A", "a": "T", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_2790295_C/T", "c": "chrY", "p": 2790295, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_2790302_A/G", "c": "chrY", "p": 2790302, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_2790313_G/A", "c": "chrY", "p": 2790313, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_2790323_A/G", "c": "chrY", "p": 2790323, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_5338449_A/G", "c": "chrY", "p": 5338449, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_13095406_A/G", "c": "chrY", "p": 13095406, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_13095435_A/G", "c": "chrY", "p": 13095435, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_13095442_-/GT", "c": "chrY", "p": 13095441, "r": "-", "a": "GT", "t": "INS", "g": "ENSG00000224035", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_13287539_G/A", "c": "chrY", "p": 13287539, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185931", "v": "chrY_13287544_A/C", "c": "chrY", "p": 13287544, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_2790295_C/T", "c": "chrY", "p": 2790295, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_2790302_A/G", "c": "chrY", "p": 2790302, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_2790313_G/A", "c": "chrY", "p": 2790313, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_2790323_A/G", "c": "chrY", "p": 2790323, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_13287537_T/C", "c": "chrY", "p": 13287537, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185934", "v": "chrY_13287539_G/A", "c": "chrY", "p": 13287539, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_2790295_C/T", "c": "chrY", "p": 2790295, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_2790302_A/G", "c": "chrY", "p": 2790302, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_2790313_G/A", "c": "chrY", "p": 2790313, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_2790323_A/G", "c": "chrY", "p": 2790323, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_3294056_G/A", "c": "chrY", "p": 3294056, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_3294096_A/G", "c": "chrY", "p": 3294096, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000234652", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_6901236_C/T", "c": "chrY", "p": 6901236, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_13287017_G/A", "c": "chrY", "p": 13287017, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_13287539_G/A", "c": "chrY", "p": 13287539, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185937", "v": "chrY_17192979_T/C", "c": "chrY", "p": 17192979, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000228518", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_2790295_C/T", "c": "chrY", "p": 2790295, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_2790302_A/G", "c": "chrY", "p": 2790302, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_2790313_G/A", "c": "chrY", "p": 2790313, "r": "G", "a": "A", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_2790323_A/G", "c": "chrY", "p": 2790323, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000237659,ENSG00000184895", "rg": "Exonic", "co": "non_coding_transcript_exon_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_13287539_G/C", "c": "chrY", "p": 13287539, "r": "G", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Intronic", "co": "downstream_gene_variant,intron_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185938", "v": "chrY_22276318_A/G", "c": "chrY", "p": 22276318, "r": "A", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_10859613_T/A", "c": "chrY", "p": 10859613, "r": "T", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185940", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_5207836_A/G", "c": "chrY", "p": 5207836, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000231341", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_6014608_T/-", "c": "chrY", "p": 6014608, "r": "T", "a": "-", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_6014626_C/A", "c": "chrY", "p": 6014626, "r": "C", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_6718965_A/C", "c": "chrY", "p": 6718965, "r": "A", "a": "C", "t": "SNP", "g": "ENSG00000224953", "rg": "Exonic", "co": "non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_6901234_A/G", "c": "chrY", "p": 6901234, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_6901236_C/T", "c": "chrY", "p": 6901236, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_6901240_C/T", "c": "chrY", "p": 6901240, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_6901243_C/G", "c": "chrY", "p": 6901243, "r": "C", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10755456_C/A", "c": "chrY", "p": 10755456, "r": "C", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10755462_C/T", "c": "chrY", "p": 10755462, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10781497_T/A", "c": "chrY", "p": 10781497, "r": "T", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10781515_G/C", "c": "chrY", "p": 10781515, "r": "G", "a": "C", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10781521_C/A", "c": "chrY", "p": 10781521, "r": "C", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10790978_C/G", "c": "chrY", "p": 10790978, "r": "C", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10791902_A/T", "c": "chrY", "p": 10791902, "r": "A", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10859687_C/T", "c": "chrY", "p": 10859687, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10892811_A/G", "c": "chrY", "p": 10892811, "r": "A", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10925855_A/T", "c": "chrY", "p": 10925855, "r": "A", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10932875_C/A", "c": "chrY", "p": 10932875, "r": "C", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10932882_C/T", "c": "chrY", "p": 10932882, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10949454_A/C", "c": "chrY", "p": 10949454, "r": "A", "a": "C", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10949460_C/T", "c": "chrY", "p": 10949460, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10949473_T/C", "c": "chrY", "p": 10949473, "r": "T", "a": "C", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10999920_A/G", "c": "chrY", "p": 10999920, "r": "A", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_10999943_C/G", "c": "chrY", "p": 10999943, "r": "C", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_11361530_T/A", "c": "chrY", "p": 11361530, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000183704", "rg": "Intronic", "co": "intron_variant,non_coding_transcript_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_11522676_T/A", "c": "chrY", "p": 11522676, "r": "T", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_11723017_T/G", "c": "chrY", "p": 11723017, "r": "T", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_12626522_C/A", "c": "chrY", "p": 12626522, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000233774,ENSG00000114374", "rg": "Intronic", "co": "intron_variant,non_coding_transcript_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_13286896_A/T", "c": "chrY", "p": 13286896, "r": "A", "a": "T", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185942", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_5337884_T/C", "c": "chrY", "p": 5337884, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_5338943_A/G", "c": "chrY", "p": 5338943, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_5338957_A/G", "c": "chrY", "p": 5338957, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099715,ENSG00000235001", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_5574308_C/T", "c": "chrY", "p": 5574308, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_5574310_T/A", "c": "chrY", "p": 5574310, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000099715,ENSG00000214207", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_6901177_A/G", "c": "chrY", "p": 6901177, "r": "A", "a": "G", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_6901354_T/C", "c": "chrY", "p": 6901354, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000099721,ENSG00000237701", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_10657765_C/T", "c": "chrY", "p": 10657765, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_10657769_C/T", "c": "chrY", "p": 10657769, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_10687863_C/T", "c": "chrY", "p": 10687863, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_10687891_A/T", "c": "chrY", "p": 10687891, "r": "A", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_10781308_C/G", "c": "chrY", "p": 10781308, "r": "C", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_10781311_C/A", "c": "chrY", "p": 10781311, "r": "C", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_10904565_C/A", "c": "chrY", "p": 10904565, "r": "C", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_10904596_G/A", "c": "chrY", "p": 10904596, "r": "G", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11298846_G/C", "c": "chrY", "p": 11298846, "r": "G", "a": "C", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11298878_T/C", "c": "chrY", "p": 11298878, "r": "T", "a": "C", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11298887_T/G", "c": "chrY", "p": 11298887, "r": "T", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11310301_C/G", "c": "chrY", "p": 11310301, "r": "C", "a": "G", "t": "SNP", "g": "ENSG00000259154,ENSG00000258567", "rg": "Upstream", "co": "downstream_gene_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11310330_C/A", "c": "chrY", "p": 11310330, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000259154,ENSG00000258567", "rg": "Upstream", "co": "downstream_gene_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11310340_T/A", "c": "chrY", "p": 11310340, "r": "T", "a": "A", "t": "SNP", "g": "ENSG00000259154,ENSG00000258567", "rg": "Upstream", "co": "downstream_gene_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11310345_C/T", "c": "chrY", "p": 11310345, "r": "C", "a": "T", "t": "SNP", "g": "ENSG00000259154,ENSG00000258567", "rg": "Upstream", "co": "downstream_gene_variant,upstream_gene_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11534871_T/C", "c": "chrY", "p": 11534871, "r": "T", "a": "C", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11669006_A/C", "c": "chrY", "p": 11669006, "r": "A", "a": "C", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11669031_G/A", "c": "chrY", "p": 11669031, "r": "G", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11669040_C/T", "c": "chrY", "p": 11669040, "r": "C", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_11669041_G/T", "c": "chrY", "p": 11669041, "r": "G", "a": "T", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_13286791_C/A", "c": "chrY", "p": 13286791, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_13286840_C/A", "c": "chrY", "p": 13286840, "r": "C", "a": "A", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_13286874_T/G", "c": "chrY", "p": 13286874, "r": "T", "a": "G", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_13287351_T/C", "c": "chrY", "p": 13287351, "r": "T", "a": "C", "t": "SNP", "g": "ENSG00000215414,ENSG00000183878", "rg": "Exonic", "co": "intron_variant,non_coding_transcript_exon_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_56829330_G/A", "c": "chrY", "p": 56829330, "r": "G", "a": "A", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}, {"s": "SRR2185943", "v": "chrY_56829460_T/G", "c": "chrY", "p": 56829460, "r": "T", "a": "G", "t": "SNP", "g": null, "rg": "Intergenic", "co": "intergenic_variant", "ce": "Non-coding", "im": "MODIFIER", "kn": "Novel"}];
+
+// ---- color scheme ----
+const REGION_COLOR = {
+  'Exonic':    '#22D3EE',
+  'Intronic':  '#818CF8',
+  'Intergenic':'#475569',
+  'Upstream':  '#F59E0B',
+  'Downstream':'#F472B6',
+  'Other':     '#6B7280',
+};
+const TYPE_COLOR = {
+  'SNP': '#10B981',
+  'INS': '#F59E0B',
+  'DEL': '#F87171',
+  'MNP': '#818CF8',
+};
+const PLOTLY_LAYOUT = {
+  paper_bgcolor:'transparent', plot_bgcolor:'transparent',
+  font:{family:"'JetBrains Mono',monospace",color:'#E2E8F0',size:11},
+  margin:{t:10,r:10,b:40,l:40},
+  legend:{bgcolor:'transparent',font:{size:10}},
+  xaxis:{gridcolor:'#1D2D4A',zerolinecolor:'#1D2D4A',tickfont:{size:10}},
+  yaxis:{gridcolor:'#1D2D4A',zerolinecolor:'#1D2D4A',tickfont:{size:10}},
+};
+const CONFIG = {displayModeBar:false, responsive:true};
+
+// ---- state ----
+let allData = RAW.slice();
+let filtered = allData.slice();
+
+// ---- populate filters ----
+function populateFilters() {
+  const fields = {
+    's':  document.getElementById('f-sample'),
+    'rg': document.getElementById('f-region'),
+    't':  document.getElementById('f-vartype'),
+    'im': document.getElementById('f-impact'),
+    'c':  document.getElementById('f-chrom'),
+  };
+  for (const [key, sel] of Object.entries(fields)) {
+    const vals = [...new Set(allData.map(d=>d[key]).filter(Boolean))].sort();
+    vals.forEach(v => { const o=document.createElement('option'); o.value=v; o.text=v; sel.appendChild(o); });
+  }
+  // consequences
+  const csel = document.getElementById('f-conseq');
+  const cs = new Set();
+  allData.forEach(d => d.co.split(',').forEach(c=>cs.add(c.trim())));
+  [...cs].sort().forEach(v=>{ const o=document.createElement('option'); o.value=v; o.text=v; csel.appendChild(o); });
+}
+
+function getFilters() {
+  return {
+    sample: document.getElementById('f-sample').value,
+    region: document.getElementById('f-region').value,
+    vartype:document.getElementById('f-vartype').value,
+    conseq: document.getElementById('f-conseq').value,
+    impact: document.getElementById('f-impact').value,
+    chrom:  document.getElementById('f-chrom').value,
+  };
+}
+
+function applyFilters() {
+  const f = getFilters();
+  filtered = allData.filter(d => {
+    if (f.sample  && d.s  !== f.sample)  return false;
+    if (f.region  && d.rg !== f.region)  return false;
+    if (f.vartype && d.t  !== f.vartype) return false;
+    if (f.impact  && d.im !== f.impact)  return false;
+    if (f.chrom   && d.c  !== f.chrom)   return false;
+    if (f.conseq  && !d.co.split(',').map(x=>x.trim()).includes(f.conseq)) return false;
+    return true;
+  });
+  updateAll();
+}
+
+function resetFilters() {
+  ['f-sample','f-region','f-vartype','f-conseq','f-impact','f-chrom'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  applyFilters();
+}
+
+// ---- KPIs ----
+function updateKPIs() {
+  const uniq = new Set(filtered.map(d=>d.v));
+  const samples = new Set(filtered.map(d=>d.s));
+  const snp = filtered.filter(d=>d.t==='SNP').length;
+  const ins = filtered.filter(d=>d.t==='INS').length;
+  const genic = filtered.filter(d=>d.rg!=='Intergenic').length;
+  // shared
+  const varCounts = {};
+  filtered.forEach(d=>{ varCounts[d.v]=(varCounts[d.v]||0)+1; });
+  const shared = Object.values(varCounts).filter(c=>c>=2).length;
+
+  document.getElementById('kpi-variants').textContent = uniq.size;
+  document.getElementById('kpi-samples').textContent = samples.size;
+  document.getElementById('kpi-snp').textContent = snp;
+  document.getElementById('kpi-ins').textContent = ins;
+  document.getElementById('kpi-genic').textContent = genic;
+  document.getElementById('kpi-shared').textContent = shared;
+  document.getElementById('filter-count').textContent = filtered.length + ' records';
+}
+
+// ---- Ruler ----
+function drawRuler() {
+  const canvas = document.getElementById('ruler-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth; const H = 48;
+  canvas.width = W * devicePixelRatio; canvas.height = H * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  ctx.fillStyle = '#070C18'; ctx.fillRect(0,0,W,H);
+
+  const positions = filtered.map(d=>d.p);
+  if (!positions.length) return;
+  const minP = Math.min(...positions), maxP = Math.max(...positions);
+  document.getElementById('ruler-range').textContent =
+    `${(minP/1e6).toFixed(2)} Mb -- ${(maxP/1e6).toFixed(2)} Mb`;
+
+  // draw tick per variant
+  const byVar = {};
+  filtered.forEach(d => {
+    if (!byVar[d.v]) byVar[d.v] = {p:d.p, rg:d.rg, count:0};
+    byVar[d.v].count++;
+  });
+
+  Object.values(byVar).forEach(({p, rg, count}) => {
+    const x = ((p - minP) / (maxP - minP)) * (W - 2) + 1;
+    const col = REGION_COLOR[rg] || '#475569';
+    const h = Math.min(6 + count * 3, H-8);
+    ctx.globalAlpha = 0.7 + Math.min(count/20, 0.3);
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, H-2); ctx.lineTo(x, H-2-h); ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+
+  // legend
+  const legend = [['Exonic','#22D3EE'],['Intronic','#818CF8'],['Intergenic','#475569'],['Upstream','#F59E0B']];
+  let lx = 6;
+  legend.forEach(([lab,col])=>{
+    ctx.fillStyle=col; ctx.fillRect(lx,2,8,8);
+    ctx.fillStyle='#94A3B8'; ctx.font='9px monospace';
+    ctx.fillText(lab,lx+10,10); lx+=lab.length*5.5+20;
+  });
+}
+
+// ruler tooltip
+const rulerCanvas = document.getElementById('ruler-canvas');
+const rulerTip = document.getElementById('ruler-tooltip');
+rulerCanvas.addEventListener('mousemove', (e) => {
+  const rect = rulerCanvas.getBoundingClientRect();
+  const xRel = (e.clientX - rect.left) / rect.width;
+  const positions = filtered.map(d=>d.p);
+  if (!positions.length) return;
+  const minP = Math.min(...positions), maxP = Math.max(...positions);
+  const pos = Math.round(minP + xRel*(maxP-minP));
+  // find closest variant
+  let closest=null, minDist=Infinity;
+  filtered.forEach(d=>{
+    const dist=Math.abs(d.p-pos);
+    if(dist<minDist){minDist=dist;closest=d;}
+  });
+  if(closest && minDist < (maxP-minP)*0.01){
+    rulerTip.style.display='block';
+    rulerTip.style.left=(e.clientX+12)+'px';
+    rulerTip.style.top=(e.clientY-20)+'px';
+    rulerTip.innerHTML=`<b>${closest.v}</b><br>${closest.rg} &bull; ${closest.s}`;
+  } else { rulerTip.style.display='none'; }
+});
+rulerCanvas.addEventListener('mouseleave',()=>{ rulerTip.style.display='none'; });
+
+// ---- Chart: Sample bar (stacked by region) ----
+function chartSample() {
+  const samples = [...new Set(allData.map(d=>d.s))].sort();
+  const regions = Object.keys(REGION_COLOR);
+  const traces = regions.map(rg => ({
+    name: rg,
+    type: 'bar', orientation:'h',
+    x: samples.map(s => filtered.filter(d=>d.s===s&&d.rg===rg).length),
+    y: samples,
+    marker:{color: REGION_COLOR[rg]},
+  }));
+  const layout = {...PLOTLY_LAYOUT,
+    barmode:'stack', margin:{t:10,r:10,b:30,l:85},
+    xaxis:{...PLOTLY_LAYOUT.xaxis,title:{text:'Variant count',font:{size:10}}},
+    yaxis:{...PLOTLY_LAYOUT.yaxis,autorange:'reversed',tickfont:{size:9}},
+    legend:{...PLOTLY_LAYOUT.legend,orientation:'h',y:-0.15,x:0},
+  };
+  Plotly.newPlot('ch-sample', traces, layout, CONFIG);
+}
+
+// ---- Chart: Variant type pie ----
+function chartVarType() {
+  const counts = {};
+  filtered.forEach(d=>{ counts[d.t]=(counts[d.t]||0)+1; });
+  const labels=Object.keys(counts), values=Object.values(counts);
+  Plotly.newPlot('ch-vartype',[{
+    type:'pie', labels, values,
+    marker:{colors:labels.map(l=>TYPE_COLOR[l]||'#6B7280')},
+    hole:0.45,
+    textinfo:'label+percent',
+    textfont:{size:10},
+    hovertemplate:'%{label}: %{value}<extra></extra>',
+  }],{...PLOTLY_LAYOUT, showlegend:false, margin:{t:20,r:20,b:20,l:20}}, CONFIG);
+}
+
+// ---- Chart: Region donut ----
+function chartRegion() {
+  const counts = {};
+  filtered.forEach(d=>{ counts[d.rg]=(counts[d.rg]||0)+1; });
+  const labels=Object.keys(counts), values=Object.values(counts);
+  Plotly.newPlot('ch-region',[{
+    type:'pie', labels, values,
+    marker:{colors:labels.map(l=>REGION_COLOR[l]||'#6B7280')},
+    hole:0.5,
+    textinfo:'label+percent', textfont:{size:10},
+    hovertemplate:'%{label}: %{value}<extra></extra>',
+  }],{...PLOTLY_LAYOUT, showlegend:false, margin:{t:10,r:10,b:10,l:10}}, CONFIG);
+}
+
+// ---- Chart: Consequence bar ----
+function chartConseq() {
+  const counts = {};
+  filtered.forEach(d=>d.co.split(',').forEach(c=>{c=c.trim();counts[c]=(counts[c]||0)+1;}));
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const COLORS=['#22D3EE','#818CF8','#10B981','#F59E0B','#F87171','#F472B6','#34D399','#A78BFA','#FCD34D','#94A3B8'];
+  Plotly.newPlot('ch-conseq',[{
+    type:'bar', orientation:'h',
+    x:sorted.map(x=>x[1]), y:sorted.map(x=>x[0]),
+    marker:{color:COLORS},
+    hovertemplate:'%{y}: %{x}<extra></extra>',
+  }],{...PLOTLY_LAYOUT,
+    margin:{t:10,r:10,b:30,l:200},
+    yaxis:{...PLOTLY_LAYOUT.yaxis,autorange:'reversed',tickfont:{size:9}},
+    xaxis:{...PLOTLY_LAYOUT.xaxis,title:{text:'Count',font:{size:10}}},
+  }, CONFIG);
+}
+
+// ---- Chart: Variant sharing histogram ----
+function chartSharing() {
+  const varCounts={};
+  filtered.forEach(d=>{varCounts[d.v]=(varCounts[d.v]||0)+1;});
+  const hist={};
+  Object.values(varCounts).forEach(c=>{hist[c]=(hist[c]||0)+1;});
+  const xs=Object.keys(hist).map(Number).sort((a,b)=>a-b);
+  Plotly.newPlot('ch-sharing',[{
+    type:'bar', x:xs, y:xs.map(x=>hist[x]),
+    marker:{color:xs.map(x=>x>=2?'#F59E0B':'#10B981'),
+            line:{color:'transparent'}},
+    hovertemplate:'Shared by %{x} samples: %{y} variants<extra></extra>',
+  }],{...PLOTLY_LAYOUT,
+    xaxis:{...PLOTLY_LAYOUT.xaxis,title:{text:'# samples sharing variant',font:{size:10}},dtick:1},
+    yaxis:{...PLOTLY_LAYOUT.yaxis,title:{text:'# variants',font:{size:10}}},
+    margin:{t:10,r:10,b:45,l:50},
+  }, CONFIG);
+}
+
+// ---- Chart: Presence/Absence heatmap ----
+function chartHeatmap() {
+  const samples = [...new Set(allData.map(d=>d.s))].sort();
+  // get variants present in 2+ samples (interesting ones)
+  const varCounts={};
+  filtered.forEach(d=>{varCounts[d.v]=(varCounts[d.v]||0)+1;});
+  const interestingVars = Object.entries(varCounts)
+    .filter(([v,c])=>c>=2)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,60)
+    .map(x=>x[0]);
+
+  if (!interestingVars.length) {
+    Plotly.newPlot('ch-heatmap',[],{...PLOTLY_LAYOUT}, CONFIG);
+    return;
+  }
+
+  // presence matrix
+  const matrix = samples.map(s =>
+    interestingVars.map(v => filtered.some(d=>d.s===s&&d.v===v)?1:0)
+  );
+
+  // short var labels: position only
+  const varLabels = interestingVars.map(v => {
+    const parts = v.split('_');
+    return parts[1] ? (parseInt(parts[1])/1e6).toFixed(2)+'M' : v;
+  });
+
+  Plotly.newPlot('ch-heatmap',[{
+    type:'heatmap',
+    z:matrix, x:varLabels, y:samples,
+    colorscale:[[0,'#0E1525'],[0.5,'#1D3F4A'],[1,'#22D3EE']],
+    showscale:false,
+    hovertemplate:'%{y} x %{x}: %{z}<extra></extra>',
+    xgap:1, ygap:1,
+  }],{...PLOTLY_LAYOUT,
+    margin:{t:10,r:10,b:60,l:100},
+    xaxis:{...PLOTLY_LAYOUT.xaxis,tickangle:-60,tickfont:{size:8}},
+    yaxis:{...PLOTLY_LAYOUT.yaxis,tickfont:{size:9}},
+  }, CONFIG);
+}
+
+// ---- Table ----
+function updateTable() {
+  const tbody = document.getElementById('tbl-body');
+  const rows = filtered.slice(0,200);
+  const tagType = t => {
+    const cls={'SNP':'tag-snp','INS':'tag-ins','DEL':'tag-del'}[t]||'tag-snp';
+    return `<span class="tag ${cls}">${t}</span>`;
+  };
+  const tagReg = r => {
+    const cls={'Exonic':'tag-exon','Intronic':'tag-intr','Intergenic':'tag-intg','Upstream':'tag-up','Downstream':'tag-up'}[r]||'tag-intg';
+    return `<span class="tag ${cls}">${r}</span>`;
+  };
+  tbody.innerHTML = rows.map(d=>`<tr>
+    <td>${d.s}</td>
+    <td style="color:var(--muted)">${d.v}</td>
+    <td>${d.c}</td>
+    <td style="color:var(--cyan)">${d.p.toLocaleString()}</td>
+    <td>${d.r}</td>
+    <td style="color:var(--amber)">${d.a}</td>
+    <td>${tagType(d.t)}</td>
+    <td>${tagReg(d.rg)}</td>
+    <td style="color:var(--muted);font-size:10px">${d.g||'-'}</td>
+    <td style="font-size:10px;color:var(--muted)">${d.co}</td>
+    <td style="font-size:10px">${d.im}</td>
+  </tr>`).join('');
+  document.getElementById('footer-note').textContent =
+    `Showing ${Math.min(rows.length,200)} of ${filtered.length} records`;
+}
+
+// ---- Update all ----
+function updateAll() {
+  updateKPIs();
+  drawRuler();
+  chartSample();
+  chartVarType();
+  chartRegion();
+  chartConseq();
+  chartSharing();
+  chartHeatmap();
+  updateTable();
+  buildGeneTable();
+}
+
+// ---- File loader ----
+document.getElementById('file-input').addEventListener('change', function(e) {
+  const files = [...e.target.files];
+  let pending = files.length;
+  if (!pending) return;
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const lines = ev.target.result.split('\n');
+      const sample = file.name.replace(/\.[^.]+$/, '');
+      lines.forEach(line => {
+        if (line.startsWith('#') || !line.trim()) return;
+        const cols = line.split('\t');
+        if (cols.length < 14) return;
+        const var_id=cols[0],loc=cols[1],gene=cols[3],feat=cols[4],ft=cols[5];
+        const conseqs=cols[6],extra=cols[13]||'';
+        const locParts=loc.split(':');
+        const chrom=locParts[0];
+        const pos=parseInt((locParts[1]||'0').split('-')[0])||0;
+        const vp=var_id.split('_'); const alleles=(vp[vp.length-1]||'').split('/');
+        const ref=alleles[0]||''; const alt=alleles[1]||'';
+        const t=(ref.length===1&&alt.length===1)?'SNP':ref.length>alt.length?'DEL':alt.length>ref.length?'INS':'MNP';
+        const impM=extra.match(/IMPACT=(\w+)/); const impact=impM?impM[1]:'MODIFIER';
+        const rg=conseqs.includes('intergenic')?'Intergenic':
+                 conseqs.includes('intron')?'Intronic':
+                 (conseqs.includes('exon')||conseqs.includes('coding'))?'Exonic':
+                 conseqs.includes('upstream')?'Upstream':
+                 conseqs.includes('downstream')?'Downstream':'Other';
+        allData.push({s:sample,v:var_id,c:chrom,p:pos,r:ref,a:alt,t,
+          g:gene!=='-'?gene:null,rg,co:conseqs,ce:'Non-coding',im:impact,kn:'Novel'});
+      });
+      loaded++;
+      if (loaded===pending) {
+        // rebuild unique (sample,v) dedup
+        const seen=new Set();
+        allData = allData.filter(d=>{const k=d.s+'|'+d.v;if(seen.has(k))return false;seen.add(k);return true;});
+        document.getElementById('upload-status').textContent =
+          `${loaded} file(s) loaded. ${allData.length} total records.`;
+        populateFiltersExtra();
+        applyFilters();
+      }
+    };
+    reader.readAsText(file);
+  });
+});
+
+function populateFiltersExtra() {
+  // refresh all filter options from current allData
+  const configs = [
+    ['f-sample','s'],['f-region','rg'],['f-vartype','t'],['f-impact','im'],['f-chrom','c']
+  ];
+  configs.forEach(([id,key])=>{
+    const sel=document.getElementById(id);
+    const cur=sel.value;
+    while(sel.options.length>1) sel.remove(1);
+    const vals=[...new Set(allData.map(d=>d[key]).filter(Boolean))].sort();
+    vals.forEach(v=>{const o=document.createElement('option');o.value=v;o.text=v;sel.appendChild(o);});
+    sel.value=cur;
+  });
+  const csel=document.getElementById('f-conseq');
+  const cur=csel.value;
+  while(csel.options.length>1) csel.remove(1);
+  const cs=new Set();
+  allData.forEach(d=>d.co.split(',').forEach(c=>cs.add(c.trim())));
+  [...cs].sort().forEach(v=>{const o=document.createElement('option');o.value=v;o.text=v;csel.appendChild(o);});
+  csel.value=cur;
+}
+
+// ---- Gene x Sample non-synonymous table ----
+const NONSYN_CONSEQS = new Set([
+  'missense_variant','stop_gained','stop_lost','stop_retained_variant',
+  'frameshift_variant','splice_acceptor_variant','splice_donor_variant',
+  'start_lost','start_gained','protein_altering_variant',
+  'incomplete_terminal_codon_variant','coding_sequence_variant',
+]);
+
+function buildGeneTable() {
+  const mode = document.getElementById('nonsyn-mode').value;
+  const noteEl = document.getElementById('nonsyn-note');
+
+  // determine which rows to use based on mode
+  let rows;
+  if (mode === 'nonsyn') {
+    rows = filtered.filter(d => {
+      if (!d.g) return false;
+      const conseqs = d.co.split(',').map(c=>c.trim());
+      return conseqs.some(c => NONSYN_CONSEQS.has(c));
+    });
+    if (rows.length === 0) {
+      noteEl.innerHTML = '<span style="color:var(--amber)">&#9888; 0 non-synonymous variants in current filter. '
+        + 'Y chromosome is largely non-coding. Showing genic exonic as proxy.</span>';
+      rows = filtered.filter(d => d.g && d.rg === 'Exonic');
+    } else {
+      noteEl.innerHTML = `<span style="color:var(--green)">${rows.length} non-synonymous variant-sample pairs</span>`;
+    }
+  } else if (mode === 'genic') {
+    rows = filtered.filter(d => d.g && d.rg !== 'Intergenic');
+    noteEl.innerHTML = `<span style="color:var(--cyan)">${rows.length} genic variant-sample pairs</span>`;
+  } else {
+    rows = filtered.filter(d => d.g && d.rg === 'Exonic');
+    noteEl.innerHTML = `<span style="color:var(--cyan)">${rows.length} genic exonic variant-sample pairs</span>`;
+  }
+
+  // collect all samples and genes
+  const samples = [...new Set(allData.map(d=>d.s))].sort();
+  const geneSet = new Set();
+  rows.forEach(d => d.g.split(',').forEach(g => geneSet.add(g.trim())));
+  const genes = [...geneSet].sort();
+
+  if (!genes.length) {
+    document.getElementById('nonsyn-thead').innerHTML = '';
+    document.getElementById('nonsyn-tbody').innerHTML =
+      '<tr><td colspan="2" style="padding:16px;color:var(--muted);text-align:center">No variants match this filter.</td></tr>';
+    return;
+  }
+
+  // build count matrix: gene -> sample -> [variant IDs]
+  const matrix = {};
+  genes.forEach(g => { matrix[g] = {}; samples.forEach(s => { matrix[g][s] = []; }); });
+  rows.forEach(d => {
+    d.g.split(',').forEach(g => {
+      g = g.trim();
+      if (matrix[g] && matrix[g][d.s] !== undefined) {
+        if (!matrix[g][d.s].includes(d.v)) matrix[g][d.s].push(d.v);
+      }
+    });
+  });
+
+  // compute row totals for sorting
+  const rowTotals = {};
+  genes.forEach(g => {
+    rowTotals[g] = samples.reduce((acc,s) => acc + matrix[g][s].length, 0);
+  });
+  const sortedGenes = genes.slice().sort((a,b) => rowTotals[b]-rowTotals[a]);
+
+  // column max for color scaling
+  const colMax = {};
+  samples.forEach(s => {
+    colMax[s] = Math.max(...genes.map(g => matrix[g][s].length), 1);
+  });
+  const globalMax = Math.max(...Object.values(rowTotals).filter(v=>v>0), 1);
+
+  // header
+  const thead = document.getElementById('nonsyn-thead');
+  thead.innerHTML = `<tr>
+    <th style="background:#0B1526;position:sticky;top:0;left:0;z-index:3;padding:8px 10px;
+        text-align:left;color:var(--muted);font-size:10px;border-bottom:1px solid var(--border);
+        border-right:1px solid var(--border);min-width:140px">Gene</th>
+    ${samples.map(s=>`<th style="background:#0B1526;position:sticky;top:0;z-index:2;
+        padding:6px 4px;text-align:center;color:var(--muted);font-size:9px;
+        border-bottom:1px solid var(--border);white-space:nowrap;writing-mode:vertical-rl;
+        transform:rotate(180deg);height:80px;vertical-align:bottom">
+        ${s.replace('SRR','')}</th>`).join('')}
+    <th style="background:#0B1526;position:sticky;top:0;z-index:2;padding:8px 6px;
+        text-align:center;color:var(--cyan);font-size:10px;border-bottom:1px solid var(--border)">Total</th>
+  </tr>`;
+
+  // body
+  const tbody = document.getElementById('nonsyn-tbody');
+  tbody.innerHTML = sortedGenes.map(g => {
+    const cells = samples.map(s => {
+      const n = matrix[g][s].length;
+      const varList = matrix[g][s].join('\n');
+      // color: 0=dark bg, 1+=green gradient
+      let bg = 'var(--card)'; let fg = 'var(--muted)';
+      if (n > 0) {
+        const t = Math.min(n / Math.max(globalMax, 3), 1);
+        // dark teal to bright green gradient
+        const r = Math.round(16 + t*(-5));
+        const gr = Math.round(120 + t*67);
+        const b = Math.round(100 + t*-50);
+        bg = `rgb(${r},${gr},${b})`;
+        fg = n >= 3 ? '#000' : '#fff';
+      }
+      return `<td title="${varList||'none'}"
+        style="text-align:center;padding:5px 4px;border-bottom:1px solid #0B1526;
+        background:${bg};color:${fg};font-weight:${n>0?600:400};
+        min-width:36px;cursor:${n>0?'pointer':'default'}"
+        onclick="${n>0?`filterToCell('${g}','${s}')`:''}">
+        ${n > 0 ? n : '<span style="color:#1D2D4A">-</span>'}
+      </td>`;
+    }).join('');
+    const total = rowTotals[g];
+    const tColor = total >= 10 ? 'var(--amber)' : total >= 5 ? 'var(--green)' : 'var(--cyan)';
+    return `<tr>
+      <td style="padding:5px 10px;border-bottom:1px solid #0B1526;border-right:1px solid var(--border);
+          position:sticky;left:0;background:var(--card);z-index:1;
+          color:var(--text);font-size:10px;white-space:nowrap">${g}</td>
+      ${cells}
+      <td style="text-align:center;padding:5px 8px;border-bottom:1px solid #0B1526;
+          color:${tColor};font-weight:700">${total}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterToCell(gene, sample) {
+  document.getElementById('f-sample').value = sample;
+  applyFilters();
+}
+
+document.getElementById('nonsyn-mode').addEventListener('change', buildGeneTable);
+
+// ---- bind filter events ----
+['f-sample','f-region','f-vartype','f-conseq','f-impact','f-chrom'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', applyFilters);
+});
+
+// ---- resize ruler ----
+window.addEventListener('resize', ()=>{ drawRuler(); });
+
+// ---- init ----
+populateFilters();
+filtered = allData.slice();
+updateAll();
+</script>
+</body>
+</html>
