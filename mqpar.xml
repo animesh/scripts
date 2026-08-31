@@ -2,8 +2,8 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/home/ash022/scripts/TK12.exploratory_proteogenomics.fasta</fastaFilePath>
-         <identifierParseRule>>(.*)</identifierParseRule>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/PGTK-minimal-audited/results/combined_fasta/TK12.exploratory_proteogenomics.fasta</fastaFilePath>
+         <identifierParseRule>>([^ ]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
          <variationParseRule></variationParseRule>
@@ -15,8 +15,8 @@
          <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/home/ash022/scripts/TK13.exploratory_proteogenomics.fasta</fastaFilePath>
-         <identifierParseRule>>(.*)</identifierParseRule>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/PGTK-minimal-audited/results/combined_fasta/TK13.exploratory_proteogenomics.fasta</fastaFilePath>
+         <identifierParseRule>>([^ ]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
          <variationParseRule></variationParseRule>
@@ -28,8 +28,8 @@
          <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/home/ash022/scripts/TK14.exploratory_proteogenomics.fasta</fastaFilePath>
-         <identifierParseRule>>(.*)</identifierParseRule>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/PGTK-minimal-audited/results/combined_fasta/TK14.exploratory_proteogenomics.fasta</fastaFilePath>
+         <identifierParseRule>>([^ ]*)</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
          <variationParseRule></variationParseRule>
