@@ -1,3 +1,36 @@
+#https://emdgroup.github.io/octopus-automl/getting_started/
+#pip install "octopus-automl[recommended]"
+from octopus.example_data import load_breast_cancer_data
+from octopus.modules import Octo
+from octopus.study import OctoClassification
+from octopus.types import ModelName
+# 1. Load a built-in example dataset (breast cancer, 569 samples, 30 features)
+df, features, targets = load_breast_cancer_data()
+# 2. Create a classification study
+study = OctoClassification(
+    study_name="my_first_study",
+    target_metric="AUCROC",
+    feature_cols=features,
+    target_col="target",
+    sample_id_col="index",
+    stratification_col="target",
+    workflow=[
+        Octo(
+            task_id=0,
+            depends_on=None,
+            models=[ModelName.ExtraTreesClassifier],
+            n_trials=50,
+            n_inner_splits=5,
+            ensemble_selection=True,
+        ),
+    ],
+)
+
+# 3. Fit — this runs the full nested cross-validation pipeline
+study.fit(data=df)
+
+print(f"Results saved to: {study.output_path}")
+
 import statsmodels.formula.api as smf
 
 result = smf.mixedlm("Satisfaction ~ Time_spent", data=df, groups=df["Country"], re_formula="Time_spent").fit()
