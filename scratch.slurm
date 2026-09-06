@@ -22,7 +22,7 @@ module load GCCcore/14.3.0
 #/cluster/projects/nn9036k/dotnet80303/dotnet 
 module load dotNET-Core/8.0.411
 dotnet --version
-#docker run --rm -it --user=root --name spritz-1789281049 -v "F:\spritz:/app/spritz/results/" -v "F:\resources:/app/spritz/resources" smithlab/spritz:0.3.14 conda run --no-capture-output --live-stream dotnet SpritzCMD.dll --threads 8 --analysisDirectory=/app/spritz/results/ --reference="release-97,homo_sapiens,human,GRCh38" --analyzeVariants --analyzeIsoforms --doQuantification --sraAccessionPairedEnd=SRR31089074,SRR31089073,SRR31089072
+#docker run --rm -it --user=root --name spritz-1789281049 -v "F:\spritz:/app/spritz/results/" -v "F:\resources:/app/spritz/resources" smithlab/spritz:0.3.14 conda run --no-capture-output --live-stream dotnet SpritzCMD.dll --threads 8 --analysisDirectory=/app/spritz/results/ --reference="release-111,homo_sapiens,human,GRCh38" --analyzeVariants  --doQuantification --sraAccessionPairedEnd=SRR31089074,SRR31089073,SRR31089072
 #apptainer registry login -u animesh docker://ghcr.io
 #Password / Token: 
 #INFO:    Token stored in /cluster/home/ash022/.docker/config.json
@@ -42,7 +42,6 @@ mkdir -p Spritz resources && apptainer exec -e --writable-tmpfs --pwd /app/sprit
   /opt/conda/bin/conda run --no-capture-output --live-stream dotnet SpritzCMD.dll \
   --threads 20 \
   --analysisDirectory=/app/spritz/results/ \
-  --reference="release-97,homo_sapiens,human,GRCh38" \
-  --analyzeVariants --analyzeIsoforms --doQuantification \
+  --reference="release-111,homo_sapiens,human,GRCh38" \
+  --analyzeVariants --doQuantification \
   --sraAccessionPairedEnd=SRR31089074,SRR31089073,SRR31089072
-  
