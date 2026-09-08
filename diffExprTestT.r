@@ -1,4 +1,4 @@
-#..\R-4.5.0\bin\Rscript.exe diffExprTestT.r "L:\promec\TIMSTOF\LARS\2024\240605_Veronica\saga\txt\proteinGroups.txt" "L:\promec\TIMSTOF\LARS\2024\240605_Veronica\saga\txt\Groups.txt" "Cell_Rep" "Rem" "LFQ.intensity." "CT26_2" "CT26_1" 0.1 0.5 0.1
+#F:\R-4.6.1\bin\Rscript.exe diffExprTestT.r "L:\promec\Animesh\Nicolas\proteinGroups.txt" "L:\promec\Animesh\Nicolas\Groups.txt" "Bio" "Remove" "LFQ.intensity." "AD" "control" 0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -12,19 +12,19 @@ if (length(args) != 10) {stop("\n\nNeeds NINE arguments, the full path of protei
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF <-"L:/promec/TIMSTOF/LARS/2024/240605_Veronica/saga/txt/proteinGroups.txt"
+#inpF <-"L:/promec/Animesh/Nicolas/proteinGroups.txt"
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2024/240605_Veronica/saga/txt/Groups.txt"
+#inpL <-"L:/promec/Animesh/Nicolas/Groups.txt"
 lGroup <- args[3]
-#lGroup<-"Cell_Rep"
+#lGroup<-"Bio"
 rGroup <- args[4]
-#rGroup<-"Rem"
+#rGroup<-"Remove"
 selection <- args[5]
 #selection<-"LFQ.intensity."
 sample <- args[6]
-#sample<-"CT26_2"
+#sample<-"AD"
 control <- args[7]
-#control<-"CT26_1"
+#control<-"control"
 selThr <- args[8]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
@@ -45,7 +45,7 @@ data <- read.table(inpF,stringsAsFactors = FALSE, header = TRUE, quote = "", com
 ##clean####
 data = data[!data$Reverse=="+",]
 data = data[!data$Potential.contaminant=="+",]
-#data = data[!data$Only.identified.by.site=="+",]
+data = data[!data$Only.identified.by.site=="+",]
 row.names(data)<-paste(row.names(data),data[,grep("Fasta.headers",colnames(data))],data[,grep("Protein.IDs",colnames(data))],data[,grep("Protein.names",colnames(data))],data[,grep("Gene.names",colnames(data))],data[,grep("Score",colnames(data))],data[,grep("Peptide.counts..unique.",colnames(data))],sep=";;")
 summary(data)
 dim(data)

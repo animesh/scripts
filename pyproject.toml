@@ -9,6 +9,7 @@ dependencies = [
     "duckdb>=1.5.4",
     "marimo>=0.23.13",
     "matplotlib>=3.11.0",
+    "mcp>=2.0.0",
     "openpyxl>=3.1.5",
     "pandas>=3.0.3",
     "plotly>=6.9.0",
