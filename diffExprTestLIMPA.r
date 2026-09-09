@@ -148,8 +148,9 @@ annoData$Cell <- factor(annoData$Cell, levels = c("CT26", "KPC"))
 annoData$Experiment <- factor(annoData$Rep, levels = c(1, 2, 3), labels = c("Exp1", "Exp2", "Exp3"))
 
 cat("Computing observed-only group log2 medians per protein...\n")
-obs_summary <- compute_observed_group_medians(y.peptide = y.peptide, annoData = annoData, protein_col = "Leading razor protein")
+obs_summary <- compute_observed_group_medians(y.peptide = y.peptide, annoData cj= annoData, protein_col = "Leading razor protein")
 observed_group_medians <- obs_summary$protein_group_medians
+#plot(observed_group_medians$obs_groupMedian_log2_KPC_1, observed_group_medians$obs_groupMedian_log2_CT26_1, xlab = "Observed log2 median KPC_1", ylab = "Observed log2 median CT26_1", main = "Observed log2 medians per protein (KPC_1 vs CT26_1)")
 write.csv(observed_group_medians, file = file.path(outdir, "observed_group_medians", "observed_group_log2_medians_per_protein.csv"), row.names = FALSE)
 write.csv(obs_summary$protein_sample_obs, file = file.path(outdir, "observed_group_medians", "observed_protein_by_sample_log2_medians_from_original_data.csv"))
 
