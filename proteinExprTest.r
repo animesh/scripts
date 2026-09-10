@@ -1,4 +1,5 @@
-#..\..\R-4.5.0\bin\Rscript.exe proteinExprTest.r "L:\promec\TIMSTOF\LARS\2026\260623_AndrewS\DIANNv2P2.14.260703_140432.SILAC.32.highacc\report.pg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2026\260623_AndrewS\DIANNv2P2.14.260703_140432.SILAC.32.highacc\Groups.txt" "Bio" "Inc3" 1 7 "DVL_DUO" "IGG_DUO"  0.1 0.5 0.1
+#F:\R-4.6.1\bin\Rscript.exe  proteinExprTest.r "L:\promec\TIMSTOF\LARS\2026\260902_AndrewS\DIANNv2P2.12.260909_090557.64.highacc\report.pg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2026\260902_AndrewS\DIANNv2P2.12.260909_090557.64.highacc\Groups.txt" "Bio" "Inc" 1 7 "Tumor_Igg" "Tumor_LSD1"  0.1 0.5 0.1
+#F:\R-4.6.1\bin\Rscript.exe  proteinExprTest.r "L:\promec\TIMSTOF\LARS\2026\260902_AndrewS\DIANNv2P2.12.260909_090557.64.highacc\report.pg_matrix.tsv" "L:\promec\TIMSTOF\LARS\2026\260902_AndrewS\DIANNv2P2.12.260909_090557.64.highacc\Groups.txt" "Bio" "Inc" 1 7 "WT_Igg" "WT_LSD1"  0.1 0.5 0.1
 #setup####
 #install.packages(c("readxl","writexl","svglite","ggplot2","BiocManager"),repos="http://cran.us.r-project.org",lib=.libPaths())
 #BiocManager::install(c("limma","pheatmap","vsn"))#,repos="http://cran.us.r-project.org",lib=.libPaths())
@@ -12,22 +13,22 @@ if (length(args) != 11) {stop("\n\nNeeds 11 arguments, the full path of proteinG
 c:/R/bin/Rscript.exe diffExprTestT.r \"C:/Data/combined/txt/proteinGroups.txt\" \"C:/Data/combined/txt/Groups.txt\" Groups Removed Intensity. Control 0.1 1 0.05\n\n
 ", call.=FALSE)}
 inpF <- args[1]
-#inpF<-"L:/promec/TIMSTOF/LARS/2026/260623_AndrewS/DIANNv2P2.14.260703_140432.SILAC.32.highacc/report.pg_matrix.tsv"
+#inpF<-"L:/promec/TIMSTOF/LARS/2026/260902_AndrewS/DIANNv2P2.12.260909_090557.64.highacc/report.pg_matrix.tsv"
 #inpFD<- gsub("[^[:alnum:]]+", ".", dirname(inpF))
 inpL <- args[2]
-#inpL <-"L:/promec/TIMSTOF/LARS/2026/260623_AndrewS/DIANNv2P2.14.260703_140432.SILAC.32.highacc/Groups.txt"
+#inpL <-"L:/promec/TIMSTOF/LARS/2026/260902_AndrewS/DIANNv2P2.12.260909_090557.64.highacc/Groups.txt"
 lGroup <- args[3]
 #lGroup<-"Bio"
 rGroup <- args[4]
-#rGroup<-"Inc1"
+#rGroup<-"Inc"
 proteinC <- args[5]
 #proteinC<-"1"
 selection <- args[6]
 #selection<-"7"
 sample <- args[7]
-#sample<-"DVL_DUO"
+#sample<-"Tumor_Igg"
 control <- args[8]
-#control<-"IGG_DUO"
+#control<-"Tumor_LSD1"
 selThr <- args[9]
 selThr <- as.numeric(selThr)
 #selThr=0.1#pValue-tTest
