@@ -1,8 +1,8 @@
-#python pepProtMap.py peplist.txt A0A8C4ZK06.fasta
-#python pepQuanProtMap.py "L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/combined/txt/peptides.txt" "A0A8C4ZK06"
-#python pepQuanProtMap.py "L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/trypsin/combined/txt/peptides.txt" "A0A8C4ZK06"
-#cat L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/combined/txt/peptides.txtA0A8C4ZK06peptides.txt L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/trypsin/combined/txt/peptides.txtA0A8C4ZK06peptides.txt > peplist.txt
-#wget "https://rest.uniprot.org/uniprotkb/A0A8C4ZK06.fasta" 
+#python pepProtMap.py peplist.txt A0A8C5CNW5.fasta
+#python pepQuanProtMap.py "L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/combined/txtLen/peptides.txt" "A0A8C5CNW5"
+#python pepQuanProtMap.py "L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/trŧpsin/combined/txtLen/peptides.txt" "A0A8C5CNW5"
+#cat L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/combined/txtLen/peptides.txtA0A8C5CNW5peptides.txt L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/trypsin/combined/txtLen/peptides.txtA0A8C5CNW5peptides.txt > peplist.txt
+#wget "https://rest.uniprot.org/uniprotkb/A0A8C5CNW5.fasta" 
 import sys
 from pathlib import Path
 import matplotlib.pyplot as plt
