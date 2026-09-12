@@ -1,4 +1,5 @@
-#python pepQuanProtMap.py "L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/trypsin/combined/txt/peptides.txt" "A0A8C4ZK06"
+#python pepQuanProtMap.py "L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/combined/txtLen/peptides.txt" "A0A8C5CNW5"
+#python pepQuanProtMap.py "L:/promec/TIMSTOF/LARS/2026/260908_Moreforsk/trypsin/combined/txtLen/peptides.txt" "A0A8C5CNW5"
 import sys
 if len(sys.argv)!=3:sys.exit("USAGE: python pepQuanProtMap.py <tab-sep-peptide-file> <Uniprot-ID>")
 pathFile = sys.argv[1]
