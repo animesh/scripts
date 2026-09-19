@@ -2,7 +2,7 @@
 #SBATCH --account=nn9036k --job-name=TestFile.d.MC2V3
 #SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=32
-#SBATCH --mem-per-cpu=32G
+#SBATCH --mem-per-cpu=8G
 #SBATCH --time=160:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
@@ -28,4 +28,4 @@ module --ignore_cache load dotNET-Core/8.0.411
 #mv diann-2.7.0 /cluster/projects/nn9036k/. 
 #chmod 755 /cluster/projects/nn9036k/diann-2.7.0/diann-linux 
 #cp /cluster/projects/nn9036k/diann-2.5.0/camprotR_240512_cRAP_20190401_full_tags.fasta /cluster/projects/nn9036k/diann-2.7.0/
-./diann-linux  --f /cluster/projects/nn9036k/scrbkup/moreforsk/260908_Moreforsk_BBE_ren_Slot1-1_1_14438.d --lib  --threads 128 --verbose 3 --out /cluster/projects/nn9036k/scrbkup/moreforsk/lib.report.parquet --qvalue 0.01 --matrices --min-corr 2.0 --time-corr-only --extracted-ms1 --min-cal 500 --min-class 1000 --pre-filter --rt-window-mul 1.7 --rt-window-factor 100 --out-lib /cluster/projects/nn9036k/scrbkup/moreforsk/lib.parquet --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta /cluster/projects/nn9036k/scrbkup/moreforsk/UP000694546_8049.fasta --pre-search --pre-filter --met-excision --min-pep-len 50 --max-pep-len 100 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut ** --missed-cleavages 100 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:7,0.984016,NQ --var-mod UniMod:1,42.010565,*n --mass-acc 15 --mass-acc-ms1 15 --mass-acc-cal 19 --proteoforms --rt-profiling --direct-quant --global-norm --dda --original-mods
+./diann-linux  --f /cluster/projects/nn9036k/scrbkup/moreforsk/260908_Moreforsk_BBE_ren_Slot1-1_1_14438.d  --f /cluster/projects/nn9036k/scrbkup/moreforsk/260908_Moreforsk_BBE_trypsin_Slot1-2_1_14440.d --lib  --threads 128 --verbose 3 --out /cluster/projects/nn9036k/scrbkup/moreforsk/lib.report.parquet --qvalue 0.1 --matrices --min-corr 2.0 --time-corr-only --extracted-ms1 --min-cal 500 --min-class 1000 --pre-filter --rt-window-mul 1.7 --rt-window-factor 100 --out-lib /cluster/projects/nn9036k/scrbkup/moreforsk/lib.parquet --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta /cluster/projects/nn9036k/scrbkup/moreforsk/UP000694546_8049.fasta --pre-search --pre-filter --met-excision --min-pep-len 40 --max-pep-len 80 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut ** --missed-cleavages 100 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:7,0.984016,NQ --var-mod UniMod:1,42.010565,*n --mass-acc 15 --mass-acc-ms1 15 --mass-acc-cal 19 --proteoforms --rt-profiling --direct-quant --global-norm --dda --original-mods
