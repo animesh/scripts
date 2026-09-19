@@ -1,14 +1,14 @@
 #!/bin/sh
-#SBATCH --account=nn9036k --job-name=TestFile.d.MC2V3
+#SBATCH --account=nn9036k --job-name=bitpep
 #SBATCH --partition=bigmem
+#SBATCH --time=48:00:00
 #SBATCH --ntasks=1 --cpus-per-task=32
-#SBATCH --mem-per-cpu=8G
-#SBATCH --time=160:00:00
+#SBATCH --mem-per-cpu=32G
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
-#SBATCH --output=TestFile.d.MC2V3.log
-cd /cluster/projects/nn9036k/diann-2.7.0
-export PATH=$PATH:$PWD
+#SBATCH --output=bitpepLOG
+WORKDIR=$PWD
+cd ${WORKDIR}
 echo "we are running from this directory: $SLURM_SUBMIT_DIR"
 echo " the name of the job is: $SLURM_JOB_NAME"
 echo "Th job ID is $SLURM_JOB_ID"
@@ -17,15 +17,26 @@ echo "Number of nodes: $SLURM_JOB_NUM_NODES"
 echo "We are using $SLURM_CPUS_ON_NODE cores"
 echo "We are using $SLURM_CPUS_ON_NODE cores per node"
 echo "Total of $SLURM_NTASKS cores"
-module purge
-module load GCCcore/14.3.0
-module --ignore_cache load dotNET-Core/8.0.411
-#wget "https://github.com/vdemichev/DiaNN/releases/download/2.0/DIA-NN-2.7.0-Academia-Linux.zip"
-#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/UP000005640/UP000005640_9606.fasta.gz
-#gunzip UP000005640_9606.fasta.gz
-#mv UP000005640_9606.fasta promec/promec/FastaDB/UP000005640_9606_1protein1gene.fasta
-#unzip DIA-NN-2.7.0-Academia-Linux.zip
-#mv diann-2.7.0 /cluster/projects/nn9036k/. 
-#chmod 755 /cluster/projects/nn9036k/diann-2.7.0/diann-linux 
-#cp /cluster/projects/nn9036k/diann-2.5.0/camprotR_240512_cRAP_20190401_full_tags.fasta /cluster/projects/nn9036k/diann-2.7.0/
-./diann-linux  --f /cluster/projects/nn9036k/scrbkup/moreforsk/260908_Moreforsk_BBE_ren_Slot1-1_1_14438.d  --f /cluster/projects/nn9036k/scrbkup/moreforsk/260908_Moreforsk_BBE_trypsin_Slot1-2_1_14440.d --lib  --threads 128 --verbose 3 --out /cluster/projects/nn9036k/scrbkup/moreforsk/lib.report.parquet --qvalue 0.1 --matrices --min-corr 2.0 --time-corr-only --extracted-ms1 --min-cal 500 --min-class 1000 --pre-filter --rt-window-mul 1.7 --rt-window-factor 100 --out-lib /cluster/projects/nn9036k/scrbkup/moreforsk/lib.parquet --gen-spec-lib --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta /cluster/projects/nn9036k/scrbkup/moreforsk/UP000694546_8049.fasta --pre-search --pre-filter --met-excision --min-pep-len 40 --max-pep-len 80 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut ** --missed-cleavages 100 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:7,0.984016,NQ --var-mod UniMod:1,42.010565,*n --mass-acc 15 --mass-acc-ms1 15 --mass-acc-cal 19 --proteoforms --rt-profiling --direct-quant --global-norm --dda --original-mods
+#git clone http://github.com/animesh/bit-pep
+cd /cluster/home/ash022/scripts/bit-pep
+#git swtich stream
+#mkdir /cluster/projects/nn9036k/.cargo
+#ln -s /cluster/projects/nn9036k/.cargo /cluster/home/ash022/.cargo
+#curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+#/cluster/projects/nn9036k/.cargo/bin/cargo build --release
+#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
+#wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.fasta.gz
+#gunzip *.gz
+#ls -ltrh *.fasta
+#cat uniprot_sprot.fasta >>  uniprot_trembl.fasta
+#ls -ltrh *.fasta
+#grep "^>" uniprot_trembl.fasta | wc #150006383 1613357187 19023878916
+#tail *.fasta
+#cp  /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2026/260729_Orivio/260909/combined/txt/peptides.txt .
+#/cluster/projects/nn9036k/.cargo/bin/cargo build --release
+/cluster/projects/nn9036k/scrbkup/bit-pep/target/release/bit-pep run-prot uniprot_trembl.fasta -p peptides.txt -j 64 -m 1000
+#perl /cluster/home/ash022/scripts/pep2protmap.pl /cluster/home/ash022/scripts/bit-pep/uniprot_trembl.fasta /cluster/home/ash022/scripts/bit-pep/peptides.txt 1 > /cluster/home/ash022/scripts/bit-pep/peptides.mapped.txt
+#cp peptides.mapped.txt  /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2026/260729_Orivio/260909/combined/txtUniprot/
+#rclone copy -Pv NS9036K:PD/TIMSTOF/LARS/2026/260729_Orivio/260909/combined/txtUniprot/ /home/animeshs/promec/promec/TIMSTOF/LARS/2026/260729_Orivio/260909/combined/txtUniprot/
+#cp peptides.mapped.*tsv  /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/TIMSTOF/LARS/2026/260729_Orivio/260909/bit-pep/
+#rclone copy -Pv NS9036K:PD/TIMSTOF/LARS/2026/260729_Orivio/260909/bit-pep/ /home/animeshs/promec/promec/TIMSTOF/LARS/2026/260729_Orivio/260909/bit-pep/
