@@ -218,7 +218,7 @@
          </labelMods>
          <lcmsRunType>TIMS-DDA</lcmsRunType>
          <reQuantify>False</reQuantify>
-         <lfqMode>1</lfqMode>
+         <lfqMode>0</lfqMode>
          <lfqNormClusterSize>80</lfqNormClusterSize>
          <lfqMinEdgesPerNode>3</lfqMinEdgesPerNode>
          <lfqAvEdgesPerNode>6</lfqAvEdgesPerNode>
