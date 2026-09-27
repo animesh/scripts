@@ -1,4 +1,9 @@
-#python plotPSM.py "F:\promec\Animesh\Download\PGTK-main\results\txt\msms.txt" --protein ADAR
+#python plotPSM.py "F:\promec\Animesh\Download\PGTK-main\results\txt\msms.txt" --protein ADAR --peptide YLNTNPVGGLLEYAR
+#python plotPSM.py "F:\promec\Animesh\Download\PGTK-main\results\txt\msms.txt" --peptide YLNTNPVGGLLEYAR
+#python plotPSM.py "F:\promec\Animesh\Download\PGTK-main\results\txt\msms.txt" --peptide NTNSVPETAPAAIPETR
+#python plotPSM.py "F:\promec\Animesh\Download\PGTK-main\results\txt\msms.txt" --peptide HLKGSGQHPSEK
+#python plotPSM.py "F:\promec\Animesh\Download\PGTK-main\results\txt\msms.txt" --peptide NTNSVPETAPAAIPETK
+#python plotPSM.py "F:\promec\Animesh\Download\PGTK-main\results\txt\msms.txt" --peptide RNTNSVPETAPAAIPETR
 #needs Proteins, Sequence, Modified sequence, Raw file, Charge, Fragmentation, Mass analyzer, Masses2/Intensities2 (full spectrum), Masses/Intensities/Matches (annotated ions), Raw precursor m/z = m/z + isotope_index * (1.003355 / charge)  [verified <1.5 mDa error]
 import argparse
 from pathlib import Path
@@ -99,33 +104,51 @@ def select_psm_rows(path: Path, proteins: Optional[str] = None, peptide: Optiona
         except Exception:
             continue
 
-        if proteins:
-            if len(df.columns) == 1:
-                continue
-            df = df[protein_mask(df, proteins)]
-            if df.empty:
-                sys.exit(f"Error: no rows found matching protein(s) '{','.join(proteins)}' in Proteins or Gene Names (case-sensitive)")
-
         def score_list(sub_df):
             if 'Score' in sub_df.columns:
                 return sorted(pd.to_numeric(sub_df['Score'], errors='coerce').dropna().tolist(), reverse=True)
             return []
 
-        if peptide:
+        seq_col = get_sequence_column(df)
+        if seq_col is None:
+            sys.exit('Error: no peptide sequence column found in msms.txt')
+
+        # Case 1: Both protein and peptide provided
+        if proteins and peptide:
+            if len(df.columns) == 1:
+                continue
+            df_filtered = df[protein_mask(df, proteins)]
+            if df_filtered.empty:
+                sys.exit(f"Error: no rows found matching protein(s) '{','.join(proteins)}' in Proteins or Gene Names (case-sensitive)")
             seq_clean = sanitize_sequence(peptide)
-            seq_col = get_sequence_column(df)
-            if seq_col is None:
-                sys.exit('Error: no peptide sequence column found in msms.txt')
+            sub = df_filtered[df_filtered[seq_col].astype(str).apply(sanitize_sequence) == seq_clean]
+            if sub.empty:
+                sys.exit(f"Error: no rows found matching peptide '{peptide}' within protein(s) '{','.join(proteins)}'")
+            selected_row = select_best_row(sub)
+            matched_protein = proteins[0]
+            for prot in proteins:
+                if protein_mask(sub.loc[[selected_row.name]], [prot]).iloc[0]:
+                    matched_protein = prot
+                    break
+            info = {
+                'rows': len(sub),
+                'scores': score_list(sub),
+                'reason': 'best-scored PSM for requested peptide within requested protein',
+            }
+            return [(selected_row, matched_protein, seq_clean, info)]
+
+        # Case 2: Only peptide provided
+        if peptide:
+            if len(df.columns) == 1:
+                continue
+            seq_clean = sanitize_sequence(peptide)
             sub = df[df[seq_col].astype(str).apply(sanitize_sequence) == seq_clean]
             if sub.empty:
                 sys.exit(f"Error: no rows found matching peptide '{peptide}'")
             selected_row = select_best_row(sub)
             matched_protein = ''
-            if proteins:
-                for prot in proteins:
-                    if protein_mask(sub.loc[[selected_row.name]], [prot]).iloc[0]:
-                        matched_protein = prot
-                        break
+            if 'Proteins' in sub.columns and pd.notna(selected_row.get('Proteins')):
+                matched_protein = str(selected_row['Proteins']).split(';')[0].strip()
             info = {
                 'rows': len(sub),
                 'scores': score_list(sub),
@@ -133,15 +156,18 @@ def select_psm_rows(path: Path, proteins: Optional[str] = None, peptide: Optiona
             }
             return [(selected_row, matched_protein, seq_clean, info)]
 
+        # Case 3: Only protein provided
         if proteins:
-            seq_col = get_sequence_column(df)
-            if seq_col is None:
-                sys.exit('Error: no peptide sequence column found in msms.txt')
-            df = df.copy()
-            df['_seq'] = df[seq_col].astype(str).apply(sanitize_sequence)
+            if len(df.columns) == 1:
+                continue
+            df_filtered = df[protein_mask(df, proteins)]
+            if df_filtered.empty:
+                sys.exit(f"Error: no rows found matching protein(s) '{','.join(proteins)}' in Proteins or Gene Names (case-sensitive)")
+            df_filtered = df_filtered.copy()
+            df_filtered['_seq'] = df_filtered[seq_col].astype(str).apply(sanitize_sequence)
             result = []
             for protein in proteins:
-                group = df[protein_mask(df, [protein])]
+                group = df_filtered[protein_mask(df_filtered, [protein])]
                 if group.empty:
                     continue
                 for peptide_seq, sub in group.groupby('_seq', sort=True):
@@ -156,14 +182,16 @@ def select_psm_rows(path: Path, proteins: Optional[str] = None, peptide: Optiona
                 sys.exit(f"Error: no peptides found for protein(s) '{','.join(proteins)}'")
             return result
 
+        # Case 4: Neither provided
         selected_row = select_best_row(df)
-        seq = sanitize_sequence(str(selected_row.get('Sequence', '')))
+        seq = sanitize_sequence(str(selected_row.get(seq_col, '')))
+        matched_protein = str(selected_row.get('Proteins', '')).split(';')[0].strip() if 'Proteins' in df.columns else ''
         info = {
             'rows': len(df),
             'scores': score_list(df),
             'reason': 'best-scored PSM from entire file',
         }
-        return [(selected_row, '', seq, info)]
+        return [(selected_row, matched_protein, seq, info)]
 
     try:
         arr = np.loadtxt(path)
