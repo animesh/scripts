@@ -1,4 +1,4 @@
-#python plotPSM.py "L:\promec\HF\Lars\2026\260330_Essa\combined\txt\msms.txt" --protein alsS,ilvC,ilvD,kivD,yqhD
+#python plotPSM.py "F:\promec\Animesh\Download\PGTK-main\results\txt\msms.txt" --protein ADAR
 #needs Proteins, Sequence, Modified sequence, Raw file, Charge, Fragmentation, Mass analyzer, Masses2/Intensities2 (full spectrum), Masses/Intensities/Matches (annotated ions), Raw precursor m/z = m/z + isotope_index * (1.003355 / charge)  [verified <1.5 mDa error]
 import argparse
 from pathlib import Path
@@ -74,6 +74,23 @@ def protein_matches(proteins, value):
     return any(p in value for p in proteins)
 
 
+def protein_mask(df, proteins):
+    """Match legacy protein ID substrings or exact semicolon-separated gene names."""
+    protein_cols = [c for c in df.columns if c.strip().lower() == 'proteins']
+    gene_cols = [c for c in df.columns if c.strip().lower() == 'gene names']
+    if not protein_cols and not gene_cols:
+        raise ValueError("Protein filtering requires a 'Proteins' or 'Gene Names' column")
+    mask = pd.Series(False, index=df.index)
+    for column in protein_cols:
+        mask |= df[column].fillna('').apply(lambda value: protein_matches(proteins, value))
+    requested = set(proteins)
+    for column in gene_cols:
+        mask |= df[column].fillna('').apply(
+            lambda value: bool(requested.intersection(part.strip() for part in str(value).split(';')))
+        )
+    return mask
+
+
 def select_psm_rows(path: Path, proteins: Optional[str] = None, peptide: Optional[str] = None):
     proteins = split_proteins(proteins)
     for sep in ['\t', ',']:
@@ -82,10 +99,12 @@ def select_psm_rows(path: Path, proteins: Optional[str] = None, peptide: Optiona
         except Exception:
             continue
 
-        if proteins and 'Proteins' in df.columns:
-            df = df[df['Proteins'].astype(str).apply(lambda v: protein_matches(proteins, v))]
+        if proteins:
+            if len(df.columns) == 1:
+                continue
+            df = df[protein_mask(df, proteins)]
             if df.empty:
-                sys.exit(f"Error: no rows found matching protein(s) '{','.join(proteins)}'")
+                sys.exit(f"Error: no rows found matching protein(s) '{','.join(proteins)}' in Proteins or Gene Names (case-sensitive)")
 
         def score_list(sub_df):
             if 'Score' in sub_df.columns:
@@ -102,10 +121,9 @@ def select_psm_rows(path: Path, proteins: Optional[str] = None, peptide: Optiona
                 sys.exit(f"Error: no rows found matching peptide '{peptide}'")
             selected_row = select_best_row(sub)
             matched_protein = ''
-            if proteins and 'Proteins' in selected_row:
-                proteins_in_row = str(selected_row['Proteins'])
+            if proteins:
                 for prot in proteins:
-                    if prot in proteins_in_row:
+                    if protein_mask(sub.loc[[selected_row.name]], [prot]).iloc[0]:
                         matched_protein = prot
                         break
             info = {
@@ -123,7 +141,7 @@ def select_psm_rows(path: Path, proteins: Optional[str] = None, peptide: Optiona
             df['_seq'] = df[seq_col].astype(str).apply(sanitize_sequence)
             result = []
             for protein in proteins:
-                group = df[df['Proteins'].astype(str).apply(lambda v, p=protein: p in str(v))]
+                group = df[protein_mask(df, [protein])]
                 if group.empty:
                     continue
                 for peptide_seq, sub in group.groupby('_seq', sort=True):
@@ -394,7 +412,7 @@ def main():
     parser.add_argument('evidence', type=Path, nargs='?', default=None,
                         help='Optional — not used, kept for backwards compatibility')
     parser.add_argument('--protein', '--protien', type=str, default=None,
-                        help='Case-sensitive comma-separated protein name/id substrings to filter rows (e.g. alsS,alsV)')
+                        help='Case-sensitive comma-separated protein ID substrings or exact gene names from Gene Names (e.g. ADAR or alsS,alsV)')
     parser.add_argument('--peptide', type=str, default=None,
                         help='Peptide sequence to filter rows (e.g. AHPLEIVK)')
     parser.add_argument('--out', type=Path, default=None,
