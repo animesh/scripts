@@ -1,5 +1,5 @@
 #C:\Python314\python.exe -m pip install requests matplotlib pandas alphatims pyopenms pyopenms_viz
-#C:\Python314\python.exe vizPep.py YNDTFWK -c 2 --rt 540 --im 0.8 --rt-tol 80.0 --im-tol 0.1
+#C:\Python314\python.exe vizPep.py YNDTFWK -d 20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.d -c 2 --rt 540 --im 0.8 --rt-tol 80.0 --im-tol 0.1
 #check example from https://pyopenms-viz.readthedocs.io/en/latest/Getting%20Started.html#Case-Example:-Inspecting-a-Peptide-in-DIA details in https://pubs.acs.org/jprobs/article/24/4/2152/3774490/pyOpenMS-viz-Streamlining-Mass-Spectrometry-Data
 import os
 import sys
@@ -7,14 +7,13 @@ import gc
 import atexit
 import tempfile
 import argparse
+import zipfile
 import warnings
 
 # Suppress internal warnings
 #warnings.filterwarnings('ignore')
 #os.environ['PYTHONWARNINGS'] = 'ignore'
 
-import requests
-import zipfile
 import pandas as pd
 import matplotlib.pyplot as plt
 import pyopenms as oms
@@ -37,6 +36,7 @@ detach_alphatims_finalizers()
 # Parse command line arguments
 parser = argparse.ArgumentParser(description="Visualize LC-TIMS-TOF precursor and fragment traces for a peptide.")
 parser.add_argument("sequence", type=str, help="Peptide sequence (e.g., YNDTFWK)")
+parser.add_argument("-d", "--data", type=str, required=True, help="Path to raw Bruker .d folder or .zip archive.")
 parser.add_argument("-c", "--charge", type=int, default=None, help="Precursor charge state (e.g., 2). Scans z=2 and z=3 if omitted.")
 parser.add_argument("--rt", type=float, default=None, help="Explicit Retention Time in seconds (e.g., 696.07).")
 parser.add_argument("--im", type=float, default=None, help="Explicit Ion Mobility 1/K0 (e.g., 0.7647).")
@@ -52,26 +52,27 @@ ppm = args.ppm
 rt_tolerance = args.rt_tol
 mobility_tolerance = args.im_tol
 
-# 1. Download sample data if missing
-url = 'https://github.com/MannLabs/alphatims/releases/download/0.1.210317/20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.d.zip'
-file_name = '20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.d.zip'
-extracted_folder = './20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.d'
+# 1. Handle raw data input (.d directory or .zip archive)
+raw_input = args.data
 
-if not os.path.exists(extracted_folder):
-    print("Downloading sample dataset...")
-    response = requests.get(url)
-    with open(file_name, 'wb') as file:
-        file.write(response.content)
-    print("Extracting dataset...")
-    with zipfile.ZipFile(file_name, 'r') as zip_ref:
-        zip_ref.extractall('./')
-    os.remove(file_name)
+if not os.path.exists(raw_input):
+    sys.exit(f"Error: Specified raw data path '{raw_input}' does not exist.")
+
+if raw_input.lower().endswith('.zip'):
+    extracted_folder = os.path.splitext(raw_input)[0]
+    if not os.path.exists(extracted_folder):
+        print(f"Extracting {raw_input}...")
+        with zipfile.ZipFile(raw_input, 'r') as zip_ref:
+            zip_ref.extractall(os.path.dirname(raw_input) or '.')
+    extracted_folder_path = extracted_folder
+else:
+    extracted_folder_path = raw_input
 
 dia_data = None
 
 try:
     # 2. Load dataset
-    dia_data = alphatims.bruker.TimsTOF(extracted_folder)
+    dia_data = alphatims.bruker.TimsTOF(extracted_folder_path)
     detach_alphatims_finalizers()
     
     seq = oms.AASequence.fromString(sequence)
