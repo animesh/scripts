@@ -42,13 +42,17 @@ while (my $line = <F>) {
 	}
 }
 close F;
-
+if($seq ne ""){print $seq,"\t",motifind($seq),"\t",$cnt,"\n";}
 __END__
+#example PIP-box
+python download_uniprot_wt_sequences.py ADAR IFI16 PALM2AKAP2 ZNF830 NOL9 LSM14A FCRLA TRAP1 --organism-id 9606
+perl motif.pl wt_sequences.fasta "Q..[LIM]..[FY][FY]" | awk -F '\t' '$3!=""' 
 #example search for UNG motif as shown in https://www.genome.jp/tools/motif/MOTIF2.html for [RK]-[FWY]-[ALVI]-[GALVI]-[RK]
 wget https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
 gunzip uniprot_sprot.fasta.gz
+#example APIM
 perl motif.pl uniprot_sprot.fasta "[RK][FWY][ALVI][GALVI][RK]" > uniprot_sprot.motif.txt
-perl motif.pl uniprot_sprot.fasta "[RK][FWY][ALVI][GALVI][RK]" | awk -F '\t' '$3!=""' > uniprot_sprot.motif.found.txt
+perl motif.pl wt_sequences.fasta "[RK][FWY][ALVI][GALVI][RK]" | awk -F '\t' '$3!=""'
 
 #to search for reverse form of the motif (only works for square bracket expression so far...)
 perl motif.pl UNG.fasta "[ILMN]...[QVS]..[RKSE][ILM][QE].[NK][KR]..A[IL].[RLI][RLI]..[KR]" reverse | awk -F '\t' '$2!=""' | less
