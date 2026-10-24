@@ -1,4 +1,4 @@
-#python compareMZ.py --reference F:\8042_extracted.mzML --comparison F:\240819_Mitra_FOC4050_1_Slot2-10_1_8042.mzML --rt-tolerance 0.01 --ms2-before 0.01 --ms2-after 0.01 --output F:\extracted_vs_converted.csv
+# python compareMZ.py --reference F:\240819_Mitra_FOC4050_1_Slot2-10_1_8042.mzML  --comparison F:\promec\TIMSTOF\LARS\Whale_Mitra27samples_LC-MSMSAugust2024-Feb2025\240819_Mitra_FOC4050_1_Slot2-10_1_8042.mzML --rt-tolerance 0.01 --ms2-before 0.01 --ms2-after 0.01 --output F:\extracted_vs_converted.csv
 """Compare spectra of two mzML files at every MS level.
 MS1 spectra are paired by retention time. MS2+ spectra are paired by precursor
 m/z (ppm) within a retention-time window; the reference candidate with the best
@@ -6,6 +6,11 @@ cosine similarity is reported. Peaks are matched in ppm and the signed m/z
 error shows calibration differences. Files are streamed. Both files are indexed
 and cut into retention-time slices; every worker process parses, pairs and
 compares its own slice, so all CPUs are used. A per-MS-level summary is printed.
+
+With --by-id (automatic when both files name spectra "frame=N scan=M", as
+ProteoWizard and extractTDF.py do) spectra are paired by native id, one scan to
+one scan, and compared peak by peak: m/z in ppm, intensity, 1/K0, retention
+time. Frames are cut into slices that the workers process independently.
 """
 
 import argparse
@@ -849,11 +854,386 @@ def process_slice(task: Tuple[int, int, int, int, int, float, float]):
     )
 
 
+SCAN_ID = re.compile(rb'<spectrum\b[^>]*?\bid="frame=(\d+) scan=(\d+)"')
+LEVEL_VALUE = re.compile(rb'accession="MS:1000511"[^>]*?\bvalue="(\d+)"')
+MOBILITY_VALUE = re.compile(rb'accession="MS:1002815"[^>]*?\bvalue="([^"]*)"')
+RT_VALUE = re.compile(rb'accession="MS:1000016"[^>]*?\bvalue="([^"]*)"([^>]*)>')
+ARRAY_BLOCK = re.compile(rb"<binaryDataArray\b.*?</binaryDataArray>", re.S)
+BINARY_TEXT = re.compile(rb"<binary>(.*?)</binary>", re.S)
+ARRAY_TYPES = ((b"MS:1000523", "d"), (b"MS:1000521", "f"), (b"MS:1000519", "i"), (b"MS:1000522", "q"))
+SCAN_MAX_KEYS = ("max_abs_ppm", "max_int_diff", "im_max", "rt_max", "max_near_ppm")
+SCAN_MIN_KEYS = ("min_diff_int",)
+INTENSITY_BINS = 8
+SCAN_CSV_FIELDS = [
+    "frame", "scan", "ms_level", "reference_peaks", "comparison_peaks", "matched", "near_matched",
+    "unmatched_reference", "unmatched_comparison", "max_abs_ppm", "max_abs_intensity_difference",
+    "ion_mobility_difference",
+]
+
+
+def locate_spectrum(data: mmap.mmap, position: int) -> Tuple[Optional[int], int]:
+    """Offset and frame number of the first spectrum starting at or after `position`."""
+    offset = data.find(SPECTRUM_START, position)
+    if offset == -1:
+        return None, 2**62
+    match = SCAN_ID.match(data, offset)
+    if match is None:
+        raise ValueError(f"Spectrum at byte {offset} has no 'frame=N scan=M' native id")
+    return offset, int(match.group(1))
+
+
+def frame_offset(data: mmap.mmap, frame: int) -> int:
+    """Byte offset of the first spectrum of `frame` or any later frame (end of data if none)."""
+    low, high = 0, len(data)
+    while low < high:
+        middle = (low + high) // 2
+        offset, found = locate_spectrum(data, middle)
+        if offset is None or found >= frame:
+            high = middle
+        else:
+            low = middle + 1
+    offset, _ = locate_spectrum(data, low)
+    return len(data) if offset is None else offset
+
+
+def uses_scan_ids(path: Path) -> bool:
+    with path.open("rb") as handle:
+        head = handle.read(1 << 20)
+    offset = head.find(SPECTRUM_START)
+    return offset != -1 and SCAN_ID.match(head, offset) is not None
+
+
+def last_frame(data: mmap.mmap) -> int:
+    offset = data.rfind(SPECTRUM_START)
+    return int(SCAN_ID.match(data, offset).group(1))
+
+
+def decode_scan_array(block: bytes) -> array:
+    type_code = next(code for accession, code in ARRAY_TYPES if accession in block)
+    values = array(type_code)
+    text = BINARY_TEXT.search(block).group(1)
+    raw = base64.b64decode(text) if text else b""
+    if raw and b"MS:1000574" in block:
+        raw = zlib.decompress(raw)
+    values.frombytes(raw)
+    if sys.byteorder == "big":
+        values.byteswap()
+    return values
+
+
+def parse_scan_spectrum(piece: bytes):
+    """(frame, scan, ms level, rt seconds, 1/K0, m/z, intensity) of one spectrum text."""
+    match = SCAN_ID.match(b"<spectrum " + piece[:200])
+    frame, scan = int(match.group(1)), int(match.group(2))
+    level = LEVEL_VALUE.search(piece)
+    mobility = MOBILITY_VALUE.search(piece)
+    rt = RT_VALUE.search(piece)
+    rt_seconds = None
+    if rt is not None:
+        rt_seconds = float(rt.group(1)) * (60.0 if b"UO:0000031" in rt.group(2) else 1.0)
+    mz: Sequence[float] = ()
+    intensity: Sequence[float] = ()
+    if b'defaultArrayLength="0"' not in piece[:200]:
+        for block in ARRAY_BLOCK.findall(piece):
+            if b"MS:1000514" in block:
+                mz = decode_scan_array(block)
+            elif b"MS:1000515" in block:
+                intensity = decode_scan_array(block)
+        if list(mz) != sorted(mz):
+            order = sorted(range(len(mz)), key=mz.__getitem__)
+            mz = [mz[i] for i in order]
+            intensity = [intensity[i] for i in order]
+    return (
+        frame, scan, int(level.group(1)) if level else 0, rt_seconds,
+        float(mobility.group(1)) if mobility else None, mz, intensity,
+    )
+
+
+def iter_scan_spectra(data: mmap.mmap, start: int, end: int):
+    """Spectra of a byte range in file order."""
+    for piece in data[start:end].split(SPECTRUM_START)[1:]:
+        yield parse_scan_spectrum(piece)
+
+
+def match_peaks(reference_mz, comparison_mz, ppm_tolerance: float):
+    """Greedy ordered matching in ppm; returns matched index pairs and the leftover indices."""
+    pairs: List[Tuple[int, int]] = []
+    left_over_reference: List[int] = []
+    left_over_comparison: List[int] = []
+    left = right = 0
+    while left < len(reference_mz) and right < len(comparison_mz):
+        expected = reference_mz[left]
+        difference = comparison_mz[right] - expected
+        if abs(difference) <= expected * ppm_tolerance * 1e-6:
+            pairs.append((left, right))
+            left += 1
+            right += 1
+        elif difference < 0:
+            left_over_comparison.append(right)
+            right += 1
+        else:
+            left_over_reference.append(left)
+            left += 1
+    left_over_reference.extend(range(left, len(reference_mz)))
+    left_over_comparison.extend(range(right, len(comparison_mz)))
+    return pairs, left_over_reference, left_over_comparison
+
+
+def intensity_bin(value: float) -> int:
+    return min(INTENSITY_BINS - 1, max(0, int(math.log10(value)) if value >= 1 else 0))
+
+
+def new_scan_stats() -> Dict[str, float]:
+    keys = [
+        "spectra", "reference_nonempty", "comparison_nonempty", "both_nonempty", "identical",
+        "only_reference", "only_comparison", "reference_peaks", "comparison_peaks", "matched",
+        "near_matched", "unmatched_reference", "unmatched_comparison", "ppm_sum", "abs_ppm_sum",
+        "int_equal", "int_different", "int_diff_sum", "int_rel_sum", "im_pairs", "im_abs_sum",
+        "im_missing", "rt_pairs",
+    ]
+    stats = {key: 0 for key in keys + list(SCAN_MAX_KEYS)}
+    stats["min_diff_int"] = float("inf")
+    for side in ("ref", "cmp"):
+        for bin_number in range(INTENSITY_BINS):
+            stats[f"unmatched_{side}_bin{bin_number}"] = 0
+    return stats
+
+
+def compare_scan_pair(reference, comparison, args, stats, examples) -> Optional[Dict[str, object]]:
+    """Update stats with one (frame, scan); return a CSV row if the scans differ."""
+    frame, scan, level = (reference or comparison)[:3]
+    ref_mz = reference[5] if reference else ()
+    ref_int = reference[6] if reference else ()
+    cmp_mz = comparison[5] if comparison else ()
+    cmp_int = comparison[6] if comparison else ()
+    stats["spectra"] += 1
+    stats["reference_nonempty"] += bool(ref_mz)
+    stats["comparison_nonempty"] += bool(cmp_mz)
+    stats["reference_peaks"] += len(ref_mz)
+    stats["comparison_peaks"] += len(cmp_mz)
+    if ref_mz and cmp_mz:
+        stats["both_nonempty"] += 1
+    elif ref_mz:
+        stats["only_reference"] += 1
+    elif cmp_mz:
+        stats["only_comparison"] += 1
+
+    pairs, extra_ref, extra_cmp = match_peaks(ref_mz, cmp_mz, args.peak_ppm)
+    near_pairs, left_ref, left_cmp = match_peaks(
+        [ref_mz[i] for i in extra_ref], [cmp_mz[i] for i in extra_cmp], args.near_ppm
+    )
+    stats["matched"] += len(pairs)
+    stats["near_matched"] += len(near_pairs)
+    stats["unmatched_reference"] += len(left_ref)
+    stats["unmatched_comparison"] += len(left_cmp)
+    for index in near_pairs:
+        a, b = ref_mz[extra_ref[index[0]]], cmp_mz[extra_cmp[index[1]]]
+        stats["max_near_ppm"] = max(stats["max_near_ppm"], abs(b - a) / a * 1e6)
+    max_ppm = max_int_difference = 0.0
+    for left, right in pairs:
+        ppm = (cmp_mz[right] - ref_mz[left]) / ref_mz[left] * 1e6
+        stats["ppm_sum"] += ppm
+        stats["abs_ppm_sum"] += abs(ppm)
+        max_ppm = max(max_ppm, abs(ppm))
+        difference = abs(round(ref_int[left]) - round(cmp_int[right]))
+        if difference:
+            stats["int_different"] += 1
+            stats["int_diff_sum"] += difference
+            stats["int_rel_sum"] += difference / max(ref_int[left], 1.0)
+            stats["min_diff_int"] = min(stats["min_diff_int"], ref_int[left])
+            max_int_difference = max(max_int_difference, difference)
+            if len(examples["intensity"]) < 5:
+                examples["intensity"].append((frame, scan, level, ref_mz[left], ref_int[left], cmp_int[right]))
+        else:
+            stats["int_equal"] += 1
+    stats["max_abs_ppm"] = max(stats["max_abs_ppm"], max_ppm)
+    stats["max_int_diff"] = max(stats["max_int_diff"], max_int_difference)
+    for index in left_ref:
+        stats[f"unmatched_ref_bin{intensity_bin(ref_int[extra_ref[index]])}"] += 1
+        if len(examples["reference_only"]) < 5:
+            examples["reference_only"].append((frame, scan, level, ref_mz[extra_ref[index]], ref_int[extra_ref[index]]))
+    for index in left_cmp:
+        stats[f"unmatched_cmp_bin{intensity_bin(cmp_int[extra_cmp[index]])}"] += 1
+        if len(examples["comparison_only"]) < 5:
+            examples["comparison_only"].append((frame, scan, level, cmp_mz[extra_cmp[index]], cmp_int[extra_cmp[index]]))
+
+    mobility_difference = ""
+    if reference and comparison:
+        if reference[4] is None or comparison[4] is None:
+            stats["im_missing"] += 1
+        else:
+            mobility_difference = abs(reference[4] - comparison[4])
+            stats["im_pairs"] += 1
+            stats["im_abs_sum"] += mobility_difference
+            stats["im_max"] = max(stats["im_max"], mobility_difference)
+        if reference[3] is not None and comparison[3] is not None:
+            stats["rt_pairs"] += 1
+            stats["rt_max"] = max(stats["rt_max"], abs(reference[3] - comparison[3]))
+    identical = (
+        len(ref_mz) == len(cmp_mz) == len(pairs) and not max_int_difference
+    )
+    stats["identical"] += identical
+    if identical:
+        return None
+    return {
+        "frame": frame, "scan": scan, "ms_level": level, "reference_peaks": len(ref_mz),
+        "comparison_peaks": len(cmp_mz), "matched": len(pairs), "near_matched": len(near_pairs),
+        "unmatched_reference": len(left_ref), "unmatched_comparison": len(left_cmp),
+        "max_abs_ppm": max_ppm, "max_abs_intensity_difference": max_int_difference,
+        "ion_mobility_difference": mobility_difference,
+    }
+
+
+def process_frame_slice(task):
+    """Compare all scans of frames first..last-1 of the two files, paired by native id."""
+    first, last, args = task
+    data = [open_data(args.reference), open_data(args.comparison)]
+    try:
+        streams = []
+        for handle in data:
+            start = frame_offset(handle, first)
+            end = frame_offset(handle, last)
+            streams.append(iter_scan_spectra(handle, start, end))
+        stats: Dict[int, Dict[str, float]] = defaultdict(new_scan_stats)
+        examples: Dict[int, Dict[str, list]] = defaultdict(
+            lambda: {"intensity": [], "reference_only": [], "comparison_only": []}
+        )
+        rows: List[Dict[str, object]] = []
+        reference, comparison = next(streams[0], None), next(streams[1], None)
+        while reference is not None or comparison is not None:
+            reference_key = reference[:2] if reference else None
+            comparison_key = comparison[:2] if comparison else None
+            use_reference = comparison is None or (reference is not None and reference_key <= comparison_key)
+            use_comparison = reference is None or (comparison is not None and comparison_key <= reference_key)
+            pair = (reference if use_reference else None, comparison if use_comparison else None)
+            level = (pair[0] or pair[1])[2]
+            row = compare_scan_pair(pair[0], pair[1], args, stats[level], examples[level])
+            if row is not None and len(rows) < args.slice_rows:
+                rows.append(row)
+            if use_reference:
+                reference = next(streams[0], None)
+            if use_comparison:
+                comparison = next(streams[1], None)
+    finally:
+        for handle in data:
+            handle.close()
+    return dict(stats), dict(examples), rows
+
+
+def run_by_id(args) -> None:
+    """Pair spectra by their native id (frame=N scan=M) and compare them peak by peak."""
+    reference_data, comparison_data = open_data(args.reference), open_data(args.comparison)
+    total_frames = max(last_frame(reference_data), last_frame(comparison_data))
+    reference_data.close()
+    comparison_data.close()
+    last_wanted = min(total_frames, args.max_frame) if args.max_frame else total_frames
+    ranges = [
+        (first, min(first + args.slice_frames, last_wanted + 1), args)
+        for first in range(args.min_frame, last_wanted + 1, args.slice_frames)
+    ]
+    print(f"Pairing by native id: frames {args.min_frame}-{last_wanted} in {len(ranges)} slices on {args.workers} workers", flush=True)
+
+    totals: Dict[int, Dict[str, float]] = defaultdict(new_scan_stats)
+    examples_total: Dict[int, Dict[str, list]] = defaultdict(
+        lambda: {"intensity": [], "reference_only": [], "comparison_only": []}
+    )
+    written = 0
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with args.output.open("w", newline="", encoding="utf-8") as report:
+        writer = csv.DictWriter(report, fieldnames=SCAN_CSV_FIELDS)
+        writer.writeheader()
+        with ProcessPoolExecutor(max_workers=args.workers) as executor:
+            for index, (part_stats, part_examples, rows) in enumerate(executor.map(process_frame_slice, ranges), 1):
+                for level, values in part_stats.items():
+                    for key, value in values.items():
+                        if key in SCAN_MAX_KEYS:
+                            totals[level][key] = max(totals[level][key], value)
+                        elif key in SCAN_MIN_KEYS:
+                            totals[level][key] = min(totals[level][key], value)
+                        else:
+                            totals[level][key] += value
+                for level, values in part_examples.items():
+                    for kind, items in values.items():
+                        if len(examples_total[level][kind]) < 5:
+                            examples_total[level][kind].extend(items[: 5 - len(examples_total[level][kind])])
+                for row in rows:
+                    if written < args.max_rows:
+                        writer.writerow(row)
+                        written += 1
+                if index % 25 == 0 or index == len(ranges):
+                    print(f"  {index}/{len(ranges)} slices", flush=True)
+
+    print(f"\nReference:  {args.reference.name}\nComparison: {args.comparison.name}")
+    print(f"Peaks match within {args.peak_ppm} ppm; leftover peaks are re-matched within {args.near_ppm} ppm ('near')\n")
+    print(
+        f"{'MS':>3} {'scans':>10} {'ref non-empty':>14} {'cmp non-empty':>14} {'only ref':>9} {'only cmp':>9} "
+        f"{'identical':>10}"
+    )
+    for level in sorted(totals):
+        s = totals[level]
+        print(
+            f"{level:>3} {int(s['spectra']):>10} {int(s['reference_nonempty']):>14} {int(s['comparison_nonempty']):>14} "
+            f"{int(s['only_reference']):>9} {int(s['only_comparison']):>9} {int(s['identical']):>10}"
+        )
+    print(f"\n{'MS':>3} {'ref peaks':>12} {'cmp peaks':>12} {'matched':>12} {'near':>8} {'unm.ref':>9} {'unm.cmp':>9} {'mean ppm':>10} {'|ppm|':>8} {'max|ppm|':>9} {'max near':>9}")
+    for level in sorted(totals):
+        s = totals[level]
+        mean = s["ppm_sum"] / s["matched"] if s["matched"] else float("nan")
+        absolute = s["abs_ppm_sum"] / s["matched"] if s["matched"] else float("nan")
+        print(
+            f"{level:>3} {int(s['reference_peaks']):>12} {int(s['comparison_peaks']):>12} {int(s['matched']):>12} "
+            f"{int(s['near_matched']):>8} {int(s['unmatched_reference']):>9} {int(s['unmatched_comparison']):>9} "
+            f"{mean:>10.5f} {absolute:>8.5f} {s['max_abs_ppm']:>9.5f} {s['max_near_ppm']:>9.3f}"
+        )
+    print(f"\n{'MS':>3} {'int equal':>12} {'int differ':>11} {'max |dI|':>9} {'mean |dI|':>10} {'min I that differs':>19}")
+    for level in sorted(totals):
+        s = totals[level]
+        mean_difference = s["int_diff_sum"] / s["int_different"] if s["int_different"] else 0.0
+        smallest = s["min_diff_int"] if s["int_different"] else float("nan")
+        print(
+            f"{level:>3} {int(s['int_equal']):>12} {int(s['int_different']):>11} {int(s['max_int_diff']):>9} "
+            f"{mean_difference:>10.3f} {smallest:>19.1f}"
+        )
+    print(f"\nIon mobility (1/K0) and retention time of paired scans")
+    print(f"{'MS':>3} {'IM pairs':>10} {'missing':>8} {'mean|dIM|':>11} {'max|dIM|':>10} {'max|dRT| s':>11}")
+    for level in sorted(totals):
+        s = totals[level]
+        mean_difference = s["im_abs_sum"] / s["im_pairs"] if s["im_pairs"] else float("nan")
+        print(
+            f"{level:>3} {int(s['im_pairs']):>10} {int(s['im_missing']):>8} {mean_difference:>11.3e} "
+            f"{s['im_max']:>10.3e} {s['rt_max']:>11.3e}"
+        )
+    print("\nUnmatched peaks by intensity decade (counts: 1e0-1e1, 1e1-1e2, ...)")
+    for level in sorted(totals):
+        s = totals[level]
+        for side, label in (("ref", "only in reference"), ("cmp", "only in comparison")):
+            counts = [int(s[f"unmatched_{side}_bin{b}"]) for b in range(INTENSITY_BINS)]
+            print(f"MS{level} {label:>18}: {counts}")
+    for level in sorted(examples_total):
+        for kind, items in examples_total[level].items():
+            for item in items[:3]:
+                print(f"example MS{level} {kind}: frame={item[0]} scan={item[1]} {item[3:]}")
+    print(f"\nScan report ({written} differing scans written, limit {args.max_rows}): {args.output}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Compare two mzML files at every MS level: MS1 by retention "
-        "time, MS2+ by precursor m/z, then peak by peak."
+        "time, MS2+ by precursor m/z, then peak by peak. With --by-id (or when both "
+        "files use 'frame=N scan=M' ids) spectra are paired by native id instead."
     )
+    parser.add_argument(
+        "--by-id",
+        action="store_true",
+        help="Pair spectra by native id 'frame=N scan=M' (per-scan timsTOF files); "
+        "detected automatically when both files use such ids",
+    )
+    parser.add_argument("--near-ppm", type=float, default=20.0, help="--by-id: tolerance for classifying leftover peaks as shifted (default: 20)")
+    parser.add_argument("--slice-frames", type=int, default=50, help="--by-id: frames per worker task (default: 50)")
+    parser.add_argument("--min-frame", type=int, default=1, help="--by-id: first frame to compare")
+    parser.add_argument("--max-frame", type=int, default=0, help="--by-id: last frame to compare (default: all)")
+    parser.add_argument("--max-rows", type=int, default=1000000, help="--by-id: most differing scans to write (default: 1000000)")
+    parser.add_argument("--slice-rows", type=int, default=2000, help=argparse.SUPPRESS)
     parser.add_argument("--reference", type=Path, default=Path(DEFAULT_REFERENCE))
     parser.add_argument("--comparison", type=Path, default=Path(DEFAULT_COMPARISON))
     parser.add_argument(
@@ -940,6 +1320,9 @@ def main() -> None:
     for input_path in (args.reference, args.comparison):
         if not input_path.is_file():
             parser.error(f"input file does not exist: {input_path}")
+    if args.by_id or all(uses_scan_ids(path) for path in (args.reference, args.comparison)):
+        run_by_id(args)
+        return
 
     stats: Dict[int, Dict[str, float]] = defaultdict(new_level_stats)
     collapse_counts: Dict[str, int] = defaultdict(int)
