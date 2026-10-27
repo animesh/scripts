@@ -4,7 +4,7 @@
 #SBATCH --partition=bigmem
 #SBATCH --ntasks=1 --cpus-per-task=32
 #SBATCH --mem-per-cpu=8G
-#SBATCH --time=192:00:00
+#SBATCH --time=48:00:00
 #SBATCH --mail-user=animesh.sharma@ntnu.no
 #SBATCH --mail-type=ALL
 #SBATCH --output=diann_%j.log
@@ -42,7 +42,7 @@ for d in "${RAW_DIR}"/*.d; do
 done
 
 # Process raw data files against the generated library
-./diann-linux $RAW_ARGS --lib "$FASTA_LIBNAME" --threads 80 --verbose 1 --out "$DIANN_RESULTS_DIR/report.parquet" --qvalue 0.01 --matrices --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "$(basename "$FASTA_FILE")" --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:7,0.984016,NQ --var-mod UniMod:1,42.010565,*n --window 32 --mass-acc 20 --mass-acc-ms1 20 --peptidoforms --reanalyse --rt-profiling --original-mods
+./diann-linux $RAW_ARGS --lib "$FASTA_LIBNAME" --threads 80 --verbose 1 --out "$DIANN_RESULTS_DIR/report.parquet" --qvalue 0.01 --matrices --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "$(basename "$FASTA_FILE")" --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --min-fr-mz 200 --max-fr-mz 1800 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:7,0.984016,NQ --var-mod UniMod:1,42.010565,*n --window 32 --mass-acc 20 --mass-acc-ms1 20 --peptidoforms --reanalyse --rt-profiling --original-mods --use-quant
 
 #wget "https://github.com/vdemichev/DiaNN/releases/download/2.0/DIA-NN-2.7.0-Academia-Linux.zip"
 #unzip DIA-NN-2.7.0-Academia-Linux.zip
