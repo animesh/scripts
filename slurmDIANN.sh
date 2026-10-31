@@ -15,7 +15,7 @@ for i in "$DATADIR"/*.d; do
   echo "$i"
   sed "s|$SEARCHTEXT|$i|g" scratch.slurm > "$i.$WRITEFILE.tmp"
   sed "s|WRITEFILE|$WRITEFILE|g" "$i.$WRITEFILE.tmp" > "$i.$WRITEFILE.slurm"
-  sbatch "$i.$WRITEFILE.slurm" /cluster/projects/nn9036k/diann-2.7.0 UP000000589_10090.fasta "$DATADIR"
+  sbatch "$i.$WRITEFILE.slurm" /cluster/projects/nn9036k/diann-2.7.0 UP000005640_9606.fasta "$DATADIR"
   rm -f "$i.$WRITEFILE.tmp"
 done
 

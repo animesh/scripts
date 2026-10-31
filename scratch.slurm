@@ -1,13 +1,4 @@
 #!/bin/bash
-#SBATCH --account=nn9036k 
-#SBATCH --job-name=diann_job
-##SBATCH --partition=bigmem
-#SBATCH --ntasks=1 --cpus-per-task=20
-#SBATCH --mem-per-cpu=8G
-#SBATCH --time=24:00:00
-#SBATCH --mail-user=animesh.sharma@ntnu.no
-#SBATCH --mail-type=ALL
-#SBATCH --output=WRITEFILE_%j.log
 
 DIANN_DIR=${1:-"/cluster/projects/nn9036k/diann-2.7.0"}
 CLEAN_DIR="${DIANN_DIR%/}"
