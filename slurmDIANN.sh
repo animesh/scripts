@@ -1,9 +1,9 @@
 #dos2unix scratch.slurm  slurmDIANN.sh
-#bash slurmDIANN.sh /cluster/projects/nn9036k/scrbkup/maike23
+#bash slurmDIANN.sh /cluster/projects/nn9036k/scrbkup/paola
 #scancel $(squeue -u "$USER" -h -o "%i")
 #!/bin/bash
 
-DATADIR=${1:-"/cluster/projects/nn9036k/scrbkup/maike23"}
+DATADIR=${1:-"/cluster/projects/nn9036k/scrbkup/paola"}
 SEARCHTEXT="TestFile.d"
 CURRENTEPOCTIME=$(date +%s)
 WRITEFILE="$CURRENTEPOCTIME.report"
@@ -22,3 +22,5 @@ done
 echo "$WRITEFILE"
 ls -ltrh "$DATADIR"/*"$WRITEFILE.slurm"
 squeue -u "$USER"
+
+
