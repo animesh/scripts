@@ -1,6 +1,5 @@
-# python compareMGF.py --reference F:\240819_Mitra_FOC4050_1_Slot2-10_1_8042.mgf --comparison F:\promec\TIMSTOF\LARS\Whale_Mitra27samples_LC-MSMSAugust2024-Feb2025\240819_Mitra_FOC4050_1_Slot2-10_1_8042.pwiz.mgf --output F:\mgf_differences.csv
 """Compare two timsTOF MGF files entry by entry, paired by (frame, scan).
-
+python compareMGF.py --reference F:\240819_Mitra_FOC4050_1_Slot2-10_1_8042.mgf --comparison F:\promec\TIMSTOF\LARS\Whale_Mitra27samples_LC-MSMSAugust2024-Feb2025\240819_Mitra_FOC4050_1_Slot2-10_1_8042.pwiz.mgf --output F:\mgf_differences.csv
 Both files must name entries by frame and scan: "TITLE=frame=4 scan=814" (ProteoWizard) or
 "TITLE=sample.frame=4.scan=814.precursor=1" (extractTDF.py --mgf). Entries are in frame order
 in both files, so the files are cut into frame ranges that 32 workers compare independently.
