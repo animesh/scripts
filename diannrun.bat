@@ -34,8 +34,8 @@ set DIANNDIR=C:\Program Files\DIA-NN\2.2.0\
 set DATAROOT=F:\promec\TIMSTOF\Raw
 set NAMETOKEN1=HeLa
 set NAMETOKEN2=DIA
-set SPECLIB=F:\promec\FastaDB\humanMC2V3defaults.predicted.speclib
-set FASTAFILE=F:\promec\FastaDB\UP000005640_9606_1protein1gene.fasta
+set SPECLIB=F:\promec\FastaDB\humanMoxCaAcNfr100-1700pr400.1000MC2V3.predicted.speclib
+set FASTAFILE=F:\promec\FastaDB\UP000005640_9606.fasta
 set FASTACONT=camprotR_240512_cRAP_20190401_full_tags.fasta
 :: FASTACONT is resolved relative to DIANNDIR (DIA-NN is launched with that
 :: as its working directory via "start /D", same as the manual session).
@@ -528,7 +528,7 @@ if exist "!QUEUEFILE!" del /q "!QUEUEFILE!" >nul 2>nul
 :: /D sets the working directory for the spawned process only (so the relative
 :: FASTACONT path resolves against DIANNDIR, exactly as in the manual session)
 :: without changing this script's own current directory.
-start "DN.%BN%" /D "%DIANNDIR%" "%DIANNCMD%" --f "!DATADEST!" --lib "%SPECLIB%" --threads %THREADS_PER_JOB% --verbose 1 --out "!SESSIONDIR!\%BN%.d.report.parquet" --qvalue %QVALUE% --matrices --out-lib "!SESSIONDIR!\%BN%.d.report-lib.parquet" --gen-spec-lib --reannotate --fasta "%FASTACONT%" --cont-quant-exclude cRAP- --fasta "%FASTAFILE%" --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 300 --max-pr-mz 1800 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --individual-mass-acc --individual-windows --peptidoforms --rt-profiling --direct-quant --original-mods --export-quant
+start "DN.%BN%" /D "%DIANNDIR%" "%DIANNCMD%" --f "!DATADEST!" --lib "%SPECLIB%" --threads %THREADS_PER_JOB% --verbose 1 --out "!SESSIONDIR!\%BN%.d.report.parquet" --qvalue %QVALUE% --matrices --out-lib "!SESSIONDIR!\%BN%.d.report-lib.parquet" --gen-spec-lib --reannotate --fasta "%FASTACONT%" --cont-quant-exclude cRAP- --fasta "%FASTAFILE%" --met-excision --min-pep-len 7 --max-pep-len 30  --min-fr-mz 100 --max-fr-mz 1700  --min-pr-mz 400 --max-pr-mz 1000 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --individual-mass-acc --individual-windows --peptidoforms --rt-profiling --direct-quant --original-mods --export-quant
 :: Wait briefly then capture PID via window title (fast, no WMIC overhead)
 timeout /t 3 /nobreak >nul
 set "DN_PID="

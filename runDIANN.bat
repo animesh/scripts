@@ -36,7 +36,7 @@ for /d %%i in ("%dataDir%\*.d") do set fileList=!fileList! --f "%%i"
 
 cd "C:\Program Files\DIA-NN\2.2.0\"
 
-set diannCmd=diann.exe!fileList!  --lib "F:\promec\FastaDB\humanMoxCaAcNfr100-1700pr400.1000MC2V3.predicted.speclib" --threads %NCPU% --verbose 1 --out "!outputDir!\report.parquet" --qvalue 0.01 --matrices --out-lib "!outputDir!\report-lib.parquet" --gen-spec-lib --reannotate --fasta "camprotR_240512_cRAP_20190401_full_tags.fasta" --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606.fasta" --min-fr-mz 100 --max-fr-mz 1700  --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 400 --max-pr-mz 1000 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 15.0 --mass-acc-ms1 15 --peptidoforms --reanalyse --rt-profiling
+set diannCmd=diann.exe!fileList!  --lib "F:\promec\FastaDB\humanMoxCaAcNfr100-1700pr400.1000MC2V3.predicted.speclib" --threads %NCPU% --verbose 1 --out "!outputDir!\report.parquet" --qvalue 0.01 --matrices --out-lib "!outputDir!\report-lib.parquet" --gen-spec-lib --reannotate --fasta "camprotR_240512_cRAP_20190401_full_tags.fasta" --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606.fasta" --min-fr-mz 100 --max-fr-mz 1700  --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 400 --max-pr-mz 1000 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --reanalyse --rt-profiling
 
 if not "%mode%"=="" set diannCmd=!diannCmd! %mode%
 
