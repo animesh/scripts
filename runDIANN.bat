@@ -1,4 +1,4 @@
-::runDIANN.bat F:\promec\TIMSTOF\LARS\2026\261026_Paola 64 --high-acc
+::runDIANN.bat F:\promec\TIMSTOF\LARS\2026\261104_Lilith 64 --high-acc
 :: DIA-NN 2.2.0 Academia  (Data-Independent Acquisition by Neural Networks) Compiled on May 29 2025 21:29:29 Current date and time: Tue Aug  5 09:36:11 2025 CPU: GenuineIntel Intel(R) Xeon(R) CPU E5-2683 v4 @ 2.10GHz SIMD instructions: AVX AVX2 FMA SSE4.1 SSE4.2 Logical CPU cores: 64 Thread number set to 32 Output will be filtered at 0.01 FDR Precursor/protein x samples expression level matrices will be saved along with the main report A spectral library will be generated
 
 @echo off
@@ -36,10 +36,10 @@ for /d %%i in ("%dataDir%\*.d") do set fileList=!fileList! --f "%%i"
 
 cd "C:\Program Files\DIA-NN\2.2.0\"
 
-set diannCmd=diann.exe!fileList!  --lib "F:\promec\FastaDB\humanMoxCaAcNfr100-1700pr400.1000MC2V3.predicted.speclib" --threads %NCPU% --verbose 1 --out "!outputDir!\report.parquet" --qvalue 0.01 --matrices --out-lib "!outputDir!\report-lib.parquet" --gen-spec-lib --reannotate --fasta "camprotR_240512_cRAP_20190401_full_tags.fasta" --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606.fasta" --min-fr-mz 100 --max-fr-mz 1700  --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 400 --max-pr-mz 1000 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 20.0 --mass-acc-ms1 20 --peptidoforms --reanalyse --rt-profiling
+set diannCmd=diann.exe!fileList!  --lib "F:\promec\FastaDB\mouseMoxCaAcNfr100-1700pr400.1000MC2V3.predicted.speclib" --threads %NCPU% --verbose 1 --out "!outputDir!\report.parquet" --qvalue 0.01 --matrices --out-lib "!outputDir!\report-lib.parquet" --gen-spec-lib --reannotate --fasta "camprotR_240512_cRAP_20190401_full_tags.fasta" --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000000589_10090.fasta" --min-fr-mz 100 --max-fr-mz 1700  --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 400 --max-pr-mz 1000 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --mass-acc 15.0 --mass-acc-ms1 15 --peptidoforms --reanalyse --rt-profiling --use-quant --window 17
 
 if not "%mode%"=="" set diannCmd=!diannCmd! %mode%
 
 !diannCmd!
 
-::diann.exe --lib "" --threads 64 --verbose 1 --out "C:\Temp\report.parquet" --qvalue 0.01 --matrices  --out-lib "F:\promec\FastaDB\humanMoxCaAcNfr100-1700pr400.1000MC2V3.parquet" --gen-spec-lib --predictor --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000005640_9606.fasta" --fasta-search --min-fr-mz 100 --max-fr-mz 1700 --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 400 --max-pr-mz 1000 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --peptidoforms --reanalyse --rt-profiling
+::diann.exe --lib "" --threads 64 --verbose 1 --out "C:\Temp\report.parquet" --qvalue 0.01 --matrices  --out-lib "F:\promec\FastaDB\mouseMoxCaAcNfr100-1700pr400.1000MC2V3.parquet" --gen-spec-lib --predictor --reannotate --fasta camprotR_240512_cRAP_20190401_full_tags.fasta --cont-quant-exclude cRAP- --fasta "F:\promec\FastaDB\UP000000589_10090.fasta" --fasta-search --min-fr-mz 100 --max-fr-mz 1700 --met-excision --min-pep-len 7 --max-pep-len 30 --min-pr-mz 400 --max-pr-mz 1000 --min-pr-charge 1 --max-pr-charge 4 --cut K*,R* --missed-cleavages 2 --unimod4 --var-mods 3 --var-mod UniMod:35,15.994915,M --var-mod UniMod:1,42.010565,*n --peptidoforms --reanalyse --rt-profiling
