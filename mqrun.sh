@@ -5,7 +5,8 @@
 #mkdir miriam
 #rsync -Parv /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/Animesh/Miriam/Proteomes/*.raw miriam/
 #rsync -Parv /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/Animesh/Miriam/Proteomes/Proteome\ from\ uniprot/* miriam/
-#bash mqrun.sh   /cluster/home/ash022/scripts/MaxQuant_v2.8.1.0/bin/MaxQuantCmd.dll   "$PWD/miriam/"   mqpar.xml   5   0.01   /cluster/home/ash022/scripts/mqpar.xml.1795119949.results
+#bash mqrun.sh   /cluster/home/ash022/scripts/MaxQuant_v2.8.1.0/bin/MaxQuantCmd.dll   "$PWD/miriam/"   mqpar.xml   20   0.01   /cluster/home/ash022/scripts/mqpar.xml.1795119949.results
+#tar cvzf mqpar.xml.1795119949.results.tgz  mqpar.xml.1795119949.results/*/com*/txt/proteinGroups.txt
 
 set -euo pipefail
 
