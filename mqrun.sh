@@ -3,10 +3,10 @@
 #   bash mqrun.sh <MaxQuantCmd.dll> <raw_dir/> <param_xml_in_cwd> <cpus_per_job> <fdr> <outdir>
 #curl -s --list-only --ftp-ssl-reqd --user "anonymous:user@example.com" "ftp://massive-ftp.ucsd.edu/v07/MSV000094602/raw/raw_file/" | tr -d '\r' | grep -i '\.raw$' | while IFS= read -r f; do echo "=== $f ==="; curl -# -C - -O --ftp-ssl-reqd --user "anonymous:user@example.com" "ftp://massive-ftp.ucsd.edu/v07/MSV000094602/raw/raw_file/$f"; done
 #mkdir miriam
-#rsync -Parv /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/Animesh/Miriam/Proteomes/*.raw miriam/
-#rsync -Parv /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/Animesh/Miriam/Proteomes/Proteome\ from\ uniprot/* miriam/
-#bash mqrun.sh   /cluster/home/ash022/scripts/MaxQuant_v2.8.1.0/bin/MaxQuantCmd.dll   "$PWD/miriam/"   mqpar.xml   20   0.01   /cluster/home/ash022/scripts/mqpar.xml.1795119949.results
-#tar cvzf mqpar.xml.1795119949.results.tgz  mqpar.xml.1795119949.results/*/com*/txt/proteinGroups.txt
+#rsync -Parv /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/Animesh/Miriam/Proteomes/raw/*.raw miriam/
+#rsync -Parv /nird/datapeak/NS9036K/NORSTORE_OSL_DISK/NS9036K/promec/promec/Animesh/Miriam/Proteomes/*/*.fasta miriam/
+#bash mqrun.sh   /cluster/home/ash022/scripts/MaxQuant_v2.8.1.0/bin/MaxQuantCmd.dll   "$PWD/miriam/raw/"   mqpar.xml   20   0.01   /cluster/home/ash022/scripts/mqpar.xml.1795119951.results
+#tar cvzf mqpar.xml.1795119951.results.tgz  mqpar.xml.1795119951.results/*/com*/txt/proteinGroups.txt
 
 set -euo pipefail
 

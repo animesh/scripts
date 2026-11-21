@@ -2,7 +2,7 @@
 <MaxQuantParams xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
    <fastaFiles>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/1_Gadus_morhua.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/35_Limanda_limanda.uniprot.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
@@ -15,7 +15,7 @@
          <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/25_Clupea_harengus.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/58_Merlangius_merlangus.uniprot.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
@@ -28,7 +28,7 @@
          <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/27_Scomber_scombrus.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/11_Melanogrammus_aeglefinus.uniprot.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
@@ -41,7 +41,7 @@
          <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/3_Merluccius_merluccius.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/13_Pollachius_pollachius.uniprot.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
@@ -54,7 +54,7 @@
          <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/33_Pleuronectes_platessa.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/21_Micromesistius_poutassou.uniprot.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
@@ -67,7 +67,7 @@
          <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/39_Scophthalmus_maximus.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/29_Trachurus_trachurus.uniprot.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
@@ -80,7 +80,72 @@
          <gff3FilePath></gff3FilePath>
       </FastaFileInfo>
       <FastaFileInfo>
-         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/40_Cyclopterus_lumpus.fasta</fastaFilePath>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/44_Ammodytes_marinus.uniprot.fasta</fastaFilePath>
+         <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/5_Pollachius_virens.uniprot.fasta</fastaFilePath>
+         <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/52_Amblyraja_radiata.uniprot.fasta</fastaFilePath>
+         <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/54_Callionymus_lyra.uniprot.fasta</fastaFilePath>
+         <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/56_Argentina_silus.uniprot.fasta</fastaFilePath>
+         <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
+         <descriptionParseRule>>(.*)</descriptionParseRule>
+         <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
+         <variationParseRule></variationParseRule>
+         <modificationParseRule></modificationParseRule>
+         <taxonomyId></taxonomyId>
+         <koParseRule></koParseRule>
+         <cogParseRule></cogParseRule>
+         <ecParseRule></ecParseRule>
+         <gff3FilePath></gff3FilePath>
+      </FastaFileInfo>
+      <FastaFileInfo>
+         <fastaFilePath>/cluster/projects/nn9036k/scrbkup/miriam/60_Eutrigla_gurnardus.uniprot.fasta</fastaFilePath>
          <identifierParseRule>>[^|]*\|(.*?)\|</identifierParseRule>
          <descriptionParseRule>>(.*)</descriptionParseRule>
          <taxonomyParseRule>OX=(\d+)</taxonomyParseRule>
