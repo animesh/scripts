@@ -1,6 +1,6 @@
 #curl -sS https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz | tar -xz rankedlineage.dmp
-#python fastaHeaderUniprot.py "L:\promec\Animesh\Miriam\Proteomes\Proteome prom NCBI\11_Melanogrammus_aeglefinus.faa" rankedlineage.dmp  
-#python fastaHeaderUniprot.py "L:\promec\Animesh\Miriam\Proteomes\Proteome from Madhushri\58_Merlangius_merlangus.faa" rankedlineage.dmp
+#for %F in ("L:\promec\Animesh\Miriam\Proteomes\Proteome prom NCBI\*.faa") do python fastaHeaderUniprot.py "%F" rankedlineage.dmp
+#for %F in ("L:\promec\Animesh\Miriam\Proteomes\Proteome from Madhushri\*.faa") do python fastaHeaderUniprot.py "%F" rankedlineage.dmp
 import sys
 import re
 import os
