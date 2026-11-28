@@ -36,11 +36,19 @@ if [ "${NUM_FILES}" -eq 0 ]; then
     exit 1
 fi
 
+PENDING_RAW_FILES=()
+
 for raw_path in "${RAW_FILES[@]}"; do
     raw_base="$(basename "${raw_path}")"
     sample_id="${raw_base%%.*}"
     sample_dir="${WRITEDIR}/${sample_id}"
     mkdir -p "${sample_dir}"
+
+    if [ -s "${sample_dir}/combined/txt/proteinGroups.txt" ] || [ -s "${sample_dir}_/combined/txt/proteinGroups.txt" ]; then
+        continue
+    fi
+
+    PENDING_RAW_FILES+=("${raw_path}")
 
     if [ ! -f "${sample_dir}/${raw_base}" ]; then
         cp "${raw_path}" "${sample_dir}/"
@@ -54,8 +62,20 @@ for raw_path in "${RAW_FILES[@]}"; do
     mv "${tmp_xml}" "${sample_dir}/${sample_id}.xml"
 done
 
-RAW_LIST_ENTRIES="$(printf '  "%s"\n' "${RAW_FILES[@]}")"
-ARRAY_MAX=$((NUM_FILES - 1))
+NUM_PENDING="${#PENDING_RAW_FILES[@]}"
+
+if [ "${NUM_PENDING}" -eq 0 ]; then
+    echo "All ${NUM_FILES} .raw files already have combined/txt/proteinGroups.txt in ${WRITEDIR}. Nothing to submit."
+    exit 0
+fi
+
+echo "Incomplete / missing jobs (${NUM_PENDING} of ${NUM_FILES} .raw files):"
+for pending_path in "${PENDING_RAW_FILES[@]}"; do
+    echo "  $(basename "${pending_path}") (${pending_path})"
+done
+
+RAW_LIST_ENTRIES="$(printf '  "%s"\n' "${PENDING_RAW_FILES[@]}")"
+ARRAY_MAX=$((NUM_PENDING - 1))
 JOB_SCRIPT="${WRITEDIR}/submit_mq_array.sbatch"
 
 cat <<EOF > "${JOB_SCRIPT}"
@@ -95,4 +115,4 @@ dotnet "${MAXQUANTCMD}" "\${xml_file}"
 EOF
 
 sbatch "${JOB_SCRIPT}"
-echo "Submitted ${NUM_FILES} array jobs (indices 0..${ARRAY_MAX}). Results & logs: ${WRITEDIR}"
+echo "Submitted ${NUM_PENDING} array jobs (indices 0..${ARRAY_MAX}). Results & logs: ${WRITEDIR}"
